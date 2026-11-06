@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::env;
 use std::path::{Component, Path, PathBuf};
 
+pub mod llm_auth;
 pub mod secrets;
 
 // The generated code's location depends on the build system (Cargo vs. Bazel)
@@ -55,6 +56,7 @@ pub struct SerdeConfig {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum SerdeProviderConfig {
     Openai {
+        workload_identity: Option<proto::OpenAiWorkloadIdentityConfig>,
         model: String,
         #[serde(alias = "apiKey")]
         api_key: Option<SerdeSecret>,
@@ -306,6 +308,7 @@ impl From<SerdeConfig> for Config {
                         model,
                         api_key,
                         api,
+                        workload_identity,
                     } => ProviderConfig {
                         config: Some(proto::llm_provider_config::Config::Openai(
                             proto::OpenAiConfig {
@@ -313,6 +316,7 @@ impl From<SerdeConfig> for Config {
                                 api_key: api_key.map(Into::into),
                                 org_id: "".to_string(),
                                 api: api.unwrap_or_default(),
+                                workload_identity,
                             },
                         )),
                     },
@@ -855,12 +859,15 @@ impl ConfigExt for Config {
         let path = path.as_ref();
         let mut stack = Vec::new();
         let value = load_config_value(path, &mut stack, 0)?;
+        llm_auth::validate_field_placement(&value)?;
         let serde_config: SerdeConfig = serde_json::from_value(value).map_err(|error| {
             anyhow!("Failed to deserialize merged Talon configuration: {error}")
         })?;
         validate_trust_config(&serde_config)?;
         validate_provider_config(&serde_config)?;
-        Ok(serde_config.into())
+        let config: Config = serde_config.into();
+        llm_auth::validate_config(&config)?;
+        Ok(config)
     }
 
     fn load_default() -> Result<Config> {
@@ -893,13 +900,16 @@ impl ConfigExt for Config {
                 }
                 merge_config_values(&mut merged, value);
 
+                llm_auth::validate_field_placement(&merged)?;
                 let serde_config: SerdeConfig =
                     serde_json::from_value(merged).map_err(|error| {
                         anyhow!("Failed to deserialize TALON_CONFIG_INLINE_YAML: {error}")
                     })?;
                 validate_trust_config(&serde_config)?;
                 validate_provider_config(&serde_config)?;
-                return Ok(serde_config.into());
+                let config: Config = serde_config.into();
+                llm_auth::validate_config(&config)?;
+                return Ok(config);
             }
         }
 
@@ -929,7 +939,10 @@ impl ConfigExt for Config {
     }
 
     fn decode_binary(data: &[u8]) -> Result<Config> {
-        Config::decode(data).map_err(|e| anyhow!("Failed to decode binary config: {}", e))
+        let config =
+            Config::decode(data).map_err(|e| anyhow!("Failed to decode binary config: {}", e))?;
+        llm_auth::validate_config(&config)?;
+        Ok(config)
     }
 }
 
@@ -1095,6 +1108,15 @@ fn resolve_config_relative_paths_value(path: &Path, value: &mut Value) {
         return;
     };
 
+    if let Some(providers) = object.get_mut("providers").and_then(Value::as_object_mut) {
+        for provider in providers.values_mut().filter_map(Value::as_object_mut) {
+            resolve_raw_path_at(
+                path,
+                provider,
+                &["workload_identity", "source", "token_file", "path"],
+            );
+        }
+    }
     resolve_raw_path_at(path, object, &["workspace_dir"]);
     resolve_raw_path_at(path, object, &["database", "data_dir"]);
     resolve_raw_path_at(path, object, &["control_plane", "database", "data_dir"]);

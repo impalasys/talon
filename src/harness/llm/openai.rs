@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::cas::CasStore;
+use crate::harness::llm::credentials::{LlmCredentialProvider, StaticApiKey};
 use crate::harness::llm::provider::{
     chat_content_part, chat_message_text, chat_stream_event, encrypted_reasoning_event,
     object_ref_fallback_text, provider_request_error, reasoning_delta_event, text_delta_event,
@@ -17,7 +18,7 @@ use serde_json::Value;
 use std::{
     collections::HashSet,
     pin::Pin,
-    sync::OnceLock,
+    sync::{Arc, OnceLock},
     task::{Context, Poll},
 };
 
@@ -140,6 +141,7 @@ pub struct OpenAiCompatibleProvider {
     pub provider_key: String,
     pub http_client: reqwest::Client,
     cas: CasStore,
+    credentials: Arc<dyn LlmCredentialProvider>,
 }
 
 impl OpenAiCompatibleProvider {
@@ -165,6 +167,7 @@ impl OpenAiCompatibleProvider {
         api: impl Into<String>,
         provider_key: impl Into<String>,
     ) -> Self {
+        let credentials = Arc::new(StaticApiKey::new(api_key.clone()));
         Self {
             api_key,
             base_url,
@@ -173,7 +176,27 @@ impl OpenAiCompatibleProvider {
             provider_key: provider_key.into(),
             http_client: shared_http_client(),
             cas,
+            credentials,
         }
+    }
+
+    pub fn with_credentials(
+        api_key: String,
+        base_url: String,
+        model: String,
+        cas: CasStore,
+        api: impl Into<String>,
+        provider_key: impl Into<String>,
+        credentials: Arc<dyn LlmCredentialProvider>,
+    ) -> Self {
+        let mut provider =
+            Self::with_provider_key(api_key, base_url, model, cas, api, provider_key);
+        provider.credentials = credentials;
+        provider
+    }
+
+    async fn authorization_header(&self) -> Result<String> {
+        Ok(format!("Bearer {}", self.credentials.bearer_token().await?))
     }
 
     fn uses_responses_api(&self) -> bool {
@@ -656,7 +679,7 @@ impl OpenAiCompatibleProvider {
         let initial_resp = self
             .http_client
             .post(&url)
-            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Authorization", self.authorization_header().await?)
             .json(&initial_payload)
             .send()
             .await?;
@@ -690,7 +713,7 @@ impl OpenAiCompatibleProvider {
             let retry_resp = self
                 .http_client
                 .post(&url)
-                .header("Authorization", format!("Bearer {}", self.api_key))
+                .header("Authorization", self.authorization_header().await?)
                 .json(&retry_payload)
                 .send()
                 .await?;
@@ -729,7 +752,7 @@ impl OpenAiCompatibleProvider {
                 let retry_without_tools_resp = self
                     .http_client
                     .post(&url)
-                    .header("Authorization", format!("Bearer {}", self.api_key))
+                    .header("Authorization", self.authorization_header().await?)
                     .json(&retry_without_tools_payload)
                     .send()
                     .await?;
@@ -778,7 +801,7 @@ impl OpenAiCompatibleProvider {
             let retry_resp = self
                 .http_client
                 .post(&url)
-                .header("Authorization", format!("Bearer {}", self.api_key))
+                .header("Authorization", self.authorization_header().await?)
                 .json(&retry_payload)
                 .send()
                 .await?;
@@ -980,7 +1003,7 @@ impl OpenAiCompatibleProvider {
         let response = self
             .http_client
             .post(&url)
-            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Authorization", self.authorization_header().await?)
             .json(&payload)
             .send()
             .await?;
@@ -1020,7 +1043,7 @@ impl OpenAiCompatibleProvider {
                 let retry_response = self
                     .http_client
                     .post(&url)
-                    .header("Authorization", format!("Bearer {}", self.api_key))
+                    .header("Authorization", self.authorization_header().await?)
                     .json(&payload)
                     .send()
                     .await?;

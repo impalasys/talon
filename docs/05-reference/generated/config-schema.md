@@ -89,6 +89,45 @@ Static metadata for a model configured in the model catalog. Costs are in USD pe
 | `google` | `GoogleConfig` | oneof (config) |
 | `openai_compatible` | `GenericConfig` | oneof (config) |
 
+## `OpenAiWorkloadIdentityConfig`
+
+OpenAI-specific destination mapping, independent of the identity source.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `source` | `WorkloadIdentitySource` | - |
+| `identity_provider_id` | `string` | - |
+| `service_account_id` | `string` | - |
+
+## `WorkloadIdentitySource`
+
+Sources supply an OIDC subject token; destination adapters exchange it.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `google_metadata` | `GoogleMetadataIdentitySource` | oneof (config) |
+| `aws_sts` | `AwsStsIdentitySource` | oneof (config) |
+| `token_file` | `TokenFileIdentitySource` | oneof (config) |
+
+## `GoogleMetadataIdentitySource`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `audience` | `string` | - |
+
+## `AwsStsIdentitySource`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `audience` | `string` | - |
+| `region` | `string` | Explicit regional STS endpoint; the global endpoint is unsupported. |
+
+## `TokenFileIdentitySource`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `path` | `string` | Reread on every exchange to pick up projected token rotation. |
+
 ## `OpenAiConfig`
 
 | Field | Type | Notes |
@@ -97,6 +136,7 @@ Static metadata for a model configured in the model catalog. Costs are in USD pe
 | `api_key` | `Secret` | - |
 | `org_id` | `string` | - |
 | `api` | `string` | - |
+| `workload_identity` | `OpenAiWorkloadIdentityConfig` | Omitted workload identity retains existing static or tenant API-key behavior. |
 
 ## `AnthropicConfig`
 

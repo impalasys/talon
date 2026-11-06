@@ -2498,6 +2498,7 @@ mod tests {
                     ProviderConfig {
                         config: Some(proto::llm_provider_config::Config::Openai(
                             proto::OpenAiConfig {
+                                workload_identity: None,
                                 model: "gpt-test".to_string(),
                                 api_key: None,
                                 org_id: String::new(),
@@ -2676,6 +2677,7 @@ mod tests {
                     ProviderConfig {
                         config: Some(proto::llm_provider_config::Config::Openai(
                             proto::OpenAiConfig {
+                                workload_identity: None,
                                 model: "gpt-test".to_string(),
                                 api_key: None,
                                 org_id: String::new(),

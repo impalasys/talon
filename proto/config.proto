@@ -86,11 +86,44 @@ message LlmProviderConfig {
   }
 }
 
+// OpenAI-specific destination mapping, independent of the identity source.
+message OpenAiWorkloadIdentityConfig {
+  WorkloadIdentitySource source = 1;
+  string identity_provider_id = 2;
+  string service_account_id = 3;
+}
+
+// Sources supply an OIDC subject token; destination adapters exchange it.
+message WorkloadIdentitySource {
+  oneof config {
+    GoogleMetadataIdentitySource google_metadata = 1;
+    AwsStsIdentitySource aws_sts = 2;
+    TokenFileIdentitySource token_file = 3;
+  }
+}
+
+message GoogleMetadataIdentitySource {
+  string audience = 1;
+}
+
+message AwsStsIdentitySource {
+  string audience = 1;
+  // Explicit regional STS endpoint; the global endpoint is unsupported.
+  string region = 2;
+}
+
+message TokenFileIdentitySource {
+  // Reread on every exchange to pick up projected token rotation.
+  string path = 1;
+}
+
 message OpenAiConfig {
   string model = 1;
   Secret api_key = 2;
   string org_id = 3;
   string api = 4;
+  // Omitted workload identity retains existing static or tenant API-key behavior.
+  OpenAiWorkloadIdentityConfig workload_identity = 5;
 }
 
 message AnthropicConfig {

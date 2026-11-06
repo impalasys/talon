@@ -6730,6 +6730,7 @@ dependencies = [
  "aws-sdk-scheduler",
  "aws-sdk-secretsmanager",
  "aws-sdk-sqs",
+ "aws-sdk-sts",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
  "axum 0.7.9",

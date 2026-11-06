@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/config.proto.
  */
 export const file_proto_config: GenFile = /*@__PURE__*/
-  fileDesc("ChJwcm90by9jb25maWcucHJvdG8SDHRhbG9uLmNvbmZpZyKiBAoLVGFsb25Db25maWcSOwoJcHJvdmlkZXJzGAEgAygLMigudGFsb24uY29uZmlnLlRhbG9uQ29uZmlnLlByb3ZpZGVyc0VudHJ5Ei4KCGRhdGFiYXNlGAIgASgLMhwudGFsb24uY29uZmlnLkRhdGFiYXNlQ29uZmlnEioKBnNlcnZlchgDIAEoCzIaLnRhbG9uLmNvbmZpZy5TZXJ2ZXJDb25maWcSGAoQZGVmYXVsdF9wcm92aWRlchgEIAEoCRIVCg13b3Jrc3BhY2VfZGlyGAUgASgJEjcKDWNvbnRyb2xfcGxhbmUYBiABKAsyIC50YWxvbi5jb25maWcuQ29udHJvbFBsYW5lQ29uZmlnEj8KC2NvbnRyb2xsZXJzGAcgAygLMioudGFsb24uY29uZmlnLlRhbG9uQ29uZmlnLkNvbnRyb2xsZXJzRW50cnkSKAoFdHJ1c3QYCCABKAsyGS50YWxvbi5jb25maWcuVHJ1c3RDb25maWcaUQoOUHJvdmlkZXJzRW50cnkSCwoDa2V5GAEgASgJEi4KBXZhbHVlGAIgASgLMh8udGFsb24uY29uZmlnLkxsbVByb3ZpZGVyQ29uZmlnOgI4ARpSChBDb250cm9sbGVyc0VudHJ5EgsKA2tleRgBIAEoCRItCgV2YWx1ZRgCIAEoCzIeLnRhbG9uLmNvbmZpZy5Db250cm9sbGVyQ29uZmlnOgI4ASI5CgtUcnVzdENvbmZpZxIqCgRvaWRjGAEgAygLMhwudGFsb24uY29uZmlnLk9pZGNUcnVzdEVudHJ5Is4BCg5PaWRjVHJ1c3RFbnRyeRIMCgRuYW1lGAEgASgJEg4KBmlzc3VlchgCIAEoCRIRCglhdWRpZW5jZXMYAyADKAkSFwoPYWxsb3dlZF9kb21haW5zGAQgAygJEhYKDmFsbG93ZWRfZW1haWxzGAUgAygJEhAKCGp3a3NfdXJsGAYgASgJEhoKEmNsb2NrX3NrZXdfc2Vjb25kcxgHIAEoDRIsCgZncmFudHMYCCADKAsyHC50YWxvbi5jb25maWcuT2lkY1RydXN0R3JhbnQivAEKDk9pZGNUcnVzdEdyYW50Ei8KBGtpbmQYASABKA4yIS50YWxvbi5jb25maWcuT2lkY1RydXN0R3JhbnQuS2luZBIRCgluYW1lc3BhY2UYAiABKAkSDQoFYWdlbnQYAyABKAkSDwoHc2Vzc2lvbhgEIAEoCRIPCgdjaGFubmVsGAUgASgJIjUKBEtpbmQSFAoQS0lORF9VTlNQRUNJRklFRBAAEggKBFJFQUQQARINCglSRUFEV1JJVEUQAiI0ChBDb250cm9sbGVyQ29uZmlnEg8KB2VuYWJsZWQYASABKAgSDwoHd29ya2VycxgCIAEoDSLnAQoRTGxtUHJvdmlkZXJDb25maWcSLAoGb3BlbmFpGAEgASgLMhoudGFsb24uY29uZmlnLk9wZW5BaUNvbmZpZ0gAEjIKCWFudGhyb3BpYxgCIAEoCzIdLnRhbG9uLmNvbmZpZy5BbnRocm9waWNDb25maWdIABIsCgZnb29nbGUYAyABKAsyGi50YWxvbi5jb25maWcuR29vZ2xlQ29uZmlnSAASOAoRb3BlbmFpX2NvbXBhdGlibGUYBCABKAsyGy50YWxvbi5jb25maWcuR2VuZXJpY0NvbmZpZ0gAQggKBmNvbmZpZyJUCgxPcGVuQWlDb25maWcSDQoFbW9kZWwYASABKAkSJQoHYXBpX2tleRgCIAEoCzIULnRhbG9uLmNvbmZpZy5TZWNyZXQSDgoGb3JnX2lkGAMgASgJIkcKD0FudGhyb3BpY0NvbmZpZxINCgVtb2RlbBgBIAEoCRIlCgdhcGlfa2V5GAIgASgLMhQudGFsb24uY29uZmlnLlNlY3JldCJECgxHb29nbGVDb25maWcSDQoFbW9kZWwYASABKAkSJQoHYXBpX2tleRgCIAEoCzIULnRhbG9uLmNvbmZpZy5TZWNyZXQiZQoNR2VuZXJpY0NvbmZpZxIMCgRuYW1lGAEgASgJEhAKCGJhc2VfdXJsGAIgASgJEg0KBW1vZGVsGAMgASgJEiUKB2FwaV9rZXkYBCABKAsyFC50YWxvbi5jb25maWcuU2VjcmV0IksKBlNlY3JldBIPCgVwbGFpbhgBIAEoCUgAEiYKA3JlZhgCIAEoCzIXLnRhbG9uLmNvbmZpZy5TZWNyZXRSZWZIAEIICgZzb3VyY2UihgEKCVNlY3JldFJlZhIuCgZzb3VyY2UYASABKA4yHi50YWxvbi5jb25maWcuU2VjcmV0UmVmLlNvdXJjZRILCgNrZXkYAiABKAkiPAoGU291cmNlEgcKA0VOVhAAEgcKA0dDUBABEgwKCEtFWUNIQUlOEAISBwoDQVdTEAMSCQoFQVpVUkUQBCJVCg5EYXRhYmFzZUNvbmZpZxIQCghkYXRhX2RpchgBIAEoCRIOCgZkcml2ZXIYAiABKAkSIQoDdXJsGAMgASgLMhQudGFsb24uY29uZmlnLlNlY3JldCIlChNNZXNzYWdlQnJva2VyQ29uZmlnEg4KBmRyaXZlchgBIAEoCSImChZMb2NhbE9iamVjdFN0b3JlQ29uZmlnEgwKBHBhdGgYASABKAkiTAoUR2NzT2JqZWN0U3RvcmVDb25maWcSDgoGYnVja2V0GAEgASgJEg4KBnByZWZpeBgCIAEoCRIUCgxhcGlfYmFzZV91cmwYAyABKAkidQoTUzNPYmplY3RTdG9yZUNvbmZpZxIOCgZidWNrZXQYASABKAkSDgoGcHJlZml4GAIgASgJEg4KBnJlZ2lvbhgDIAEoCRIUCgxlbmRwb2ludF91cmwYBCABKAkSGAoQZm9yY2VfcGF0aF9zdHlsZRgFIAEoCCK5AQoRT2JqZWN0U3RvcmVDb25maWcSNQoFbG9jYWwYASABKAsyJC50YWxvbi5jb25maWcuTG9jYWxPYmplY3RTdG9yZUNvbmZpZ0gAEjEKA2djcxgCIAEoCzIiLnRhbG9uLmNvbmZpZy5HY3NPYmplY3RTdG9yZUNvbmZpZ0gAEi8KAnMzGAMgASgLMiEudGFsb24uY29uZmlnLlMzT2JqZWN0U3RvcmVDb25maWdIAEIJCgdiYWNrZW5kIo8BChtTY2hlZHVsZXJDYWxsYmFja0F1dGhDb25maWcSLQoNc2hhcmVkX3NlY3JldBgBIAEoCzIULnRhbG9uLmNvbmZpZy5TZWNyZXRIABI5Cgtnb29nbGVfb2lkYxgCIAEoCzIiLnRhbG9uLmNvbmZpZy5Hb29nbGVPaWRjQXV0aENvbmZpZ0gAQgYKBGF1dGgiRwoUR29vZ2xlT2lkY0F1dGhDb25maWcSEAoIYXVkaWVuY2UYASABKAkSHQoVc2VydmljZV9hY2NvdW50X2VtYWlsGAIgASgJIqYBChlDbG91ZFRhc2tzU2NoZWR1bGVyQ29uZmlnEhIKCnByb2plY3RfaWQYASABKAkSEAoIbG9jYXRpb24YAiABKAkSDQoFcXVldWUYAyABKAkSEgoKdGFyZ2V0X3VybBgEIAEoCRJACg1jYWxsYmFja19hdXRoGAUgASgLMikudGFsb24uY29uZmlnLlNjaGVkdWxlckNhbGxiYWNrQXV0aENvbmZpZyJcCg9TY2hlZHVsZXJDb25maWcSPgoLY2xvdWRfdGFza3MYASABKAsyJy50YWxvbi5jb25maWcuQ2xvdWRUYXNrc1NjaGVkdWxlckNvbmZpZ0gAQgkKB2JhY2tlbmQimQIKEkNvbnRyb2xQbGFuZUNvbmZpZxIuCghkYXRhYmFzZRgBIAEoCzIcLnRhbG9uLmNvbmZpZy5EYXRhYmFzZUNvbmZpZxI5Cg5tZXNzYWdlX2Jyb2tlchgCIAEoCzIhLnRhbG9uLmNvbmZpZy5NZXNzYWdlQnJva2VyQ29uZmlnEjAKCXNjaGVkdWxlchgDIAEoCzIdLnRhbG9uLmNvbmZpZy5TY2hlZHVsZXJDb25maWcSNQoMb2JqZWN0X3N0b3JlGAQgASgLMh8udGFsb24uY29uZmlnLk9iamVjdFN0b3JlQ29uZmlnEi8KCWRvY3VtZW50cxgFIAEoCzIcLnRhbG9uLmNvbmZpZy5EYXRhYmFzZUNvbmZpZyIqCgxTZXJ2ZXJDb25maWcSDAoEaG9zdBgBIAEoCRIMCgRwb3J0GAIgASgNYgZwcm90bzM");
+  fileDesc("ChJwcm90by9jb25maWcucHJvdG8SDHRhbG9uLmNvbmZpZyK5BgoLVGFsb25Db25maWcSOwoJcHJvdmlkZXJzGAEgAygLMigudGFsb24uY29uZmlnLlRhbG9uQ29uZmlnLlByb3ZpZGVyc0VudHJ5Ei4KCGRhdGFiYXNlGAIgASgLMhwudGFsb24uY29uZmlnLkRhdGFiYXNlQ29uZmlnEioKBnNlcnZlchgDIAEoCzIaLnRhbG9uLmNvbmZpZy5TZXJ2ZXJDb25maWcSGAoQZGVmYXVsdF9wcm92aWRlchgEIAEoCRIVCg13b3Jrc3BhY2VfZGlyGAUgASgJEjcKDWNvbnRyb2xfcGxhbmUYBiABKAsyIC50YWxvbi5jb25maWcuQ29udHJvbFBsYW5lQ29uZmlnEj8KC2NvbnRyb2xsZXJzGAcgAygLMioudGFsb24uY29uZmlnLlRhbG9uQ29uZmlnLkNvbnRyb2xsZXJzRW50cnkSKAoFdHJ1c3QYCCABKAsyGS50YWxvbi5jb25maWcuVHJ1c3RDb25maWcSNQoGbW9kZWxzGAkgAygLMiUudGFsb24uY29uZmlnLlRhbG9uQ29uZmlnLk1vZGVsc0VudHJ5EkEKDGNhcGFiaWxpdGllcxgKIAMoCzIrLnRhbG9uLmNvbmZpZy5UYWxvbkNvbmZpZy5DYXBhYmlsaXRpZXNFbnRyeRpRCg5Qcm92aWRlcnNFbnRyeRILCgNrZXkYASABKAkSLgoFdmFsdWUYAiABKAsyHy50YWxvbi5jb25maWcuTGxtUHJvdmlkZXJDb25maWc6AjgBGlIKEENvbnRyb2xsZXJzRW50cnkSCwoDa2V5GAEgASgJEi0KBXZhbHVlGAIgASgLMh4udGFsb24uY29uZmlnLkNvbnRyb2xsZXJDb25maWc6AjgBGkgKC01vZGVsc0VudHJ5EgsKA2tleRgBIAEoCRIoCgV2YWx1ZRgCIAEoCzIZLnRhbG9uLmNvbmZpZy5Nb2RlbENvbmZpZzoCOAEaUQoRQ2FwYWJpbGl0aWVzRW50cnkSCwoDa2V5GAEgASgJEisKBXZhbHVlGAIgASgLMhwudGFsb24uY29uZmlnLkNhcGFiaWxpdHlHYXRlOgI4ASJ8Cg5DYXBhYmlsaXR5R2F0ZRI6CgdhY3Rpb25zGAEgAygLMikudGFsb24uY29uZmlnLkNhcGFiaWxpdHlHYXRlLkFjdGlvbnNFbnRyeRouCgxBY3Rpb25zRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgIOgI4ASLVBwoLTW9kZWxDb25maWcSEAoIcHJvdmlkZXIYASABKAkSIgoVY29udGV4dF93aW5kb3dfdG9rZW5zGAIgASgESACIAQESHgoRbWF4X291dHB1dF90b2tlbnMYAyABKARIAYgBARIqCh1pbnB1dF9jb3N0X3Blcl9taWxsaW9uX3Rva2VucxgEIAEoAUgCiAEBEisKHm91dHB1dF9jb3N0X3Blcl9taWxsaW9uX3Rva2VucxgFIAEoAUgDiAEBEi8KImNhY2hlX3JlYWRfY29zdF9wZXJfbWlsbGlvbl90b2tlbnMYBiABKAFIBIgBARIwCiNjYWNoZV93cml0ZV9jb3N0X3Blcl9taWxsaW9uX3Rva2VucxgHIAEoAUgFiAEBEiAKE2xvbmdfY29udGV4dF90b2tlbnMYCCABKARIBogBARI3Cipsb25nX2NvbnRleHRfaW5wdXRfY29zdF9wZXJfbWlsbGlvbl90b2tlbnMYCSABKAFIB4gBARI4Citsb25nX2NvbnRleHRfb3V0cHV0X2Nvc3RfcGVyX21pbGxpb25fdG9rZW5zGAogASgBSAiIAQESPAovbG9uZ19jb250ZXh0X2NhY2hlX3JlYWRfY29zdF9wZXJfbWlsbGlvbl90b2tlbnMYCyABKAFICYgBARI9CjBsb25nX2NvbnRleHRfY2FjaGVfd3JpdGVfY29zdF9wZXJfbWlsbGlvbl90b2tlbnMYDCABKAFICogBAUIYChZfY29udGV4dF93aW5kb3dfdG9rZW5zQhQKEl9tYXhfb3V0cHV0X3Rva2Vuc0IgCh5faW5wdXRfY29zdF9wZXJfbWlsbGlvbl90b2tlbnNCIQofX291dHB1dF9jb3N0X3Blcl9taWxsaW9uX3Rva2Vuc0IlCiNfY2FjaGVfcmVhZF9jb3N0X3Blcl9taWxsaW9uX3Rva2Vuc0ImCiRfY2FjaGVfd3JpdGVfY29zdF9wZXJfbWlsbGlvbl90b2tlbnNCFgoUX2xvbmdfY29udGV4dF90b2tlbnNCLQorX2xvbmdfY29udGV4dF9pbnB1dF9jb3N0X3Blcl9taWxsaW9uX3Rva2Vuc0IuCixfbG9uZ19jb250ZXh0X291dHB1dF9jb3N0X3Blcl9taWxsaW9uX3Rva2Vuc0IyCjBfbG9uZ19jb250ZXh0X2NhY2hlX3JlYWRfY29zdF9wZXJfbWlsbGlvbl90b2tlbnNCMwoxX2xvbmdfY29udGV4dF9jYWNoZV93cml0ZV9jb3N0X3Blcl9taWxsaW9uX3Rva2VucyI5CgtUcnVzdENvbmZpZxIqCgRvaWRjGAEgAygLMhwudGFsb24uY29uZmlnLk9pZGNUcnVzdEVudHJ5Is4BCg5PaWRjVHJ1c3RFbnRyeRIMCgRuYW1lGAEgASgJEg4KBmlzc3VlchgCIAEoCRIRCglhdWRpZW5jZXMYAyADKAkSFwoPYWxsb3dlZF9kb21haW5zGAQgAygJEhYKDmFsbG93ZWRfZW1haWxzGAUgAygJEhAKCGp3a3NfdXJsGAYgASgJEhoKEmNsb2NrX3NrZXdfc2Vjb25kcxgHIAEoDRIsCgZncmFudHMYCCADKAsyHC50YWxvbi5jb25maWcuT2lkY1RydXN0R3JhbnQivAEKDk9pZGNUcnVzdEdyYW50Ei8KBGtpbmQYASABKA4yIS50YWxvbi5jb25maWcuT2lkY1RydXN0R3JhbnQuS2luZBIRCgluYW1lc3BhY2UYAiABKAkSDQoFYWdlbnQYAyABKAkSDwoHc2Vzc2lvbhgEIAEoCRIPCgdjaGFubmVsGAUgASgJIjUKBEtpbmQSFAoQS0lORF9VTlNQRUNJRklFRBAAEggKBFJFQUQQARINCglSRUFEV1JJVEUQAiI0ChBDb250cm9sbGVyQ29uZmlnEg8KB2VuYWJsZWQYASABKAgSDwoHd29ya2VycxgCIAEoDSLnAQoRTGxtUHJvdmlkZXJDb25maWcSLAoGb3BlbmFpGAEgASgLMhoudGFsb24uY29uZmlnLk9wZW5BaUNvbmZpZ0gAEjIKCWFudGhyb3BpYxgCIAEoCzIdLnRhbG9uLmNvbmZpZy5BbnRocm9waWNDb25maWdIABIsCgZnb29nbGUYAyABKAsyGi50YWxvbi5jb25maWcuR29vZ2xlQ29uZmlnSAASOAoRb3BlbmFpX2NvbXBhdGlibGUYBCABKAsyGy50YWxvbi5jb25maWcuR2VuZXJpY0NvbmZpZ0gAQggKBmNvbmZpZyKOAQocT3BlbkFpV29ya2xvYWRJZGVudGl0eUNvbmZpZxI0CgZzb3VyY2UYASABKAsyJC50YWxvbi5jb25maWcuV29ya2xvYWRJZGVudGl0eVNvdXJjZRIcChRpZGVudGl0eV9wcm92aWRlcl9pZBgCIAEoCRIaChJzZXJ2aWNlX2FjY291bnRfaWQYAyABKAki3QEKFldvcmtsb2FkSWRlbnRpdHlTb3VyY2USRQoPZ29vZ2xlX21ldGFkYXRhGAEgASgLMioudGFsb24uY29uZmlnLkdvb2dsZU1ldGFkYXRhSWRlbnRpdHlTb3VyY2VIABI1Cgdhd3Nfc3RzGAIgASgLMiIudGFsb24uY29uZmlnLkF3c1N0c0lkZW50aXR5U291cmNlSAASOwoKdG9rZW5fZmlsZRgDIAEoCzIlLnRhbG9uLmNvbmZpZy5Ub2tlbkZpbGVJZGVudGl0eVNvdXJjZUgAQggKBmNvbmZpZyIwChxHb29nbGVNZXRhZGF0YUlkZW50aXR5U291cmNlEhAKCGF1ZGllbmNlGAEgASgJIjgKFEF3c1N0c0lkZW50aXR5U291cmNlEhAKCGF1ZGllbmNlGAEgASgJEg4KBnJlZ2lvbhgCIAEoCSInChdUb2tlbkZpbGVJZGVudGl0eVNvdXJjZRIMCgRwYXRoGAEgASgJIqgBCgxPcGVuQWlDb25maWcSDQoFbW9kZWwYASABKAkSJQoHYXBpX2tleRgCIAEoCzIULnRhbG9uLmNvbmZpZy5TZWNyZXQSDgoGb3JnX2lkGAMgASgJEgsKA2FwaRgEIAEoCRJFChF3b3JrbG9hZF9pZGVudGl0eRgFIAEoCzIqLnRhbG9uLmNvbmZpZy5PcGVuQWlXb3JrbG9hZElkZW50aXR5Q29uZmlnIkcKD0FudGhyb3BpY0NvbmZpZxINCgVtb2RlbBgBIAEoCRIlCgdhcGlfa2V5GAIgASgLMhQudGFsb24uY29uZmlnLlNlY3JldCJECgxHb29nbGVDb25maWcSDQoFbW9kZWwYASABKAkSJQoHYXBpX2tleRgCIAEoCzIULnRhbG9uLmNvbmZpZy5TZWNyZXQiZQoNR2VuZXJpY0NvbmZpZxIMCgRuYW1lGAEgASgJEhAKCGJhc2VfdXJsGAIgASgJEg0KBW1vZGVsGAMgASgJEiUKB2FwaV9rZXkYBCABKAsyFC50YWxvbi5jb25maWcuU2VjcmV0IksKBlNlY3JldBIPCgVwbGFpbhgBIAEoCUgAEiYKA3JlZhgCIAEoCzIXLnRhbG9uLmNvbmZpZy5TZWNyZXRSZWZIAEIICgZzb3VyY2UihgEKCVNlY3JldFJlZhIuCgZzb3VyY2UYASABKA4yHi50YWxvbi5jb25maWcuU2VjcmV0UmVmLlNvdXJjZRILCgNrZXkYAiABKAkiPAoGU291cmNlEgcKA0VOVhAAEgcKA0dDUBABEgwKCEtFWUNIQUlOEAISBwoDQVdTEAMSCQoFQVpVUkUQBCJVCg5EYXRhYmFzZUNvbmZpZxIQCghkYXRhX2RpchgBIAEoCRIOCgZkcml2ZXIYAiABKAkSIQoDdXJsGAMgASgLMhQudGFsb24uY29uZmlnLlNlY3JldCIlChNNZXNzYWdlQnJva2VyQ29uZmlnEg4KBmRyaXZlchgBIAEoCSImChZMb2NhbE9iamVjdFN0b3JlQ29uZmlnEgwKBHBhdGgYASABKAkiTAoUR2NzT2JqZWN0U3RvcmVDb25maWcSDgoGYnVja2V0GAEgASgJEg4KBnByZWZpeBgCIAEoCRIUCgxhcGlfYmFzZV91cmwYAyABKAkidQoTUzNPYmplY3RTdG9yZUNvbmZpZxIOCgZidWNrZXQYASABKAkSDgoGcHJlZml4GAIgASgJEg4KBnJlZ2lvbhgDIAEoCRIUCgxlbmRwb2ludF91cmwYBCABKAkSGAoQZm9yY2VfcGF0aF9zdHlsZRgFIAEoCCK5AQoRT2JqZWN0U3RvcmVDb25maWcSNQoFbG9jYWwYASABKAsyJC50YWxvbi5jb25maWcuTG9jYWxPYmplY3RTdG9yZUNvbmZpZ0gAEjEKA2djcxgCIAEoCzIiLnRhbG9uLmNvbmZpZy5HY3NPYmplY3RTdG9yZUNvbmZpZ0gAEi8KAnMzGAMgASgLMiEudGFsb24uY29uZmlnLlMzT2JqZWN0U3RvcmVDb25maWdIAEIJCgdiYWNrZW5kIo8BChtTY2hlZHVsZXJDYWxsYmFja0F1dGhDb25maWcSLQoNc2hhcmVkX3NlY3JldBgBIAEoCzIULnRhbG9uLmNvbmZpZy5TZWNyZXRIABI5Cgtnb29nbGVfb2lkYxgCIAEoCzIiLnRhbG9uLmNvbmZpZy5Hb29nbGVPaWRjQXV0aENvbmZpZ0gAQgYKBGF1dGgiRwoUR29vZ2xlT2lkY0F1dGhDb25maWcSEAoIYXVkaWVuY2UYASABKAkSHQoVc2VydmljZV9hY2NvdW50X2VtYWlsGAIgASgJIqYBChlDbG91ZFRhc2tzU2NoZWR1bGVyQ29uZmlnEhIKCnByb2plY3RfaWQYASABKAkSEAoIbG9jYXRpb24YAiABKAkSDQoFcXVldWUYAyABKAkSEgoKdGFyZ2V0X3VybBgEIAEoCRJACg1jYWxsYmFja19hdXRoGAUgASgLMikudGFsb24uY29uZmlnLlNjaGVkdWxlckNhbGxiYWNrQXV0aENvbmZpZyKKAgodQXdzRXZlbnRCcmlkZ2VTY2hlZHVsZXJDb25maWcSEgoKZ3JvdXBfbmFtZRgBIAEoCRIRCglxdWV1ZV91cmwYAiABKAkSGgoSZXhlY3V0aW9uX3JvbGVfYXJuGAMgASgJEhwKFHNjaGVkdWxlX25hbWVfcHJlZml4GAQgASgJEg8KB2RscV9hcm4YBSABKAkSIQoZbWF4aW11bV9ldmVudF9hZ2Vfc2Vjb25kcxgGIAEoDRIjChZtYXhpbXVtX3JldHJ5X2F0dGVtcHRzGAcgASgNSACIAQESFAoMZW5kcG9pbnRfdXJsGAggASgJQhkKF19tYXhpbXVtX3JldHJ5X2F0dGVtcHRzIq4BCg9TY2hlZHVsZXJDb25maWcSPgoLY2xvdWRfdGFza3MYASABKAsyJy50YWxvbi5jb25maWcuQ2xvdWRUYXNrc1NjaGVkdWxlckNvbmZpZ0gAElAKGWF3c19ldmVudGJyaWRnZV9zY2hlZHVsZXIYAiABKAsyKy50YWxvbi5jb25maWcuQXdzRXZlbnRCcmlkZ2VTY2hlZHVsZXJDb25maWdIAEIJCgdiYWNrZW5kIpkCChJDb250cm9sUGxhbmVDb25maWcSLgoIZGF0YWJhc2UYASABKAsyHC50YWxvbi5jb25maWcuRGF0YWJhc2VDb25maWcSOQoObWVzc2FnZV9icm9rZXIYAiABKAsyIS50YWxvbi5jb25maWcuTWVzc2FnZUJyb2tlckNvbmZpZxIwCglzY2hlZHVsZXIYAyABKAsyHS50YWxvbi5jb25maWcuU2NoZWR1bGVyQ29uZmlnEjUKDG9iamVjdF9zdG9yZRgEIAEoCzIfLnRhbG9uLmNvbmZpZy5PYmplY3RTdG9yZUNvbmZpZxIvCglkb2N1bWVudHMYBSABKAsyHC50YWxvbi5jb25maWcuRGF0YWJhc2VDb25maWciKgoMU2VydmVyQ29uZmlnEgwKBGhvc3QYASABKAkSDAoEcG9ydBgCIAEoDWIGcHJvdG8z");
 
 /**
  * @generated from message talon.config.TalonConfig
@@ -55,6 +55,16 @@ export type TalonConfig = Message<"talon.config.TalonConfig"> & {
    * @generated from field: talon.config.TrustConfig trust = 8;
    */
   trust?: TrustConfig;
+
+  /**
+   * @generated from field: map<string, talon.config.ModelConfig> models = 9;
+   */
+  models: { [key: string]: ModelConfig };
+
+  /**
+   * @generated from field: map<string, talon.config.CapabilityGate> capabilities = 10;
+   */
+  capabilities: { [key: string]: CapabilityGate };
 };
 
 /**
@@ -63,6 +73,106 @@ export type TalonConfig = Message<"talon.config.TalonConfig"> & {
  */
 export const TalonConfigSchema: GenMessage<TalonConfig> = /*@__PURE__*/
   messageDesc(file_proto_config, 0);
+
+/**
+ * Deployment-wide capability policy. A missing action is allowed by default;
+ * an explicit false disables that action for every agent, while true does not
+ * grant it without the agent-level capability.
+ *
+ * @generated from message talon.config.CapabilityGate
+ */
+export type CapabilityGate = Message<"talon.config.CapabilityGate"> & {
+  /**
+   * @generated from field: map<string, bool> actions = 1;
+   */
+  actions: { [key: string]: boolean };
+};
+
+/**
+ * Describes the message talon.config.CapabilityGate.
+ * Use `create(CapabilityGateSchema)` to create a new message.
+ */
+export const CapabilityGateSchema: GenMessage<CapabilityGate> = /*@__PURE__*/
+  messageDesc(file_proto_config, 1);
+
+/**
+ * Static metadata for a model configured in the model catalog. Costs are in
+ * USD per one million tokens. The context window includes generated output;
+ * compaction reserves max_output_tokens from it when both are configured.
+ * long_context_tokens is the input-token threshold above which the optional
+ * long-context cost fields replace their corresponding standard cost fields;
+ * compaction also uses it as an operational input ceiling.
+ *
+ * @generated from message talon.config.ModelConfig
+ */
+export type ModelConfig = Message<"talon.config.ModelConfig"> & {
+  /**
+   * @generated from field: string provider = 1;
+   */
+  provider: string;
+
+  /**
+   * @generated from field: optional uint64 context_window_tokens = 2;
+   */
+  contextWindowTokens?: bigint;
+
+  /**
+   * @generated from field: optional uint64 max_output_tokens = 3;
+   */
+  maxOutputTokens?: bigint;
+
+  /**
+   * @generated from field: optional double input_cost_per_million_tokens = 4;
+   */
+  inputCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double output_cost_per_million_tokens = 5;
+   */
+  outputCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double cache_read_cost_per_million_tokens = 6;
+   */
+  cacheReadCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double cache_write_cost_per_million_tokens = 7;
+   */
+  cacheWriteCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional uint64 long_context_tokens = 8;
+   */
+  longContextTokens?: bigint;
+
+  /**
+   * @generated from field: optional double long_context_input_cost_per_million_tokens = 9;
+   */
+  longContextInputCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double long_context_output_cost_per_million_tokens = 10;
+   */
+  longContextOutputCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double long_context_cache_read_cost_per_million_tokens = 11;
+   */
+  longContextCacheReadCostPerMillionTokens?: number;
+
+  /**
+   * @generated from field: optional double long_context_cache_write_cost_per_million_tokens = 12;
+   */
+  longContextCacheWriteCostPerMillionTokens?: number;
+};
+
+/**
+ * Describes the message talon.config.ModelConfig.
+ * Use `create(ModelConfigSchema)` to create a new message.
+ */
+export const ModelConfigSchema: GenMessage<ModelConfig> = /*@__PURE__*/
+  messageDesc(file_proto_config, 2);
 
 /**
  * @generated from message talon.config.TrustConfig
@@ -79,7 +189,7 @@ export type TrustConfig = Message<"talon.config.TrustConfig"> & {
  * Use `create(TrustConfigSchema)` to create a new message.
  */
 export const TrustConfigSchema: GenMessage<TrustConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 1);
+  messageDesc(file_proto_config, 3);
 
 /**
  * @generated from message talon.config.OidcTrustEntry
@@ -131,7 +241,7 @@ export type OidcTrustEntry = Message<"talon.config.OidcTrustEntry"> & {
  * Use `create(OidcTrustEntrySchema)` to create a new message.
  */
 export const OidcTrustEntrySchema: GenMessage<OidcTrustEntry> = /*@__PURE__*/
-  messageDesc(file_proto_config, 2);
+  messageDesc(file_proto_config, 4);
 
 /**
  * @generated from message talon.config.OidcTrustGrant
@@ -168,7 +278,7 @@ export type OidcTrustGrant = Message<"talon.config.OidcTrustGrant"> & {
  * Use `create(OidcTrustGrantSchema)` to create a new message.
  */
 export const OidcTrustGrantSchema: GenMessage<OidcTrustGrant> = /*@__PURE__*/
-  messageDesc(file_proto_config, 3);
+  messageDesc(file_proto_config, 5);
 
 /**
  * @generated from enum talon.config.OidcTrustGrant.Kind
@@ -194,7 +304,7 @@ export enum OidcTrustGrant_Kind {
  * Describes the enum talon.config.OidcTrustGrant.Kind.
  */
 export const OidcTrustGrant_KindSchema: GenEnum<OidcTrustGrant_Kind> = /*@__PURE__*/
-  enumDesc(file_proto_config, 3, 0);
+  enumDesc(file_proto_config, 5, 0);
 
 /**
  * @generated from message talon.config.ControllerConfig
@@ -216,7 +326,7 @@ export type ControllerConfig = Message<"talon.config.ControllerConfig"> & {
  * Use `create(ControllerConfigSchema)` to create a new message.
  */
 export const ControllerConfigSchema: GenMessage<ControllerConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 4);
+  messageDesc(file_proto_config, 6);
 
 /**
  * @generated from message talon.config.LlmProviderConfig
@@ -257,7 +367,133 @@ export type LlmProviderConfig = Message<"talon.config.LlmProviderConfig"> & {
  * Use `create(LlmProviderConfigSchema)` to create a new message.
  */
 export const LlmProviderConfigSchema: GenMessage<LlmProviderConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 5);
+  messageDesc(file_proto_config, 7);
+
+/**
+ * OpenAI-specific destination mapping, independent of the identity source.
+ *
+ * @generated from message talon.config.OpenAiWorkloadIdentityConfig
+ */
+export type OpenAiWorkloadIdentityConfig = Message<"talon.config.OpenAiWorkloadIdentityConfig"> & {
+  /**
+   * @generated from field: talon.config.WorkloadIdentitySource source = 1;
+   */
+  source?: WorkloadIdentitySource;
+
+  /**
+   * @generated from field: string identity_provider_id = 2;
+   */
+  identityProviderId: string;
+
+  /**
+   * @generated from field: string service_account_id = 3;
+   */
+  serviceAccountId: string;
+};
+
+/**
+ * Describes the message talon.config.OpenAiWorkloadIdentityConfig.
+ * Use `create(OpenAiWorkloadIdentityConfigSchema)` to create a new message.
+ */
+export const OpenAiWorkloadIdentityConfigSchema: GenMessage<OpenAiWorkloadIdentityConfig> = /*@__PURE__*/
+  messageDesc(file_proto_config, 8);
+
+/**
+ * Sources supply an OIDC subject token; destination adapters exchange it.
+ *
+ * @generated from message talon.config.WorkloadIdentitySource
+ */
+export type WorkloadIdentitySource = Message<"talon.config.WorkloadIdentitySource"> & {
+  /**
+   * @generated from oneof talon.config.WorkloadIdentitySource.config
+   */
+  config: {
+    /**
+     * @generated from field: talon.config.GoogleMetadataIdentitySource google_metadata = 1;
+     */
+    value: GoogleMetadataIdentitySource;
+    case: "googleMetadata";
+  } | {
+    /**
+     * @generated from field: talon.config.AwsStsIdentitySource aws_sts = 2;
+     */
+    value: AwsStsIdentitySource;
+    case: "awsSts";
+  } | {
+    /**
+     * @generated from field: talon.config.TokenFileIdentitySource token_file = 3;
+     */
+    value: TokenFileIdentitySource;
+    case: "tokenFile";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message talon.config.WorkloadIdentitySource.
+ * Use `create(WorkloadIdentitySourceSchema)` to create a new message.
+ */
+export const WorkloadIdentitySourceSchema: GenMessage<WorkloadIdentitySource> = /*@__PURE__*/
+  messageDesc(file_proto_config, 9);
+
+/**
+ * @generated from message talon.config.GoogleMetadataIdentitySource
+ */
+export type GoogleMetadataIdentitySource = Message<"talon.config.GoogleMetadataIdentitySource"> & {
+  /**
+   * @generated from field: string audience = 1;
+   */
+  audience: string;
+};
+
+/**
+ * Describes the message talon.config.GoogleMetadataIdentitySource.
+ * Use `create(GoogleMetadataIdentitySourceSchema)` to create a new message.
+ */
+export const GoogleMetadataIdentitySourceSchema: GenMessage<GoogleMetadataIdentitySource> = /*@__PURE__*/
+  messageDesc(file_proto_config, 10);
+
+/**
+ * @generated from message talon.config.AwsStsIdentitySource
+ */
+export type AwsStsIdentitySource = Message<"talon.config.AwsStsIdentitySource"> & {
+  /**
+   * @generated from field: string audience = 1;
+   */
+  audience: string;
+
+  /**
+   * Explicit regional STS endpoint; the global endpoint is unsupported.
+   *
+   * @generated from field: string region = 2;
+   */
+  region: string;
+};
+
+/**
+ * Describes the message talon.config.AwsStsIdentitySource.
+ * Use `create(AwsStsIdentitySourceSchema)` to create a new message.
+ */
+export const AwsStsIdentitySourceSchema: GenMessage<AwsStsIdentitySource> = /*@__PURE__*/
+  messageDesc(file_proto_config, 11);
+
+/**
+ * @generated from message talon.config.TokenFileIdentitySource
+ */
+export type TokenFileIdentitySource = Message<"talon.config.TokenFileIdentitySource"> & {
+  /**
+   * Reread on every exchange to pick up projected token rotation.
+   *
+   * @generated from field: string path = 1;
+   */
+  path: string;
+};
+
+/**
+ * Describes the message talon.config.TokenFileIdentitySource.
+ * Use `create(TokenFileIdentitySourceSchema)` to create a new message.
+ */
+export const TokenFileIdentitySourceSchema: GenMessage<TokenFileIdentitySource> = /*@__PURE__*/
+  messageDesc(file_proto_config, 12);
 
 /**
  * @generated from message talon.config.OpenAiConfig
@@ -277,6 +513,18 @@ export type OpenAiConfig = Message<"talon.config.OpenAiConfig"> & {
    * @generated from field: string org_id = 3;
    */
   orgId: string;
+
+  /**
+   * @generated from field: string api = 4;
+   */
+  api: string;
+
+  /**
+   * Omitted workload identity retains existing static or tenant API-key behavior.
+   *
+   * @generated from field: talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;
+   */
+  workloadIdentity?: OpenAiWorkloadIdentityConfig;
 };
 
 /**
@@ -284,7 +532,7 @@ export type OpenAiConfig = Message<"talon.config.OpenAiConfig"> & {
  * Use `create(OpenAiConfigSchema)` to create a new message.
  */
 export const OpenAiConfigSchema: GenMessage<OpenAiConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 6);
+  messageDesc(file_proto_config, 13);
 
 /**
  * @generated from message talon.config.AnthropicConfig
@@ -306,7 +554,7 @@ export type AnthropicConfig = Message<"talon.config.AnthropicConfig"> & {
  * Use `create(AnthropicConfigSchema)` to create a new message.
  */
 export const AnthropicConfigSchema: GenMessage<AnthropicConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 7);
+  messageDesc(file_proto_config, 14);
 
 /**
  * @generated from message talon.config.GoogleConfig
@@ -328,7 +576,7 @@ export type GoogleConfig = Message<"talon.config.GoogleConfig"> & {
  * Use `create(GoogleConfigSchema)` to create a new message.
  */
 export const GoogleConfigSchema: GenMessage<GoogleConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 8);
+  messageDesc(file_proto_config, 15);
 
 /**
  * @generated from message talon.config.GenericConfig
@@ -360,7 +608,7 @@ export type GenericConfig = Message<"talon.config.GenericConfig"> & {
  * Use `create(GenericConfigSchema)` to create a new message.
  */
 export const GenericConfigSchema: GenMessage<GenericConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 9);
+  messageDesc(file_proto_config, 16);
 
 /**
  * @generated from message talon.config.Secret
@@ -389,7 +637,7 @@ export type Secret = Message<"talon.config.Secret"> & {
  * Use `create(SecretSchema)` to create a new message.
  */
 export const SecretSchema: GenMessage<Secret> = /*@__PURE__*/
-  messageDesc(file_proto_config, 10);
+  messageDesc(file_proto_config, 17);
 
 /**
  * @generated from message talon.config.SecretRef
@@ -411,7 +659,7 @@ export type SecretRef = Message<"talon.config.SecretRef"> & {
  * Use `create(SecretRefSchema)` to create a new message.
  */
 export const SecretRefSchema: GenMessage<SecretRef> = /*@__PURE__*/
-  messageDesc(file_proto_config, 11);
+  messageDesc(file_proto_config, 18);
 
 /**
  * @generated from enum talon.config.SecretRef.Source
@@ -447,7 +695,7 @@ export enum SecretRef_Source {
  * Describes the enum talon.config.SecretRef.Source.
  */
 export const SecretRef_SourceSchema: GenEnum<SecretRef_Source> = /*@__PURE__*/
-  enumDesc(file_proto_config, 11, 0);
+  enumDesc(file_proto_config, 18, 0);
 
 /**
  * @generated from message talon.config.DatabaseConfig
@@ -474,7 +722,7 @@ export type DatabaseConfig = Message<"talon.config.DatabaseConfig"> & {
  * Use `create(DatabaseConfigSchema)` to create a new message.
  */
 export const DatabaseConfigSchema: GenMessage<DatabaseConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 12);
+  messageDesc(file_proto_config, 19);
 
 /**
  * @generated from message talon.config.MessageBrokerConfig
@@ -491,7 +739,7 @@ export type MessageBrokerConfig = Message<"talon.config.MessageBrokerConfig"> & 
  * Use `create(MessageBrokerConfigSchema)` to create a new message.
  */
 export const MessageBrokerConfigSchema: GenMessage<MessageBrokerConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 13);
+  messageDesc(file_proto_config, 20);
 
 /**
  * @generated from message talon.config.LocalObjectStoreConfig
@@ -508,7 +756,7 @@ export type LocalObjectStoreConfig = Message<"talon.config.LocalObjectStoreConfi
  * Use `create(LocalObjectStoreConfigSchema)` to create a new message.
  */
 export const LocalObjectStoreConfigSchema: GenMessage<LocalObjectStoreConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 14);
+  messageDesc(file_proto_config, 21);
 
 /**
  * @generated from message talon.config.GcsObjectStoreConfig
@@ -535,7 +783,7 @@ export type GcsObjectStoreConfig = Message<"talon.config.GcsObjectStoreConfig"> 
  * Use `create(GcsObjectStoreConfigSchema)` to create a new message.
  */
 export const GcsObjectStoreConfigSchema: GenMessage<GcsObjectStoreConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 15);
+  messageDesc(file_proto_config, 22);
 
 /**
  * @generated from message talon.config.S3ObjectStoreConfig
@@ -572,7 +820,7 @@ export type S3ObjectStoreConfig = Message<"talon.config.S3ObjectStoreConfig"> & 
  * Use `create(S3ObjectStoreConfigSchema)` to create a new message.
  */
 export const S3ObjectStoreConfigSchema: GenMessage<S3ObjectStoreConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 16);
+  messageDesc(file_proto_config, 23);
 
 /**
  * @generated from message talon.config.ObjectStoreConfig
@@ -607,7 +855,7 @@ export type ObjectStoreConfig = Message<"talon.config.ObjectStoreConfig"> & {
  * Use `create(ObjectStoreConfigSchema)` to create a new message.
  */
 export const ObjectStoreConfigSchema: GenMessage<ObjectStoreConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 17);
+  messageDesc(file_proto_config, 24);
 
 /**
  * @generated from message talon.config.SchedulerCallbackAuthConfig
@@ -636,7 +884,7 @@ export type SchedulerCallbackAuthConfig = Message<"talon.config.SchedulerCallbac
  * Use `create(SchedulerCallbackAuthConfigSchema)` to create a new message.
  */
 export const SchedulerCallbackAuthConfigSchema: GenMessage<SchedulerCallbackAuthConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 18);
+  messageDesc(file_proto_config, 25);
 
 /**
  * @generated from message talon.config.GoogleOidcAuthConfig
@@ -658,7 +906,7 @@ export type GoogleOidcAuthConfig = Message<"talon.config.GoogleOidcAuthConfig"> 
  * Use `create(GoogleOidcAuthConfigSchema)` to create a new message.
  */
 export const GoogleOidcAuthConfigSchema: GenMessage<GoogleOidcAuthConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 19);
+  messageDesc(file_proto_config, 26);
 
 /**
  * @generated from message talon.config.CloudTasksSchedulerConfig
@@ -695,7 +943,59 @@ export type CloudTasksSchedulerConfig = Message<"talon.config.CloudTasksSchedule
  * Use `create(CloudTasksSchedulerConfigSchema)` to create a new message.
  */
 export const CloudTasksSchedulerConfigSchema: GenMessage<CloudTasksSchedulerConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 20);
+  messageDesc(file_proto_config, 27);
+
+/**
+ * @generated from message talon.config.AwsEventBridgeSchedulerConfig
+ */
+export type AwsEventBridgeSchedulerConfig = Message<"talon.config.AwsEventBridgeSchedulerConfig"> & {
+  /**
+   * @generated from field: string group_name = 1;
+   */
+  groupName: string;
+
+  /**
+   * @generated from field: string queue_url = 2;
+   */
+  queueUrl: string;
+
+  /**
+   * @generated from field: string execution_role_arn = 3;
+   */
+  executionRoleArn: string;
+
+  /**
+   * @generated from field: string schedule_name_prefix = 4;
+   */
+  scheduleNamePrefix: string;
+
+  /**
+   * @generated from field: string dlq_arn = 5;
+   */
+  dlqArn: string;
+
+  /**
+   * @generated from field: uint32 maximum_event_age_seconds = 6;
+   */
+  maximumEventAgeSeconds: number;
+
+  /**
+   * @generated from field: optional uint32 maximum_retry_attempts = 7;
+   */
+  maximumRetryAttempts?: number;
+
+  /**
+   * @generated from field: string endpoint_url = 8;
+   */
+  endpointUrl: string;
+};
+
+/**
+ * Describes the message talon.config.AwsEventBridgeSchedulerConfig.
+ * Use `create(AwsEventBridgeSchedulerConfigSchema)` to create a new message.
+ */
+export const AwsEventBridgeSchedulerConfigSchema: GenMessage<AwsEventBridgeSchedulerConfig> = /*@__PURE__*/
+  messageDesc(file_proto_config, 28);
 
 /**
  * @generated from message talon.config.SchedulerConfig
@@ -710,6 +1010,12 @@ export type SchedulerConfig = Message<"talon.config.SchedulerConfig"> & {
      */
     value: CloudTasksSchedulerConfig;
     case: "cloudTasks";
+  } | {
+    /**
+     * @generated from field: talon.config.AwsEventBridgeSchedulerConfig aws_eventbridge_scheduler = 2;
+     */
+    value: AwsEventBridgeSchedulerConfig;
+    case: "awsEventbridgeScheduler";
   } | { case: undefined; value?: undefined };
 };
 
@@ -718,7 +1024,7 @@ export type SchedulerConfig = Message<"talon.config.SchedulerConfig"> & {
  * Use `create(SchedulerConfigSchema)` to create a new message.
  */
 export const SchedulerConfigSchema: GenMessage<SchedulerConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 21);
+  messageDesc(file_proto_config, 29);
 
 /**
  * @generated from message talon.config.ControlPlaneConfig
@@ -755,7 +1061,7 @@ export type ControlPlaneConfig = Message<"talon.config.ControlPlaneConfig"> & {
  * Use `create(ControlPlaneConfigSchema)` to create a new message.
  */
 export const ControlPlaneConfigSchema: GenMessage<ControlPlaneConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 22);
+  messageDesc(file_proto_config, 30);
 
 /**
  * @generated from message talon.config.ServerConfig
@@ -777,5 +1083,5 @@ export type ServerConfig = Message<"talon.config.ServerConfig"> & {
  * Use `create(ServerConfigSchema)` to create a new message.
  */
 export const ServerConfigSchema: GenMessage<ServerConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 23);
+  messageDesc(file_proto_config, 31);
 

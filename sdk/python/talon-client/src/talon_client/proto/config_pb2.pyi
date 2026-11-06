@@ -175,17 +175,59 @@ class LlmProviderConfig(_message.Message):
     openai_compatible: GenericConfig
     def __init__(self, openai: _Optional[_Union[OpenAiConfig, _Mapping]] = ..., anthropic: _Optional[_Union[AnthropicConfig, _Mapping]] = ..., google: _Optional[_Union[GoogleConfig, _Mapping]] = ..., openai_compatible: _Optional[_Union[GenericConfig, _Mapping]] = ...) -> None: ...
 
+class OpenAiWorkloadIdentityConfig(_message.Message):
+    __slots__ = ("source", "identity_provider_id", "service_account_id")
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    IDENTITY_PROVIDER_ID_FIELD_NUMBER: _ClassVar[int]
+    SERVICE_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    source: WorkloadIdentitySource
+    identity_provider_id: str
+    service_account_id: str
+    def __init__(self, source: _Optional[_Union[WorkloadIdentitySource, _Mapping]] = ..., identity_provider_id: _Optional[str] = ..., service_account_id: _Optional[str] = ...) -> None: ...
+
+class WorkloadIdentitySource(_message.Message):
+    __slots__ = ("google_metadata", "aws_sts", "token_file")
+    GOOGLE_METADATA_FIELD_NUMBER: _ClassVar[int]
+    AWS_STS_FIELD_NUMBER: _ClassVar[int]
+    TOKEN_FILE_FIELD_NUMBER: _ClassVar[int]
+    google_metadata: GoogleMetadataIdentitySource
+    aws_sts: AwsStsIdentitySource
+    token_file: TokenFileIdentitySource
+    def __init__(self, google_metadata: _Optional[_Union[GoogleMetadataIdentitySource, _Mapping]] = ..., aws_sts: _Optional[_Union[AwsStsIdentitySource, _Mapping]] = ..., token_file: _Optional[_Union[TokenFileIdentitySource, _Mapping]] = ...) -> None: ...
+
+class GoogleMetadataIdentitySource(_message.Message):
+    __slots__ = ("audience",)
+    AUDIENCE_FIELD_NUMBER: _ClassVar[int]
+    audience: str
+    def __init__(self, audience: _Optional[str] = ...) -> None: ...
+
+class AwsStsIdentitySource(_message.Message):
+    __slots__ = ("audience", "region")
+    AUDIENCE_FIELD_NUMBER: _ClassVar[int]
+    REGION_FIELD_NUMBER: _ClassVar[int]
+    audience: str
+    region: str
+    def __init__(self, audience: _Optional[str] = ..., region: _Optional[str] = ...) -> None: ...
+
+class TokenFileIdentitySource(_message.Message):
+    __slots__ = ("path",)
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    path: str
+    def __init__(self, path: _Optional[str] = ...) -> None: ...
+
 class OpenAiConfig(_message.Message):
-    __slots__ = ("model", "api_key", "org_id", "api")
+    __slots__ = ("model", "api_key", "org_id", "api", "workload_identity")
     MODEL_FIELD_NUMBER: _ClassVar[int]
     API_KEY_FIELD_NUMBER: _ClassVar[int]
     ORG_ID_FIELD_NUMBER: _ClassVar[int]
     API_FIELD_NUMBER: _ClassVar[int]
+    WORKLOAD_IDENTITY_FIELD_NUMBER: _ClassVar[int]
     model: str
     api_key: Secret
     org_id: str
     api: str
-    def __init__(self, model: _Optional[str] = ..., api_key: _Optional[_Union[Secret, _Mapping]] = ..., org_id: _Optional[str] = ..., api: _Optional[str] = ...) -> None: ...
+    workload_identity: OpenAiWorkloadIdentityConfig
+    def __init__(self, model: _Optional[str] = ..., api_key: _Optional[_Union[Secret, _Mapping]] = ..., org_id: _Optional[str] = ..., api: _Optional[str] = ..., workload_identity: _Optional[_Union[OpenAiWorkloadIdentityConfig, _Mapping]] = ...) -> None: ...
 
 class AnthropicConfig(_message.Message):
     __slots__ = ("model", "api_key")

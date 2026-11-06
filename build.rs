@@ -200,6 +200,34 @@ fn main() -> std::io::Result<()> {
     for t in &serde_derive_only_types {
         builder = builder.type_attribute(t, "#[derive(serde::Serialize, serde::Deserialize)]");
     }
+    // YAML uses the generated messages and selected oneof field directly.
+    for t in [
+        ".talon.config.OpenAiWorkloadIdentityConfig",
+        ".talon.config.GoogleMetadataIdentitySource",
+        ".talon.config.AwsStsIdentitySource",
+        ".talon.config.TokenFileIdentitySource",
+    ] {
+        builder = builder
+            .message_attribute(t, "#[derive(serde::Serialize, serde::Deserialize)]")
+            .message_attribute(t, "#[serde(default, deny_unknown_fields)]");
+    }
+    builder = builder
+        .message_attribute(
+            ".talon.config.WorkloadIdentitySource",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .message_attribute(
+            ".talon.config.WorkloadIdentitySource",
+            "#[serde(transparent)]",
+        )
+        .enum_attribute(
+            ".talon.config.WorkloadIdentitySource.config",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .enum_attribute(
+            ".talon.config.WorkloadIdentitySource.config",
+            r#"#[serde(rename_all = "snake_case")]"#,
+        );
     builder = builder.field_attribute(
         ".talon.resources.AgentSpec.capabilities",
         "#[serde(with = \"crate::control::manifest::capabilities_policy_serde\", default)]",
