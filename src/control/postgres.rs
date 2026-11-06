@@ -90,7 +90,7 @@ impl PostgresPool {
             .credential()
             .await
             .map_err(|_| anyhow!("failed to obtain PostgreSQL IAM credentials"))?;
-        let mut refresh_after = credential.rotation_delay();
+        let mut refresh_after = rotation_override.unwrap_or_else(|| credential.rotation_delay());
         let options = iam_options_with_tls(url, credential.value, require_tls)?;
         let pool = PgPoolOptions::new()
             .max_connections(max_connections)
@@ -101,12 +101,16 @@ impl PostgresPool {
             pool,
             rotation_error: None,
         })));
-        let state = result.0.clone();
+        // The rotation task must not keep a dropped store and its pool alive.
+        let state = Arc::downgrade(&result.0);
         let url = url.to_string();
         tokio::spawn(async move {
             let mut retry_after = ROTATION_RETRY_INITIAL;
             loop {
-                tokio::time::sleep(rotation_override.unwrap_or(refresh_after)).await;
+                tokio::time::sleep(refresh_after).await;
+                let Some(state) = state.upgrade() else {
+                    break;
+                };
                 let credential = match provider.credential().await {
                     Ok(credential) => credential,
                     Err(_) => {
@@ -185,13 +189,11 @@ fn iam_options_with_tls(
     let _ = parsed.set_password(None);
     let mut options = PgConnectOptions::from_str(parsed.as_str())
         .map_err(|_| anyhow!("invalid PostgreSQL connection options for IAM authentication"))?;
-    if require_tls
-        && matches!(
-            options.get_ssl_mode(),
-            PgSslMode::Disable | PgSslMode::Allow | PgSslMode::Prefer
-        )
-    {
-        options = options.ssl_mode(PgSslMode::Require);
+    if require_tls {
+        // IAM tokens are bearer credentials. Encryption alone (Require) or
+        // certificate validation without hostname checks (VerifyCa) lets an
+        // impersonated endpoint receive the token.
+        options = options.ssl_mode(PgSslMode::VerifyFull);
     }
     options = options.password(&token);
     Ok(RedactedIamConnectOptions(options))
@@ -254,6 +256,15 @@ mod tests {
 
     #[tokio::test]
     async fn pool_rotation_authenticates_with_a_new_token_before_expiry() {
+        assert_pool_rotation_recovers(true).await;
+    }
+
+    #[tokio::test]
+    async fn pool_rotation_retries_a_failed_replacement_connection() {
+        assert_pool_rotation_recovers(false).await;
+    }
+
+    async fn assert_pool_rotation_recovers(fail_credential: bool) {
         use tokio::{
             io::{AsyncReadExt, AsyncWriteExt},
             net::TcpListener,
@@ -300,6 +311,15 @@ mod tests {
                     let password = String::from_utf8_lossy(&password)
                         .trim_end_matches('\0')
                         .to_string();
+                    if !fail_credential && password == "fake-token-1" {
+                        backend_message(
+                            &mut stream,
+                            b'E',
+                            b"SFATAL\0C28P01\0Mmock authentication failure\0\0",
+                        )
+                        .await;
+                        return;
+                    }
                     let _ = tokens_tx.send(password);
 
                     backend_message(&mut stream, b'R', &0_u32.to_be_bytes()).await;
@@ -328,11 +348,16 @@ mod tests {
             }
         });
 
+        let provider: Arc<dyn CredentialProvider> = if fail_credential {
+            Arc::new(FailOnceProvider(AtomicUsize::new(0)))
+        } else {
+            Arc::new(FakeProvider(AtomicUsize::new(0)))
+        };
         let pool = PostgresPool::with_credentials_and_rotation(
             &format!("postgres://iam-user@{address}/talon?sslmode=disable"),
             1,
-            Arc::new(FailOnceProvider(AtomicUsize::new(0))),
-            Some(Duration::from_millis(100)),
+            provider,
+            Some(Duration::from_millis(500)),
             Some(Duration::from_millis(100)),
             false,
         )
@@ -354,7 +379,7 @@ mod tests {
         .await
         .expect("pool access should report the failed refresh");
         let failed_at = tokio::time::Instant::now();
-        let second = tokio::time::timeout(Duration::from_secs(2), tokens_rx.recv())
+        let second = tokio::time::timeout(Duration::from_millis(350), tokens_rx.recv())
             .await
             .unwrap()
             .unwrap();
@@ -370,7 +395,18 @@ mod tests {
         })
         .await
         .expect("pool should recover on the short retry interval");
+        assert!(
+            tokio::time::timeout(Duration::from_millis(200), tokens_rx.recv())
+                .await
+                .is_err(),
+            "successful rotation must restore the normal interval"
+        );
+        let state = Arc::downgrade(&pool.0);
         drop(pool);
+        assert!(
+            state.upgrade().is_none(),
+            "rotation must not retain a dropped pool"
+        );
         server.abort();
     }
 
@@ -412,21 +448,72 @@ mod tests {
     }
 
     #[test]
-    fn iam_options_require_tls_and_preserve_verification_modes() {
-        for url in [
-            "postgres://iam-user@db.example/talon?sslmode=disable",
-            "postgres://iam-user@db.example/talon?sslmode=prefer",
-            "postgres://iam-user@db.example/talon",
+    fn iam_options_require_certificate_and_hostname_verification() {
+        for mode in [
+            None,
+            Some("disable"),
+            Some("allow"),
+            Some("prefer"),
+            Some("require"),
+            Some("verify-ca"),
+            Some("verify-full"),
         ] {
-            let options = iam_options(url, "token".to_string()).unwrap();
-            assert!(matches!(options.0.get_ssl_mode(), PgSslMode::Require));
+            let mut url = url::Url::parse("postgres://iam-user@db.example/talon").unwrap();
+            if let Some(mode) = mode {
+                url.query_pairs_mut().append_pair("sslmode", mode);
+            }
+            url.query_pairs_mut()
+                .append_pair("sslrootcert", "/etc/ssl/cloudsql/ca.pem");
+            let options = iam_options(url.as_str(), "token".to_string()).unwrap();
+            assert!(matches!(options.0.get_ssl_mode(), PgSslMode::VerifyFull));
+            assert_eq!(options.0.get_host(), "db.example");
+            assert_eq!(options.0.get_username(), "iam-user");
+            assert_eq!(options.0.get_database(), Some("talon"));
+            assert!(sqlx::ConnectOptions::to_url_lossy(&options.0)
+                .query_pairs()
+                .any(|(key, value)| key == "sslrootcert"
+                    && value == "file: /etc/ssl/cloudsql/ca.pem"));
         }
+    }
 
-        let verified = iam_options(
-            "postgres://iam-user@db.example/talon?sslmode=verify-full",
-            "token".to_string(),
+    #[tokio::test]
+    async fn iam_connection_never_sends_a_token_to_a_plaintext_endpoint() {
+        use sqlx::Connection;
+        use tokio::{
+            io::{AsyncReadExt, AsyncWriteExt},
+            net::TcpListener,
+        };
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            let (mut stream, _) = listener.accept().await.unwrap();
+            let mut request = [0; 8];
+            stream.read_exact(&mut request).await.unwrap();
+            assert_eq!(request, [0, 0, 0, 8, 4, 210, 22, 47]);
+            stream.write_all(b"N").await.unwrap();
+            let mut remaining = Vec::new();
+            stream.read_to_end(&mut remaining).await.unwrap();
+            assert!(
+                remaining.is_empty(),
+                "no startup or password may follow TLS rejection"
+            );
+        });
+        let options = iam_options(
+            &format!("postgres://iam-user@{address}/talon?sslmode=disable"),
+            "secret-iam-token".to_string(),
         )
         .unwrap();
-        assert!(matches!(verified.0.get_ssl_mode(), PgSslMode::VerifyFull));
+        let result = tokio::time::timeout(
+            Duration::from_secs(2),
+            sqlx::PgConnection::connect_with(&options.into_inner()),
+        )
+        .await
+        .unwrap();
+        assert!(result.is_err());
+        tokio::time::timeout(Duration::from_secs(2), server)
+            .await
+            .unwrap()
+            .unwrap();
     }
 }

@@ -179,24 +179,41 @@ certificate and hostname against your database CA.
 
 PostgreSQL password authentication remains the default. For Cloud SQL IAM
 database authentication, set `auth_mode: gcp_iam` and omit the password from the
-URL. The username in the URL must be the IAM database user. The Cloud Run/GCE
-runtime service account needs Cloud SQL Client and a matching IAM database user.
+URL. The Cloud Run/GCE runtime service account needs Cloud SQL Instance User
+(`roles/cloudsql.instanceUser`, which grants `cloudsql.instances.login`) and a
+matching IAM database user on an instance with IAM database authentication
+enabled. Grant that database user the SQL privileges Talon needs. Cloud SQL
+Client (`roles/cloudsql.client`) is additionally required when using the Cloud
+SQL Auth Proxy or a Cloud SQL connector. See Google's
+[IAM login prerequisites](https://docs.cloud.google.com/sql/docs/postgres/iam-logins).
+
+For a service account, the database username is its email without the
+`.gserviceaccount.com` suffix; percent-encode the `@` as `%40` in the URL.
+IAM mode always uses `sslmode=verify-full`, including when a weaker mode is
+specified. Supply the database CA with `sslrootcert` and use a resolvable hostname
+that matches the server certificate. The instance must support
+[DNS-based server identity verification](https://docs.cloud.google.com/sql/docs/postgres/configure-ssl-instance).
+Plaintext local proxy connections are not supported by this mode.
+
 Talon obtains access tokens and their expiry from the metadata server, replacing
 the pool at least five minutes before expiry and no later than every 45 minutes.
 SQLx 0.8.6 has no pre-authentication connection callback, so pool rotation
 renews the static password before the one-hour token lifetime while allowing
 checked-out connections to finish.
+Failed refreshes or replacement connections retry after five seconds with
+exponential backoff capped at two minutes. New pool access returns a sanitized
+error until a replacement connects successfully.
 
 ```yaml
 storage:
   control:
     driver: postgres
     auth_mode: gcp_iam
-    url: postgres://talon-runtime@10.0.0.5:5432/talon?sslmode=verify-full&sslrootcert=/etc/ssl/cloudsql/server-ca.pem
+    url: postgres://talon-runtime%40my-project.iam@db.example.com:5432/talon?sslmode=verify-full&sslrootcert=/etc/ssl/cloudsql/server-ca.pem
   documents:
     driver: postgres
     auth_mode: gcp_iam
-    url: postgres://talon-runtime@10.0.0.5:5432/talon_documents?sslmode=verify-full&sslrootcert=/etc/ssl/cloudsql/server-ca.pem
+    url: postgres://talon-runtime%40my-project.iam@db.example.com:5432/talon_documents?sslmode=verify-full&sslrootcert=/etc/ssl/cloudsql/server-ca.pem
 ```
 
 ### Local socket broker
