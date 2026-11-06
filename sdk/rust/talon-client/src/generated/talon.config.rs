@@ -163,9 +163,6 @@ pub struct ControllerConfig {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct LlmProviderConfig {
-    /// Omitted authentication retains the provider's existing API-key behavior.
-    #[prost(message, optional, tag = "5")]
-    pub auth: ::core::option::Option<LlmAuthConfig>,
     #[prost(oneof = "llm_provider_config::Config", tags = "1, 2, 3, 4")]
     pub config: ::core::option::Option<llm_provider_config::Config>,
 }
@@ -183,32 +180,15 @@ pub mod llm_provider_config {
         OpenaiCompatible(super::GenericConfig),
     }
 }
-/// Authentication is selected per LLM provider, independently of the host cloud.
+/// OpenAI-specific destination mapping, independent of the identity source.
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct LlmAuthConfig {
-    #[prost(oneof = "llm_auth_config::Mode", tags = "1, 2")]
-    pub mode: ::core::option::Option<llm_auth_config::Mode>,
-}
-/// Nested message and enum types in `LlmAuthConfig`.
-pub mod llm_auth_config {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Mode {
-        #[prost(message, tag = "1")]
-        ApiKey(super::ApiKeyAuth),
-        #[prost(message, tag = "2")]
-        WorkloadIdentity(super::WorkloadIdentityAuth),
-    }
-}
-/// Uses the provider's existing api_key field or tenant-scoped API key.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct ApiKeyAuth {}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WorkloadIdentityAuth {
+pub struct OpenAiWorkloadIdentityConfig {
     #[prost(message, optional, tag = "1")]
     pub source: ::core::option::Option<WorkloadIdentitySource>,
-    /// Destination-specific mapping; required for the native OpenAI provider.
-    #[prost(message, optional, tag = "2")]
-    pub openai: ::core::option::Option<OpenAiFederationConfig>,
+    #[prost(string, tag = "2")]
+    pub identity_provider_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub service_account_id: ::prost::alloc::string::String,
 }
 /// Sources supply an OIDC subject token; destination adapters exchange it.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -248,13 +228,6 @@ pub struct TokenFileIdentitySource {
     pub path: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct OpenAiFederationConfig {
-    #[prost(string, tag = "1")]
-    pub identity_provider_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub service_account_id: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenAiConfig {
     #[prost(string, tag = "1")]
     pub model: ::prost::alloc::string::String,
@@ -264,6 +237,9 @@ pub struct OpenAiConfig {
     pub org_id: ::prost::alloc::string::String,
     #[prost(string, tag = "4")]
     pub api: ::prost::alloc::string::String,
+    /// Omitted workload identity retains existing static or tenant API-key behavior.
+    #[prost(message, optional, tag = "5")]
+    pub workload_identity: ::core::option::Option<OpenAiWorkloadIdentityConfig>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AnthropicConfig {

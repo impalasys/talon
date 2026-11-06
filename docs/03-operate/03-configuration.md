@@ -75,33 +75,31 @@ providers:
 The accepted values are `responses` and `chat_completions`. Generic
 OpenAI-compatible providers continue to use Chat Completions.
 
-### Workload identity authentication
+### OpenAI workload identity
 
-Authentication is selected explicitly on each provider. Omitting `auth` (or
-setting `auth.type: api_key`) retains the existing static or tenant API-key
-resolution. Workload identity currently supports the native `type: openai`
-provider. Other backends reject this mode during configuration validation.
+Set `workload_identity` directly on a native OpenAI provider. Omitting it retains
+existing static or tenant API-key resolution. `workload_identity` and `api_key`
+cannot both be configured. Other provider types do not have this field.
 
 ```yaml
 providers:
   openai:
     type: openai
     model: gpt-5.6-luna
-    auth:
-      type: workload_identity
+    workload_identity:
+      identity_provider_id: ${OPENAI_IDENTITY_PROVIDER_ID}
+      service_account_id: ${OPENAI_SERVICE_ACCOUNT_ID}
       source:
-        type: google_metadata
-        audience: https://api.openai.com/v1
-      openai:
-        identity_provider_id: ${OPENAI_IDENTITY_PROVIDER_ID}
-        service_account_id: ${OPENAI_SERVICE_ACCOUNT_ID}
+        google_metadata:
+          audience: https://api.openai.com/v1
 ```
 
-`source` defines how Talon obtains an OIDC subject token. The `openai` mapping
-defines the destination identity. Cloud identity acquisition is independent of
-the LLM credential exchange. Choose one source:
+The YAML block deserializes directly into the generated
+`OpenAiWorkloadIdentityConfig` protobuf message. The field names and nesting
+match the proto schema; there are no separate authentication mode or mapping
+wrappers. `source` selects exactly one of the following fields:
 
-| Source type | Required fields | Runtime behavior |
+| Source field | Required fields | Runtime behavior |
 | --- | --- | --- |
 | `google_metadata` | `audience` | Requests a Google-signed identity token from the attached workload's metadata server. |
 | `aws_sts` | `audience`, `region` | Uses the AWS SDK credential chain to call regional STS `GetWebIdentityToken`, requesting a 300-second JWT signed with ES384. |
@@ -111,58 +109,54 @@ To use AWS, replace only the source block:
 
 ```yaml
 source:
-  type: aws_sts
-  region: us-west-2
-  audience: https://api.openai.com/v1
+  aws_sts:
+    region: us-west-2
+    audience: https://api.openai.com/v1
 ```
 
 Enable AWS outbound identity federation on the AWS account and grant the
-workload `sts:GetWebIdentityToken` for the intended audience. The regional STS
-endpoint is required. AWS access keys and SigV4 requests authenticate the STS
-call; they are not sent to OpenAI as subject tokens.
+workload `sts:GetWebIdentityToken` for the intended audience. A regional STS
+endpoint is required. AWS credentials authenticate the STS request; the
+resulting JWT is the subject token sent to OpenAI.
 
-For projected Kubernetes tokens (including EKS and GKE), use:
+For projected Kubernetes tokens, including EKS and GKE, use:
 
 ```yaml
 source:
-  type: token_file
-  path: /var/run/secrets/openai/token
+  token_file:
+    path: /var/run/secrets/openai/token
 ```
 
 Project a token with the audience trusted by OpenAI into that file. Talon opens
 the path again whenever credentials need refreshing, including after Kubernetes
-rotates the projected file. The file is read on the worker that makes the LLM
-request; configuration validation does not read it or contact cloud services.
+rotates the projected file. Configuration validation does not read token files
+or contact cloud services; acquisition happens on the worker making the request.
 
-For each source, an OpenAI organization administrator must create a Workload
-Identity Provider trusting the token's issuer and audience, then create a
-service-account mapping matching the workload's stable subject claims and the
-intended OpenAI project and service account. Explicitly grant `api.model.request`
-and any other required permissions. Talon rejects exchange responses lacking
-that scope, including unrestricted mappings with no explicit permission list.
-See OpenAI's [Google Cloud setup](https://developers.openai.com/api/docs/guides/workload-identity-federation/google-cloud),
+An OpenAI organization administrator must create a Workload Identity Provider
+trusting the source token's issuer and audience, then create a service-account
+mapping matching the workload's stable subject and intended OpenAI project and
+service account. Explicitly grant `api.model.request` and other required
+permissions. Talon rejects exchange responses lacking that scope, including
+unrestricted mappings with no explicit permission list. See OpenAI's
+[Google Cloud setup](https://developers.openai.com/api/docs/guides/workload-identity-federation/google-cloud),
 [AWS setup](https://developers.openai.com/api/docs/guides/workload-identity-federation/aws),
 and [token exchange reference](https://developers.openai.com/api/reference/workload-identity-federation).
 
 Talon exchanges the source token at `https://auth.openai.com/oauth/token`.
-Providers with identical source and destination configuration share a process
+Providers with identical workload identity configuration share a process
 credential cache across session messages. Tokens refresh 120 seconds before
 expiry, capped at half their lifetime; concurrent calls share one refresh.
-Different sources, audiences, regions, file paths, or destination mappings have
-separate caches.
+Different sources, audiences, regions, file paths, or mappings use separate
+caches. The identity sources remain reusable independently of OpenAI's exchange.
 
-Workload identity and `api_key` cannot both be configured on a provider. Missing
-settings, unsupported backends, and empty fields fail configuration validation.
-Token acquisition or exchange failures fail the model request without falling
-back to a static or tenant API key. Workload identity uses the worker's configured
-identity and destination mapping; it does not derive identity from a tenant's
-API-key Secret.
+Missing or empty settings, multiple sources, and conflicting API keys fail
+validation. Acquisition or exchange failures fail the model request without
+falling back to a static or tenant API key. The configured worker identity and
+OpenAI mapping determine access; tenant API-key Secrets are not used in this mode.
 
-Environment variables can supply explicitly referenced configuration values
-through `${NAME}` expansion. They do not select authentication mode. The former
-`TALON_OPENAI_WIF_ENABLED` switch and implicit `OPENAI_WIF_AUDIENCE` lookup are
-removed; migrate to the `auth` block above. Existing API-key configurations
-continue to work without changes.
+Environment variables supply values only through explicit `${NAME}` references.
+They do not select authentication. The former `TALON_OPENAI_WIF_ENABLED` switch
+and automatic WIF environment lookups are removed.
 
 ## Model catalog
 

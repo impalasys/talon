@@ -129,11 +129,10 @@ async fn resolve_llm_with_credentials(
         .get(provider_name)
         .ok_or_else(|| anyhow!("LLM provider '{}' not found in config", provider_name))?;
 
-    let workload_identity =
-        crate::harness::llm::credentials::configured_workload_identity(provider_cfg)?;
-
     match &provider_cfg.config {
         Some(proto::llm_provider_config::Config::Openai(openai)) => {
+            let workload_identity =
+                crate::harness::llm::credentials::configured_workload_identity(openai)?;
             // Workload identity is selected per provider. Never resolve a static
             // or tenant API key as a fallback when it is selected.
             let (api_key, llm_credentials): (
@@ -416,7 +415,6 @@ mod tests {
 
     fn openai_compatible_provider(base_url: String, api_key: Option<Secret>) -> ProviderConfig {
         ProviderConfig {
-            auth: None,
             config: Some(proto::llm_provider_config::Config::OpenaiCompatible(
                 proto::GenericConfig {
                     name: String::new(),
@@ -499,52 +497,43 @@ mod tests {
         let _old_switch = crate::test_support::EnvVarGuard::set("TALON_OPENAI_WIF_ENABLED", "true");
         let _old_mapping = crate::test_support::EnvVarGuard::remove("OPENAI_IDENTITY_PROVIDER_ID");
         tokio::runtime::Runtime::new().unwrap().block_on(async {
-            for auth in [
-                None,
-                Some(proto::LlmAuthConfig {
-                    mode: Some(proto::llm_auth_config::Mode::ApiKey(proto::ApiKeyAuth {})),
-                }),
-            ] {
-                let mut config = config_with_provider(
-                    "openai",
-                    ProviderConfig {
-                        auth,
-                        config: Some(proto::llm_provider_config::Config::Openai(
-                            proto::OpenAiConfig {
-                                model: "model".into(),
-                                api_key: Some(Secret {
-                                    source: Some(proto::secret::Source::Plain(
-                                        "existing-key".into(),
-                                    )),
-                                }),
-                                ..Default::default()
-                            },
-                        )),
-                    },
-                );
-                resolve_llm(
-                    &manifests::AgentSpec::default(),
-                    &config,
-                    test_object_store(),
-                )
-                .await
-                .unwrap();
-                let Some(proto::llm_provider_config::Config::Openai(openai)) =
-                    config.providers.get_mut("openai").unwrap().config.as_mut()
-                else {
-                    panic!("expected OpenAI")
-                };
-                openai.api_key = None;
-                let error = resolve_llm(
-                    &manifests::AgentSpec::default(),
-                    &config,
-                    test_object_store(),
-                )
-                .await
-                .err()
-                .unwrap();
-                assert!(error.to_string().contains("missing api_key"));
-            }
+            let mut config = config_with_provider(
+                "openai",
+                ProviderConfig {
+                    config: Some(proto::llm_provider_config::Config::Openai(
+                        proto::OpenAiConfig {
+                            workload_identity: None,
+                            model: "model".into(),
+                            api_key: Some(Secret {
+                                source: Some(proto::secret::Source::Plain("existing-key".into())),
+                            }),
+                            ..Default::default()
+                        },
+                    )),
+                },
+            );
+            resolve_llm(
+                &manifests::AgentSpec::default(),
+                &config,
+                test_object_store(),
+            )
+            .await
+            .unwrap();
+            let Some(proto::llm_provider_config::Config::Openai(openai)) =
+                config.providers.get_mut("openai").unwrap().config.as_mut()
+            else {
+                panic!("expected OpenAI")
+            };
+            openai.api_key = None;
+            let error = resolve_llm(
+                &manifests::AgentSpec::default(),
+                &config,
+                test_object_store(),
+            )
+            .await
+            .err()
+            .unwrap();
+            assert!(error.to_string().contains("missing api_key"));
         });
     }
 
@@ -558,9 +547,9 @@ mod tests {
             let config = config_with_provider(
                 "openai",
                 ProviderConfig {
-                    auth: Some(proto::LlmAuthConfig {
-                        mode: Some(proto::llm_auth_config::Mode::WorkloadIdentity(
-                            proto::WorkloadIdentityAuth {
+                    config: Some(proto::llm_provider_config::Config::Openai(
+                        proto::OpenAiConfig {
+                            workload_identity: Some(proto::OpenAiWorkloadIdentityConfig {
                                 source: Some(proto::WorkloadIdentitySource {
                                     config: Some(
                                         proto::workload_identity_source::Config::TokenFile(
@@ -575,15 +564,9 @@ mod tests {
                                         ),
                                     ),
                                 }),
-                                openai: Some(proto::OpenAiFederationConfig {
-                                    identity_provider_id: "idp".into(),
-                                    service_account_id: "account".into(),
-                                }),
-                            },
-                        )),
-                    }),
-                    config: Some(proto::llm_provider_config::Config::Openai(
-                        proto::OpenAiConfig {
+                                identity_provider_id: "idp".into(),
+                                service_account_id: "account".into(),
+                            }),
                             model: "config-model".to_string(),
                             api_key: None,
                             org_id: String::new(),
@@ -648,13 +631,7 @@ mod tests {
     #[tokio::test]
     async fn resolve_llm_errors_when_provider_config_is_unrecognized() {
         let config = Config {
-            providers: HashMap::from([(
-                "primary".to_string(),
-                ProviderConfig {
-                    config: None,
-                    auth: None,
-                },
-            )]),
+            providers: HashMap::from([("primary".to_string(), ProviderConfig { config: None })]),
             default_provider: "primary".to_string(),
             ..Config::default()
         };
@@ -772,9 +749,9 @@ mod tests {
         let config = config_with_provider(
             "openai",
             ProviderConfig {
-                auth: None,
                 config: Some(proto::llm_provider_config::Config::Openai(
                     proto::OpenAiConfig {
+                        workload_identity: None,
                         model: "config-model".to_string(),
                         api_key: None,
                         org_id: String::new(),
@@ -864,9 +841,9 @@ mod tests {
         let config = config_with_provider(
             "openai",
             ProviderConfig {
-                auth: None,
                 config: Some(proto::llm_provider_config::Config::Openai(
                     proto::OpenAiConfig {
+                        workload_identity: None,
                         model: "config-model".to_string(),
                         api_key: None,
                         org_id: String::new(),
@@ -902,9 +879,9 @@ mod tests {
         let config = config_with_provider(
             "openai",
             ProviderConfig {
-                auth: None,
                 config: Some(proto::llm_provider_config::Config::Openai(
                     proto::OpenAiConfig {
+                        workload_identity: None,
                         model: "config-model".to_string(),
                         api_key: Some(Secret {
                             source: Some(proto::secret::Source::Plain(

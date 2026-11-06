@@ -56,10 +56,10 @@ pub struct SerdeConfig {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum SerdeProviderConfig {
     Openai {
+        workload_identity: Option<proto::OpenAiWorkloadIdentityConfig>,
         model: String,
         #[serde(alias = "apiKey")]
         api_key: Option<SerdeSecret>,
-        auth: Option<llm_auth::SerdeLlmAuth>,
         #[serde(default)]
         api: Option<String>,
     },
@@ -67,13 +67,11 @@ pub enum SerdeProviderConfig {
         model: String,
         #[serde(alias = "apiKey")]
         api_key: Option<SerdeSecret>,
-        auth: Option<llm_auth::SerdeLlmAuth>,
     },
     Google {
         model: String,
         #[serde(alias = "apiKey")]
         api_key: Option<SerdeSecret>,
-        auth: Option<llm_auth::SerdeLlmAuth>,
     },
     OpenaiCompatible {
         #[serde(alias = "baseUrl")]
@@ -81,7 +79,6 @@ pub enum SerdeProviderConfig {
         model: String,
         #[serde(alias = "apiKey")]
         api_key: Option<SerdeSecret>,
-        auth: Option<llm_auth::SerdeLlmAuth>,
     },
 }
 
@@ -294,24 +291,19 @@ impl From<SerdeConfig> for Config {
                         model,
                         api_key,
                         api,
-                        auth,
+                        workload_identity,
                     } => ProviderConfig {
-                        auth: auth.map(Into::into),
                         config: Some(proto::llm_provider_config::Config::Openai(
                             proto::OpenAiConfig {
                                 model,
                                 api_key: api_key.map(Into::into),
                                 org_id: "".to_string(),
                                 api: api.unwrap_or_default(),
+                                workload_identity,
                             },
                         )),
                     },
-                    SerdeProviderConfig::Anthropic {
-                        model,
-                        api_key,
-                        auth,
-                    } => ProviderConfig {
-                        auth: auth.map(Into::into),
+                    SerdeProviderConfig::Anthropic { model, api_key } => ProviderConfig {
                         config: Some(proto::llm_provider_config::Config::Anthropic(
                             proto::AnthropicConfig {
                                 model,
@@ -319,12 +311,7 @@ impl From<SerdeConfig> for Config {
                             },
                         )),
                     },
-                    SerdeProviderConfig::Google {
-                        model,
-                        api_key,
-                        auth,
-                    } => ProviderConfig {
-                        auth: auth.map(Into::into),
+                    SerdeProviderConfig::Google { model, api_key } => ProviderConfig {
                         config: Some(proto::llm_provider_config::Config::Google(
                             proto::GoogleConfig {
                                 model,
@@ -336,9 +323,7 @@ impl From<SerdeConfig> for Config {
                         base_url,
                         model,
                         api_key,
-                        auth,
                     } => ProviderConfig {
-                        auth: auth.map(Into::into),
                         config: Some(proto::llm_provider_config::Config::OpenaiCompatible(
                             proto::GenericConfig {
                                 name: "".to_string(),
@@ -854,6 +839,7 @@ impl ConfigExt for Config {
         let path = path.as_ref();
         let mut stack = Vec::new();
         let value = load_config_value(path, &mut stack, 0)?;
+        llm_auth::validate_field_placement(&value)?;
         let serde_config: SerdeConfig = serde_json::from_value(value).map_err(|error| {
             anyhow!("Failed to deserialize merged Talon configuration: {error}")
         })?;
@@ -894,6 +880,7 @@ impl ConfigExt for Config {
                 }
                 merge_config_values(&mut merged, value);
 
+                llm_auth::validate_field_placement(&merged)?;
                 let serde_config: SerdeConfig =
                     serde_json::from_value(merged).map_err(|error| {
                         anyhow!("Failed to deserialize TALON_CONFIG_INLINE_YAML: {error}")
@@ -1103,15 +1090,11 @@ fn resolve_config_relative_paths_value(path: &Path, value: &mut Value) {
 
     if let Some(providers) = object.get_mut("providers").and_then(Value::as_object_mut) {
         for provider in providers.values_mut().filter_map(Value::as_object_mut) {
-            let is_token_file = provider
-                .get("auth")
-                .and_then(|auth| auth.get("source"))
-                .and_then(|source| source.get("type"))
-                .and_then(Value::as_str)
-                == Some("token_file");
-            if is_token_file {
-                resolve_raw_path_at(path, provider, &["auth", "source", "path"]);
-            }
+            resolve_raw_path_at(
+                path,
+                provider,
+                &["workload_identity", "source", "token_file", "path"],
+            );
         }
     }
     resolve_raw_path_at(path, object, &["workspace_dir"]);

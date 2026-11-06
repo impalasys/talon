@@ -88,23 +88,16 @@ Static metadata for a model configured in the model catalog. Costs are in USD pe
 | `anthropic` | `AnthropicConfig` | oneof (config) |
 | `google` | `GoogleConfig` | oneof (config) |
 | `openai_compatible` | `GenericConfig` | oneof (config) |
-| `auth` | `LlmAuthConfig` | Omitted authentication retains the provider's existing API-key behavior. |
 
-## `LlmAuthConfig`
+## `OpenAiWorkloadIdentityConfig`
 
-Authentication is selected per LLM provider, independently of the host cloud.
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `api_key` | `ApiKeyAuth` | oneof (mode) |
-| `workload_identity` | `WorkloadIdentityAuth` | oneof (mode) |
-
-## `WorkloadIdentityAuth`
+OpenAI-specific destination mapping, independent of the identity source.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `source` | `WorkloadIdentitySource` | - |
-| `openai` | `OpenAiFederationConfig` | Destination-specific mapping; required for the native OpenAI provider. |
+| `identity_provider_id` | `string` | - |
+| `service_account_id` | `string` | - |
 
 ## `WorkloadIdentitySource`
 
@@ -135,13 +128,6 @@ Sources supply an OIDC subject token; destination adapters exchange it.
 | --- | --- | --- |
 | `path` | `string` | Reread on every exchange to pick up projected token rotation. |
 
-## `OpenAiFederationConfig`
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `identity_provider_id` | `string` | - |
-| `service_account_id` | `string` | - |
-
 ## `OpenAiConfig`
 
 | Field | Type | Notes |
@@ -150,6 +136,7 @@ Sources supply an OIDC subject token; destination adapters exchange it.
 | `api_key` | `Secret` | - |
 | `org_id` | `string` | - |
 | `api` | `string` | - |
+| `workload_identity` | `OpenAiWorkloadIdentityConfig` | Omitted workload identity retains existing static or tenant API-key behavior. |
 
 ## `AnthropicConfig`
 

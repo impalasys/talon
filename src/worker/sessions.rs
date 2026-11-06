@@ -1623,7 +1623,6 @@ mod tests {
                 providers: HashMap::from([(
                     "novita".to_string(),
                     ProviderConfig {
-                        auth: None,
                         config: Some(proto::llm_provider_config::Config::OpenaiCompatible(
                             proto::GenericConfig {
                                 name: "novita".to_string(),
@@ -2497,9 +2496,9 @@ mod tests {
                 providers: HashMap::from([(
                     "openai".to_string(),
                     ProviderConfig {
-                        auth: None,
                         config: Some(proto::llm_provider_config::Config::Openai(
                             proto::OpenAiConfig {
+                                workload_identity: None,
                                 model: "gpt-test".to_string(),
                                 api_key: None,
                                 org_id: String::new(),
@@ -2676,9 +2675,9 @@ mod tests {
                 providers: HashMap::from([(
                     "openai".to_string(),
                     ProviderConfig {
-                        auth: None,
                         config: Some(proto::llm_provider_config::Config::Openai(
                             proto::OpenAiConfig {
+                                workload_identity: None,
                                 model: "gpt-test".to_string(),
                                 api_key: None,
                                 org_id: String::new(),

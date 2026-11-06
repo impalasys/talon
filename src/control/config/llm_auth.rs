@@ -1,114 +1,48 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! File configuration and validation for provider-scoped LLM authentication.
+//! Validation for OpenAI workload identity. File configuration deserializes
+//! directly into generated protobuf messages; there is no separate YAML schema.
 
 use super::proto;
 use anyhow::{bail, Result};
-use serde::Deserialize;
 
-#[derive(Debug, Deserialize, Clone)]
-#[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
-pub enum SerdeLlmAuth {
-    ApiKey {},
-    WorkloadIdentity {
-        source: SerdeIdentitySource,
-        openai: OpenAiMapping,
-    },
-}
-
-#[derive(Debug, Deserialize, Clone)]
-#[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
-pub enum SerdeIdentitySource {
-    GoogleMetadata { audience: String },
-    AwsSts { audience: String, region: String },
-    TokenFile { path: String },
-}
-
-#[derive(Debug, Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
-pub struct OpenAiMapping {
-    identity_provider_id: String,
-    service_account_id: String,
-}
-
-impl From<SerdeLlmAuth> for proto::LlmAuthConfig {
-    fn from(auth: SerdeLlmAuth) -> Self {
-        use proto::{llm_auth_config::Mode, workload_identity_source::Config as Source};
-        let mode = match auth {
-            SerdeLlmAuth::ApiKey {} => Mode::ApiKey(proto::ApiKeyAuth {}),
-            SerdeLlmAuth::WorkloadIdentity { source, openai } => {
-                let source = match source {
-                    SerdeIdentitySource::GoogleMetadata { audience } => {
-                        Source::GoogleMetadata(proto::GoogleMetadataIdentitySource { audience })
-                    }
-                    SerdeIdentitySource::AwsSts { audience, region } => {
-                        Source::AwsSts(proto::AwsStsIdentitySource { audience, region })
-                    }
-                    SerdeIdentitySource::TokenFile { path } => {
-                        Source::TokenFile(proto::TokenFileIdentitySource { path })
-                    }
-                };
-                Mode::WorkloadIdentity(proto::WorkloadIdentityAuth {
-                    source: Some(proto::WorkloadIdentitySource {
-                        config: Some(source),
-                    }),
-                    openai: Some(proto::OpenAiFederationConfig {
-                        identity_provider_id: openai.identity_provider_id,
-                        service_account_id: openai.service_account_id,
-                    }),
-                })
-            }
-        };
-        Self { mode: Some(mode) }
-    }
-}
-
-/// Validate without resolving secrets, reading tokens, or contacting a cloud.
-/// Also called at runtime for providers constructed directly from protobufs.
-pub fn validate_provider_auth(provider: &proto::LlmProviderConfig) -> Result<()> {
-    use proto::{
-        llm_auth_config::Mode, llm_provider_config::Config,
-        workload_identity_source::Config as Source,
-    };
-    let Some(auth) = &provider.auth else {
+/// Validate without reading tokens, resolving secrets, or contacting a cloud.
+pub fn validate_openai_auth(config: &proto::OpenAiConfig) -> Result<()> {
+    use proto::workload_identity_source::Config as Source;
+    let Some(wif) = &config.workload_identity else {
         return Ok(());
     };
-    let wif = match &auth.mode {
-        Some(Mode::ApiKey(_)) => return Ok(()),
-        Some(Mode::WorkloadIdentity(wif)) => wif,
-        None => bail!("auth must select api_key or workload_identity"),
-    };
-    let api_key = match &provider.config {
-        Some(Config::Openai(config)) => &config.api_key,
-        _ => bail!("workload_identity authentication is currently supported only by the native OpenAI provider"),
-    };
-    if api_key.is_some() {
-        bail!("api_key and workload_identity authentication cannot both be configured");
+    if config.api_key.is_some() {
+        bail!("api_key and workload_identity cannot both be configured");
     }
-    let mapping = wif
-        .openai
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("workload_identity requires an openai mapping"))?;
     required(
-        "auth.openai.identity_provider_id",
-        &mapping.identity_provider_id,
+        "workload_identity.identity_provider_id",
+        &wif.identity_provider_id,
     )?;
     required(
-        "auth.openai.service_account_id",
-        &mapping.service_account_id,
+        "workload_identity.service_account_id",
+        &wif.service_account_id,
     )?;
     match wif
         .source
         .as_ref()
         .and_then(|source| source.config.as_ref())
     {
-        Some(Source::GoogleMetadata(source)) => required("auth.source.audience", &source.audience)?,
+        Some(Source::GoogleMetadata(source)) => required(
+            "workload_identity.source.google_metadata.audience",
+            &source.audience,
+        )?,
         Some(Source::AwsSts(source)) => {
-            required("auth.source.audience", &source.audience)?;
-            required("auth.source.region", &source.region)?;
+            required(
+                "workload_identity.source.aws_sts.audience",
+                &source.audience,
+            )?;
+            required("workload_identity.source.aws_sts.region", &source.region)?;
         }
-        Some(Source::TokenFile(source)) => required("auth.source.path", &source.path)?,
+        Some(Source::TokenFile(source)) => {
+            required("workload_identity.source.token_file.path", &source.path)?
+        }
         None => bail!("workload_identity requires an identity source"),
     }
     Ok(())
@@ -121,10 +55,34 @@ fn required(name: &str, value: &str) -> Result<()> {
     Ok(())
 }
 
+// The existing provider YAML adapter tolerates extra legacy fields. Reject
+// misplaced authentication explicitly so an unsupported block cannot be ignored.
+// Run after merging layers, since a child may inherit its provider type.
+pub(super) fn validate_field_placement(value: &serde_json::Value) -> Result<()> {
+    if let Some(providers) = value
+        .get("providers")
+        .and_then(serde_json::Value::as_object)
+    {
+        for (name, provider) in providers {
+            if provider.get("auth").is_some() {
+                bail!("provider '{name}': unknown field `auth`; configure workload_identity directly on OpenAI");
+            }
+            if provider.get("workload_identity").is_some()
+                && provider.get("type").and_then(serde_json::Value::as_str) != Some("openai")
+            {
+                bail!("provider '{name}': workload_identity is supported only by the native OpenAI provider");
+            }
+        }
+    }
+    Ok(())
+}
+
 pub(super) fn validate_config(config: &proto::TalonConfig) -> Result<()> {
     for (name, provider) in &config.providers {
-        validate_provider_auth(provider)
-            .map_err(|error| anyhow::anyhow!("provider '{name}': {error}"))?;
+        if let Some(proto::llm_provider_config::Config::Openai(openai)) = &provider.config {
+            validate_openai_auth(openai)
+                .map_err(|error| anyhow::anyhow!("provider '{name}': {error}"))?;
+        }
     }
     Ok(())
 }
@@ -135,28 +93,43 @@ mod tests {
     use crate::control::config::{Config, ConfigExt};
     use prost::Message;
 
-    fn yaml(provider: &str, auth: &str) -> String {
-        format!("providers:\n  llm:\n    type: {provider}\n    model: demo\n{auth}")
+    fn yaml(provider: &str, identity: &str) -> String {
+        format!("providers:\n  llm:\n    type: {provider}\n    model: demo\n{identity}")
     }
 
-    fn auth(source: &str) -> String {
-        format!("    auth:\n      type: workload_identity\n      source:\n{source}\n      openai:\n        identity_provider_id: idp\n        service_account_id: account\n")
+    fn identity(source: &str) -> String {
+        format!("    workload_identity:\n      identity_provider_id: idp\n      service_account_id: account\n      source:\n{source}\n")
+    }
+
+    fn openai(config: &Config) -> &proto::OpenAiConfig {
+        let Some(proto::llm_provider_config::Config::Openai(openai)) =
+            &config.providers["llm"].config
+        else {
+            panic!("expected OpenAI")
+        };
+        openai
     }
 
     #[test]
-    fn identity_sources_load_from_yaml_and_survive_binary_round_trip() {
+    fn yaml_uses_generated_proto_fields_and_survives_binary_round_trip() {
         let dir = tempfile::tempdir().unwrap();
         for (name, source) in [
-            ("google", "        type: google_metadata\n        audience: https://api.openai.com/v1"),
-            ("aws", "        type: aws_sts\n        audience: https://api.openai.com/v1\n        region: us-west-2"),
-            ("file", "        type: token_file\n        path: ./projected-token"),
+            ("google", "        google_metadata:\n          audience: https://api.openai.com/v1"),
+            ("aws", "        aws_sts:\n          audience: https://api.openai.com/v1\n          region: us-west-2"),
+            ("file", "        token_file:\n          path: ./projected-token"),
         ] {
             let path = dir.path().join(format!("{name}.yaml"));
-            std::fs::write(&path, yaml("openai", &auth(source))).unwrap();
+            std::fs::write(&path, yaml("openai", &identity(source))).unwrap();
             let config = Config::from_file(&path).unwrap();
-            let decoded = Config::decode_binary(&config.encode_to_vec()).unwrap();
-            assert_eq!(config, decoded);
-            let Some(proto::llm_auth_config::Mode::WorkloadIdentity(wif)) = &decoded.providers["llm"].auth.as_ref().unwrap().mode else { panic!("expected WIF") };
+            assert_eq!(config, Config::decode_binary(&config.encode_to_vec()).unwrap());
+            let wif = openai(&config).workload_identity.as_ref().unwrap();
+            // The YAML loader uses this exact generated message, without a conversion layer.
+            let serialized = serde_yaml::to_value(wif).unwrap();
+            assert!(serialized.get("identity_provider_id").is_some());
+            assert!(serialized.get("mode").is_none());
+            assert!(serialized.get("openai").is_none());
+            assert!(serialized["source"].get("config").is_none());
+            assert_eq!(*wif, serde_yaml::from_value::<proto::OpenAiWorkloadIdentityConfig>(serialized).unwrap());
             if let Some(proto::workload_identity_source::Config::TokenFile(source)) = wif.source.as_ref().unwrap().config.as_ref() {
                 assert_eq!(source.path, dir.path().join("projected-token").to_str().unwrap());
             }
@@ -164,9 +137,9 @@ mod tests {
     }
 
     #[test]
-    fn rejects_unsupported_conflicting_missing_empty_and_unknown_auth_settings() {
+    fn rejects_unsupported_conflicting_missing_empty_and_unknown_settings() {
         let dir = tempfile::tempdir().unwrap();
-        let valid = auth("        type: google_metadata\n        audience: audience");
+        let valid = identity("        google_metadata:\n          audience: audience");
         let cases = [
             (yaml("anthropic", &valid), "supported only by the native OpenAI"),
             (yaml("google", &valid), "supported only by the native OpenAI"),
@@ -175,14 +148,15 @@ mod tests {
             (yaml("openai", &valid.replace("identity_provider_id: idp", "identity_provider_id: ' '")), "identity_provider_id must not be empty"),
             (yaml("openai", &valid.replace("service_account_id: account", "service_account_id: ''")), "service_account_id must not be empty"),
             (yaml("openai", &valid.replace("audience: audience", "audience: ''")), "audience must not be empty"),
-            (yaml("openai", &valid.replace("      openai:\n        identity_provider_id: idp\n        service_account_id: account\n", "")), "missing field `openai`"),
-            (yaml("openai", "    auth:\n      type: automatic\n"), "unknown variant"),
-            (yaml("openai", &valid.replace("type: google_metadata", "type: unknown_cloud")), "unknown variant"),
-            (yaml("openai", &valid.replace("        audience: audience", "        audience: audience\n        unexpected: true")), "unknown field"),
-            (yaml("openai", &auth("        type: aws_sts\n        audience: audience\n        region: ''")), "region must not be empty"),
-            (yaml("openai", &auth("        type: token_file\n        path: ''")), "path must not be empty"),
-            (yaml("openai", "    auth: {}"), "missing field `type`"),
-            (yaml("openai", "    auth:\n      type: api_key\n      source: ignored\n"), "unknown field"),
+            (yaml("openai", &valid.replace("      identity_provider_id: idp\n", "")), "identity_provider_id must not be empty"),
+            (yaml("openai", "    auth:\n      type: workload_identity\n"), "unknown field `auth`"),
+            (yaml("openai", &valid.replace("google_metadata:", "unknown_cloud:")), "unknown variant"),
+            (yaml("openai", &valid.replace("          audience: audience", "          audience: audience\n          unexpected: true")), "unknown field"),
+            (yaml("openai", &identity("        aws_sts:\n          audience: audience\n          region: ''")), "region must not be empty"),
+            (yaml("openai", &identity("        token_file:\n          path: ''")), "path must not be empty"),
+            (yaml("openai", &identity("        google_metadata:\n          audience: audience\n        token_file:\n          path: /token")), "single key"),
+            (yaml("openai", &identity("        type: google_metadata\n        audience: audience")), "single key"),
+            (yaml("openai", &identity("        null")), "requires an identity source"),
         ];
         for (index, (content, expected)) in cases.into_iter().enumerate() {
             let path = dir.path().join(format!("invalid-{index}.yaml"));
@@ -196,18 +170,18 @@ mod tests {
     }
 
     #[test]
-    fn inline_auth_is_validated_and_legacy_api_keys_are_preserved() {
+    fn inline_identity_is_validated_and_legacy_api_keys_are_preserved() {
         let _lock = crate::test_support::env_lock();
         let content = yaml(
             "openai",
-            &auth("        type: aws_sts\n        audience: audience\n        region: us-west-2"),
+            &identity(
+                "        aws_sts:\n          audience: audience\n          region: us-west-2",
+            ),
         );
         let _inline = crate::test_support::EnvVarGuard::set("TALON_CONFIG_INLINE_YAML", &content);
-        let config = Config::load_default().unwrap();
-        assert!(matches!(
-            config.providers["llm"].auth.as_ref().unwrap().mode,
-            Some(proto::llm_auth_config::Mode::WorkloadIdentity(_))
-        ));
+        assert!(openai(&Config::load_default().unwrap())
+            .workload_identity
+            .is_some());
         let _invalid = crate::test_support::EnvVarGuard::set(
             "TALON_CONFIG_INLINE_YAML",
             &content.replace("us-west-2", "''"),
@@ -216,53 +190,32 @@ mod tests {
             .unwrap_err()
             .to_string()
             .contains("region must not be empty"));
-        for selection in ["", "    auth:\n      type: api_key\n"] {
-            let _api = crate::test_support::EnvVarGuard::set(
-                "TALON_CONFIG_INLINE_YAML",
-                &yaml(
-                    "openai",
-                    &(String::from("    api_key: existing-key\n") + selection),
-                ),
-            );
-            let config = Config::load_default().unwrap();
-            let Some(proto::llm_provider_config::Config::Openai(openai)) =
-                &config.providers["llm"].config
-            else {
-                panic!("expected OpenAI")
-            };
-            assert!(openai.api_key.is_some());
-        }
+        let _api = crate::test_support::EnvVarGuard::set(
+            "TALON_CONFIG_INLINE_YAML",
+            &yaml("openai", "    api_key: existing-key\n"),
+        );
+        let config = Config::load_default().unwrap();
+        assert!(openai(&config).api_key.is_some());
+        assert!(openai(&config).workload_identity.is_none());
     }
 
     #[test]
-    fn binary_configuration_cannot_bypass_auth_validation() {
+    fn binary_configuration_cannot_bypass_identity_validation() {
         let mut config = Config::default();
         config.providers.insert(
             "llm".into(),
             proto::LlmProviderConfig {
                 config: Some(proto::llm_provider_config::Config::Openai(
-                    proto::OpenAiConfig::default(),
+                    proto::OpenAiConfig {
+                        workload_identity: Some(proto::OpenAiWorkloadIdentityConfig::default()),
+                        ..Default::default()
+                    },
                 )),
-                auth: Some(proto::LlmAuthConfig::default()),
             },
         );
         assert!(Config::decode_binary(&config.encode_to_vec())
             .unwrap_err()
             .to_string()
-            .contains("must select"));
-        config
-            .providers
-            .get_mut("llm")
-            .unwrap()
-            .auth
-            .as_mut()
-            .unwrap()
-            .mode = Some(proto::llm_auth_config::Mode::WorkloadIdentity(
-            proto::WorkloadIdentityAuth::default(),
-        ));
-        assert!(Config::decode_binary(&config.encode_to_vec())
-            .unwrap_err()
-            .to_string()
-            .contains("requires an openai mapping"));
+            .contains("identity_provider_id must not be empty"));
     }
 }

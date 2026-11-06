@@ -157,38 +157,26 @@ class ControllerConfig(_message.Message):
     def __init__(self, enabled: bool = ..., workers: _Optional[int] = ...) -> None: ...
 
 class LlmProviderConfig(_message.Message):
-    __slots__ = ("openai", "anthropic", "google", "openai_compatible", "auth")
+    __slots__ = ("openai", "anthropic", "google", "openai_compatible")
     OPENAI_FIELD_NUMBER: _ClassVar[int]
     ANTHROPIC_FIELD_NUMBER: _ClassVar[int]
     GOOGLE_FIELD_NUMBER: _ClassVar[int]
     OPENAI_COMPATIBLE_FIELD_NUMBER: _ClassVar[int]
-    AUTH_FIELD_NUMBER: _ClassVar[int]
     openai: OpenAiConfig
     anthropic: AnthropicConfig
     google: GoogleConfig
     openai_compatible: GenericConfig
-    auth: LlmAuthConfig
-    def __init__(self, openai: _Optional[_Union[OpenAiConfig, _Mapping]] = ..., anthropic: _Optional[_Union[AnthropicConfig, _Mapping]] = ..., google: _Optional[_Union[GoogleConfig, _Mapping]] = ..., openai_compatible: _Optional[_Union[GenericConfig, _Mapping]] = ..., auth: _Optional[_Union[LlmAuthConfig, _Mapping]] = ...) -> None: ...
+    def __init__(self, openai: _Optional[_Union[OpenAiConfig, _Mapping]] = ..., anthropic: _Optional[_Union[AnthropicConfig, _Mapping]] = ..., google: _Optional[_Union[GoogleConfig, _Mapping]] = ..., openai_compatible: _Optional[_Union[GenericConfig, _Mapping]] = ...) -> None: ...
 
-class LlmAuthConfig(_message.Message):
-    __slots__ = ("api_key", "workload_identity")
-    API_KEY_FIELD_NUMBER: _ClassVar[int]
-    WORKLOAD_IDENTITY_FIELD_NUMBER: _ClassVar[int]
-    api_key: ApiKeyAuth
-    workload_identity: WorkloadIdentityAuth
-    def __init__(self, api_key: _Optional[_Union[ApiKeyAuth, _Mapping]] = ..., workload_identity: _Optional[_Union[WorkloadIdentityAuth, _Mapping]] = ...) -> None: ...
-
-class ApiKeyAuth(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
-
-class WorkloadIdentityAuth(_message.Message):
-    __slots__ = ("source", "openai")
+class OpenAiWorkloadIdentityConfig(_message.Message):
+    __slots__ = ("source", "identity_provider_id", "service_account_id")
     SOURCE_FIELD_NUMBER: _ClassVar[int]
-    OPENAI_FIELD_NUMBER: _ClassVar[int]
+    IDENTITY_PROVIDER_ID_FIELD_NUMBER: _ClassVar[int]
+    SERVICE_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
     source: WorkloadIdentitySource
-    openai: OpenAiFederationConfig
-    def __init__(self, source: _Optional[_Union[WorkloadIdentitySource, _Mapping]] = ..., openai: _Optional[_Union[OpenAiFederationConfig, _Mapping]] = ...) -> None: ...
+    identity_provider_id: str
+    service_account_id: str
+    def __init__(self, source: _Optional[_Union[WorkloadIdentitySource, _Mapping]] = ..., identity_provider_id: _Optional[str] = ..., service_account_id: _Optional[str] = ...) -> None: ...
 
 class WorkloadIdentitySource(_message.Message):
     __slots__ = ("google_metadata", "aws_sts", "token_file")
@@ -220,25 +208,19 @@ class TokenFileIdentitySource(_message.Message):
     path: str
     def __init__(self, path: _Optional[str] = ...) -> None: ...
 
-class OpenAiFederationConfig(_message.Message):
-    __slots__ = ("identity_provider_id", "service_account_id")
-    IDENTITY_PROVIDER_ID_FIELD_NUMBER: _ClassVar[int]
-    SERVICE_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
-    identity_provider_id: str
-    service_account_id: str
-    def __init__(self, identity_provider_id: _Optional[str] = ..., service_account_id: _Optional[str] = ...) -> None: ...
-
 class OpenAiConfig(_message.Message):
-    __slots__ = ("model", "api_key", "org_id", "api")
+    __slots__ = ("model", "api_key", "org_id", "api", "workload_identity")
     MODEL_FIELD_NUMBER: _ClassVar[int]
     API_KEY_FIELD_NUMBER: _ClassVar[int]
     ORG_ID_FIELD_NUMBER: _ClassVar[int]
     API_FIELD_NUMBER: _ClassVar[int]
+    WORKLOAD_IDENTITY_FIELD_NUMBER: _ClassVar[int]
     model: str
     api_key: Secret
     org_id: str
     api: str
-    def __init__(self, model: _Optional[str] = ..., api_key: _Optional[_Union[Secret, _Mapping]] = ..., org_id: _Optional[str] = ..., api: _Optional[str] = ...) -> None: ...
+    workload_identity: OpenAiWorkloadIdentityConfig
+    def __init__(self, model: _Optional[str] = ..., api_key: _Optional[_Union[Secret, _Mapping]] = ..., org_id: _Optional[str] = ..., api: _Optional[str] = ..., workload_identity: _Optional[_Union[OpenAiWorkloadIdentityConfig, _Mapping]] = ...) -> None: ...
 
 class AnthropicConfig(_message.Message):
     __slots__ = ("model", "api_key")

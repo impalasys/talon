@@ -527,13 +527,6 @@ export class LlmProviderConfig extends Message<LlmProviderConfig> {
     case: "openaiCompatible";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
-  /**
-   * Omitted authentication retains the provider's existing API-key behavior.
-   *
-   * @generated from field: talon.config.LlmAuthConfig auth = 5;
-   */
-  auth?: LlmAuthConfig;
-
   constructor(data?: PartialMessage<LlmProviderConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -546,7 +539,6 @@ export class LlmProviderConfig extends Message<LlmProviderConfig> {
     { no: 2, name: "anthropic", kind: "message", T: AnthropicConfig, oneof: "config" },
     { no: 3, name: "google", kind: "message", T: GoogleConfig, oneof: "config" },
     { no: 4, name: "openai_compatible", kind: "message", T: GenericConfig, oneof: "config" },
-    { no: 5, name: "auth", kind: "message", T: LlmAuthConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LlmProviderConfig {
@@ -567,132 +559,53 @@ export class LlmProviderConfig extends Message<LlmProviderConfig> {
 }
 
 /**
- * Authentication is selected per LLM provider, independently of the host cloud.
+ * OpenAI-specific destination mapping, independent of the identity source.
  *
- * @generated from message talon.config.LlmAuthConfig
+ * @generated from message talon.config.OpenAiWorkloadIdentityConfig
  */
-export class LlmAuthConfig extends Message<LlmAuthConfig> {
-  /**
-   * @generated from oneof talon.config.LlmAuthConfig.mode
-   */
-  mode: {
-    /**
-     * @generated from field: talon.config.ApiKeyAuth api_key = 1;
-     */
-    value: ApiKeyAuth;
-    case: "apiKey";
-  } | {
-    /**
-     * @generated from field: talon.config.WorkloadIdentityAuth workload_identity = 2;
-     */
-    value: WorkloadIdentityAuth;
-    case: "workloadIdentity";
-  } | { case: undefined; value?: undefined } = { case: undefined };
-
-  constructor(data?: PartialMessage<LlmAuthConfig>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.config.LlmAuthConfig";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "api_key", kind: "message", T: ApiKeyAuth, oneof: "mode" },
-    { no: 2, name: "workload_identity", kind: "message", T: WorkloadIdentityAuth, oneof: "mode" },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LlmAuthConfig {
-    return new LlmAuthConfig().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LlmAuthConfig {
-    return new LlmAuthConfig().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LlmAuthConfig {
-    return new LlmAuthConfig().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: LlmAuthConfig | PlainMessage<LlmAuthConfig> | undefined, b: LlmAuthConfig | PlainMessage<LlmAuthConfig> | undefined): boolean {
-    return proto3.util.equals(LlmAuthConfig, a, b);
-  }
-}
-
-/**
- * Uses the provider's existing api_key field or tenant-scoped API key.
- *
- * @generated from message talon.config.ApiKeyAuth
- */
-export class ApiKeyAuth extends Message<ApiKeyAuth> {
-  constructor(data?: PartialMessage<ApiKeyAuth>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.config.ApiKeyAuth";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ApiKeyAuth {
-    return new ApiKeyAuth().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ApiKeyAuth {
-    return new ApiKeyAuth().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ApiKeyAuth {
-    return new ApiKeyAuth().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ApiKeyAuth | PlainMessage<ApiKeyAuth> | undefined, b: ApiKeyAuth | PlainMessage<ApiKeyAuth> | undefined): boolean {
-    return proto3.util.equals(ApiKeyAuth, a, b);
-  }
-}
-
-/**
- * @generated from message talon.config.WorkloadIdentityAuth
- */
-export class WorkloadIdentityAuth extends Message<WorkloadIdentityAuth> {
+export class OpenAiWorkloadIdentityConfig extends Message<OpenAiWorkloadIdentityConfig> {
   /**
    * @generated from field: talon.config.WorkloadIdentitySource source = 1;
    */
   source?: WorkloadIdentitySource;
 
   /**
-   * Destination-specific mapping; required for the native OpenAI provider.
-   *
-   * @generated from field: talon.config.OpenAiFederationConfig openai = 2;
+   * @generated from field: string identity_provider_id = 2;
    */
-  openai?: OpenAiFederationConfig;
+  identityProviderId = "";
 
-  constructor(data?: PartialMessage<WorkloadIdentityAuth>) {
+  /**
+   * @generated from field: string service_account_id = 3;
+   */
+  serviceAccountId = "";
+
+  constructor(data?: PartialMessage<OpenAiWorkloadIdentityConfig>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.config.WorkloadIdentityAuth";
+  static readonly typeName = "talon.config.OpenAiWorkloadIdentityConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "source", kind: "message", T: WorkloadIdentitySource },
-    { no: 2, name: "openai", kind: "message", T: OpenAiFederationConfig },
+    { no: 2, name: "identity_provider_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "service_account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkloadIdentityAuth {
-    return new WorkloadIdentityAuth().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OpenAiWorkloadIdentityConfig {
+    return new OpenAiWorkloadIdentityConfig().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkloadIdentityAuth {
-    return new WorkloadIdentityAuth().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): OpenAiWorkloadIdentityConfig {
+    return new OpenAiWorkloadIdentityConfig().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkloadIdentityAuth {
-    return new WorkloadIdentityAuth().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): OpenAiWorkloadIdentityConfig {
+    return new OpenAiWorkloadIdentityConfig().fromJsonString(jsonString, options);
   }
 
-  static equals(a: WorkloadIdentityAuth | PlainMessage<WorkloadIdentityAuth> | undefined, b: WorkloadIdentityAuth | PlainMessage<WorkloadIdentityAuth> | undefined): boolean {
-    return proto3.util.equals(WorkloadIdentityAuth, a, b);
+  static equals(a: OpenAiWorkloadIdentityConfig | PlainMessage<OpenAiWorkloadIdentityConfig> | undefined, b: OpenAiWorkloadIdentityConfig | PlainMessage<OpenAiWorkloadIdentityConfig> | undefined): boolean {
+    return proto3.util.equals(OpenAiWorkloadIdentityConfig, a, b);
   }
 }
 
@@ -877,49 +790,6 @@ export class TokenFileIdentitySource extends Message<TokenFileIdentitySource> {
 }
 
 /**
- * @generated from message talon.config.OpenAiFederationConfig
- */
-export class OpenAiFederationConfig extends Message<OpenAiFederationConfig> {
-  /**
-   * @generated from field: string identity_provider_id = 1;
-   */
-  identityProviderId = "";
-
-  /**
-   * @generated from field: string service_account_id = 2;
-   */
-  serviceAccountId = "";
-
-  constructor(data?: PartialMessage<OpenAiFederationConfig>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.config.OpenAiFederationConfig";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "identity_provider_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "service_account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OpenAiFederationConfig {
-    return new OpenAiFederationConfig().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): OpenAiFederationConfig {
-    return new OpenAiFederationConfig().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): OpenAiFederationConfig {
-    return new OpenAiFederationConfig().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: OpenAiFederationConfig | PlainMessage<OpenAiFederationConfig> | undefined, b: OpenAiFederationConfig | PlainMessage<OpenAiFederationConfig> | undefined): boolean {
-    return proto3.util.equals(OpenAiFederationConfig, a, b);
-  }
-}
-
-/**
  * @generated from message talon.config.OpenAiConfig
  */
 export class OpenAiConfig extends Message<OpenAiConfig> {
@@ -943,6 +813,13 @@ export class OpenAiConfig extends Message<OpenAiConfig> {
    */
   api = "";
 
+  /**
+   * Omitted workload identity retains existing static or tenant API-key behavior.
+   *
+   * @generated from field: talon.config.OpenAiWorkloadIdentityConfig workload_identity = 5;
+   */
+  workloadIdentity?: OpenAiWorkloadIdentityConfig;
+
   constructor(data?: PartialMessage<OpenAiConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -955,6 +832,7 @@ export class OpenAiConfig extends Message<OpenAiConfig> {
     { no: 2, name: "api_key", kind: "message", T: Secret },
     { no: 3, name: "org_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "api", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "workload_identity", kind: "message", T: OpenAiWorkloadIdentityConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OpenAiConfig {

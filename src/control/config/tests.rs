@@ -472,9 +472,9 @@ trust:
         config.providers.insert(
             "test".to_string(),
             crate::control::config::ProviderConfig {
-                auth: None,
                 config: Some(proto::llm_provider_config::Config::Openai(
                     proto::OpenAiConfig {
+                        workload_identity: None,
                         model: "m1".to_string(),
                         api_key: Some(Secret {
                             source: Some(proto::secret::Source::Plain("key".to_string())),
@@ -1189,7 +1189,6 @@ control_plane:
                 (
                     "primary".to_string(),
                     crate::control::config::SerdeProviderConfig::OpenaiCompatible {
-                        auth: None,
                         base_url: "https://llm.example.com".to_string(),
                         model: "model-x".to_string(),
                         api_key: Some(crate::control::config::SerdeSecret::Ref(
@@ -1203,7 +1202,6 @@ control_plane:
                 (
                     "backup".to_string(),
                     crate::control::config::SerdeProviderConfig::Google {
-                        auth: None,
                         model: "gemini".to_string(),
                         api_key: Some(crate::control::config::SerdeSecret::Plain(
                             "plain".to_string(),

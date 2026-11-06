@@ -7,7 +7,7 @@
 //! identity sources acquire subject tokens; destination adapters exchange them.
 
 use super::identity::{identity_source, WorkloadIdentitySource};
-use crate::control::config::{llm_auth::validate_provider_auth, proto};
+use crate::control::config::{llm_auth::validate_openai_auth, proto};
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
 use prost::Message;
@@ -67,7 +67,7 @@ struct ExchangeResponse {
 
 impl OpenAiWif {
     pub fn new(
-        mapping: &proto::OpenAiFederationConfig,
+        mapping: &proto::OpenAiWorkloadIdentityConfig,
         source: Arc<dyn WorkloadIdentitySource>,
     ) -> Result<Self> {
         Self::with_source(
@@ -78,7 +78,7 @@ impl OpenAiWif {
     }
 
     fn with_source(
-        mapping: &proto::OpenAiFederationConfig,
+        mapping: &proto::OpenAiWorkloadIdentityConfig,
         source: Arc<dyn WorkloadIdentitySource>,
         exchange_endpoint: String,
     ) -> Result<Self> {
@@ -108,9 +108,10 @@ impl OpenAiWif {
     ) -> Result<Self> {
         let source = super::identity::GoogleMetadata::new(audience, metadata_endpoint)?;
         Self::with_source(
-            &proto::OpenAiFederationConfig {
+            &proto::OpenAiWorkloadIdentityConfig {
                 identity_provider_id,
                 service_account_id,
+                ..Default::default()
             },
             Arc::new(source),
             exchange_endpoint,
@@ -207,7 +208,7 @@ fn unix_time_seconds() -> u64 {
 }
 
 /// Retain credentials across runtime builds, keyed by source and target mapping.
-fn shared_openai_wif(config: &proto::WorkloadIdentityAuth) -> Result<Arc<OpenAiWif>> {
+fn shared_openai_wif(config: &proto::OpenAiWorkloadIdentityConfig) -> Result<Arc<OpenAiWif>> {
     static PROVIDERS: OnceLock<StdMutex<HashMap<Vec<u8>, Arc<OpenAiWif>>>> = OnceLock::new();
     // These messages contain no maps: protobuf encoding is a stable full-config key.
     let key = config.encode_to_vec();
@@ -218,10 +219,6 @@ fn shared_openai_wif(config: &proto::WorkloadIdentityAuth) -> Result<Arc<OpenAiW
     if let Some(provider) = providers.get(&key) {
         return Ok(provider.clone());
     }
-    let mapping = config
-        .openai
-        .as_ref()
-        .context("workload_identity requires an openai mapping")?;
     let source = identity_source(
         config
             .source
@@ -229,21 +226,19 @@ fn shared_openai_wif(config: &proto::WorkloadIdentityAuth) -> Result<Arc<OpenAiW
             .context("workload_identity requires an identity source")?,
     )?;
     // Build under the lock; only successful builds are retained.
-    let provider = Arc::new(OpenAiWif::new(mapping, source)?);
+    let provider = Arc::new(OpenAiWif::new(config, source)?);
     providers.insert(key, provider.clone());
     Ok(provider)
 }
 
-/// Resolve explicitly configured workload identity. Omitted auth retains API keys.
+/// Resolve OpenAiConfig.workload_identity; omission retains API-key behavior.
 pub fn configured_workload_identity(
-    provider: &proto::LlmProviderConfig,
+    openai: &proto::OpenAiConfig,
 ) -> Result<Option<Arc<dyn LlmCredentialProvider>>> {
-    validate_provider_auth(provider)?;
-    match provider.auth.as_ref().and_then(|auth| auth.mode.as_ref()) {
-        Some(proto::llm_auth_config::Mode::WorkloadIdentity(config)) => {
-            Ok(Some(shared_openai_wif(config)?))
-        }
-        _ => Ok(None),
+    validate_openai_auth(openai)?;
+    match &openai.workload_identity {
+        Some(config) => Ok(Some(shared_openai_wif(config)?)),
+        None => Ok(None),
     }
 }
 
@@ -284,38 +279,25 @@ mod tests {
         assert_eq!(provider.bearer_token().await.unwrap(), "  key-bytes\n");
     }
 
-    fn configured_provider() -> proto::LlmProviderConfig {
-        proto::LlmProviderConfig {
-            config: Some(proto::llm_provider_config::Config::Openai(
-                proto::OpenAiConfig::default(),
-            )),
-            auth: Some(proto::LlmAuthConfig {
-                mode: Some(proto::llm_auth_config::Mode::WorkloadIdentity(
-                    proto::WorkloadIdentityAuth {
-                        source: Some(proto::WorkloadIdentitySource {
-                            config: Some(proto::workload_identity_source::Config::GoogleMetadata(
-                                proto::GoogleMetadataIdentitySource {
-                                    audience: "audience".into(),
-                                },
-                            )),
-                        }),
-                        openai: Some(proto::OpenAiFederationConfig {
-                            identity_provider_id: "runtime-cache-test-idp".into(),
-                            service_account_id: "service-account".into(),
-                        }),
-                    },
-                )),
+    fn configured_provider() -> proto::OpenAiConfig {
+        proto::OpenAiConfig {
+            workload_identity: Some(proto::OpenAiWorkloadIdentityConfig {
+                source: Some(proto::WorkloadIdentitySource {
+                    config: Some(proto::workload_identity_source::Config::GoogleMetadata(
+                        proto::GoogleMetadataIdentitySource {
+                            audience: "audience".into(),
+                        },
+                    )),
+                }),
+                identity_provider_id: "runtime-cache-test-idp".into(),
+                service_account_id: "service-account".into(),
             }),
+            ..Default::default()
         }
     }
 
-    fn wif(config: &mut proto::LlmProviderConfig) -> &mut proto::WorkloadIdentityAuth {
-        let Some(proto::llm_auth_config::Mode::WorkloadIdentity(wif)) =
-            config.auth.as_mut().unwrap().mode.as_mut()
-        else {
-            panic!("expected WIF")
-        };
-        wif
+    fn wif(config: &mut proto::OpenAiConfig) -> &mut proto::OpenAiWorkloadIdentityConfig {
+        config.workload_identity.as_mut().unwrap()
     }
 
     #[test]
@@ -368,8 +350,8 @@ mod tests {
             let mut changed = original_config.clone();
             let auth = wif(&mut changed);
             match field {
-                0 => auth.openai.as_mut().unwrap().identity_provider_id = "other-idp".into(),
-                1 => auth.openai.as_mut().unwrap().service_account_id = "other-account".into(),
+                0 => auth.identity_provider_id = "other-idp".into(),
+                1 => auth.service_account_id = "other-account".into(),
                 2 => {
                     auth.source.as_mut().unwrap().config =
                         Some(proto::workload_identity_source::Config::GoogleMetadata(
@@ -420,12 +402,7 @@ mod tests {
             resolved.push(new);
         }
         let mut invalid = original_config.clone();
-        wif(&mut invalid)
-            .openai
-            .as_mut()
-            .unwrap()
-            .identity_provider_id
-            .clear();
+        wif(&mut invalid).identity_provider_id.clear();
         for _ in 0..2 {
             assert!(configured_workload_identity(&invalid).is_err());
         }
@@ -436,7 +413,7 @@ mod tests {
                 .unwrap()
         ));
         let mut no_auth = original_config;
-        no_auth.auth = None;
+        no_auth.workload_identity = None;
         assert!(configured_workload_identity(&no_auth).unwrap().is_none());
     }
 
@@ -481,9 +458,10 @@ mod tests {
         let address = listener.local_addr().unwrap();
         let server = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
         let provider = OpenAiWif::with_source(
-            &proto::OpenAiFederationConfig {
+            &proto::OpenAiWorkloadIdentityConfig {
                 identity_provider_id: "file-idp".into(),
                 service_account_id: "file-account".into(),
+                ..Default::default()
             },
             source,
             format!("http://{address}/token"),
