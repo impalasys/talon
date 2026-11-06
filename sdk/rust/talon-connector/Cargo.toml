@@ -1,0 +1,16 @@
+[package]
+name = "talon-connector"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+description = "Provider-neutral contracts for Talon messaging connector runtimes"
+publish = false
+
+[features]
+test-support = []
+
+[dependencies]
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }
