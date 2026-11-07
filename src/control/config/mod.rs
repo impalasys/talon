@@ -100,6 +100,7 @@ pub struct DatabaseConfigWrapper {
     pub data_dir: Option<String>,
     pub driver: Option<String>,
     pub url: Option<SerdeSecret>,
+    pub auth_mode: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -366,6 +367,7 @@ impl From<SerdeConfig> for Config {
                 data_dir: db.data_dir.unwrap_or_default(),
                 driver: db.driver.unwrap_or_default(),
                 url: db.url.map(Into::into),
+                auth_mode: db.auth_mode.unwrap_or_default(),
             }),
             server: s.server.map(|srv| proto::ServerConfig {
                 host: srv.host,
@@ -378,6 +380,7 @@ impl From<SerdeConfig> for Config {
                     data_dir: cp.database.data_dir.unwrap_or_default(),
                     driver: cp.database.driver.unwrap_or_default(),
                     url: cp.database.url.map(Into::into),
+                    auth_mode: cp.database.auth_mode.unwrap_or_default(),
                 }),
                 message_broker: Some(proto::MessageBrokerConfig {
                     driver: cp.message_broker.driver,
@@ -388,6 +391,7 @@ impl From<SerdeConfig> for Config {
                     data_dir: db.data_dir.unwrap_or_default(),
                     driver: db.driver.unwrap_or_default(),
                     url: db.url.map(Into::into),
+                    auth_mode: db.auth_mode.unwrap_or_default(),
                 }),
             }),
             controllers: s

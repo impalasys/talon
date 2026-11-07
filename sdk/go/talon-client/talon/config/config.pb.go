@@ -1498,10 +1498,12 @@ func (x *SecretRef) GetKey() string {
 }
 
 type DatabaseConfig struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DataDir       string                 `protobuf:"bytes,1,opt,name=data_dir,json=dataDir,proto3" json:"data_dir,omitempty"`
-	Driver        string                 `protobuf:"bytes,2,opt,name=driver,proto3" json:"driver,omitempty"`
-	Url           *Secret                `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	DataDir string                 `protobuf:"bytes,1,opt,name=data_dir,json=dataDir,proto3" json:"data_dir,omitempty"`
+	Driver  string                 `protobuf:"bytes,2,opt,name=driver,proto3" json:"driver,omitempty"`
+	Url     *Secret                `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
+	// "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+	AuthMode      string `protobuf:"bytes,4,opt,name=auth_mode,json=authMode,proto3" json:"auth_mode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1555,6 +1557,13 @@ func (x *DatabaseConfig) GetUrl() *Secret {
 		return x.Url
 	}
 	return nil
+}
+
+func (x *DatabaseConfig) GetAuthMode() string {
+	if x != nil {
+		return x.AuthMode
+	}
+	return ""
 }
 
 type MessageBrokerConfig struct {
@@ -2536,11 +2545,12 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x03GCP\x10\x01\x12\f\n" +
 	"\bKEYCHAIN\x10\x02\x12\a\n" +
 	"\x03AWS\x10\x03\x12\t\n" +
-	"\x05AZURE\x10\x04\"k\n" +
+	"\x05AZURE\x10\x04\"\x88\x01\n" +
 	"\x0eDatabaseConfig\x12\x19\n" +
 	"\bdata_dir\x18\x01 \x01(\tR\adataDir\x12\x16\n" +
 	"\x06driver\x18\x02 \x01(\tR\x06driver\x12&\n" +
-	"\x03url\x18\x03 \x01(\v2\x14.talon.config.SecretR\x03url\"-\n" +
+	"\x03url\x18\x03 \x01(\v2\x14.talon.config.SecretR\x03url\x12\x1b\n" +
+	"\tauth_mode\x18\x04 \x01(\tR\bauthMode\"-\n" +
 	"\x13MessageBrokerConfig\x12\x16\n" +
 	"\x06driver\x18\x01 \x01(\tR\x06driver\",\n" +
 	"\x16LocalObjectStoreConfig\x12\x12\n" +

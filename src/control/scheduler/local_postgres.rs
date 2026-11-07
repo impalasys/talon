@@ -1,11 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::control::kv::postgres::{
+    connect_postgres_pool, CredentialRefresh, PostgresPoolSettings,
+};
 use anyhow::{anyhow, Result};
 use chrono::Utc;
 use futures::stream::{FuturesUnordered, StreamExt};
 use reqwest::Client;
-use sqlx::{postgres::PgPoolOptions, PgPool, Row};
+use sqlx::{PgPool, Row};
 use std::time::Duration;
 use tracing::{error, warn};
 
@@ -16,7 +19,6 @@ const CLAIM_TIMEOUT_SECONDS: i64 = 60;
 const DELIVERY_TIMEOUT_SECONDS: u64 = 15;
 const POLL_INTERVAL_MILLIS: u64 = 1_000;
 const MAX_CONCURRENT_DELIVERIES: usize = 10;
-const MAX_POOL_CONNECTIONS: u32 = 10;
 const MAX_DELIVERY_ATTEMPTS: i32 = 20;
 const INITIAL_RETRY_DELAY_SECONDS: i64 = 5;
 const MAX_RETRY_DELAY_SECONDS: i64 = 300;
@@ -24,6 +26,7 @@ const MAX_RETRY_DELAY_SECONDS: i64 = 300;
 #[derive(Clone)]
 pub struct LocalPostgresSchedulerBackend {
     pool: PgPool,
+    _credential_refresh: Option<CredentialRefresh>,
     table: String,
 }
 
@@ -45,11 +48,10 @@ impl LocalPostgresSchedulerBackend {
         runner_target_url: Option<String>,
         auth_token: Option<String>,
         runner_enabled: bool,
+        settings: PostgresPoolSettings,
     ) -> Result<Self> {
-        let pool = PgPoolOptions::new()
-            .max_connections(MAX_POOL_CONNECTIONS)
-            .connect(database_url)
-            .await?;
+        let (pool, credential_refresh) = connect_postgres_pool(database_url, &settings).await?;
+        let pg_pool = &pool;
         let table = table.unwrap_or_else(|| DEFAULT_TABLE.to_string());
         validate_identifier(&table)?;
         let create_stmt = format!(
@@ -70,21 +72,26 @@ impl LocalPostgresSchedulerBackend {
             )",
             table
         );
-        sqlx::query(&create_stmt).execute(&pool).await?;
+        sqlx::query(&create_stmt).execute(pg_pool).await?;
         let index_stmt = format!(
             "CREATE INDEX IF NOT EXISTS {table}_due_idx ON {table} (fire_at_micros) WHERE canceled_at_micros IS NULL AND delivered_at_micros IS NULL",
             table = table
         );
-        sqlx::query(&index_stmt).execute(&pool).await?;
+        sqlx::query(&index_stmt).execute(pg_pool).await?;
 
         if runner_enabled {
             let Some(target_url) = runner_target_url.filter(|value| !value.trim().is_empty())
             else {
                 warn!("local_postgres scheduler runner enabled without target URL; wakeups will not fire");
-                return Ok(Self { pool, table });
+                return Ok(Self {
+                    pool,
+                    _credential_refresh: credential_refresh,
+                    table,
+                });
             };
             let runner = Self {
                 pool: pool.clone(),
+                _credential_refresh: credential_refresh.clone(),
                 table: table.clone(),
             };
             tokio::spawn(async move {
@@ -97,7 +104,11 @@ impl LocalPostgresSchedulerBackend {
             });
         }
 
-        Ok(Self { pool, table })
+        Ok(Self {
+            pool,
+            _credential_refresh: credential_refresh,
+            table,
+        })
     }
 
     async fn run_loop(self, target_url: String, auth_token: Option<String>) {
@@ -407,6 +418,7 @@ mod tests {
                 None,
                 None,
                 false,
+                PostgresPoolSettings::default(),
             )
             .await
             {
@@ -438,6 +450,7 @@ mod tests {
                 runner_target_url.clone(),
                 auth_token.clone(),
                 runner_enabled,
+                PostgresPoolSettings::default(),
             )
             .await
             {
@@ -836,6 +849,7 @@ mod tests {
             None,
             None,
             false,
+            PostgresPoolSettings::default(),
         )
         .await
         .err()

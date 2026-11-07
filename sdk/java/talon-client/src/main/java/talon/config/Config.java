@@ -19957,6 +19957,26 @@ talon.config.Config.CapabilityGate defaultValue) {
      * <code>.talon.config.Secret url = 3;</code>
      */
     talon.config.Config.SecretOrBuilder getUrlOrBuilder();
+
+    /**
+     * <pre>
+     * "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+     * </pre>
+     *
+     * <code>string auth_mode = 4;</code>
+     * @return The authMode.
+     */
+    java.lang.String getAuthMode();
+    /**
+     * <pre>
+     * "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+     * </pre>
+     *
+     * <code>string auth_mode = 4;</code>
+     * @return The bytes for authMode.
+     */
+    com.google.protobuf.ByteString
+        getAuthModeBytes();
   }
   /**
    * Protobuf type {@code talon.config.DatabaseConfig}
@@ -19982,6 +20002,7 @@ talon.config.Config.CapabilityGate defaultValue) {
     private DatabaseConfig() {
       dataDir_ = "";
       driver_ = "";
+      authMode_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -20107,6 +20128,53 @@ talon.config.Config.CapabilityGate defaultValue) {
       return url_ == null ? talon.config.Config.Secret.getDefaultInstance() : url_;
     }
 
+    public static final int AUTH_MODE_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object authMode_ = "";
+    /**
+     * <pre>
+     * "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+     * </pre>
+     *
+     * <code>string auth_mode = 4;</code>
+     * @return The authMode.
+     */
+    @java.lang.Override
+    public java.lang.String getAuthMode() {
+      java.lang.Object ref = authMode_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        authMode_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+     * </pre>
+     *
+     * <code>string auth_mode = 4;</code>
+     * @return The bytes for authMode.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAuthModeBytes() {
+      java.lang.Object ref = authMode_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        authMode_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -20130,6 +20198,9 @@ talon.config.Config.CapabilityGate defaultValue) {
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(3, getUrl());
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(authMode_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, authMode_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -20148,6 +20219,9 @@ talon.config.Config.CapabilityGate defaultValue) {
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, getUrl());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(authMode_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, authMode_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -20173,6 +20247,8 @@ talon.config.Config.CapabilityGate defaultValue) {
         if (!getUrl()
             .equals(other.getUrl())) return false;
       }
+      if (!getAuthMode()
+          .equals(other.getAuthMode())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -20192,6 +20268,8 @@ talon.config.Config.CapabilityGate defaultValue) {
         hash = (37 * hash) + URL_FIELD_NUMBER;
         hash = (53 * hash) + getUrl().hashCode();
       }
+      hash = (37 * hash) + AUTH_MODE_FIELD_NUMBER;
+      hash = (53 * hash) + getAuthMode().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -20336,6 +20414,7 @@ talon.config.Config.CapabilityGate defaultValue) {
           urlBuilder_.dispose();
           urlBuilder_ = null;
         }
+        authMode_ = "";
         return this;
       }
 
@@ -20382,6 +20461,9 @@ talon.config.Config.CapabilityGate defaultValue) {
               : urlBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.authMode_ = authMode_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -20409,6 +20491,11 @@ talon.config.Config.CapabilityGate defaultValue) {
         }
         if (other.hasUrl()) {
           mergeUrl(other.getUrl());
+        }
+        if (!other.getAuthMode().isEmpty()) {
+          authMode_ = other.authMode_;
+          bitField0_ |= 0x00000008;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -20453,6 +20540,11 @@ talon.config.Config.CapabilityGate defaultValue) {
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
+              case 34: {
+                authMode_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -20733,6 +20825,98 @@ talon.config.Config.CapabilityGate defaultValue) {
           url_ = null;
         }
         return urlBuilder_;
+      }
+
+      private java.lang.Object authMode_ = "";
+      /**
+       * <pre>
+       * "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+       * </pre>
+       *
+       * <code>string auth_mode = 4;</code>
+       * @return The authMode.
+       */
+      public java.lang.String getAuthMode() {
+        java.lang.Object ref = authMode_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          authMode_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       * "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+       * </pre>
+       *
+       * <code>string auth_mode = 4;</code>
+       * @return The bytes for authMode.
+       */
+      public com.google.protobuf.ByteString
+          getAuthModeBytes() {
+        java.lang.Object ref = authMode_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          authMode_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+       * </pre>
+       *
+       * <code>string auth_mode = 4;</code>
+       * @param value The authMode to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAuthMode(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        authMode_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+       * </pre>
+       *
+       * <code>string auth_mode = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAuthMode() {
+        authMode_ = getDefaultInstance().getAuthMode();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+       * </pre>
+       *
+       * <code>string auth_mode = 4;</code>
+       * @param value The bytes for authMode to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAuthModeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        authMode_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.config.DatabaseConfig)
@@ -32063,50 +32247,51 @@ talon.config.Config.CapabilityGate defaultValue) {
       "\000B\010\n\006source\"\206\001\n\tSecretRef\022.\n\006source\030\001 \001(" +
       "\0162\036.talon.config.SecretRef.Source\022\013\n\003key" +
       "\030\002 \001(\t\"<\n\006Source\022\007\n\003ENV\020\000\022\007\n\003GCP\020\001\022\014\n\010KE" +
-      "YCHAIN\020\002\022\007\n\003AWS\020\003\022\t\n\005AZURE\020\004\"U\n\016Database" +
+      "YCHAIN\020\002\022\007\n\003AWS\020\003\022\t\n\005AZURE\020\004\"h\n\016Database" +
       "Config\022\020\n\010data_dir\030\001 \001(\t\022\016\n\006driver\030\002 \001(\t" +
-      "\022!\n\003url\030\003 \001(\0132\024.talon.config.Secret\"%\n\023M" +
-      "essageBrokerConfig\022\016\n\006driver\030\001 \001(\t\"&\n\026Lo" +
-      "calObjectStoreConfig\022\014\n\004path\030\001 \001(\t\"L\n\024Gc" +
-      "sObjectStoreConfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006pr" +
-      "efix\030\002 \001(\t\022\024\n\014api_base_url\030\003 \001(\t\"u\n\023S3Ob" +
-      "jectStoreConfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefi" +
-      "x\030\002 \001(\t\022\016\n\006region\030\003 \001(\t\022\024\n\014endpoint_url\030" +
-      "\004 \001(\t\022\030\n\020force_path_style\030\005 \001(\010\"\271\001\n\021Obje" +
-      "ctStoreConfig\0225\n\005local\030\001 \001(\0132$.talon.con" +
-      "fig.LocalObjectStoreConfigH\000\0221\n\003gcs\030\002 \001(" +
-      "\0132\".talon.config.GcsObjectStoreConfigH\000\022" +
-      "/\n\002s3\030\003 \001(\0132!.talon.config.S3ObjectStore" +
-      "ConfigH\000B\t\n\007backend\"\217\001\n\033SchedulerCallbac" +
-      "kAuthConfig\022-\n\rshared_secret\030\001 \001(\0132\024.tal" +
-      "on.config.SecretH\000\0229\n\013google_oidc\030\002 \001(\0132" +
-      "\".talon.config.GoogleOidcAuthConfigH\000B\006\n" +
-      "\004auth\"G\n\024GoogleOidcAuthConfig\022\020\n\010audienc" +
-      "e\030\001 \001(\t\022\035\n\025service_account_email\030\002 \001(\t\"\246" +
-      "\001\n\031CloudTasksSchedulerConfig\022\022\n\nproject_" +
-      "id\030\001 \001(\t\022\020\n\010location\030\002 \001(\t\022\r\n\005queue\030\003 \001(" +
-      "\t\022\022\n\ntarget_url\030\004 \001(\t\022@\n\rcallback_auth\030\005" +
-      " \001(\0132).talon.config.SchedulerCallbackAut" +
-      "hConfig\"\212\002\n\035AwsEventBridgeSchedulerConfi" +
-      "g\022\022\n\ngroup_name\030\001 \001(\t\022\021\n\tqueue_url\030\002 \001(\t" +
-      "\022\032\n\022execution_role_arn\030\003 \001(\t\022\034\n\024schedule" +
-      "_name_prefix\030\004 \001(\t\022\017\n\007dlq_arn\030\005 \001(\t\022!\n\031m" +
-      "aximum_event_age_seconds\030\006 \001(\r\022#\n\026maximu" +
-      "m_retry_attempts\030\007 \001(\rH\000\210\001\001\022\024\n\014endpoint_" +
-      "url\030\010 \001(\tB\031\n\027_maximum_retry_attempts\"\256\001\n" +
-      "\017SchedulerConfig\022>\n\013cloud_tasks\030\001 \001(\0132\'." +
-      "talon.config.CloudTasksSchedulerConfigH\000" +
-      "\022P\n\031aws_eventbridge_scheduler\030\002 \001(\0132+.ta" +
-      "lon.config.AwsEventBridgeSchedulerConfig" +
-      "H\000B\t\n\007backend\"\231\002\n\022ControlPlaneConfig\022.\n\010" +
-      "database\030\001 \001(\0132\034.talon.config.DatabaseCo" +
-      "nfig\0229\n\016message_broker\030\002 \001(\0132!.talon.con" +
-      "fig.MessageBrokerConfig\0220\n\tscheduler\030\003 \001" +
-      "(\0132\035.talon.config.SchedulerConfig\0225\n\014obj" +
-      "ect_store\030\004 \001(\0132\037.talon.config.ObjectSto" +
-      "reConfig\022/\n\tdocuments\030\005 \001(\0132\034.talon.conf" +
-      "ig.DatabaseConfig\"*\n\014ServerConfig\022\014\n\004hos" +
-      "t\030\001 \001(\t\022\014\n\004port\030\002 \001(\rb\006proto3"
+      "\022!\n\003url\030\003 \001(\0132\024.talon.config.Secret\022\021\n\ta" +
+      "uth_mode\030\004 \001(\t\"%\n\023MessageBrokerConfig\022\016\n" +
+      "\006driver\030\001 \001(\t\"&\n\026LocalObjectStoreConfig\022" +
+      "\014\n\004path\030\001 \001(\t\"L\n\024GcsObjectStoreConfig\022\016\n" +
+      "\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\024\n\014api_bas" +
+      "e_url\030\003 \001(\t\"u\n\023S3ObjectStoreConfig\022\016\n\006bu" +
+      "cket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\016\n\006region\030\003 \001" +
+      "(\t\022\024\n\014endpoint_url\030\004 \001(\t\022\030\n\020force_path_s" +
+      "tyle\030\005 \001(\010\"\271\001\n\021ObjectStoreConfig\0225\n\005loca" +
+      "l\030\001 \001(\0132$.talon.config.LocalObjectStoreC" +
+      "onfigH\000\0221\n\003gcs\030\002 \001(\0132\".talon.config.GcsO" +
+      "bjectStoreConfigH\000\022/\n\002s3\030\003 \001(\0132!.talon.c" +
+      "onfig.S3ObjectStoreConfigH\000B\t\n\007backend\"\217" +
+      "\001\n\033SchedulerCallbackAuthConfig\022-\n\rshared" +
+      "_secret\030\001 \001(\0132\024.talon.config.SecretH\000\0229\n" +
+      "\013google_oidc\030\002 \001(\0132\".talon.config.Google" +
+      "OidcAuthConfigH\000B\006\n\004auth\"G\n\024GoogleOidcAu" +
+      "thConfig\022\020\n\010audience\030\001 \001(\t\022\035\n\025service_ac" +
+      "count_email\030\002 \001(\t\"\246\001\n\031CloudTasksSchedule" +
+      "rConfig\022\022\n\nproject_id\030\001 \001(\t\022\020\n\010location\030" +
+      "\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022\022\n\ntarget_url\030\004 \001(\t" +
+      "\022@\n\rcallback_auth\030\005 \001(\0132).talon.config.S" +
+      "chedulerCallbackAuthConfig\"\212\002\n\035AwsEventB" +
+      "ridgeSchedulerConfig\022\022\n\ngroup_name\030\001 \001(\t" +
+      "\022\021\n\tqueue_url\030\002 \001(\t\022\032\n\022execution_role_ar" +
+      "n\030\003 \001(\t\022\034\n\024schedule_name_prefix\030\004 \001(\t\022\017\n" +
+      "\007dlq_arn\030\005 \001(\t\022!\n\031maximum_event_age_seco" +
+      "nds\030\006 \001(\r\022#\n\026maximum_retry_attempts\030\007 \001(" +
+      "\rH\000\210\001\001\022\024\n\014endpoint_url\030\010 \001(\tB\031\n\027_maximum" +
+      "_retry_attempts\"\256\001\n\017SchedulerConfig\022>\n\013c" +
+      "loud_tasks\030\001 \001(\0132\'.talon.config.CloudTas" +
+      "ksSchedulerConfigH\000\022P\n\031aws_eventbridge_s" +
+      "cheduler\030\002 \001(\0132+.talon.config.AwsEventBr" +
+      "idgeSchedulerConfigH\000B\t\n\007backend\"\231\002\n\022Con" +
+      "trolPlaneConfig\022.\n\010database\030\001 \001(\0132\034.talo" +
+      "n.config.DatabaseConfig\0229\n\016message_broke" +
+      "r\030\002 \001(\0132!.talon.config.MessageBrokerConf" +
+      "ig\0220\n\tscheduler\030\003 \001(\0132\035.talon.config.Sch" +
+      "edulerConfig\0225\n\014object_store\030\004 \001(\0132\037.tal" +
+      "on.config.ObjectStoreConfig\022/\n\tdocuments" +
+      "\030\005 \001(\0132\034.talon.config.DatabaseConfig\"*\n\014" +
+      "ServerConfig\022\014\n\004host\030\001 \001(\t\022\014\n\004port\030\002 \001(\r" +
+      "b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -32261,7 +32446,7 @@ talon.config.Config.CapabilityGate defaultValue) {
     internal_static_talon_config_DatabaseConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_DatabaseConfig_descriptor,
-        new java.lang.String[] { "DataDir", "Driver", "Url", });
+        new java.lang.String[] { "DataDir", "Driver", "Url", "AuthMode", });
     internal_static_talon_config_MessageBrokerConfig_descriptor =
       getDescriptor().getMessageType(20);
     internal_static_talon_config_MessageBrokerConfig_fieldAccessorTable = new

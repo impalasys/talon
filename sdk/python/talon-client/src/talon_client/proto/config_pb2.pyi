@@ -279,14 +279,16 @@ class SecretRef(_message.Message):
     def __init__(self, source: _Optional[_Union[SecretRef.Source, str]] = ..., key: _Optional[str] = ...) -> None: ...
 
 class DatabaseConfig(_message.Message):
-    __slots__ = ("data_dir", "driver", "url")
+    __slots__ = ("data_dir", "driver", "url", "auth_mode")
     DATA_DIR_FIELD_NUMBER: _ClassVar[int]
     DRIVER_FIELD_NUMBER: _ClassVar[int]
     URL_FIELD_NUMBER: _ClassVar[int]
+    AUTH_MODE_FIELD_NUMBER: _ClassVar[int]
     data_dir: str
     driver: str
     url: Secret
-    def __init__(self, data_dir: _Optional[str] = ..., driver: _Optional[str] = ..., url: _Optional[_Union[Secret, _Mapping]] = ...) -> None: ...
+    auth_mode: str
+    def __init__(self, data_dir: _Optional[str] = ..., driver: _Optional[str] = ..., url: _Optional[_Union[Secret, _Mapping]] = ..., auth_mode: _Optional[str] = ...) -> None: ...
 
 class MessageBrokerConfig(_message.Message):
     __slots__ = ("driver",)

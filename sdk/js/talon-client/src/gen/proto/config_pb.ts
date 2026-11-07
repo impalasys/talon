@@ -1143,6 +1143,13 @@ export class DatabaseConfig extends Message<DatabaseConfig> {
    */
   url?: Secret;
 
+  /**
+   * "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+   *
+   * @generated from field: string auth_mode = 4;
+   */
+  authMode = "";
+
   constructor(data?: PartialMessage<DatabaseConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1154,6 +1161,7 @@ export class DatabaseConfig extends Message<DatabaseConfig> {
     { no: 1, name: "data_dir", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "driver", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "url", kind: "message", T: Secret },
+    { no: 4, name: "auth_mode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DatabaseConfig {

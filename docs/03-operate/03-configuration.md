@@ -260,6 +260,61 @@ postgresql://user:password@db.example.com/talon?sslmode=require
 Use `sslmode=verify-full&sslrootcert=/path/to/ca.pem` to verify the server's
 certificate and hostname against your database CA.
 
+The `auth_mode` field accepts the strings `"password"` and `"iam"`; omitting it
+defaults to password authentication. Password mode preserves SQLx's native URL,
+environment, and pgpass credential resolution and starts no refresh task.
+For Cloud SQL IAM
+database authentication, set `auth_mode: "iam"` and omit the password from the
+URL. The Cloud Run/GCE runtime service account needs Cloud SQL Instance User
+(`roles/cloudsql.instanceUser`, which grants `cloudsql.instances.login`) and a
+matching IAM database user on an instance with IAM database authentication
+enabled. Grant that database user the SQL privileges Talon needs. Cloud SQL
+Client (`roles/cloudsql.client`) is additionally required when using the Cloud
+SQL Auth Proxy or a Cloud SQL connector. See Google's
+[IAM login prerequisites](https://docs.cloud.google.com/sql/docs/postgres/iam-logins).
+
+On GCE, also configure the VM's access scopes to include
+`https://www.googleapis.com/auth/sqlservice.admin` or
+`https://www.googleapis.com/auth/cloud-platform`. Default VM scopes do not
+include Cloud SQL access; granting the IAM role alone is insufficient. Talon
+uses the VM's metadata access token and cannot expand its configured scopes.
+See [Cloud SQL access scopes](https://docs.cloud.google.com/sql/docs/postgres/connect-compute-engine)
+and [GCE service account scopes](https://docs.cloud.google.com/compute/docs/access/service-accounts#accesscopes).
+
+For a service account, the database username is its email without the
+`.gserviceaccount.com` suffix; percent-encode the `@` as `%40` in the URL.
+IAM mode always uses `sslmode=verify-full`, including when a weaker mode is
+specified. Supply the database CA with `sslrootcert` and use a resolvable hostname
+that matches the server certificate. The instance must support
+[DNS-based server identity verification](https://docs.cloud.google.com/sql/docs/postgres/configure-ssl-instance).
+Plaintext local proxy connections are not supported by this mode.
+
+Talon obtains access tokens and their expiry from the metadata server and
+refreshes them before expiry, at most every 45 minutes. Each refresh updates the
+existing SQLx pool using
+[`PgPool::set_connect_options`](https://docs.rs/sqlx/0.8.6/sqlx/struct.Pool.html#method.set_connect_options).
+Future physical connections use the new token; existing authenticated
+connections remain open in the same pool.
+Failed metadata refreshes retry after five seconds with exponential backoff
+capped at two minutes. The pool keeps its last credential until refresh succeeds;
+if that token expires, new connections fail database authentication while
+existing authenticated connections can continue. Refresh failures are logged
+without token or credential-source details.
+The backend owns the refresh task and cancels it when dropped; closing the pool
+also stops refresh. The pool itself remains a native SQLx `PgPool`.
+
+```yaml
+storage:
+  control:
+    driver: postgres
+    auth_mode: "iam"
+    url: postgres://talon-runtime%40my-project.iam@db.example.com:5432/talon?sslmode=verify-full&sslrootcert=/etc/ssl/cloudsql/server-ca.pem
+  documents:
+    driver: postgres
+    auth_mode: "iam"
+    url: postgres://talon-runtime%40my-project.iam@db.example.com:5432/talon_documents?sslmode=verify-full&sslrootcert=/etc/ssl/cloudsql/server-ca.pem
+```
+
 ### Local socket broker
 
 For a single-host deployment, the control-plane message broker can use a local Unix socket:

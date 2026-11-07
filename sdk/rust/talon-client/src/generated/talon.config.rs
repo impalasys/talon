@@ -344,6 +344,9 @@ pub struct DatabaseConfig {
     pub driver: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "3")]
     pub url: ::core::option::Option<Secret>,
+    /// "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+    #[prost(string, tag = "4")]
+    pub auth_mode: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MessageBrokerConfig {

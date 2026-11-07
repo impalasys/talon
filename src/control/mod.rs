@@ -30,6 +30,7 @@ pub mod uuid;
 use std::path::PathBuf;
 
 use keys::{ResourceKey, ResourceList};
+use kv::postgres::{postgres_credential_provider, CredentialProvider, PostgresPoolSettings};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Order {
@@ -435,6 +436,7 @@ pub async fn build_control_plane(
         .ok_or_else(|| anyhow::anyhow!("control_plane.database configuration is missing"))?;
     let kv: SharedKeyValueStore;
     let scheduler_database_url: Option<String>;
+    let scheduler_credential_provider: Option<Arc<dyn CredentialProvider>>;
     match db_config.driver.as_str() {
         "postgres" => {
             let url_secret = db_config
@@ -443,14 +445,27 @@ pub async fn build_control_plane(
                 .ok_or_else(|| anyhow::anyhow!("Database URL secret is missing"))?;
             let pg_url: String = url_secret.resolve().await?;
             tracing::info!("Connecting to PostgresKvStore");
-            kv = Arc::new(kv::PostgresKvStore::new(&pg_url, "talon_kv_store").await?);
+            let provider = postgres_credential_provider(db_config)?;
+            kv = Arc::new(
+                kv::PostgresKvStore::new(
+                    &pg_url,
+                    "talon_kv_store",
+                    PostgresPoolSettings {
+                        credential_provider: provider.clone(),
+                        ..PostgresPoolSettings::from_env()
+                    },
+                )
+                .await?,
+            );
             scheduler_database_url = Some(pg_url);
+            scheduler_credential_provider = Some(provider);
         }
         "sqlite" => {
             let sqlite_url = sqlite_database_url(db_config).await?;
             tracing::info!(database_url = %sqlite_url, "Connecting to SqliteKvStore");
             kv = Arc::new(kv::SqliteKvStore::new(&sqlite_url, "talon_kv_store").await?);
             scheduler_database_url = Some(sqlite_url);
+            scheduler_credential_provider = None;
         }
         #[cfg(feature = "aws")]
         "dynamodb" => {
@@ -459,6 +474,7 @@ pub async fn build_control_plane(
             let store = kv::DynamoDbKvStore::from_env(table).await?;
             kv = Arc::new(store);
             scheduler_database_url = None;
+            scheduler_credential_provider = None;
         }
         #[cfg(not(feature = "aws"))]
         "dynamodb" => {
@@ -472,6 +488,7 @@ pub async fn build_control_plane(
             tracing::info!(path = %rocksdb_path.display(), "Connecting to RocksDbKvStore");
             kv = Arc::new(kv::RocksDbKvStore::new(&rocksdb_path)?);
             scheduler_database_url = None;
+            scheduler_credential_provider = None;
         }
         #[cfg(not(feature = "rocksdb"))]
         "rocksdb" => {
@@ -531,7 +548,11 @@ pub async fn build_control_plane(
     let scheduler: SharedSchedulerBackend = match scheduler_driver().as_deref() {
         Some("local_postgres") => {
             if let Some(database_url) = scheduler_database_url.as_deref() {
-                match scheduler::LocalPostgresSchedulerBackend::new(
+                let mut pool_settings = PostgresPoolSettings::default();
+                if let Some(provider) = scheduler_credential_provider.clone() {
+                    pool_settings.credential_provider = provider;
+                }
+                let backend = scheduler::LocalPostgresSchedulerBackend::new(
                     database_url,
                     std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
                     std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
@@ -539,9 +560,10 @@ pub async fn build_control_plane(
                     std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
                         .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
                         .unwrap_or(false),
+                    pool_settings,
                 )
-                .await
-                {
+                .await;
+                match backend {
                     Ok(backend) => Arc::new(backend),
                     Err(err) => {
                         return Err(anyhow::anyhow!(
@@ -733,7 +755,16 @@ async fn configured_document_store(
                 .ok_or_else(|| anyhow::anyhow!("Document database URL secret is missing"))?;
             let pg_url: String = url_secret.resolve().await?;
             tracing::info!("Connecting to PostgresDocumentStore");
-            Ok(Arc::new(search::PostgresDocumentStore::new(&pg_url).await?))
+            Ok(Arc::new(
+                search::PostgresDocumentStore::new(
+                    &pg_url,
+                    PostgresPoolSettings {
+                        credential_provider: postgres_credential_provider(db_config)?,
+                        ..PostgresPoolSettings::from_env()
+                    },
+                )
+                .await?,
+            ))
         }
         "sqlite" => {
             let sqlite_url = sqlite_database_url(db_config).await?;
@@ -864,6 +895,7 @@ mod tests {
     use crate::test_support::MockKvStore;
     use std::collections::HashMap;
     use tempfile::tempdir;
+
     struct EnvGuard {
         key: &'static str,
         value: Option<String>,
@@ -1255,6 +1287,7 @@ mod tests {
                     data_dir: dir.path().display().to_string(),
                     driver: "sqlite".to_string(),
                     url: None,
+                    auth_mode: String::new(),
                 }),
                 message_broker: Some(proto::MessageBrokerConfig {
                     driver: "local_socket".to_string(),
@@ -1288,6 +1321,7 @@ mod tests {
                     data_dir: String::new(),
                     driver: "badger".to_string(),
                     url: None,
+                    auth_mode: String::new(),
                 }),
                 message_broker: Some(proto::MessageBrokerConfig {
                     driver: "gcp_pubsub".to_string(),
@@ -1313,6 +1347,7 @@ mod tests {
                     data_dir: String::new(),
                     driver: "postgres".to_string(),
                     url: None,
+                    auth_mode: String::new(),
                 }),
                 message_broker: Some(proto::MessageBrokerConfig {
                     driver: "gcp_pubsub".to_string(),
@@ -1367,6 +1402,7 @@ mod tests {
             data_dir: dir.path().display().to_string(),
             driver: "sqlite".to_string(),
             url: None,
+            auth_mode: String::new(),
         };
         let url = sqlite_database_url(&cfg).await.unwrap();
         assert!(url.ends_with("/talon-control-plane.db"));
@@ -1379,6 +1415,7 @@ mod tests {
                     "sqlite:///tmp/explicit.db".to_string(),
                 )),
             }),
+            auth_mode: String::new(),
         };
         assert_eq!(
             sqlite_database_url(&explicit).await.unwrap(),
@@ -1392,6 +1429,7 @@ mod tests {
             data_dir: "   ".to_string(),
             driver: "sqlite".to_string(),
             url: None,
+            auth_mode: String::new(),
         };
         let err = sqlite_database_url(&cfg).await.unwrap_err();
         assert!(err
@@ -1407,6 +1445,7 @@ mod tests {
             data_dir: dir.path().display().to_string(),
             driver: "rocksdb".to_string(),
             url: None,
+            auth_mode: String::new(),
         };
         let path = rocksdb_database_path(&cfg).await.unwrap();
         assert!(path.ends_with("talon-control-plane.rocksdb"));
@@ -1419,6 +1458,7 @@ mod tests {
                     "rocksdb:///tmp/explicit.rocksdb".to_string(),
                 )),
             }),
+            auth_mode: String::new(),
         };
         assert_eq!(
             rocksdb_database_path(&explicit).await.unwrap(),
@@ -1433,6 +1473,7 @@ mod tests {
             data_dir: "   ".to_string(),
             driver: "rocksdb".to_string(),
             url: None,
+            auth_mode: String::new(),
         };
         let err = rocksdb_database_path(&cfg).await.unwrap_err();
         assert!(err

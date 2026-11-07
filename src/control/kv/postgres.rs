@@ -5,12 +5,203 @@ use crate::control::{
     keys::{ResourceKey, ResourceList},
     KeyValueStore, ListOptions, Order,
 };
-use anyhow::{bail, Result};
-use sqlx::{pool::PoolConnection, postgres::PgPoolOptions, PgConnection, PgPool, Postgres, Row};
-use std::time::Instant;
+use anyhow::{anyhow, bail, Context, Result};
+use async_trait::async_trait;
+use sqlx::{
+    pool::PoolConnection,
+    postgres::{PgConnectOptions, PgPoolOptions, PgSslMode},
+    PgConnection, PgPool, Postgres, Row,
+};
+use std::{
+    fmt,
+    str::FromStr,
+    sync::Arc,
+    time::{Duration, Instant},
+};
+use tokio_util::task::AbortOnDropHandle;
 use tracing::{field, Instrument, Span};
 
 use super::shared::{quoted_identifier, validate_identifier};
+
+pub(crate) fn postgres_credential_provider(
+    config: &crate::control::config::proto::DatabaseConfig,
+) -> anyhow::Result<Arc<dyn CredentialProvider>> {
+    match config.auth_mode.as_str() {
+        "" | AUTH_MODE_PASSWORD => Ok(Arc::new(PasswordCredentialProvider)),
+        AUTH_MODE_IAM => Ok(Arc::new(GcpMetadataCredentialProvider::new()?)),
+        _ => Err(anyhow::anyhow!(
+            "invalid PostgreSQL auth mode: expected password or iam"
+        )),
+    }
+}
+
+const AUTH_MODE_PASSWORD: &str = "password";
+const AUTH_MODE_IAM: &str = "iam";
+
+const IAM_TOKEN_REFRESH: Duration = Duration::from_secs(45 * 60);
+const TOKEN_EXPIRY_MARGIN: Duration = Duration::from_secs(5 * 60);
+const REFRESH_RETRY_INITIAL: Duration = Duration::from_secs(5);
+const REFRESH_RETRY_MAX: Duration = Duration::from_secs(2 * 60);
+
+fn next_refresh_retry(current: Duration) -> Duration {
+    current
+        .saturating_mul(2)
+        .max(REFRESH_RETRY_INITIAL)
+        .min(REFRESH_RETRY_MAX)
+}
+
+#[async_trait]
+pub trait CredentialProvider: Send + Sync + 'static {
+    async fn credential(&self, options: PgConnectOptions) -> Result<DatabaseCredential>;
+}
+
+pub struct PasswordCredentialProvider;
+
+#[async_trait]
+impl CredentialProvider for PasswordCredentialProvider {
+    async fn credential(&self, options: PgConnectOptions) -> Result<DatabaseCredential> {
+        Ok(DatabaseCredential {
+            options,
+            valid_for: None,
+        })
+    }
+}
+
+pub struct GcpMetadataCredentialProvider {
+    client: reqwest::Client,
+}
+
+impl GcpMetadataCredentialProvider {
+    pub fn new() -> Result<Self> {
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(5))
+            .build()
+            .context("failed to configure Cloud SQL metadata client")?;
+        Ok(Self { client })
+    }
+}
+
+#[async_trait::async_trait]
+impl CredentialProvider for GcpMetadataCredentialProvider {
+    async fn credential(&self, options: PgConnectOptions) -> Result<DatabaseCredential> {
+        #[derive(serde::Deserialize)]
+        struct MetadataToken {
+            access_token: String,
+            expires_in: u64,
+        }
+
+        let token: MetadataToken = self
+            .client
+            .get("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token")
+            .header("Metadata-Flavor", "Google")
+            .send()
+            .await
+            .and_then(reqwest::Response::error_for_status)
+            .map_err(|_| anyhow!("failed to obtain Cloud SQL IAM access token"))?
+            .json()
+            .await
+            .map_err(|_| anyhow!("invalid Cloud SQL IAM metadata response"))?;
+        Ok(DatabaseCredential {
+            options: iam_options(options, &token.access_token),
+            valid_for: Some(Duration::from_secs(token.expires_in)),
+        })
+    }
+}
+
+pub struct DatabaseCredential {
+    pub options: PgConnectOptions,
+    pub valid_for: Option<Duration>,
+}
+
+impl fmt::Debug for DatabaseCredential {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("DatabaseCredential([REDACTED])")
+    }
+}
+
+impl DatabaseCredential {
+    fn refresh_delay(&self) -> Option<Duration> {
+        self.valid_for.map(|valid_for| {
+            let before_expiry = valid_for.saturating_sub(TOKEN_EXPIRY_MARGIN);
+            if before_expiry.is_zero() {
+                (valid_for / 2).max(Duration::from_secs(1))
+            } else {
+                before_expiry.min(IAM_TOKEN_REFRESH)
+            }
+        })
+    }
+}
+
+pub(crate) type CredentialRefresh = Arc<AbortOnDropHandle<()>>;
+
+pub(crate) async fn connect_postgres_pool(
+    url: &str,
+    settings: &PostgresPoolSettings,
+) -> Result<(PgPool, Option<CredentialRefresh>)> {
+    let options = PgConnectOptions::from_str(url)
+        .map_err(|_| anyhow!("invalid PostgreSQL connection options"))?;
+    let credential = settings
+        .credential_provider
+        .credential(options)
+        .await
+        .map_err(|_| anyhow!("failed to obtain PostgreSQL credentials"))?;
+    let refresh_after = credential.refresh_delay();
+    let pool = PgPoolOptions::new()
+        .max_connections(settings.max_connections)
+        .connect_with(credential.options)
+        .await
+        .map_err(|_| anyhow!("failed to connect to PostgreSQL using configured credentials"))?;
+    let refresh = refresh_after.map(|delay| {
+        spawn_credential_refresh(
+            pool.clone(),
+            settings.credential_provider.clone(),
+            delay,
+            REFRESH_RETRY_INITIAL,
+        )
+    });
+    Ok((pool, refresh))
+}
+
+fn spawn_credential_refresh(
+    pool: PgPool,
+    provider: Arc<dyn CredentialProvider>,
+    mut refresh_after: Duration,
+    retry_initial: Duration,
+) -> CredentialRefresh {
+    let mut close_event = pool.close_event();
+    let task = tokio::spawn(async move {
+        let _ = close_event
+            .do_until(async move {
+                let mut retry_after = retry_initial;
+                loop {
+                    tokio::time::sleep(refresh_after).await;
+                    let options = pool.connect_options().as_ref().clone();
+                    let credential = match provider.credential(options).await {
+                        Ok(credential) => credential,
+                        Err(_) => {
+                            tracing::warn!("failed to refresh PostgreSQL credentials; will retry");
+                            refresh_after = retry_after;
+                            retry_after = next_refresh_retry(retry_after);
+                            continue;
+                        }
+                    };
+                    let next_refresh = credential.refresh_delay();
+                    pool.set_connect_options(credential.options);
+                    let Some(delay) = next_refresh else {
+                        break;
+                    };
+                    refresh_after = delay;
+                    retry_after = retry_initial;
+                }
+            })
+            .await;
+    });
+    Arc::new(AbortOnDropHandle::new(task))
+}
+
+fn iam_options(options: PgConnectOptions, token: &str) -> PgConnectOptions {
+    options.password(token).ssl_mode(PgSslMode::VerifyFull)
+}
 
 fn create_table_statement(table: &str) -> String {
     let table = quoted_identifier(table);
@@ -258,35 +449,44 @@ async fn migrate_legacy_table(conn: &mut PgConnection, table: &str) -> Result<()
 
 pub struct PostgresKvStore {
     pool: PgPool,
+    _credential_refresh: Option<CredentialRefresh>,
     table: String,
     settings: PostgresPoolSettings,
 }
 
-#[derive(Debug, Clone, Copy)]
-struct PostgresPoolSettings {
-    max_connections: u32,
+#[derive(Clone)]
+pub struct PostgresPoolSettings {
+    pub max_connections: u32,
+    pub credential_provider: Arc<dyn CredentialProvider>,
+}
+
+impl Default for PostgresPoolSettings {
+    fn default() -> Self {
+        Self {
+            max_connections: 10,
+            credential_provider: Arc::new(PasswordCredentialProvider),
+        }
+    }
 }
 
 impl PostgresPoolSettings {
-    fn from_env() -> Self {
-        let max_connections = std::env::var("TALON_POSTGRES_MAX_CONNECTIONS")
+    pub fn from_env() -> Self {
+        let mut settings = Self::default();
+        if let Some(max_connections) = std::env::var("TALON_POSTGRES_MAX_CONNECTIONS")
             .ok()
             .and_then(|value| value.parse::<u32>().ok())
             .filter(|value| *value > 0)
-            .unwrap_or(10);
-        Self { max_connections }
+        {
+            settings.max_connections = max_connections;
+        }
+        settings
     }
 }
 
 impl PostgresKvStore {
-    pub async fn new(url: &str, table: &str) -> Result<Self> {
+    pub async fn new(url: &str, table: &str, settings: PostgresPoolSettings) -> Result<Self> {
         validate_identifier(table)?;
-        let settings = PostgresPoolSettings::from_env();
-        let pool = PgPoolOptions::new()
-            .max_connections(settings.max_connections)
-            .connect(url)
-            .await?;
-
+        let (pool, credential_refresh) = connect_postgres_pool(url, &settings).await?;
         let mut conn = pool.acquire().await?;
         let lock_key = format!("talon_kv_store:{table}:schema");
         sqlx::query("SELECT pg_advisory_lock(hashtext($1))")
@@ -304,6 +504,7 @@ impl PostgresKvStore {
 
         Ok(Self {
             pool,
+            _credential_refresh: credential_refresh,
             table: table.to_string(),
             settings,
         })
@@ -312,7 +513,7 @@ impl PostgresKvStore {
 
 async fn acquire_connection(
     pool: &PgPool,
-    settings: PostgresPoolSettings,
+    settings: &PostgresPoolSettings,
     parent_span: &Span,
 ) -> Result<PoolConnection<Postgres>> {
     let pool_size_before = pool.size();
@@ -379,7 +580,7 @@ impl KeyValueStore for PostgresKvStore {
         );
         let span_for_body = span.clone();
         async move {
-            let mut conn = acquire_connection(&self.pool, self.settings, &span_for_body).await?;
+            let mut conn = acquire_connection(&self.pool, &self.settings, &span_for_body).await?;
             let query_span = tracing::debug_span!(
                 parent: &span_for_body,
                 "PostgresKvStore.query",
@@ -433,7 +634,7 @@ impl KeyValueStore for PostgresKvStore {
         );
         let span_for_body = span.clone();
         async move {
-            let mut conn = acquire_connection(&self.pool, self.settings, &span_for_body).await?;
+            let mut conn = acquire_connection(&self.pool, &self.settings, &span_for_body).await?;
             let query_span = tracing::debug_span!(
                 parent: &span_for_body,
                 "PostgresKvStore.query",
@@ -500,7 +701,7 @@ impl KeyValueStore for PostgresKvStore {
                 .bind(&key.name)
                 .bind(value)
         };
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let mut conn = acquire_connection(&self.pool, &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -537,7 +738,7 @@ impl KeyValueStore for PostgresKvStore {
             query_elapsed_us = field::Empty,
             rows_affected = field::Empty,
         );
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let mut conn = acquire_connection(&self.pool, &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -597,7 +798,7 @@ impl KeyValueStore for PostgresKvStore {
         if let Some(limit) = options.limit {
             query = query.bind(limit as i64);
         }
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let mut conn = acquire_connection(&self.pool, &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -658,7 +859,7 @@ impl KeyValueStore for PostgresKvStore {
         if let Some(limit) = options.limit {
             query = query.bind(limit as i64);
         }
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let mut conn = acquire_connection(&self.pool, &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -691,12 +892,22 @@ impl KeyValueStore for PostgresKvStore {
 #[cfg(test)]
 mod tests {
     use super::{
-        compare_and_swap_query, create_table_statement, delete_query, get_query,
-        list_entries_query, list_keys_query, rename_migration_index_statement, set_query,
-        PostgresKvStore,
+        compare_and_swap_query, connect_postgres_pool, create_table_statement, delete_query,
+        get_query, iam_options, list_entries_query, list_keys_query, next_refresh_retry,
+        postgres_credential_provider, rename_migration_index_statement, set_query,
+        spawn_credential_refresh, CredentialProvider, DatabaseCredential, PostgresKvStore,
+        IAM_TOKEN_REFRESH, REFRESH_RETRY_INITIAL,
     };
-    use crate::control::{keys, KeyValueStore, ListOptions};
+    use crate::control::{config::proto, keys, KeyValueStore, ListOptions};
     use crate::test_support::{docker_test_guard, PostgresContainer};
+    use anyhow::{anyhow, Result};
+    use async_trait::async_trait;
+    use sqlx::postgres::{PgConnectOptions, PgPoolOptions, PgSslMode};
+    use std::str::FromStr;
+    use std::sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    };
     use std::time::Duration;
 
     #[test]
@@ -792,7 +1003,13 @@ mod tests {
     async fn init_test_store(database_url: &str) -> PostgresKvStore {
         let mut last_error = None;
         for _ in 0..20 {
-            match PostgresKvStore::new(database_url, "talon_kv_store_test").await {
+            match PostgresKvStore::new(
+                database_url,
+                "talon_kv_store_test",
+                super::PostgresPoolSettings::from_env(),
+            )
+            .await
+            {
                 Ok(store) => return store,
                 Err(err) => {
                     last_error = Some(err);
@@ -897,5 +1114,385 @@ mod tests {
         assert!(store.get(&a).await.unwrap().is_none());
         assert!(store.get(&b).await.unwrap().is_none());
         assert_eq!(store.get(&other).await.unwrap(), Some(b"three".to_vec()));
+    }
+
+    #[test]
+    fn postgres_auth_mode_accepts_strings_and_rejects_unknown_values() {
+        for mode in ["", "password", "iam"] {
+            let config = proto::DatabaseConfig {
+                auth_mode: mode.to_string(),
+                ..Default::default()
+            };
+            assert!(postgres_credential_provider(&config).is_ok());
+        }
+        for mode in ["gcp_iam", "PASSWORD", "IAM", "unknown", "0", "1"] {
+            let config = proto::DatabaseConfig {
+                auth_mode: mode.to_string(),
+                ..Default::default()
+            };
+            let error = postgres_credential_provider(&config)
+                .err()
+                .expect("unknown auth modes must be rejected");
+            assert!(error.to_string().contains("invalid PostgreSQL auth mode"));
+        }
+    }
+
+    struct FailOnceProvider(AtomicUsize);
+
+    #[async_trait]
+    impl CredentialProvider for FailOnceProvider {
+        async fn credential(&self, options: PgConnectOptions) -> Result<DatabaseCredential> {
+            let n = self.0.fetch_add(1, Ordering::SeqCst);
+            if n == 1 {
+                return Err(anyhow!("transient credential source failure"));
+            }
+            Ok(DatabaseCredential {
+                options: options.password(&format!("fake-token-{n}")),
+                valid_for: Some(Duration::from_secs(60 * 60)),
+            })
+        }
+    }
+
+    #[test]
+    fn credential_refresh_delay_and_retry_are_bounded() {
+        assert!(IAM_TOKEN_REFRESH < Duration::from_secs(60 * 60));
+        let mut credential = DatabaseCredential {
+            options: PgConnectOptions::new_without_pgpass(),
+            valid_for: None,
+        };
+        assert_eq!(credential.refresh_delay(), None);
+        credential.valid_for = Some(Duration::from_secs(60 * 60));
+        assert_eq!(credential.refresh_delay(), Some(IAM_TOKEN_REFRESH));
+        let mut retry = REFRESH_RETRY_INITIAL;
+        for expected in [10, 20, 40, 80, 120, 120] {
+            retry = next_refresh_retry(retry);
+            assert_eq!(retry, Duration::from_secs(expected));
+        }
+    }
+
+    #[tokio::test]
+    async fn password_and_iam_share_credentials_and_refresh_keeps_the_pool() {
+        use sqlx::Connection;
+        use tokio::{
+            io::{AsyncReadExt, AsyncWriteExt},
+            net::TcpListener,
+            sync::mpsc,
+        };
+
+        async fn backend_message(stream: &mut tokio::net::TcpStream, kind: u8, body: &[u8]) {
+            stream.write_all(&[kind]).await.unwrap();
+            stream
+                .write_all(&((body.len() as u32 + 4).to_be_bytes()))
+                .await
+                .unwrap();
+            stream.write_all(body).await.unwrap();
+        }
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let (tokens_tx, mut tokens_rx) = mpsc::unbounded_channel();
+        let server = tokio::spawn(async move {
+            loop {
+                let (mut stream, _) = listener.accept().await.unwrap();
+                let tokens_tx = tokens_tx.clone();
+                tokio::spawn(async move {
+                    let mut length = [0; 4];
+                    if stream.read_exact(&mut length).await.is_err() {
+                        return;
+                    }
+                    let mut startup = vec![0; u32::from_be_bytes(length) as usize - 4];
+                    if stream.read_exact(&mut startup).await.is_err() {
+                        return;
+                    }
+                    backend_message(&mut stream, b'R', &3_u32.to_be_bytes()).await;
+                    let mut tag = [0; 1];
+                    if stream.read_exact(&mut tag).await.is_err() || tag[0] != b'p' {
+                        return;
+                    }
+                    if stream.read_exact(&mut length).await.is_err() {
+                        return;
+                    }
+                    let mut password = vec![0; u32::from_be_bytes(length) as usize - 4];
+                    if stream.read_exact(&mut password).await.is_err() {
+                        return;
+                    }
+                    let password = String::from_utf8_lossy(&password)
+                        .trim_end_matches('\0')
+                        .to_string();
+                    let _ = tokens_tx.send(password);
+
+                    backend_message(&mut stream, b'R', &0_u32.to_be_bytes()).await;
+                    for (key, value) in [
+                        ("server_version", "16.0"),
+                        ("server_encoding", "UTF8"),
+                        ("client_encoding", "UTF8"),
+                        ("DateStyle", "ISO, MDY"),
+                        ("integer_datetimes", "on"),
+                        ("standard_conforming_strings", "on"),
+                        ("TimeZone", "UTC"),
+                    ] {
+                        let mut body = key.as_bytes().to_vec();
+                        body.push(0);
+                        body.extend_from_slice(value.as_bytes());
+                        body.push(0);
+                        backend_message(&mut stream, b'S', &body).await;
+                    }
+                    let mut key_data = 1_i32.to_be_bytes().to_vec();
+                    key_data.extend_from_slice(&1_i32.to_be_bytes());
+                    backend_message(&mut stream, b'K', &key_data).await;
+                    backend_message(&mut stream, b'Z', b"I").await;
+                    let mut message = [0; 1];
+                    while stream.read_exact(&mut message).await.is_ok() {
+                        if stream.read_exact(&mut length).await.is_err() {
+                            return;
+                        }
+                        let mut body = vec![0; u32::from_be_bytes(length) as usize - 4];
+                        if stream.read_exact(&mut body).await.is_err() {
+                            return;
+                        }
+                        match message[0] {
+                            b'S' => backend_message(&mut stream, b'Z', b"I").await,
+                            b'X' => return,
+                            _ => panic!("unexpected mock PostgreSQL message"),
+                        }
+                    }
+                });
+            }
+        });
+
+        let (password_pool, refresh) = connect_postgres_pool(
+            &format!("postgres://iam-user:static%40pass%3A%25%2F@{address}/talon?sslmode=disable"),
+            &super::PostgresPoolSettings::default(),
+        )
+        .await
+        .unwrap();
+        assert!(
+            refresh.is_none(),
+            "static credentials must not start a refresh task"
+        );
+        assert_eq!(tokens_rx.recv().await.unwrap(), "static@pass:%/");
+        assert!(matches!(
+            password_pool.connect_options().get_ssl_mode(),
+            PgSslMode::Disable
+        ));
+        password_pool.close().await;
+
+        let provider = Arc::new(FailOnceProvider(AtomicUsize::new(0)));
+        let options = PgConnectOptions::from_str(&format!(
+            "postgres://iam-user@{address}/talon?sslmode=disable"
+        ))
+        .unwrap();
+        let credential = provider.credential(options).await.unwrap();
+        let pool = PgPoolOptions::new()
+            .max_connections(2)
+            .connect_with(credential.options)
+            .await
+            .unwrap();
+        let refresh = spawn_credential_refresh(
+            pool.clone(),
+            provider.clone(),
+            Duration::from_millis(500),
+            Duration::from_millis(100),
+        );
+        let first = tokio::time::timeout(Duration::from_secs(2), tokens_rx.recv())
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(first, "fake-token-0");
+
+        // Hold a connection and a native SQLx pool clone across the refresh.
+        let original_pool = pool.clone();
+        let mut existing = original_pool.acquire().await.unwrap();
+        let initial_options = original_pool.connect_options();
+        tokio::time::timeout(Duration::from_secs(2), async {
+            while provider.0.load(Ordering::SeqCst) < 2 {
+                tokio::time::sleep(Duration::from_millis(5)).await;
+            }
+        })
+        .await
+        .expect("the first refresh should fail");
+        existing
+            .ping()
+            .await
+            .expect("metadata failures must not interrupt authenticated connections");
+        tokio::time::timeout(Duration::from_millis(350), async {
+            while Arc::ptr_eq(&initial_options, &original_pool.connect_options()) {
+                tokio::time::sleep(Duration::from_millis(5)).await;
+            }
+        })
+        .await
+        .expect("credentials should refresh on the short retry interval");
+        assert_eq!(provider.0.load(Ordering::SeqCst), 3);
+        assert_eq!(
+            original_pool.size(),
+            1,
+            "refresh must not create a replacement connection"
+        );
+        assert!(tokens_rx.try_recv().is_err());
+
+        // Keeping the first connection checked out forces a new physical
+        // connection from the original pool, using the refreshed token.
+        let new_connection = original_pool.acquire().await.unwrap();
+        let second = tokio::time::timeout(Duration::from_secs(2), tokens_rx.recv())
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(second, "fake-token-2");
+        assert_eq!(original_pool.size(), 2);
+        existing
+            .ping()
+            .await
+            .expect("refresh must preserve the old connection");
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        assert_eq!(
+            provider.0.load(Ordering::SeqCst),
+            3,
+            "success must restore the normal refresh interval"
+        );
+
+        new_connection.close().await.unwrap();
+        existing.close().await.unwrap();
+        drop(original_pool);
+        let abort = refresh.abort_handle();
+        let other_owner = refresh.clone();
+        drop(refresh);
+        assert!(
+            !abort.is_finished(),
+            "another backend clone still owns the task"
+        );
+        drop(other_owner);
+        tokio::time::timeout(Duration::from_secs(1), async {
+            while !abort.is_finished() {
+                tokio::time::sleep(Duration::from_millis(5)).await;
+            }
+        })
+        .await
+        .expect("dropping the last backend owner must abort refresh");
+        assert!(
+            !pool.is_closed(),
+            "task cancellation must not close native pool clones"
+        );
+        let attempts = provider.0.load(Ordering::SeqCst);
+        tokio::time::sleep(Duration::from_millis(600)).await;
+        assert_eq!(provider.0.load(Ordering::SeqCst), attempts);
+        pool.close().await;
+        server.abort();
+    }
+
+    struct FailingProvider;
+
+    #[async_trait]
+    impl CredentialProvider for FailingProvider {
+        async fn credential(&self, _options: PgConnectOptions) -> Result<DatabaseCredential> {
+            Err(anyhow!("credential source unavailable"))
+        }
+    }
+
+    #[tokio::test]
+    async fn credential_failure_is_returned_without_secret_details() {
+        let error = connect_postgres_pool(
+            "postgres://iam-user@localhost/talon",
+            &super::PostgresPoolSettings {
+                credential_provider: Arc::new(FailingProvider),
+                ..Default::default()
+            },
+        )
+        .await
+        .err()
+        .unwrap();
+        assert_eq!(error.to_string(), "failed to obtain PostgreSQL credentials");
+    }
+
+    #[test]
+    fn credentials_redact_passwords_and_tokens() {
+        let options = PgConnectOptions::from_str(
+            "postgres://iam-user:ignored@db.example:5432/talon?sslmode=require",
+        )
+        .unwrap();
+        let password = DatabaseCredential {
+            options: options.clone(),
+            valid_for: None,
+        };
+        let iam = DatabaseCredential {
+            options: iam_options(options, "fresh-token"),
+            valid_for: Some(Duration::from_secs(3600)),
+        };
+        for credential in [password, iam] {
+            let rendered = format!("{credential:?}");
+            assert!(!rendered.contains("ignored"));
+            assert!(!rendered.contains("fresh-token"));
+        }
+    }
+
+    #[test]
+    fn iam_options_require_certificate_and_hostname_verification() {
+        for mode in [
+            None,
+            Some("disable"),
+            Some("allow"),
+            Some("prefer"),
+            Some("require"),
+            Some("verify-ca"),
+            Some("verify-full"),
+        ] {
+            let mut url = url::Url::parse("postgres://iam-user@db.example/talon").unwrap();
+            if let Some(mode) = mode {
+                url.query_pairs_mut().append_pair("sslmode", mode);
+            }
+            url.query_pairs_mut()
+                .append_pair("sslrootcert", "/etc/ssl/cloudsql/ca.pem");
+            let options = iam_options(PgConnectOptions::from_str(url.as_str()).unwrap(), "token");
+            assert!(matches!(options.get_ssl_mode(), PgSslMode::VerifyFull));
+            assert_eq!(options.get_host(), "db.example");
+            assert_eq!(options.get_username(), "iam-user");
+            assert_eq!(options.get_database(), Some("talon"));
+            assert!(sqlx::ConnectOptions::to_url_lossy(&options)
+                .query_pairs()
+                .any(|(key, value)| key == "sslrootcert"
+                    && value == "file: /etc/ssl/cloudsql/ca.pem"));
+        }
+    }
+
+    #[tokio::test]
+    async fn iam_connection_never_sends_a_token_to_a_plaintext_endpoint() {
+        use sqlx::Connection;
+        use tokio::{
+            io::{AsyncReadExt, AsyncWriteExt},
+            net::TcpListener,
+        };
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            let (mut stream, _) = listener.accept().await.unwrap();
+            let mut request = [0; 8];
+            stream.read_exact(&mut request).await.unwrap();
+            assert_eq!(request, [0, 0, 0, 8, 4, 210, 22, 47]);
+            stream.write_all(b"N").await.unwrap();
+            let mut remaining = Vec::new();
+            stream.read_to_end(&mut remaining).await.unwrap();
+            assert!(
+                remaining.is_empty(),
+                "no startup or password may follow TLS rejection"
+            );
+        });
+        let options = iam_options(
+            PgConnectOptions::from_str(&format!(
+                "postgres://iam-user@{address}/talon?sslmode=disable"
+            ))
+            .unwrap(),
+            "secret-iam-token",
+        );
+        let result = tokio::time::timeout(
+            Duration::from_secs(2),
+            sqlx::PgConnection::connect_with(&options),
+        )
+        .await
+        .unwrap();
+        assert!(result.is_err());
+        tokio::time::timeout(Duration::from_secs(2), server)
+            .await
+            .unwrap()
+            .unwrap();
     }
 }

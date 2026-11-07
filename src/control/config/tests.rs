@@ -146,6 +146,54 @@ server:
     }
 
     #[test]
+    fn postgres_auth_mode_preserves_strings_across_config_formats() {
+        let dir = tempdir().unwrap();
+        for mode in [None, Some("password"), Some("iam"), Some("unknown")] {
+            let mut database = serde_json::json!({
+                "driver": "postgres",
+                "url": "postgres://talon@db.example/talon",
+            });
+            if let Some(mode) = mode {
+                database["auth_mode"] = serde_json::json!(mode);
+            }
+            let document = serde_json::json!({
+                "storage": {"control": database, "documents": database},
+            });
+            for (extension, contents) in [
+                ("yaml", serde_yaml::to_string(&document).unwrap()),
+                ("json", serde_json::to_string(&document).unwrap()),
+                ("toml", toml::to_string(&document).unwrap()),
+            ] {
+                let path = dir.path().join(format!("config.{extension}"));
+                std::fs::write(&path, contents).unwrap();
+                let config = Config::from_file(&path).unwrap();
+                let decoded = Config::decode_binary(&config.encode_to_vec()).unwrap();
+                let cp = decoded.control_plane.unwrap();
+                let expected = mode.unwrap_or_default();
+                assert_eq!(cp.database.unwrap().auth_mode, expected);
+                assert_eq!(cp.documents.unwrap().auth_mode, expected);
+            }
+        }
+    }
+
+    #[test]
+    fn postgres_auth_mode_rejects_non_string_values() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("config.json");
+        for value in [
+            serde_json::json!(1),
+            serde_json::json!(true),
+            serde_json::json!(["iam"]),
+        ] {
+            let document = serde_json::json!({
+                "storage": {"control": {"driver": "postgres", "auth_mode": value}},
+            });
+            std::fs::write(&path, serde_json::to_string(&document).unwrap()).unwrap();
+            assert!(Config::from_file(&path).is_err());
+        }
+    }
+
+    #[test]
     fn test_config_from_yaml_parses_oidc_trust_grants() {
         let file = NamedTempFile::new().expect("Failed to create temp file");
         let path = file.path().with_extension("yaml");
@@ -489,6 +537,7 @@ trust:
             data_dir: "dir".to_string(),
             driver: "".to_string(),
             url: None,
+            auth_mode: String::new(),
         });
         config.server = Some(proto::ServerConfig {
             host: "h".to_string(),
@@ -1217,6 +1266,7 @@ control_plane:
                 url: Some(crate::control::config::SerdeSecret::Plain(
                     "postgres://db".to_string(),
                 )),
+                auth_mode: None,
             }),
             server: Some(crate::control::config::ServerConfigWrapper {
                 host: "0.0.0.0".to_string(),
@@ -1234,6 +1284,7 @@ control_plane:
                             key: "db-url".to_string(),
                         },
                     )),
+                    auth_mode: None,
                 },
                 message_broker: crate::control::config::MessageBrokerConfigWrapper {
                     driver: "pubsub".to_string(),

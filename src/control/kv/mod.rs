@@ -4,7 +4,7 @@
 #[cfg(feature = "aws")]
 mod dynamodb;
 mod legacy;
-mod postgres;
+pub mod postgres;
 #[cfg(feature = "rocksdb")]
 mod rocksdb;
 mod shared;
