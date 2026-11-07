@@ -261,7 +261,9 @@ Use `sslmode=verify-full&sslrootcert=/path/to/ca.pem` to verify the server's
 certificate and hostname against your database CA.
 
 The `auth_mode` field accepts the strings `"password"` and `"iam"`; omitting it
-defaults to password authentication. For Cloud SQL IAM
+defaults to password authentication. Password mode preserves SQLx's native URL,
+environment, and pgpass credential resolution and starts no refresh task.
+For Cloud SQL IAM
 database authentication, set `auth_mode: "iam"` and omit the password from the
 URL. The Cloud Run/GCE runtime service account needs Cloud SQL Instance User
 (`roles/cloudsql.instanceUser`, which grants `cloudsql.instances.login`) and a
@@ -298,6 +300,8 @@ capped at two minutes. The pool keeps its last credential until refresh succeeds
 if that token expires, new connections fail database authentication while
 existing authenticated connections can continue. Refresh failures are logged
 without token or credential-source details.
+The backend owns the refresh task and cancels it when dropped; closing the pool
+also stops refresh. The pool itself remains a native SQLx `PgPool`.
 
 ```yaml
 storage:

@@ -18,16 +18,17 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+use tokio_util::task::AbortOnDropHandle;
 use tracing::{field, Instrument, Span};
 
 use super::shared::{quoted_identifier, validate_identifier};
 
 pub(crate) fn postgres_credential_provider(
     config: &crate::control::config::proto::DatabaseConfig,
-) -> anyhow::Result<Option<Arc<dyn CredentialProvider>>> {
+) -> anyhow::Result<Arc<dyn CredentialProvider>> {
     match config.auth_mode.as_str() {
-        "" | AUTH_MODE_PASSWORD => Ok(None),
-        AUTH_MODE_IAM => Ok(Some(Arc::new(GcpMetadataCredentialProvider::new()?))),
+        "" | AUTH_MODE_PASSWORD => Ok(Arc::new(PasswordCredentialProvider)),
+        AUTH_MODE_IAM => Ok(Arc::new(GcpMetadataCredentialProvider::new()?)),
         _ => Err(anyhow::anyhow!(
             "invalid PostgreSQL auth mode: expected password or iam"
         )),
@@ -51,7 +52,19 @@ fn next_refresh_retry(current: Duration) -> Duration {
 
 #[async_trait]
 pub trait CredentialProvider: Send + Sync + 'static {
-    async fn credential(&self) -> Result<DatabaseCredential>;
+    async fn credential(&self, options: PgConnectOptions) -> Result<DatabaseCredential>;
+}
+
+pub struct PasswordCredentialProvider;
+
+#[async_trait]
+impl CredentialProvider for PasswordCredentialProvider {
+    async fn credential(&self, options: PgConnectOptions) -> Result<DatabaseCredential> {
+        Ok(DatabaseCredential {
+            options,
+            valid_for: None,
+        })
+    }
 }
 
 pub struct GcpMetadataCredentialProvider {
@@ -70,7 +83,7 @@ impl GcpMetadataCredentialProvider {
 
 #[async_trait::async_trait]
 impl CredentialProvider for GcpMetadataCredentialProvider {
-    async fn credential(&self) -> Result<DatabaseCredential> {
+    async fn credential(&self, options: PgConnectOptions) -> Result<DatabaseCredential> {
         #[derive(serde::Deserialize)]
         struct MetadataToken {
             access_token: String,
@@ -89,139 +102,105 @@ impl CredentialProvider for GcpMetadataCredentialProvider {
             .await
             .map_err(|_| anyhow!("invalid Cloud SQL IAM metadata response"))?;
         Ok(DatabaseCredential {
-            value: token.access_token,
-            valid_for: Duration::from_secs(token.expires_in),
+            options: iam_options(options, &token.access_token),
+            valid_for: Some(Duration::from_secs(token.expires_in)),
         })
     }
 }
 
 pub struct DatabaseCredential {
-    pub value: String,
-    pub valid_for: Duration,
+    pub options: PgConnectOptions,
+    pub valid_for: Option<Duration>,
+}
+
+impl fmt::Debug for DatabaseCredential {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("DatabaseCredential([REDACTED])")
+    }
 }
 
 impl DatabaseCredential {
-    fn refresh_delay(&self) -> Duration {
-        let before_expiry = self.valid_for.saturating_sub(TOKEN_EXPIRY_MARGIN);
-        if before_expiry.is_zero() {
-            (self.valid_for / 2).max(Duration::from_secs(1))
-        } else {
-            before_expiry.min(IAM_TOKEN_REFRESH)
-        }
+    fn refresh_delay(&self) -> Option<Duration> {
+        self.valid_for.map(|valid_for| {
+            let before_expiry = valid_for.saturating_sub(TOKEN_EXPIRY_MARGIN);
+            if before_expiry.is_zero() {
+                (valid_for / 2).max(Duration::from_secs(1))
+            } else {
+                before_expiry.min(IAM_TOKEN_REFRESH)
+            }
+        })
     }
 }
+
+pub(crate) type CredentialRefresh = Arc<AbortOnDropHandle<()>>;
 
 pub(crate) async fn connect_postgres_pool(
     url: &str,
     settings: &PostgresPoolSettings,
-) -> Result<Arc<PgPool>> {
-    match settings.credential_provider.clone() {
-        Some(provider) => {
-            connect_iam_pool(url, settings.max_connections, provider, None, None, true).await
-        }
-        None => Ok(Arc::new(
-            PgPoolOptions::new()
-                .max_connections(settings.max_connections)
-                .connect(url)
-                .await?,
-        )),
-    }
-}
-
-async fn connect_iam_pool(
-    url: &str,
-    max_connections: u32,
-    provider: Arc<dyn CredentialProvider>,
-    refresh_override: Option<Duration>,
-    retry_override: Option<Duration>,
-    // False only for the in-module plaintext mock server test.
-    require_tls: bool,
-) -> Result<Arc<PgPool>> {
-    let credential = provider
-        .credential()
+) -> Result<(PgPool, Option<CredentialRefresh>)> {
+    let options = PgConnectOptions::from_str(url)
+        .map_err(|_| anyhow!("invalid PostgreSQL connection options"))?;
+    let credential = settings
+        .credential_provider
+        .credential(options)
         .await
-        .map_err(|_| anyhow!("failed to obtain PostgreSQL IAM credentials"))?;
-    let mut refresh_after = refresh_override.unwrap_or_else(|| credential.refresh_delay());
-    let options = iam_options_with_tls(url, credential.value, require_tls)?;
-    let pool = Arc::new(
-        PgPoolOptions::new()
-            .max_connections(max_connections)
-            .connect_with(options.into_inner())
-            .await
-            .map_err(|_| anyhow!("failed to connect to PostgreSQL using IAM credentials"))?,
-    );
-    let weak_pool = Arc::downgrade(&pool);
-    tokio::spawn(async move {
-        let mut retry_after = REFRESH_RETRY_INITIAL;
-        loop {
-            tokio::time::sleep(refresh_after).await;
-            let Some(pool) = weak_pool.upgrade() else {
-                break;
-            };
-            if pool.is_closed() {
-                break;
-            }
-            let credential = match provider.credential().await {
-                Ok(credential) => credential,
-                Err(_) => {
-                    tracing::warn!("failed to refresh PostgreSQL IAM credentials; will retry");
-                    refresh_after = retry_override.unwrap_or(retry_after);
-                    retry_after = next_refresh_retry(retry_after);
-                    continue;
-                }
-            };
-            refresh_after = refresh_override.unwrap_or_else(|| credential.refresh_delay());
-            // SQLx reads these options whenever it opens a physical connection.
-            // Existing authenticated connections stay open in the same pool.
-            let options = pool
-                .connect_options()
-                .as_ref()
-                .clone()
-                .password(&credential.value);
-            pool.set_connect_options(options);
-            retry_after = REFRESH_RETRY_INITIAL;
-        }
+        .map_err(|_| anyhow!("failed to obtain PostgreSQL credentials"))?;
+    let refresh_after = credential.refresh_delay();
+    let pool = PgPoolOptions::new()
+        .max_connections(settings.max_connections)
+        .connect_with(credential.options)
+        .await
+        .map_err(|_| anyhow!("failed to connect to PostgreSQL using configured credentials"))?;
+    let refresh = refresh_after.map(|delay| {
+        spawn_credential_refresh(
+            pool.clone(),
+            settings.credential_provider.clone(),
+            delay,
+            REFRESH_RETRY_INITIAL,
+        )
     });
-    Ok(pool)
+    Ok((pool, refresh))
 }
 
-struct RedactedIamConnectOptions(PgConnectOptions);
-
-impl RedactedIamConnectOptions {
-    fn into_inner(self) -> PgConnectOptions {
-        self.0
-    }
+fn spawn_credential_refresh(
+    pool: PgPool,
+    provider: Arc<dyn CredentialProvider>,
+    mut refresh_after: Duration,
+    retry_initial: Duration,
+) -> CredentialRefresh {
+    let mut close_event = pool.close_event();
+    let task = tokio::spawn(async move {
+        let _ = close_event
+            .do_until(async move {
+                let mut retry_after = retry_initial;
+                loop {
+                    tokio::time::sleep(refresh_after).await;
+                    let options = pool.connect_options().as_ref().clone();
+                    let credential = match provider.credential(options).await {
+                        Ok(credential) => credential,
+                        Err(_) => {
+                            tracing::warn!("failed to refresh PostgreSQL credentials; will retry");
+                            refresh_after = retry_after;
+                            retry_after = next_refresh_retry(retry_after);
+                            continue;
+                        }
+                    };
+                    let next_refresh = credential.refresh_delay();
+                    pool.set_connect_options(credential.options);
+                    let Some(delay) = next_refresh else {
+                        break;
+                    };
+                    refresh_after = delay;
+                    retry_after = retry_initial;
+                }
+            })
+            .await;
+    });
+    Arc::new(AbortOnDropHandle::new(task))
 }
 
-impl fmt::Debug for RedactedIamConnectOptions {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("IamConnectOptions([REDACTED])")
-    }
-}
-
-fn iam_options(url: &str, token: String) -> Result<RedactedIamConnectOptions> {
-    iam_options_with_tls(url, token, true)
-}
-
-fn iam_options_with_tls(
-    url: &str,
-    token: String,
-    require_tls: bool,
-) -> Result<RedactedIamConnectOptions> {
-    // Never retain or report a URL password in IAM mode.
-    let mut parsed =
-        url::Url::parse(url).context("invalid PostgreSQL URL for IAM authentication")?;
-    let _ = parsed.set_password(None);
-    let mut options = PgConnectOptions::from_str(parsed.as_str())
-        .map_err(|_| anyhow!("invalid PostgreSQL connection options for IAM authentication"))?;
-    if require_tls {
-        // IAM tokens are bearer credentials. Encryption alone (Require) or
-        // certificate validation without hostname checks (VerifyCa) lets an
-        // impersonated endpoint receive the token.
-        options = options.ssl_mode(PgSslMode::VerifyFull);
-    }
-    options = options.password(&token);
-    Ok(RedactedIamConnectOptions(options))
+fn iam_options(options: PgConnectOptions, token: &str) -> PgConnectOptions {
+    options.password(token).ssl_mode(PgSslMode::VerifyFull)
 }
 
 fn create_table_statement(table: &str) -> String {
@@ -469,7 +448,8 @@ async fn migrate_legacy_table(conn: &mut PgConnection, table: &str) -> Result<()
 }
 
 pub struct PostgresKvStore {
-    pool: Arc<PgPool>,
+    pool: PgPool,
+    _credential_refresh: Option<CredentialRefresh>,
     table: String,
     settings: PostgresPoolSettings,
 }
@@ -477,14 +457,14 @@ pub struct PostgresKvStore {
 #[derive(Clone)]
 pub struct PostgresPoolSettings {
     pub max_connections: u32,
-    pub credential_provider: Option<Arc<dyn CredentialProvider>>,
+    pub credential_provider: Arc<dyn CredentialProvider>,
 }
 
 impl Default for PostgresPoolSettings {
     fn default() -> Self {
         Self {
             max_connections: 10,
-            credential_provider: None,
+            credential_provider: Arc::new(PasswordCredentialProvider),
         }
     }
 }
@@ -506,7 +486,7 @@ impl PostgresPoolSettings {
 impl PostgresKvStore {
     pub async fn new(url: &str, table: &str, settings: PostgresPoolSettings) -> Result<Self> {
         validate_identifier(table)?;
-        let pool = connect_postgres_pool(url, &settings).await?;
+        let (pool, credential_refresh) = connect_postgres_pool(url, &settings).await?;
         let mut conn = pool.acquire().await?;
         let lock_key = format!("talon_kv_store:{table}:schema");
         sqlx::query("SELECT pg_advisory_lock(hashtext($1))")
@@ -524,6 +504,7 @@ impl PostgresKvStore {
 
         Ok(Self {
             pool,
+            _credential_refresh: credential_refresh,
             table: table.to_string(),
             settings,
         })
@@ -599,8 +580,7 @@ impl KeyValueStore for PostgresKvStore {
         );
         let span_for_body = span.clone();
         async move {
-            let mut conn =
-                acquire_connection(self.pool.as_ref(), &self.settings, &span_for_body).await?;
+            let mut conn = acquire_connection(&self.pool, &self.settings, &span_for_body).await?;
             let query_span = tracing::debug_span!(
                 parent: &span_for_body,
                 "PostgresKvStore.query",
@@ -654,8 +634,7 @@ impl KeyValueStore for PostgresKvStore {
         );
         let span_for_body = span.clone();
         async move {
-            let mut conn =
-                acquire_connection(self.pool.as_ref(), &self.settings, &span_for_body).await?;
+            let mut conn = acquire_connection(&self.pool, &self.settings, &span_for_body).await?;
             let query_span = tracing::debug_span!(
                 parent: &span_for_body,
                 "PostgresKvStore.query",
@@ -722,7 +701,7 @@ impl KeyValueStore for PostgresKvStore {
                 .bind(&key.name)
                 .bind(value)
         };
-        let mut conn = acquire_connection(self.pool.as_ref(), &self.settings, &span).await?;
+        let mut conn = acquire_connection(&self.pool, &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -759,7 +738,7 @@ impl KeyValueStore for PostgresKvStore {
             query_elapsed_us = field::Empty,
             rows_affected = field::Empty,
         );
-        let mut conn = acquire_connection(self.pool.as_ref(), &self.settings, &span).await?;
+        let mut conn = acquire_connection(&self.pool, &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -819,7 +798,7 @@ impl KeyValueStore for PostgresKvStore {
         if let Some(limit) = options.limit {
             query = query.bind(limit as i64);
         }
-        let mut conn = acquire_connection(self.pool.as_ref(), &self.settings, &span).await?;
+        let mut conn = acquire_connection(&self.pool, &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -880,7 +859,7 @@ impl KeyValueStore for PostgresKvStore {
         if let Some(limit) = options.limit {
             query = query.bind(limit as i64);
         }
-        let mut conn = acquire_connection(self.pool.as_ref(), &self.settings, &span).await?;
+        let mut conn = acquire_connection(&self.pool, &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -913,17 +892,18 @@ impl KeyValueStore for PostgresKvStore {
 #[cfg(test)]
 mod tests {
     use super::{
-        compare_and_swap_query, connect_iam_pool, connect_postgres_pool, create_table_statement,
-        delete_query, get_query, iam_options, list_entries_query, list_keys_query,
-        next_refresh_retry, postgres_credential_provider, rename_migration_index_statement,
-        set_query, CredentialProvider, DatabaseCredential, PostgresKvStore, IAM_TOKEN_REFRESH,
-        REFRESH_RETRY_INITIAL,
+        compare_and_swap_query, connect_postgres_pool, create_table_statement, delete_query,
+        get_query, iam_options, list_entries_query, list_keys_query, next_refresh_retry,
+        postgres_credential_provider, rename_migration_index_statement, set_query,
+        spawn_credential_refresh, CredentialProvider, DatabaseCredential, PostgresKvStore,
+        IAM_TOKEN_REFRESH, REFRESH_RETRY_INITIAL,
     };
     use crate::control::{config::proto, keys, KeyValueStore, ListOptions};
     use crate::test_support::{docker_test_guard, PostgresContainer};
     use anyhow::{anyhow, Result};
     use async_trait::async_trait;
-    use sqlx::postgres::PgSslMode;
+    use sqlx::postgres::{PgConnectOptions, PgPoolOptions, PgSslMode};
+    use std::str::FromStr;
     use std::sync::{
         atomic::{AtomicUsize, Ordering},
         Arc,
@@ -1143,8 +1123,7 @@ mod tests {
                 auth_mode: mode.to_string(),
                 ..Default::default()
             };
-            let provider = postgres_credential_provider(&config).unwrap();
-            assert_eq!(provider.is_some(), mode == "iam");
+            assert!(postgres_credential_provider(&config).is_ok());
         }
         for mode in ["gcp_iam", "PASSWORD", "IAM", "unknown", "0", "1"] {
             let config = proto::DatabaseConfig {
@@ -1158,49 +1137,32 @@ mod tests {
         }
     }
 
-    struct FakeProvider(AtomicUsize);
-
-    #[async_trait]
-    impl CredentialProvider for FakeProvider {
-        async fn credential(&self) -> Result<DatabaseCredential> {
-            let n = self.0.fetch_add(1, Ordering::SeqCst);
-            Ok(DatabaseCredential {
-                value: format!("fake-token-{n}"),
-                valid_for: Duration::from_secs(60 * 60),
-            })
-        }
-    }
-
     struct FailOnceProvider(AtomicUsize);
 
     #[async_trait]
     impl CredentialProvider for FailOnceProvider {
-        async fn credential(&self) -> Result<DatabaseCredential> {
+        async fn credential(&self, options: PgConnectOptions) -> Result<DatabaseCredential> {
             let n = self.0.fetch_add(1, Ordering::SeqCst);
             if n == 1 {
                 return Err(anyhow!("transient credential source failure"));
             }
             Ok(DatabaseCredential {
-                value: format!("fake-token-{n}"),
-                valid_for: Duration::from_secs(60 * 60),
+                options: options.password(&format!("fake-token-{n}")),
+                valid_for: Some(Duration::from_secs(60 * 60)),
             })
         }
     }
 
-    #[tokio::test]
-    async fn credential_provider_is_queried_for_each_refresh() {
-        let provider = FakeProvider(AtomicUsize::new(0));
-        assert_eq!(provider.credential().await.unwrap().value, "fake-token-0");
-        assert_eq!(provider.credential().await.unwrap().value, "fake-token-1");
+    #[test]
+    fn credential_refresh_delay_and_retry_are_bounded() {
         assert!(IAM_TOKEN_REFRESH < Duration::from_secs(60 * 60));
-        assert_eq!(
-            DatabaseCredential {
-                value: "ignored".to_string(),
-                valid_for: Duration::from_secs(60 * 60),
-            }
-            .refresh_delay(),
-            IAM_TOKEN_REFRESH
-        );
+        let mut credential = DatabaseCredential {
+            options: PgConnectOptions::new_without_pgpass(),
+            valid_for: None,
+        };
+        assert_eq!(credential.refresh_delay(), None);
+        credential.valid_for = Some(Duration::from_secs(60 * 60));
+        assert_eq!(credential.refresh_delay(), Some(IAM_TOKEN_REFRESH));
         let mut retry = REFRESH_RETRY_INITIAL;
         for expected in [10, 20, 40, 80, 120, 120] {
             retry = next_refresh_retry(retry);
@@ -1209,7 +1171,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn iam_refresh_updates_the_same_pool_and_retries_metadata_failures() {
+    async fn password_and_iam_share_credentials_and_refresh_keeps_the_pool() {
         use sqlx::Connection;
         use tokio::{
             io::{AsyncReadExt, AsyncWriteExt},
@@ -1298,17 +1260,40 @@ mod tests {
             }
         });
 
-        let provider = Arc::new(FailOnceProvider(AtomicUsize::new(0)));
-        let pool = connect_iam_pool(
-            &format!("postgres://iam-user@{address}/talon?sslmode=disable"),
-            2,
-            provider.clone(),
-            Some(Duration::from_millis(500)),
-            Some(Duration::from_millis(100)),
-            false,
+        let (password_pool, refresh) = connect_postgres_pool(
+            &format!("postgres://iam-user:static%40pass%3A%25%2F@{address}/talon?sslmode=disable"),
+            &super::PostgresPoolSettings::default(),
         )
         .await
         .unwrap();
+        assert!(
+            refresh.is_none(),
+            "static credentials must not start a refresh task"
+        );
+        assert_eq!(tokens_rx.recv().await.unwrap(), "static@pass:%/");
+        assert!(matches!(
+            password_pool.connect_options().get_ssl_mode(),
+            PgSslMode::Disable
+        ));
+        password_pool.close().await;
+
+        let provider = Arc::new(FailOnceProvider(AtomicUsize::new(0)));
+        let options = PgConnectOptions::from_str(&format!(
+            "postgres://iam-user@{address}/talon?sslmode=disable"
+        ))
+        .unwrap();
+        let credential = provider.credential(options).await.unwrap();
+        let pool = PgPoolOptions::new()
+            .max_connections(2)
+            .connect_with(credential.options)
+            .await
+            .unwrap();
+        let refresh = spawn_credential_refresh(
+            pool.clone(),
+            provider.clone(),
+            Duration::from_millis(500),
+            Duration::from_millis(100),
+        );
         let first = tokio::time::timeout(Duration::from_secs(2), tokens_rx.recv())
             .await
             .unwrap()
@@ -1316,7 +1301,7 @@ mod tests {
         assert_eq!(first, "fake-token-0");
 
         // Hold a connection and a native SQLx pool clone across the refresh.
-        let original_pool = pool.as_ref().clone();
+        let original_pool = pool.clone();
         let mut existing = original_pool.acquire().await.unwrap();
         let initial_options = original_pool.connect_options();
         tokio::time::timeout(Duration::from_secs(2), async {
@@ -1368,18 +1353,29 @@ mod tests {
         new_connection.close().await.unwrap();
         existing.close().await.unwrap();
         drop(original_pool);
-        let weak_pool = Arc::downgrade(&pool);
-        drop(pool);
+        let abort = refresh.abort_handle();
+        let other_owner = refresh.clone();
+        drop(refresh);
+        assert!(
+            !abort.is_finished(),
+            "another backend clone still owns the task"
+        );
+        drop(other_owner);
         tokio::time::timeout(Duration::from_secs(1), async {
-            while weak_pool.upgrade().is_some() {
+            while !abort.is_finished() {
                 tokio::time::sleep(Duration::from_millis(5)).await;
             }
         })
         .await
-        .expect("the refresh task must not retain a dropped pool");
+        .expect("dropping the last backend owner must abort refresh");
+        assert!(
+            !pool.is_closed(),
+            "task cancellation must not close native pool clones"
+        );
         let attempts = provider.0.load(Ordering::SeqCst);
         tokio::time::sleep(Duration::from_millis(600)).await;
         assert_eq!(provider.0.load(Ordering::SeqCst), attempts);
+        pool.close().await;
         server.abort();
     }
 
@@ -1387,7 +1383,7 @@ mod tests {
 
     #[async_trait]
     impl CredentialProvider for FailingProvider {
-        async fn credential(&self) -> Result<DatabaseCredential> {
+        async fn credential(&self, _options: PgConnectOptions) -> Result<DatabaseCredential> {
             Err(anyhow!("credential source unavailable"))
         }
     }
@@ -1397,29 +1393,35 @@ mod tests {
         let error = connect_postgres_pool(
             "postgres://iam-user@localhost/talon",
             &super::PostgresPoolSettings {
-                credential_provider: Some(Arc::new(FailingProvider)),
+                credential_provider: Arc::new(FailingProvider),
                 ..Default::default()
             },
         )
         .await
         .err()
         .unwrap();
-        assert_eq!(
-            error.to_string(),
-            "failed to obtain PostgreSQL IAM credentials"
-        );
+        assert_eq!(error.to_string(), "failed to obtain PostgreSQL credentials");
     }
 
     #[test]
-    fn iam_options_discards_url_password_and_keeps_connection_settings() {
-        let options = iam_options(
+    fn credentials_redact_passwords_and_tokens() {
+        let options = PgConnectOptions::from_str(
             "postgres://iam-user:ignored@db.example:5432/talon?sslmode=require",
-            "fresh-token".to_string(),
         )
         .unwrap();
-        let rendered = format!("{options:?}");
-        assert!(!rendered.contains("ignored"));
-        assert!(!rendered.contains("fresh-token"));
+        let password = DatabaseCredential {
+            options: options.clone(),
+            valid_for: None,
+        };
+        let iam = DatabaseCredential {
+            options: iam_options(options, "fresh-token"),
+            valid_for: Some(Duration::from_secs(3600)),
+        };
+        for credential in [password, iam] {
+            let rendered = format!("{credential:?}");
+            assert!(!rendered.contains("ignored"));
+            assert!(!rendered.contains("fresh-token"));
+        }
     }
 
     #[test]
@@ -1439,12 +1441,12 @@ mod tests {
             }
             url.query_pairs_mut()
                 .append_pair("sslrootcert", "/etc/ssl/cloudsql/ca.pem");
-            let options = iam_options(url.as_str(), "token".to_string()).unwrap();
-            assert!(matches!(options.0.get_ssl_mode(), PgSslMode::VerifyFull));
-            assert_eq!(options.0.get_host(), "db.example");
-            assert_eq!(options.0.get_username(), "iam-user");
-            assert_eq!(options.0.get_database(), Some("talon"));
-            assert!(sqlx::ConnectOptions::to_url_lossy(&options.0)
+            let options = iam_options(PgConnectOptions::from_str(url.as_str()).unwrap(), "token");
+            assert!(matches!(options.get_ssl_mode(), PgSslMode::VerifyFull));
+            assert_eq!(options.get_host(), "db.example");
+            assert_eq!(options.get_username(), "iam-user");
+            assert_eq!(options.get_database(), Some("talon"));
+            assert!(sqlx::ConnectOptions::to_url_lossy(&options)
                 .query_pairs()
                 .any(|(key, value)| key == "sslrootcert"
                     && value == "file: /etc/ssl/cloudsql/ca.pem"));
@@ -1475,13 +1477,15 @@ mod tests {
             );
         });
         let options = iam_options(
-            &format!("postgres://iam-user@{address}/talon?sslmode=disable"),
-            "secret-iam-token".to_string(),
-        )
-        .unwrap();
+            PgConnectOptions::from_str(&format!(
+                "postgres://iam-user@{address}/talon?sslmode=disable"
+            ))
+            .unwrap(),
+            "secret-iam-token",
+        );
         let result = tokio::time::timeout(
             Duration::from_secs(2),
-            sqlx::PgConnection::connect_with(&options.into_inner()),
+            sqlx::PgConnection::connect_with(&options),
         )
         .await
         .unwrap();

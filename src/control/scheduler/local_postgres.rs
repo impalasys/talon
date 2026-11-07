@@ -1,7 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::kv::postgres::{connect_postgres_pool, PostgresPoolSettings};
+use crate::control::kv::postgres::{
+    connect_postgres_pool, CredentialRefresh, PostgresPoolSettings,
+};
 use anyhow::{anyhow, Result};
 use chrono::Utc;
 use futures::stream::{FuturesUnordered, StreamExt};
@@ -23,7 +25,8 @@ const MAX_RETRY_DELAY_SECONDS: i64 = 300;
 
 #[derive(Clone)]
 pub struct LocalPostgresSchedulerBackend {
-    pool: std::sync::Arc<PgPool>,
+    pool: PgPool,
+    _credential_refresh: Option<CredentialRefresh>,
     table: String,
 }
 
@@ -47,8 +50,8 @@ impl LocalPostgresSchedulerBackend {
         runner_enabled: bool,
         settings: PostgresPoolSettings,
     ) -> Result<Self> {
-        let pool = connect_postgres_pool(database_url, &settings).await?;
-        let pg_pool = pool.as_ref();
+        let (pool, credential_refresh) = connect_postgres_pool(database_url, &settings).await?;
+        let pg_pool = &pool;
         let table = table.unwrap_or_else(|| DEFAULT_TABLE.to_string());
         validate_identifier(&table)?;
         let create_stmt = format!(
@@ -80,10 +83,15 @@ impl LocalPostgresSchedulerBackend {
             let Some(target_url) = runner_target_url.filter(|value| !value.trim().is_empty())
             else {
                 warn!("local_postgres scheduler runner enabled without target URL; wakeups will not fire");
-                return Ok(Self { pool, table });
+                return Ok(Self {
+                    pool,
+                    _credential_refresh: credential_refresh,
+                    table,
+                });
             };
             let runner = Self {
                 pool: pool.clone(),
+                _credential_refresh: credential_refresh.clone(),
                 table: table.clone(),
             };
             tokio::spawn(async move {
@@ -96,7 +104,11 @@ impl LocalPostgresSchedulerBackend {
             });
         }
 
-        Ok(Self { pool, table })
+        Ok(Self {
+            pool,
+            _credential_refresh: credential_refresh,
+            table,
+        })
     }
 
     async fn run_loop(self, target_url: String, auth_token: Option<String>) {
@@ -237,7 +249,7 @@ impl LocalPostgresSchedulerBackend {
             .bind(now_micros)
             .bind(CLAIM_TIMEOUT_SECONDS)
             .bind(MAX_DELIVERY_ATTEMPTS)
-            .fetch_all(self.pool.as_ref())
+            .fetch_all(&self.pool)
             .await?;
         let mut wakeups = Vec::with_capacity(rows.len());
         for row in rows {
@@ -298,7 +310,7 @@ impl LocalPostgresSchedulerBackend {
         sqlx::query(&query)
             .bind(handle)
             .bind(Utc::now().timestamp_micros())
-            .execute(self.pool.as_ref())
+            .execute(&self.pool)
             .await?;
         Ok(())
     }
@@ -318,7 +330,7 @@ impl LocalPostgresSchedulerBackend {
                 .bind(handle)
                 .bind(Utc::now().timestamp_micros())
                 .bind(error_message)
-                .execute(self.pool.as_ref())
+                .execute(&self.pool)
                 .await?;
             return Ok(());
         }
@@ -332,7 +344,7 @@ impl LocalPostgresSchedulerBackend {
             .bind(handle)
             .bind(next_attempt_micros)
             .bind(error_message)
-            .execute(self.pool.as_ref())
+            .execute(&self.pool)
             .await?;
         Ok(())
     }
@@ -367,7 +379,7 @@ impl SchedulerBackend for LocalPostgresSchedulerBackend {
             .bind(req.fire_at.timestamp_micros())
             .bind(&req.payload)
             .bind(Utc::now().timestamp_micros())
-            .execute(self.pool.as_ref())
+            .execute(&self.pool)
             .await?;
         Ok(ScheduledWakeup {
             handle: Some(handle),
@@ -383,7 +395,7 @@ impl SchedulerBackend for LocalPostgresSchedulerBackend {
         sqlx::query(&query)
             .bind(handle)
             .bind(Utc::now().timestamp_micros())
-            .execute(self.pool.as_ref())
+            .execute(&self.pool)
             .await?;
         Ok(())
     }
@@ -513,7 +525,7 @@ mod tests {
             backend.table
         ))
         .bind(&handle)
-        .fetch_one(backend.pool.as_ref())
+        .fetch_one(&backend.pool)
         .await
         .expect("failed row should load");
         let last_error: String = failure_row.try_get("last_error").unwrap();
@@ -530,7 +542,7 @@ mod tests {
             backend.table
         ))
         .bind(&handle)
-        .fetch_one(backend.pool.as_ref())
+        .fetch_one(&backend.pool)
         .await
         .expect("canceled row should load");
         let canceled_at: i64 = canceled_row.try_get("canceled_at_micros").unwrap();
@@ -624,7 +636,7 @@ mod tests {
             backend.table
         ))
         .bind(&deliver_handle)
-        .fetch_one(backend.pool.as_ref())
+        .fetch_one(&backend.pool)
         .await
         .expect("delivered row should load");
         let delivered_at: i64 = delivered_row.try_get("delivered_at_micros").unwrap();
@@ -650,7 +662,7 @@ mod tests {
             backend.table
         ))
         .bind(&cancel_handle)
-        .fetch_one(backend.pool.as_ref())
+        .fetch_one(&backend.pool)
         .await
         .expect("cancel row should load");
         let canceled_at: i64 = cancel_row.try_get("canceled_at_micros").unwrap();
@@ -738,7 +750,7 @@ mod tests {
         ))
         .bind(&claimed)
         .bind(Utc::now().timestamp_micros() + 60_000_000)
-        .execute(backend.pool.as_ref())
+        .execute(&backend.pool)
         .await
         .expect("claim lease update should succeed");
 
@@ -807,7 +819,7 @@ mod tests {
             backend.table
         ))
         .bind(&handle)
-        .fetch_one(backend.pool.as_ref())
+        .fetch_one(&backend.pool)
         .await
         .expect("row should load");
         let delivered_at: Option<i64> = row.try_get("delivered_at_micros").unwrap();
@@ -924,7 +936,7 @@ mod tests {
             backend.table
         ))
         .bind(&handle)
-        .fetch_one(backend.pool.as_ref())
+        .fetch_one(&backend.pool)
         .await
         .expect("delivered row should load");
         let delivered_at: i64 = row.try_get("delivered_at_micros").unwrap();

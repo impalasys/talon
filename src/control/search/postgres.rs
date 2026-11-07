@@ -8,28 +8,34 @@ use super::{
     ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE,
     ATTR_RUN_ID, ATTR_SESSION_ID,
 };
-use crate::control::kv::postgres::{connect_postgres_pool, PostgresPoolSettings};
+use crate::control::kv::postgres::{
+    connect_postgres_pool, CredentialRefresh, PostgresPoolSettings,
+};
 use crate::gateway::rpc::proto;
 use anyhow::Result;
 use sqlx::{PgPool, Postgres, QueryBuilder, Row};
 use std::collections::HashMap;
 
 pub struct PostgresDocumentStore {
-    pool: std::sync::Arc<PgPool>,
+    pool: PgPool,
+    _credential_refresh: Option<CredentialRefresh>,
 }
 
 impl PostgresDocumentStore {
     pub async fn new(url: &str, settings: PostgresPoolSettings) -> Result<Self> {
-        let pool = connect_postgres_pool(url, &settings).await?;
-        init_schema(pool.as_ref()).await?;
-        Ok(Self { pool })
+        let (pool, credential_refresh) = connect_postgres_pool(url, &settings).await?;
+        init_schema(&pool).await?;
+        Ok(Self {
+            pool,
+            _credential_refresh: credential_refresh,
+        })
     }
 }
 
 #[async_trait::async_trait]
 impl DocumentStore for PostgresDocumentStore {
     async fn upsert_documents(&self, documents: &[Document]) -> Result<()> {
-        let pool = self.pool.as_ref();
+        let pool = &self.pool;
         let mut tx = pool.begin().await?;
         for document in documents {
             let document_ref = document.r#ref.as_ref().expect("document ref is required");
@@ -133,7 +139,7 @@ impl DocumentStore for PostgresDocumentStore {
             QueryBuilder::<Postgres>::new("DELETE FROM talon_documents WHERE namespace = ");
         builder.push_bind(&scope.namespace);
         push_delete_filters(&mut builder, scope);
-        let pool = self.pool.as_ref();
+        let pool = &self.pool;
         let result = builder.build().execute(pool).await?;
         Ok(result.rows_affected())
     }
@@ -180,7 +186,7 @@ impl DocumentStore for PostgresDocumentStore {
         builder.push_bind((limit + 1) as i64);
         builder.push(" OFFSET ");
         builder.push_bind(offset as i64);
-        let pool = self.pool.as_ref();
+        let pool = &self.pool;
         let rows = builder.build().fetch_all(pool).await?;
         let mut results = rows
             .into_iter()
@@ -211,7 +217,7 @@ impl DocumentStore for PostgresDocumentStore {
         ))
         .bind(namespace)
         .bind(id)
-        .fetch_optional(self.pool.as_ref())
+        .fetch_optional(&self.pool)
         .await?;
         row.map(|row| document_from_row(&row)).transpose()
     }

@@ -458,7 +458,7 @@ pub async fn build_control_plane(
                 .await?,
             );
             scheduler_database_url = Some(pg_url);
-            scheduler_credential_provider = provider;
+            scheduler_credential_provider = Some(provider);
         }
         "sqlite" => {
             let sqlite_url = sqlite_database_url(db_config).await?;
@@ -548,6 +548,10 @@ pub async fn build_control_plane(
     let scheduler: SharedSchedulerBackend = match scheduler_driver().as_deref() {
         Some("local_postgres") => {
             if let Some(database_url) = scheduler_database_url.as_deref() {
+                let mut pool_settings = PostgresPoolSettings::default();
+                if let Some(provider) = scheduler_credential_provider.clone() {
+                    pool_settings.credential_provider = provider;
+                }
                 let backend = scheduler::LocalPostgresSchedulerBackend::new(
                     database_url,
                     std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
@@ -556,10 +560,7 @@ pub async fn build_control_plane(
                     std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
                         .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
                         .unwrap_or(false),
-                    PostgresPoolSettings {
-                        credential_provider: scheduler_credential_provider.clone(),
-                        ..PostgresPoolSettings::default()
-                    },
+                    pool_settings,
                 )
                 .await;
                 match backend {

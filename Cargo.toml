@@ -97,7 +97,7 @@ google-cloud-pubsub = { version = "0.25.0", default-features = false, features =
 google-cloud-googleapis = { version = "0.13.0", features = ["pubsub"] }
 clap = { version = "4.6.0", features = ["derive"] }
 tokio-stream = { version = "0.1", features = ["net"] }
-tokio-util = "0.7.18"
+tokio-util = { version = "0.7.18", features = ["rt"] }
 talon-client = { path = "sdk/rust/talon-client" }
 
 [build-dependencies]
