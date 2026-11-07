@@ -148,25 +148,50 @@ server:
     #[test]
     fn postgres_auth_mode_parses_iam_and_defaults_to_password() {
         let dir = tempdir().unwrap();
-        let iam_path = dir.path().join("iam.yaml");
-        std::fs::write(
-            &iam_path,
-            "control_plane:\n  database:\n    driver: postgres\n    auth_mode: gcp_iam\n    url: postgres://talon@db.example/talon\n  message_broker:\n    driver: local_socket\n",
-        )
-        .unwrap();
-        let iam = Config::from_file(&iam_path).unwrap();
-        let db = iam.control_plane.unwrap().database.unwrap();
-        assert_eq!(db.auth_mode, proto::DatabaseAuthMode::GcpIam as i32);
+        for mode in [None, Some("password"), Some("iam")] {
+            let mut database = serde_json::json!({
+                "driver": "postgres",
+                "url": "postgres://talon@db.example/talon",
+            });
+            if let Some(mode) = mode {
+                database["auth_mode"] = serde_json::json!(mode);
+            }
+            let document = serde_json::json!({
+                "storage": {"control": database, "documents": database},
+            });
+            for (extension, contents) in [
+                ("yaml", serde_yaml::to_string(&document).unwrap()),
+                ("json", serde_json::to_string(&document).unwrap()),
+                ("toml", toml::to_string(&document).unwrap()),
+            ] {
+                let path = dir.path().join(format!("config.{extension}"));
+                std::fs::write(&path, contents).unwrap();
+                let config = Config::from_file(&path).unwrap();
+                let decoded = Config::decode_binary(&config.encode_to_vec()).unwrap();
+                let cp = decoded.control_plane.unwrap();
+                let expected = mode.unwrap_or("password");
+                assert_eq!(cp.database.unwrap().auth_mode, expected);
+                assert_eq!(cp.documents.unwrap().auth_mode, expected);
+            }
+        }
+    }
 
-        let password_path = dir.path().join("password.yaml");
-        std::fs::write(
-            &password_path,
-            "control_plane:\n  database:\n    driver: postgres\n    url: postgres://talon:secret@db.example/talon\n  message_broker:\n    driver: local_socket\n",
-        )
-        .unwrap();
-        let password = Config::from_file(&password_path).unwrap();
-        let db = password.control_plane.unwrap().database.unwrap();
-        assert_eq!(db.auth_mode, proto::DatabaseAuthMode::Password as i32);
+    #[test]
+    fn postgres_auth_mode_rejects_unknown_strings_and_numbers() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("config.json");
+        for value in [
+            serde_json::json!("unknown"),
+            serde_json::json!("gcp_iam"),
+            serde_json::json!("DATABASE_AUTH_MODE_GCP_IAM"),
+            serde_json::json!(1),
+        ] {
+            let document = serde_json::json!({
+                "storage": {"control": {"driver": "postgres", "auth_mode": value}},
+            });
+            std::fs::write(&path, serde_json::to_string(&document).unwrap()).unwrap();
+            assert!(Config::from_file(&path).is_err());
+        }
     }
 
     #[test]
@@ -513,7 +538,7 @@ trust:
             data_dir: "dir".to_string(),
             driver: "".to_string(),
             url: None,
-            auth_mode: 0,
+            auth_mode: String::new(),
         });
         config.server = Some(proto::ServerConfig {
             host: "h".to_string(),

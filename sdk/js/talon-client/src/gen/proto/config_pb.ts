@@ -7,26 +7,6 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 
 /**
- * @generated from enum talon.config.DatabaseAuthMode
- */
-export enum DatabaseAuthMode {
-  /**
-   * @generated from enum value: DATABASE_AUTH_MODE_PASSWORD = 0;
-   */
-  PASSWORD = 0,
-
-  /**
-   * @generated from enum value: DATABASE_AUTH_MODE_GCP_IAM = 1;
-   */
-  GCP_IAM = 1,
-}
-// Retrieve enum metadata with: proto3.getEnumType(DatabaseAuthMode)
-proto3.util.setEnumType(DatabaseAuthMode, "talon.config.DatabaseAuthMode", [
-  { no: 0, name: "DATABASE_AUTH_MODE_PASSWORD" },
-  { no: 1, name: "DATABASE_AUTH_MODE_GCP_IAM" },
-]);
-
-/**
  * @generated from message talon.config.TalonConfig
  */
 export class TalonConfig extends Message<TalonConfig> {
@@ -1164,9 +1144,11 @@ export class DatabaseConfig extends Message<DatabaseConfig> {
   url?: Secret;
 
   /**
-   * @generated from field: talon.config.DatabaseAuthMode auth_mode = 4;
+   * "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+   *
+   * @generated from field: string auth_mode = 4;
    */
-  authMode = DatabaseAuthMode.PASSWORD;
+  authMode = "";
 
   constructor(data?: PartialMessage<DatabaseConfig>) {
     super();
@@ -1179,7 +1161,7 @@ export class DatabaseConfig extends Message<DatabaseConfig> {
     { no: 1, name: "data_dir", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "driver", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "url", kind: "message", T: Secret },
-    { no: 4, name: "auth_mode", kind: "enum", T: proto3.getEnumType(DatabaseAuthMode) },
+    { no: 4, name: "auth_mode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DatabaseConfig {

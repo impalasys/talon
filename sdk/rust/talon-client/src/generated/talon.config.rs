@@ -344,8 +344,9 @@ pub struct DatabaseConfig {
     pub driver: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "3")]
     pub url: ::core::option::Option<Secret>,
-    #[prost(enumeration = "DatabaseAuthMode", tag = "4")]
-    pub auth_mode: i32,
+    /// "password" (default when empty) or "iam" for Cloud SQL IAM authentication.
+    #[prost(string, tag = "4")]
+    pub auth_mode: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MessageBrokerConfig {
@@ -484,30 +485,4 @@ pub struct ServerConfig {
     pub host: ::prost::alloc::string::String,
     #[prost(uint32, tag = "2")]
     pub port: u32,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum DatabaseAuthMode {
-    Password = 0,
-    GcpIam = 1,
-}
-impl DatabaseAuthMode {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            Self::Password => "DATABASE_AUTH_MODE_PASSWORD",
-            Self::GcpIam => "DATABASE_AUTH_MODE_GCP_IAM",
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "DATABASE_AUTH_MODE_PASSWORD" => Some(Self::Password),
-            "DATABASE_AUTH_MODE_GCP_IAM" => Some(Self::GcpIam),
-            _ => None,
-        }
-    }
 }

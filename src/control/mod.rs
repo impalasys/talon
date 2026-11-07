@@ -729,14 +729,14 @@ fn scheduler_driver() -> Option<String> {
 fn postgres_credential_provider(
     config: &crate::control::config::proto::DatabaseConfig,
 ) -> anyhow::Result<Option<Arc<dyn postgres::CredentialProvider>>> {
-    use crate::control::config::proto::DatabaseAuthMode;
-    let auth_mode = DatabaseAuthMode::try_from(config.auth_mode)
-        .map_err(|_| anyhow::anyhow!("invalid PostgreSQL auth mode value: {}", config.auth_mode))?;
-    match auth_mode {
-        DatabaseAuthMode::Password => Ok(None),
-        DatabaseAuthMode::GcpIam => Ok(Some(Arc::new(
+    match config.auth_mode.as_str() {
+        "" | "password" => Ok(None),
+        "iam" => Ok(Some(Arc::new(
             postgres::gcp::GcpMetadataCredentialProvider::new()?,
         ))),
+        _ => Err(anyhow::anyhow!(
+            "invalid PostgreSQL auth mode: expected password or iam"
+        )),
     }
 }
 
@@ -913,15 +913,25 @@ mod tests {
     use tempfile::tempdir;
 
     #[test]
-    fn postgres_auth_mode_rejects_unknown_proto_values() {
-        let config = proto::DatabaseConfig {
-            auth_mode: i32::MAX,
-            ..Default::default()
-        };
-        let error = postgres_credential_provider(&config)
-            .err()
-            .expect("unknown protobuf auth values must be rejected");
-        assert!(error.to_string().contains("invalid PostgreSQL auth mode"));
+    fn postgres_auth_mode_accepts_strings_and_rejects_unknown_values() {
+        for mode in ["", "password", "iam"] {
+            let config = proto::DatabaseConfig {
+                auth_mode: mode.to_string(),
+                ..Default::default()
+            };
+            let provider = postgres_credential_provider(&config).unwrap();
+            assert_eq!(provider.is_some(), mode == "iam");
+        }
+        for mode in ["gcp_iam", "PASSWORD", "IAM", "unknown", "0", "1"] {
+            let config = proto::DatabaseConfig {
+                auth_mode: mode.to_string(),
+                ..Default::default()
+            };
+            let error = postgres_credential_provider(&config)
+                .err()
+                .expect("unknown auth modes must be rejected");
+            assert!(error.to_string().contains("invalid PostgreSQL auth mode"));
+        }
     }
     struct EnvGuard {
         key: &'static str,
@@ -1314,7 +1324,7 @@ mod tests {
                     data_dir: dir.path().display().to_string(),
                     driver: "sqlite".to_string(),
                     url: None,
-                    auth_mode: 0,
+                    auth_mode: String::new(),
                 }),
                 message_broker: Some(proto::MessageBrokerConfig {
                     driver: "local_socket".to_string(),
@@ -1348,7 +1358,7 @@ mod tests {
                     data_dir: String::new(),
                     driver: "badger".to_string(),
                     url: None,
-                    auth_mode: 0,
+                    auth_mode: String::new(),
                 }),
                 message_broker: Some(proto::MessageBrokerConfig {
                     driver: "gcp_pubsub".to_string(),
@@ -1374,7 +1384,7 @@ mod tests {
                     data_dir: String::new(),
                     driver: "postgres".to_string(),
                     url: None,
-                    auth_mode: 0,
+                    auth_mode: String::new(),
                 }),
                 message_broker: Some(proto::MessageBrokerConfig {
                     driver: "gcp_pubsub".to_string(),
@@ -1429,7 +1439,7 @@ mod tests {
             data_dir: dir.path().display().to_string(),
             driver: "sqlite".to_string(),
             url: None,
-            auth_mode: 0,
+            auth_mode: String::new(),
         };
         let url = sqlite_database_url(&cfg).await.unwrap();
         assert!(url.ends_with("/talon-control-plane.db"));
@@ -1442,7 +1452,7 @@ mod tests {
                     "sqlite:///tmp/explicit.db".to_string(),
                 )),
             }),
-            auth_mode: 0,
+            auth_mode: String::new(),
         };
         assert_eq!(
             sqlite_database_url(&explicit).await.unwrap(),
@@ -1456,7 +1466,7 @@ mod tests {
             data_dir: "   ".to_string(),
             driver: "sqlite".to_string(),
             url: None,
-            auth_mode: 0,
+            auth_mode: String::new(),
         };
         let err = sqlite_database_url(&cfg).await.unwrap_err();
         assert!(err
@@ -1472,7 +1482,7 @@ mod tests {
             data_dir: dir.path().display().to_string(),
             driver: "rocksdb".to_string(),
             url: None,
-            auth_mode: 0,
+            auth_mode: String::new(),
         };
         let path = rocksdb_database_path(&cfg).await.unwrap();
         assert!(path.ends_with("talon-control-plane.rocksdb"));
@@ -1485,7 +1495,7 @@ mod tests {
                     "rocksdb:///tmp/explicit.rocksdb".to_string(),
                 )),
             }),
-            auth_mode: 0,
+            auth_mode: String::new(),
         };
         assert_eq!(
             rocksdb_database_path(&explicit).await.unwrap(),
@@ -1500,7 +1510,7 @@ mod tests {
             data_dir: "   ".to_string(),
             driver: "rocksdb".to_string(),
             url: None,
-            auth_mode: 0,
+            auth_mode: String::new(),
         };
         let err = rocksdb_database_path(&cfg).await.unwrap_err();
         assert!(err

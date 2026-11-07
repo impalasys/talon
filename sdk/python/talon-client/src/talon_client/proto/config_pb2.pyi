@@ -7,13 +7,6 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class DatabaseAuthMode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    DATABASE_AUTH_MODE_PASSWORD: _ClassVar[DatabaseAuthMode]
-    DATABASE_AUTH_MODE_GCP_IAM: _ClassVar[DatabaseAuthMode]
-DATABASE_AUTH_MODE_PASSWORD: DatabaseAuthMode
-DATABASE_AUTH_MODE_GCP_IAM: DatabaseAuthMode
-
 class TalonConfig(_message.Message):
     __slots__ = ("providers", "database", "server", "default_provider", "workspace_dir", "control_plane", "controllers", "trust", "models", "capabilities")
     class ProvidersEntry(_message.Message):
@@ -294,8 +287,8 @@ class DatabaseConfig(_message.Message):
     data_dir: str
     driver: str
     url: Secret
-    auth_mode: DatabaseAuthMode
-    def __init__(self, data_dir: _Optional[str] = ..., driver: _Optional[str] = ..., url: _Optional[_Union[Secret, _Mapping]] = ..., auth_mode: _Optional[_Union[DatabaseAuthMode, str]] = ...) -> None: ...
+    auth_mode: str
+    def __init__(self, data_dir: _Optional[str] = ..., driver: _Optional[str] = ..., url: _Optional[_Union[Secret, _Mapping]] = ..., auth_mode: _Optional[str] = ...) -> None: ...
 
 class MessageBrokerConfig(_message.Message):
     __slots__ = ("driver",)

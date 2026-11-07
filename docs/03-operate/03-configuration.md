@@ -260,8 +260,9 @@ postgresql://user:password@db.example.com/talon?sslmode=require
 Use `sslmode=verify-full&sslrootcert=/path/to/ca.pem` to verify the server's
 certificate and hostname against your database CA.
 
-PostgreSQL password authentication remains the default. For Cloud SQL IAM
-database authentication, set `auth_mode: gcp_iam` and omit the password from the
+The `auth_mode` field accepts the strings `"password"` and `"iam"`; omitting it
+defaults to password authentication. For Cloud SQL IAM
+database authentication, set `auth_mode: "iam"` and omit the password from the
 URL. The Cloud Run/GCE runtime service account needs Cloud SQL Instance User
 (`roles/cloudsql.instanceUser`, which grants `cloudsql.instances.login`) and a
 matching IAM database user on an instance with IAM database authentication
@@ -291,11 +292,11 @@ error until a replacement connects successfully.
 storage:
   control:
     driver: postgres
-    auth_mode: gcp_iam
+    auth_mode: "iam"
     url: postgres://talon-runtime%40my-project.iam@db.example.com:5432/talon?sslmode=verify-full&sslrootcert=/etc/ssl/cloudsql/server-ca.pem
   documents:
     driver: postgres
-    auth_mode: gcp_iam
+    auth_mode: "iam"
     url: postgres://talon-runtime%40my-project.iam@db.example.com:5432/talon_documents?sslmode=verify-full&sslrootcert=/etc/ssl/cloudsql/server-ca.pem
 ```
 
