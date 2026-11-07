@@ -13,6 +13,9 @@ use std::fmt;
 use std::{str::FromStr, sync::Arc, time::Duration};
 use tokio::sync::RwLock;
 
+pub(super) const AUTH_MODE_PASSWORD: &str = "password";
+pub(super) const AUTH_MODE_IAM: &str = "iam";
+
 const IAM_POOL_ROTATION: Duration = Duration::from_secs(45 * 60);
 const TOKEN_EXPIRY_MARGIN: Duration = Duration::from_secs(5 * 60);
 const ROTATION_RETRY_INITIAL: Duration = Duration::from_secs(5);

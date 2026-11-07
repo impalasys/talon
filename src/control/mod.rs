@@ -729,9 +729,11 @@ fn scheduler_driver() -> Option<String> {
 fn postgres_credential_provider(
     config: &crate::control::config::proto::DatabaseConfig,
 ) -> anyhow::Result<Option<Arc<dyn postgres::CredentialProvider>>> {
+    use postgres::{AUTH_MODE_IAM, AUTH_MODE_PASSWORD};
+
     match config.auth_mode.as_str() {
-        "" | "password" => Ok(None),
-        "iam" => Ok(Some(Arc::new(
+        "" | AUTH_MODE_PASSWORD => Ok(None),
+        AUTH_MODE_IAM => Ok(Some(Arc::new(
             postgres::gcp::GcpMetadataCredentialProvider::new()?,
         ))),
         _ => Err(anyhow::anyhow!(

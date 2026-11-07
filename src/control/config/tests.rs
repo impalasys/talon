@@ -146,9 +146,9 @@ server:
     }
 
     #[test]
-    fn postgres_auth_mode_parses_iam_and_defaults_to_password() {
+    fn postgres_auth_mode_preserves_strings_across_config_formats() {
         let dir = tempdir().unwrap();
-        for mode in [None, Some("password"), Some("iam")] {
+        for mode in [None, Some("password"), Some("iam"), Some("unknown")] {
             let mut database = serde_json::json!({
                 "driver": "postgres",
                 "url": "postgres://talon@db.example/talon",
@@ -169,7 +169,7 @@ server:
                 let config = Config::from_file(&path).unwrap();
                 let decoded = Config::decode_binary(&config.encode_to_vec()).unwrap();
                 let cp = decoded.control_plane.unwrap();
-                let expected = mode.unwrap_or("password");
+                let expected = mode.unwrap_or_default();
                 assert_eq!(cp.database.unwrap().auth_mode, expected);
                 assert_eq!(cp.documents.unwrap().auth_mode, expected);
             }
@@ -177,14 +177,13 @@ server:
     }
 
     #[test]
-    fn postgres_auth_mode_rejects_unknown_strings_and_numbers() {
+    fn postgres_auth_mode_rejects_non_string_values() {
         let dir = tempdir().unwrap();
         let path = dir.path().join("config.json");
         for value in [
-            serde_json::json!("unknown"),
-            serde_json::json!("gcp_iam"),
-            serde_json::json!("DATABASE_AUTH_MODE_GCP_IAM"),
             serde_json::json!(1),
+            serde_json::json!(true),
+            serde_json::json!(["iam"]),
         ] {
             let document = serde_json::json!({
                 "storage": {"control": {"driver": "postgres", "auth_mode": value}},
