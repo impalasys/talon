@@ -1,11 +1,12 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::control::kv::postgres::{connect_postgres_pool, CredentialProvider};
 use anyhow::{anyhow, Result};
 use chrono::Utc;
 use futures::stream::{FuturesUnordered, StreamExt};
 use reqwest::Client;
-use sqlx::Row;
+use sqlx::{PgPool, Row};
 use std::time::Duration;
 use tracing::{error, warn};
 
@@ -23,7 +24,7 @@ const MAX_RETRY_DELAY_SECONDS: i64 = 300;
 
 #[derive(Clone)]
 pub struct LocalPostgresSchedulerBackend {
-    pool: crate::control::postgres::PostgresPool,
+    pool: std::sync::Arc<PgPool>,
     table: String,
 }
 
@@ -46,9 +47,7 @@ impl LocalPostgresSchedulerBackend {
         auth_token: Option<String>,
         runner_enabled: bool,
     ) -> Result<Self> {
-        let pool =
-            crate::control::postgres::PostgresPool::password(database_url, MAX_POOL_CONNECTIONS)
-                .await?;
+        let pool = connect_postgres_pool(database_url, MAX_POOL_CONNECTIONS, None).await?;
         Self::from_pool(pool, table, runner_target_url, auth_token, runner_enabled).await
     }
 
@@ -58,25 +57,21 @@ impl LocalPostgresSchedulerBackend {
         runner_target_url: Option<String>,
         auth_token: Option<String>,
         runner_enabled: bool,
-        provider: std::sync::Arc<dyn crate::control::postgres::CredentialProvider>,
+        provider: std::sync::Arc<dyn CredentialProvider>,
     ) -> Result<Self> {
-        let pool = crate::control::postgres::PostgresPool::with_credentials(
-            database_url,
-            MAX_POOL_CONNECTIONS,
-            provider,
-        )
-        .await?;
+        let pool =
+            connect_postgres_pool(database_url, MAX_POOL_CONNECTIONS, Some(provider)).await?;
         Self::from_pool(pool, table, runner_target_url, auth_token, runner_enabled).await
     }
 
     async fn from_pool(
-        pool: crate::control::postgres::PostgresPool,
+        pool: std::sync::Arc<PgPool>,
         table: Option<String>,
         runner_target_url: Option<String>,
         auth_token: Option<String>,
         runner_enabled: bool,
     ) -> Result<Self> {
-        let pg_pool = pool.pool().await?;
+        let pg_pool = pool.as_ref();
         let table = table.unwrap_or_else(|| DEFAULT_TABLE.to_string());
         validate_identifier(&table)?;
         let create_stmt = format!(
@@ -97,12 +92,12 @@ impl LocalPostgresSchedulerBackend {
             )",
             table
         );
-        sqlx::query(&create_stmt).execute(&pg_pool).await?;
+        sqlx::query(&create_stmt).execute(pg_pool).await?;
         let index_stmt = format!(
             "CREATE INDEX IF NOT EXISTS {table}_due_idx ON {table} (fire_at_micros) WHERE canceled_at_micros IS NULL AND delivered_at_micros IS NULL",
             table = table
         );
-        sqlx::query(&index_stmt).execute(&pg_pool).await?;
+        sqlx::query(&index_stmt).execute(pg_pool).await?;
 
         if runner_enabled {
             let Some(target_url) = runner_target_url.filter(|value| !value.trim().is_empty())
@@ -265,7 +260,7 @@ impl LocalPostgresSchedulerBackend {
             .bind(now_micros)
             .bind(CLAIM_TIMEOUT_SECONDS)
             .bind(MAX_DELIVERY_ATTEMPTS)
-            .fetch_all(&self.pool.pool().await?)
+            .fetch_all(self.pool.as_ref())
             .await?;
         let mut wakeups = Vec::with_capacity(rows.len());
         for row in rows {
@@ -326,7 +321,7 @@ impl LocalPostgresSchedulerBackend {
         sqlx::query(&query)
             .bind(handle)
             .bind(Utc::now().timestamp_micros())
-            .execute(&self.pool.pool().await?)
+            .execute(self.pool.as_ref())
             .await?;
         Ok(())
     }
@@ -346,7 +341,7 @@ impl LocalPostgresSchedulerBackend {
                 .bind(handle)
                 .bind(Utc::now().timestamp_micros())
                 .bind(error_message)
-                .execute(&self.pool.pool().await?)
+                .execute(self.pool.as_ref())
                 .await?;
             return Ok(());
         }
@@ -360,7 +355,7 @@ impl LocalPostgresSchedulerBackend {
             .bind(handle)
             .bind(next_attempt_micros)
             .bind(error_message)
-            .execute(&self.pool.pool().await?)
+            .execute(self.pool.as_ref())
             .await?;
         Ok(())
     }
@@ -395,7 +390,7 @@ impl SchedulerBackend for LocalPostgresSchedulerBackend {
             .bind(req.fire_at.timestamp_micros())
             .bind(&req.payload)
             .bind(Utc::now().timestamp_micros())
-            .execute(&self.pool.pool().await?)
+            .execute(self.pool.as_ref())
             .await?;
         Ok(ScheduledWakeup {
             handle: Some(handle),
@@ -411,7 +406,7 @@ impl SchedulerBackend for LocalPostgresSchedulerBackend {
         sqlx::query(&query)
             .bind(handle)
             .bind(Utc::now().timestamp_micros())
-            .execute(&self.pool.pool().await?)
+            .execute(self.pool.as_ref())
             .await?;
         Ok(())
     }
@@ -539,7 +534,7 @@ mod tests {
             backend.table
         ))
         .bind(&handle)
-        .fetch_one(&backend.pool.pool().await.unwrap())
+        .fetch_one(backend.pool.as_ref())
         .await
         .expect("failed row should load");
         let last_error: String = failure_row.try_get("last_error").unwrap();
@@ -556,7 +551,7 @@ mod tests {
             backend.table
         ))
         .bind(&handle)
-        .fetch_one(&backend.pool.pool().await.unwrap())
+        .fetch_one(backend.pool.as_ref())
         .await
         .expect("canceled row should load");
         let canceled_at: i64 = canceled_row.try_get("canceled_at_micros").unwrap();
@@ -650,7 +645,7 @@ mod tests {
             backend.table
         ))
         .bind(&deliver_handle)
-        .fetch_one(&backend.pool.pool().await.unwrap())
+        .fetch_one(backend.pool.as_ref())
         .await
         .expect("delivered row should load");
         let delivered_at: i64 = delivered_row.try_get("delivered_at_micros").unwrap();
@@ -676,7 +671,7 @@ mod tests {
             backend.table
         ))
         .bind(&cancel_handle)
-        .fetch_one(&backend.pool.pool().await.unwrap())
+        .fetch_one(backend.pool.as_ref())
         .await
         .expect("cancel row should load");
         let canceled_at: i64 = cancel_row.try_get("canceled_at_micros").unwrap();
@@ -764,7 +759,7 @@ mod tests {
         ))
         .bind(&claimed)
         .bind(Utc::now().timestamp_micros() + 60_000_000)
-        .execute(&backend.pool.pool().await.unwrap())
+        .execute(backend.pool.as_ref())
         .await
         .expect("claim lease update should succeed");
 
@@ -833,7 +828,7 @@ mod tests {
             backend.table
         ))
         .bind(&handle)
-        .fetch_one(&backend.pool.pool().await.unwrap())
+        .fetch_one(backend.pool.as_ref())
         .await
         .expect("row should load");
         let delivered_at: Option<i64> = row.try_get("delivered_at_micros").unwrap();
@@ -949,7 +944,7 @@ mod tests {
             backend.table
         ))
         .bind(&handle)
-        .fetch_one(&backend.pool.pool().await.unwrap())
+        .fetch_one(backend.pool.as_ref())
         .await
         .expect("delivered row should load");
         let delivered_at: i64 = row.try_get("delivered_at_micros").unwrap();

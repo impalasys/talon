@@ -287,14 +287,17 @@ that matches the server certificate. The instance must support
 [DNS-based server identity verification](https://docs.cloud.google.com/sql/docs/postgres/configure-ssl-instance).
 Plaintext local proxy connections are not supported by this mode.
 
-Talon obtains access tokens and their expiry from the metadata server, replacing
-the pool at least five minutes before expiry and no later than every 45 minutes.
-SQLx 0.8.6 has no pre-authentication connection callback, so pool rotation
-renews the static password before the one-hour token lifetime while allowing
-checked-out connections to finish.
-Failed refreshes or replacement connections retry after five seconds with
-exponential backoff capped at two minutes. New pool access returns a sanitized
-error until a replacement connects successfully.
+Talon obtains access tokens and their expiry from the metadata server and
+refreshes them before expiry, at most every 45 minutes. Each refresh updates the
+existing SQLx pool using
+[`PgPool::set_connect_options`](https://docs.rs/sqlx/0.8.6/sqlx/struct.Pool.html#method.set_connect_options).
+Future physical connections use the new token; existing authenticated
+connections remain open in the same pool.
+Failed metadata refreshes retry after five seconds with exponential backoff
+capped at two minutes. The pool keeps its last credential until refresh succeeds;
+if that token expires, new connections fail database authentication while
+existing authenticated connections can continue. Refresh failures are logged
+without token or credential-source details.
 
 ```yaml
 storage:

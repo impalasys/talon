@@ -11,7 +11,6 @@ pub mod kv;
 pub mod manifest;
 pub mod ns;
 pub mod object_store;
-pub mod postgres;
 pub mod profiling;
 pub mod pubsub;
 pub mod resource_model;
@@ -31,6 +30,7 @@ pub mod uuid;
 use std::path::PathBuf;
 
 use keys::{ResourceKey, ResourceList};
+use kv::postgres::{postgres_credential_provider, CredentialProvider};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Order {
@@ -436,7 +436,7 @@ pub async fn build_control_plane(
         .ok_or_else(|| anyhow::anyhow!("control_plane.database configuration is missing"))?;
     let kv: SharedKeyValueStore;
     let scheduler_database_url: Option<String>;
-    let scheduler_credential_provider: Option<Arc<dyn postgres::CredentialProvider>>;
+    let scheduler_credential_provider: Option<Arc<dyn CredentialProvider>>;
     match db_config.driver.as_str() {
         "postgres" => {
             let url_secret = db_config
@@ -726,22 +726,6 @@ fn scheduler_driver() -> Option<String> {
     std::env::var("TALON_SCHEDULER_DRIVER").ok()
 }
 
-fn postgres_credential_provider(
-    config: &crate::control::config::proto::DatabaseConfig,
-) -> anyhow::Result<Option<Arc<dyn postgres::CredentialProvider>>> {
-    use postgres::{AUTH_MODE_IAM, AUTH_MODE_PASSWORD};
-
-    match config.auth_mode.as_str() {
-        "" | AUTH_MODE_PASSWORD => Ok(None),
-        AUTH_MODE_IAM => Ok(Some(Arc::new(
-            postgres::gcp::GcpMetadataCredentialProvider::new()?,
-        ))),
-        _ => Err(anyhow::anyhow!(
-            "invalid PostgreSQL auth mode: expected password or iam"
-        )),
-    }
-}
-
 async fn sqlite_database_url(
     db_config: &crate::control::config::proto::DatabaseConfig,
 ) -> anyhow::Result<String> {
@@ -902,8 +886,8 @@ mod tests {
     use super::rocksdb_database_path;
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
-        ensure_builtin_namespaces, message_broker_config, postgres_credential_provider,
-        sqlite_database_url, KeyValueStore, ListOptions, ProtoKeyValueStoreExt,
+        ensure_builtin_namespaces, message_broker_config, sqlite_database_url, KeyValueStore,
+        ListOptions, ProtoKeyValueStoreExt,
     };
     use crate::control::config::proto;
     use crate::control::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
@@ -914,27 +898,6 @@ mod tests {
     use std::collections::HashMap;
     use tempfile::tempdir;
 
-    #[test]
-    fn postgres_auth_mode_accepts_strings_and_rejects_unknown_values() {
-        for mode in ["", "password", "iam"] {
-            let config = proto::DatabaseConfig {
-                auth_mode: mode.to_string(),
-                ..Default::default()
-            };
-            let provider = postgres_credential_provider(&config).unwrap();
-            assert_eq!(provider.is_some(), mode == "iam");
-        }
-        for mode in ["gcp_iam", "PASSWORD", "IAM", "unknown", "0", "1"] {
-            let config = proto::DatabaseConfig {
-                auth_mode: mode.to_string(),
-                ..Default::default()
-            };
-            let error = postgres_credential_provider(&config)
-                .err()
-                .expect("unknown auth modes must be rejected");
-            assert!(error.to_string().contains("invalid PostgreSQL auth mode"));
-        }
-    }
     struct EnvGuard {
         key: &'static str,
         value: Option<String>,
