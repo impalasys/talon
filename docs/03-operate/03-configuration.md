@@ -271,6 +271,14 @@ Client (`roles/cloudsql.client`) is additionally required when using the Cloud
 SQL Auth Proxy or a Cloud SQL connector. See Google's
 [IAM login prerequisites](https://docs.cloud.google.com/sql/docs/postgres/iam-logins).
 
+On GCE, also configure the VM's access scopes to include
+`https://www.googleapis.com/auth/sqlservice.admin` or
+`https://www.googleapis.com/auth/cloud-platform`. Default VM scopes do not
+include Cloud SQL access; granting the IAM role alone is insufficient. Talon
+uses the VM's metadata access token and cannot expand its configured scopes.
+See [Cloud SQL access scopes](https://docs.cloud.google.com/sql/docs/postgres/connect-compute-engine)
+and [GCE service account scopes](https://docs.cloud.google.com/compute/docs/access/service-accounts#accesscopes).
+
 For a service account, the database username is its email without the
 `.gserviceaccount.com` suffix; percent-encode the `@` as `%40` in the URL.
 IAM mode always uses `sslmode=verify-full`, including when a weaker mode is
