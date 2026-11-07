@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::kv::postgres::{connect_postgres_pool, CredentialProvider};
+use crate::control::kv::postgres::{connect_postgres_pool, PostgresPoolSettings};
 use anyhow::{anyhow, Result};
 use chrono::Utc;
 use futures::stream::{FuturesUnordered, StreamExt};
@@ -17,7 +17,6 @@ const CLAIM_TIMEOUT_SECONDS: i64 = 60;
 const DELIVERY_TIMEOUT_SECONDS: u64 = 15;
 const POLL_INTERVAL_MILLIS: u64 = 1_000;
 const MAX_CONCURRENT_DELIVERIES: usize = 10;
-const MAX_POOL_CONNECTIONS: u32 = 10;
 const MAX_DELIVERY_ATTEMPTS: i32 = 20;
 const INITIAL_RETRY_DELAY_SECONDS: i64 = 5;
 const MAX_RETRY_DELAY_SECONDS: i64 = 300;
@@ -46,31 +45,9 @@ impl LocalPostgresSchedulerBackend {
         runner_target_url: Option<String>,
         auth_token: Option<String>,
         runner_enabled: bool,
+        settings: PostgresPoolSettings,
     ) -> Result<Self> {
-        let pool = connect_postgres_pool(database_url, MAX_POOL_CONNECTIONS, None).await?;
-        Self::from_pool(pool, table, runner_target_url, auth_token, runner_enabled).await
-    }
-
-    pub async fn new_with_credentials(
-        database_url: &str,
-        table: Option<String>,
-        runner_target_url: Option<String>,
-        auth_token: Option<String>,
-        runner_enabled: bool,
-        provider: std::sync::Arc<dyn CredentialProvider>,
-    ) -> Result<Self> {
-        let pool =
-            connect_postgres_pool(database_url, MAX_POOL_CONNECTIONS, Some(provider)).await?;
-        Self::from_pool(pool, table, runner_target_url, auth_token, runner_enabled).await
-    }
-
-    async fn from_pool(
-        pool: std::sync::Arc<PgPool>,
-        table: Option<String>,
-        runner_target_url: Option<String>,
-        auth_token: Option<String>,
-        runner_enabled: bool,
-    ) -> Result<Self> {
+        let pool = connect_postgres_pool(database_url, &settings).await?;
         let pg_pool = pool.as_ref();
         let table = table.unwrap_or_else(|| DEFAULT_TABLE.to_string());
         validate_identifier(&table)?;
@@ -429,6 +406,7 @@ mod tests {
                 None,
                 None,
                 false,
+                PostgresPoolSettings::default(),
             )
             .await
             {
@@ -460,6 +438,7 @@ mod tests {
                 runner_target_url.clone(),
                 auth_token.clone(),
                 runner_enabled,
+                PostgresPoolSettings::default(),
             )
             .await
             {
@@ -858,6 +837,7 @@ mod tests {
             None,
             None,
             false,
+            PostgresPoolSettings::default(),
         )
         .await
         .err()

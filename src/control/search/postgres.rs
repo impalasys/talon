@@ -8,7 +8,7 @@ use super::{
     ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE,
     ATTR_RUN_ID, ATTR_SESSION_ID,
 };
-use crate::control::kv::postgres::{connect_postgres_pool, CredentialProvider};
+use crate::control::kv::postgres::{connect_postgres_pool, PostgresPoolSettings};
 use crate::gateway::rpc::proto;
 use anyhow::Result;
 use sqlx::{PgPool, Postgres, QueryBuilder, Row};
@@ -19,27 +19,8 @@ pub struct PostgresDocumentStore {
 }
 
 impl PostgresDocumentStore {
-    pub async fn new(url: &str) -> Result<Self> {
-        let max_connections = std::env::var("TALON_POSTGRES_MAX_CONNECTIONS")
-            .ok()
-            .and_then(|value| value.parse::<u32>().ok())
-            .filter(|value| *value > 0)
-            .unwrap_or(10);
-        let pool = connect_postgres_pool(url, max_connections, None).await?;
-        init_schema(pool.as_ref()).await?;
-        Ok(Self { pool })
-    }
-
-    pub async fn new_with_credentials(
-        url: &str,
-        provider: std::sync::Arc<dyn CredentialProvider>,
-    ) -> Result<Self> {
-        let max_connections = std::env::var("TALON_POSTGRES_MAX_CONNECTIONS")
-            .ok()
-            .and_then(|value| value.parse::<u32>().ok())
-            .filter(|value| *value > 0)
-            .unwrap_or(10);
-        let pool = connect_postgres_pool(url, max_connections, Some(provider)).await?;
+    pub async fn new(url: &str, settings: PostgresPoolSettings) -> Result<Self> {
+        let pool = connect_postgres_pool(url, &settings).await?;
         init_schema(pool.as_ref()).await?;
         Ok(Self { pool })
     }
@@ -509,7 +490,7 @@ mod tests {
     async fn init_test_store(database_url: &str) -> PostgresDocumentStore {
         let mut last_error = None;
         for _ in 0..20 {
-            match PostgresDocumentStore::new(database_url).await {
+            match PostgresDocumentStore::new(database_url, PostgresPoolSettings::from_env()).await {
                 Ok(store) => return store,
                 Err(error) => {
                     last_error = Some(error);

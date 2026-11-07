@@ -30,7 +30,7 @@ pub mod uuid;
 use std::path::PathBuf;
 
 use keys::{ResourceKey, ResourceList};
-use kv::postgres::{postgres_credential_provider, CredentialProvider};
+use kv::postgres::{postgres_credential_provider, CredentialProvider, PostgresPoolSettings};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Order {
@@ -446,14 +446,17 @@ pub async fn build_control_plane(
             let pg_url: String = url_secret.resolve().await?;
             tracing::info!("Connecting to PostgresKvStore");
             let provider = postgres_credential_provider(db_config)?;
-            kv = if let Some(provider) = provider.clone() {
-                Arc::new(
-                    kv::PostgresKvStore::new_with_credentials(&pg_url, "talon_kv_store", provider)
-                        .await?,
+            kv = Arc::new(
+                kv::PostgresKvStore::new(
+                    &pg_url,
+                    "talon_kv_store",
+                    PostgresPoolSettings {
+                        credential_provider: provider.clone(),
+                        ..PostgresPoolSettings::from_env()
+                    },
                 )
-            } else {
-                Arc::new(kv::PostgresKvStore::new(&pg_url, "talon_kv_store").await?)
-            };
+                .await?,
+            );
             scheduler_database_url = Some(pg_url);
             scheduler_credential_provider = provider;
         }
@@ -545,8 +548,7 @@ pub async fn build_control_plane(
     let scheduler: SharedSchedulerBackend = match scheduler_driver().as_deref() {
         Some("local_postgres") => {
             if let Some(database_url) = scheduler_database_url.as_deref() {
-                let backend = if let Some(provider) = scheduler_credential_provider.clone() {
-                    scheduler::LocalPostgresSchedulerBackend::new_with_credentials(
+                let backend = scheduler::LocalPostgresSchedulerBackend::new(
                     database_url,
                     std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
                     std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
@@ -554,21 +556,13 @@ pub async fn build_control_plane(
                     std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
                         .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
                         .unwrap_or(false),
-                    provider,
-                    ).await
-                } else {
-                    scheduler::LocalPostgresSchedulerBackend::new(
-                    database_url,
-                    std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
-                    std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
-                    std::env::var("TALON_SCHEDULER_AUTH_TOKEN").ok(),
-                    std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
-                        .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
-                        .unwrap_or(false),
-                    ).await
-                };
-                match backend
-                {
+                    PostgresPoolSettings {
+                        credential_provider: scheduler_credential_provider.clone(),
+                        ..PostgresPoolSettings::default()
+                    },
+                )
+                .await;
+                match backend {
                     Ok(backend) => Arc::new(backend),
                     Err(err) => {
                         return Err(anyhow::anyhow!(
@@ -760,13 +754,16 @@ async fn configured_document_store(
                 .ok_or_else(|| anyhow::anyhow!("Document database URL secret is missing"))?;
             let pg_url: String = url_secret.resolve().await?;
             tracing::info!("Connecting to PostgresDocumentStore");
-            if let Some(provider) = postgres_credential_provider(db_config)? {
-                Ok(Arc::new(
-                    search::PostgresDocumentStore::new_with_credentials(&pg_url, provider).await?,
-                ))
-            } else {
-                Ok(Arc::new(search::PostgresDocumentStore::new(&pg_url).await?))
-            }
+            Ok(Arc::new(
+                search::PostgresDocumentStore::new(
+                    &pg_url,
+                    PostgresPoolSettings {
+                        credential_provider: postgres_credential_provider(db_config)?,
+                        ..PostgresPoolSettings::from_env()
+                    },
+                )
+                .await?,
+            ))
         }
         "sqlite" => {
             let sqlite_url = sqlite_database_url(db_config).await?;

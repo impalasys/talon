@@ -113,14 +113,15 @@ impl DatabaseCredential {
 
 pub(crate) async fn connect_postgres_pool(
     url: &str,
-    max_connections: u32,
-    provider: Option<Arc<dyn CredentialProvider>>,
+    settings: &PostgresPoolSettings,
 ) -> Result<Arc<PgPool>> {
-    match provider {
-        Some(provider) => connect_iam_pool(url, max_connections, provider, None, None, true).await,
+    match settings.credential_provider.clone() {
+        Some(provider) => {
+            connect_iam_pool(url, settings.max_connections, provider, None, None, true).await
+        }
         None => Ok(Arc::new(
             PgPoolOptions::new()
-                .max_connections(max_connections)
+                .max_connections(settings.max_connections)
                 .connect(url)
                 .await?,
         )),
@@ -473,46 +474,39 @@ pub struct PostgresKvStore {
     settings: PostgresPoolSettings,
 }
 
-#[derive(Debug, Clone, Copy)]
-struct PostgresPoolSettings {
-    max_connections: u32,
+#[derive(Clone)]
+pub struct PostgresPoolSettings {
+    pub max_connections: u32,
+    pub credential_provider: Option<Arc<dyn CredentialProvider>>,
+}
+
+impl Default for PostgresPoolSettings {
+    fn default() -> Self {
+        Self {
+            max_connections: 10,
+            credential_provider: None,
+        }
+    }
 }
 
 impl PostgresPoolSettings {
-    fn from_env() -> Self {
-        let max_connections = std::env::var("TALON_POSTGRES_MAX_CONNECTIONS")
+    pub fn from_env() -> Self {
+        let mut settings = Self::default();
+        if let Some(max_connections) = std::env::var("TALON_POSTGRES_MAX_CONNECTIONS")
             .ok()
             .and_then(|value| value.parse::<u32>().ok())
             .filter(|value| *value > 0)
-            .unwrap_or(10);
-        Self { max_connections }
+        {
+            settings.max_connections = max_connections;
+        }
+        settings
     }
 }
 
 impl PostgresKvStore {
-    pub async fn new(url: &str, table: &str) -> Result<Self> {
+    pub async fn new(url: &str, table: &str, settings: PostgresPoolSettings) -> Result<Self> {
         validate_identifier(table)?;
-        let settings = PostgresPoolSettings::from_env();
-        let pool = connect_postgres_pool(url, settings.max_connections, None).await?;
-        Self::from_pool(pool, table, settings).await
-    }
-
-    pub async fn new_with_credentials(
-        url: &str,
-        table: &str,
-        provider: Arc<dyn CredentialProvider>,
-    ) -> Result<Self> {
-        validate_identifier(table)?;
-        let settings = PostgresPoolSettings::from_env();
-        let pool = connect_postgres_pool(url, settings.max_connections, Some(provider)).await?;
-        Self::from_pool(pool, table, settings).await
-    }
-
-    async fn from_pool(
-        pool: Arc<PgPool>,
-        table: &str,
-        settings: PostgresPoolSettings,
-    ) -> Result<Self> {
+        let pool = connect_postgres_pool(url, &settings).await?;
         let mut conn = pool.acquire().await?;
         let lock_key = format!("talon_kv_store:{table}:schema");
         sqlx::query("SELECT pg_advisory_lock(hashtext($1))")
@@ -538,7 +532,7 @@ impl PostgresKvStore {
 
 async fn acquire_connection(
     pool: &PgPool,
-    settings: PostgresPoolSettings,
+    settings: &PostgresPoolSettings,
     parent_span: &Span,
 ) -> Result<PoolConnection<Postgres>> {
     let pool_size_before = pool.size();
@@ -606,7 +600,7 @@ impl KeyValueStore for PostgresKvStore {
         let span_for_body = span.clone();
         async move {
             let mut conn =
-                acquire_connection(self.pool.as_ref(), self.settings, &span_for_body).await?;
+                acquire_connection(self.pool.as_ref(), &self.settings, &span_for_body).await?;
             let query_span = tracing::debug_span!(
                 parent: &span_for_body,
                 "PostgresKvStore.query",
@@ -661,7 +655,7 @@ impl KeyValueStore for PostgresKvStore {
         let span_for_body = span.clone();
         async move {
             let mut conn =
-                acquire_connection(self.pool.as_ref(), self.settings, &span_for_body).await?;
+                acquire_connection(self.pool.as_ref(), &self.settings, &span_for_body).await?;
             let query_span = tracing::debug_span!(
                 parent: &span_for_body,
                 "PostgresKvStore.query",
@@ -728,7 +722,7 @@ impl KeyValueStore for PostgresKvStore {
                 .bind(&key.name)
                 .bind(value)
         };
-        let mut conn = acquire_connection(self.pool.as_ref(), self.settings, &span).await?;
+        let mut conn = acquire_connection(self.pool.as_ref(), &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -765,7 +759,7 @@ impl KeyValueStore for PostgresKvStore {
             query_elapsed_us = field::Empty,
             rows_affected = field::Empty,
         );
-        let mut conn = acquire_connection(self.pool.as_ref(), self.settings, &span).await?;
+        let mut conn = acquire_connection(self.pool.as_ref(), &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -825,7 +819,7 @@ impl KeyValueStore for PostgresKvStore {
         if let Some(limit) = options.limit {
             query = query.bind(limit as i64);
         }
-        let mut conn = acquire_connection(self.pool.as_ref(), self.settings, &span).await?;
+        let mut conn = acquire_connection(self.pool.as_ref(), &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -886,7 +880,7 @@ impl KeyValueStore for PostgresKvStore {
         if let Some(limit) = options.limit {
             query = query.bind(limit as i64);
         }
-        let mut conn = acquire_connection(self.pool.as_ref(), self.settings, &span).await?;
+        let mut conn = acquire_connection(self.pool.as_ref(), &self.settings, &span).await?;
         let query_span = tracing::debug_span!(
             parent: &span,
             "PostgresKvStore.query",
@@ -1029,7 +1023,13 @@ mod tests {
     async fn init_test_store(database_url: &str) -> PostgresKvStore {
         let mut last_error = None;
         for _ in 0..20 {
-            match PostgresKvStore::new(database_url, "talon_kv_store_test").await {
+            match PostgresKvStore::new(
+                database_url,
+                "talon_kv_store_test",
+                super::PostgresPoolSettings::from_env(),
+            )
+            .await
+            {
                 Ok(store) => return store,
                 Err(err) => {
                     last_error = Some(err);
@@ -1396,8 +1396,10 @@ mod tests {
     async fn credential_failure_is_returned_without_secret_details() {
         let error = connect_postgres_pool(
             "postgres://iam-user@localhost/talon",
-            1,
-            Some(Arc::new(FailingProvider)),
+            &super::PostgresPoolSettings {
+                credential_provider: Some(Arc::new(FailingProvider)),
+                ..Default::default()
+            },
         )
         .await
         .err()
