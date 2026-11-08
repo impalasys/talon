@@ -9,7 +9,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use async_trait::async_trait;
 use sqlx::{
     pool::PoolConnection,
-    postgres::{PgConnectOptions, PgPoolOptions, PgSslMode},
+    postgres::{PgConnectOptions, PgPoolOptions},
     PgConnection, PgPool, Postgres, Row,
 };
 use std::{
@@ -200,7 +200,7 @@ fn spawn_credential_refresh(
 }
 
 fn iam_options(options: PgConnectOptions, token: &str) -> PgConnectOptions {
-    options.password(token).ssl_mode(PgSslMode::VerifyFull)
+    options.password(token)
 }
 
 fn create_table_statement(table: &str) -> String {
@@ -1147,7 +1147,7 @@ mod tests {
                 return Err(anyhow!("transient credential source failure"));
             }
             Ok(DatabaseCredential {
-                options: options.password(&format!("fake-token-{n}")),
+                options: iam_options(options, &format!("fake-token-{n}")),
                 valid_for: Some(Duration::from_secs(60 * 60)),
             })
         }
@@ -1323,6 +1323,10 @@ mod tests {
         .await
         .expect("credentials should refresh on the short retry interval");
         assert_eq!(provider.0.load(Ordering::SeqCst), 3);
+        assert!(matches!(
+            original_pool.connect_options().get_ssl_mode(),
+            PgSslMode::Disable
+        ));
         assert_eq!(
             original_pool.size(),
             1,
@@ -1425,7 +1429,7 @@ mod tests {
     }
 
     #[test]
-    fn iam_options_require_certificate_and_hostname_verification() {
+    fn iam_options_preserve_url_tls_configuration() {
         for mode in [
             None,
             Some("disable"),
@@ -1435,17 +1439,28 @@ mod tests {
             Some("verify-ca"),
             Some("verify-full"),
         ] {
-            let mut url = url::Url::parse("postgres://iam-user@db.example/talon").unwrap();
+            let mut url =
+                url::Url::parse("postgres://iam-user:old-token@db.example/talon").unwrap();
             if let Some(mode) = mode {
                 url.query_pairs_mut().append_pair("sslmode", mode);
             }
             url.query_pairs_mut()
                 .append_pair("sslrootcert", "/etc/ssl/cloudsql/ca.pem");
-            let options = iam_options(PgConnectOptions::from_str(url.as_str()).unwrap(), "token");
-            assert!(matches!(options.get_ssl_mode(), PgSslMode::VerifyFull));
+            let parsed = PgConnectOptions::from_str(url.as_str()).unwrap();
+            let expected_ssl_mode = std::mem::discriminant(&parsed.get_ssl_mode());
+            let options = iam_options(parsed, "token");
+            assert_eq!(
+                std::mem::discriminant(&options.get_ssl_mode()),
+                expected_ssl_mode,
+                "IAM must preserve the configured SSL mode: {mode:?}"
+            );
             assert_eq!(options.get_host(), "db.example");
             assert_eq!(options.get_username(), "iam-user");
             assert_eq!(options.get_database(), Some("talon"));
+            assert_eq!(
+                sqlx::ConnectOptions::to_url_lossy(&options).password(),
+                Some("token")
+            );
             assert!(sqlx::ConnectOptions::to_url_lossy(&options)
                 .query_pairs()
                 .any(|(key, value)| key == "sslrootcert"
@@ -1454,7 +1469,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn iam_connection_never_sends_a_token_to_a_plaintext_endpoint() {
+    async fn iam_connection_with_required_tls_rejects_a_plaintext_endpoint() {
         use sqlx::Connection;
         use tokio::{
             io::{AsyncReadExt, AsyncWriteExt},
@@ -1478,7 +1493,7 @@ mod tests {
         });
         let options = iam_options(
             PgConnectOptions::from_str(&format!(
-                "postgres://iam-user@{address}/talon?sslmode=disable"
+                "postgres://iam-user@{address}/talon?sslmode=require"
             ))
             .unwrap(),
             "secret-iam-token",

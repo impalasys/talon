@@ -283,11 +283,24 @@ and [GCE service account scopes](https://docs.cloud.google.com/compute/docs/acce
 
 For a service account, the database username is its email without the
 `.gserviceaccount.com` suffix; percent-encode the `@` as `%40` in the URL.
-IAM mode always uses `sslmode=verify-full`, including when a weaker mode is
-specified. Supply the database CA with `sslrootcert` and use a resolvable hostname
-that matches the server certificate. The instance must support
-[DNS-based server identity verification](https://docs.cloud.google.com/sql/docs/postgres/configure-ssl-instance).
-Plaintext local proxy connections are not supported by this mode.
+IAM authentication changes only the connection password. TLS policy comes from
+the connection URL's `sslmode`, `sslrootcert`, and other SQLx connection options;
+omitting `sslmode` retains SQLx's default rather than selecting a mode for IAM.
+For direct Cloud SQL connections, explicitly require TLS with `sslmode=require`,
+or verify the server with one of these options:
+
+- `sslmode=verify-ca&sslrootcert=/path/to/ca.pem` verifies the certificate chain.
+  Cloud SQL's per-instance CA is unique to the instance, so trusting that CA also
+  authenticates the instance.
+- `sslmode=verify-full&sslrootcert=/path/to/ca.pem` additionally verifies the
+  hostname. Use a resolvable hostname that matches the server certificate; the
+  instance must support
+  [DNS-based server identity verification](https://docs.cloud.google.com/sql/docs/postgres/configure-ssl-instance).
+
+Modes that permit plaintext (`disable`, `allow`, and `prefer`) are also preserved.
+Use them only when a trusted proxy handles upstream TLS; direct Cloud SQL IAM
+connections require TLS. The URL's TLS settings are preserved during credential
+refresh as well as the initial connection.
 
 Talon obtains access tokens and their expiry from the metadata server and
 refreshes them before expiry, at most every 45 minutes. Each refresh updates the
