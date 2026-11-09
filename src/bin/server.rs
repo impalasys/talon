@@ -132,6 +132,7 @@ fn main() -> Result<()> {
 #[tokio::main]
 async fn talon_server_main() -> Result<()> {
     talon::control::security::install_jwt_crypto_provider();
+    talon::control::security::install_rustls_crypto_provider();
     let _telemetry_guard = talon::control::telemetry::init_from_env("talon-server")?;
     talon::control::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
     tracing::info!("Starting Talon Gateway Server...");
