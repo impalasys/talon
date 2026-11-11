@@ -36,18 +36,10 @@ def _container_context_impl(ctx):
     args = ctx.actions.args()
     args.add("--output", output.path)
     args.add("--dockerfile", ctx.file.dockerfile.path)
-    for file in ctx.files.binaries:
-        args.add("--binary", file.path)
-    for file in ctx.files.configs:
-        args.add("--config", file.path)
-    if ctx.file.requirements:
-        args.add("--requirements", ctx.file.requirements.path)
-    for file in ctx.files.web:
-        args.add("--web", file.path)
     ctx.actions.run(
         executable = ctx.executable._builder,
         arguments = [args],
-        inputs = ctx.files.binaries + ctx.files.configs + ctx.files.web + ctx.files.requirements + [ctx.file.dockerfile],
+        inputs = [ctx.file.dockerfile],
         outputs = [output],
         mnemonic = "TalonContainerContext",
     )
@@ -56,11 +48,7 @@ def _container_context_impl(ctx):
 container_context = rule(
     implementation = _container_context_impl,
     attrs = {
-        "binaries": attr.label(),
-        "configs": attr.label(),
-        "web": attr.label(),
         "dockerfile": attr.label(allow_single_file = True, mandatory = True),
-        "requirements": attr.label(allow_single_file = True),
         "_builder": attr.label(default = "//tools/bazel:context_builder", executable = True, cfg = "exec"),
     },
 )

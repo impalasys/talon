@@ -8,6 +8,15 @@ packageExtensionsChecksum: sha256-+1TyLxVKay60mb3ycmdVSD90Sij+lav1YifPk6v06So=
 
 importers:
 
+  .:
+    devDependencies:
+      '@types/react':
+        specifier: 19.2.14
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+
   docs-site:
     dependencies:
       '@astrojs/mdx':

@@ -27,6 +27,7 @@ blume_bin.blume_binary(
         ":node_modules",
         ":sources",
     ],
+    patch_node_fs = False,
 )
 
 js_run_binary(
@@ -41,6 +42,7 @@ js_run_binary(
         "dist",
         ".blume",
     ],
+    patch_node_fs = False,
     tool = ":blume",
     visibility = ["//visibility:public"],
 )

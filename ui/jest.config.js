@@ -1,10 +1,8 @@
 const customJestConfig = {
-  rootDir: process.env.JS_BINARY__EXECROOT
-    ? require("path").join(process.env.JS_BINARY__EXECROOT, process.env.JS_BINARY__BINDIR, "ui")
-    : __dirname,
+  rootDir: require('path').dirname(require('fs').realpathSync.native(__filename)),
   roots: ["<rootDir>/lib", "<rootDir>/components"],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  testEnvironment: 'jest-environment-jsdom',
+  testEnvironment: require.resolve('jest-environment-jsdom'),
   testPathIgnorePatterns: [
     '<rootDir>/e2e/',
     '/node_modules/',
@@ -17,7 +15,7 @@ const customJestConfig = {
     '\\.(css|less|scss|sass)$': '<rootDir>/test/styleMock.js',
   },
   transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
+    '^.+\\.(ts|tsx)$': [require.resolve('ts-jest'), { tsconfig: '<rootDir>/tsconfig.json' }],
   },
   collectCoverage: true,
   coverageDirectory: process.env.TEST_UNDECLARED_OUTPUTS_DIR || "coverage",

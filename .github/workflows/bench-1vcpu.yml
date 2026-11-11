@@ -24,10 +24,10 @@ jobs:
       with:
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
           || '' }}
-    - uses: docker/setup-buildx-action@v4
-    - name: Build benchmark image from Bazel binaries
-      run: bazel run //dockerfiles:benchmark_image -- --tag "${BENCH_IMAGE_TAG}" --cache-from type=gha,scope=talon-bench-runtime
-        --cache-to type=gha,mode=max,scope=talon-bench-runtime
+    - name: Load Bazel OCI benchmark image
+      run: |-
+        bazel run //dockerfiles:benchmark_image
+        docker tag talon-bench-runtime:dev "${BENCH_IMAGE_TAG}"
     - name: Run 1 vCPU benchmark matrix
       run: |
         status=0
@@ -101,7 +101,10 @@ jobs:
     - tests/generated/proto/**
     - Cargo.toml
     - Cargo.lock
-    - dockerfiles/oss-runtime.Dockerfile
+    - dockerfiles/BUILD.bazel
+    - tools/bazel/**
+    - MODULE.bazel
+    - MODULE.bazel.lock
   push:
     branches:
     - main
@@ -113,7 +116,10 @@ jobs:
     - tests/generated/proto/**
     - Cargo.toml
     - Cargo.lock
-    - dockerfiles/oss-runtime.Dockerfile
+    - dockerfiles/BUILD.bazel
+    - tools/bazel/**
+    - MODULE.bazel
+    - MODULE.bazel.lock
   workflow_dispatch:
     inputs:
       agents:

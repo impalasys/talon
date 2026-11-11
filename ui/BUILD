@@ -41,6 +41,8 @@ typescript_bin.tsc_test(
     data = [
         ":node_modules",
         ":srcs",
+        "//:node_modules/@types/react",
+        "//:node_modules/@types/react-dom",
         "//packages/talon-chat:src",
         "//sdk/js/talon-client:src",
     ],
@@ -54,6 +56,8 @@ vite_bin.vite_binary(
     data = [
         ":node_modules",
         ":srcs",
+        "//:node_modules/@types/react",
+        "//:node_modules/@types/react-dom",
         "//packages/talon-chat:src",
         "//sdk/js/talon-client:src",
     ],
@@ -65,6 +69,8 @@ js_run_binary(
     srcs = [
         ":node_modules",
         ":srcs",
+        "//:node_modules/@types/react",
+        "//:node_modules/@types/react-dom",
     ],
     args = ["build"],
     chdir = package_name(),
@@ -92,9 +98,12 @@ jest_bin.jest_test(
     data = [
         ":node_modules",
         ":srcs",
+        "//:node_modules/@types/react",
+        "//:node_modules/@types/react-dom",
         "//packages/talon-chat:all_sources",
         "//sdk/js/talon-client:pkg",
     ],
+    patch_node_fs = False,
 )
 
 exports_files(["package.json"])
@@ -114,6 +123,8 @@ vite_bin.vite_binary(
         ":dist",
         ":node_modules",
         ":srcs",
+        "//:node_modules/@types/react",
+        "//:node_modules/@types/react-dom",
         "//packages/talon-chat:src",
         "//sdk/js/talon-client:pkg",
     ],
@@ -125,6 +136,8 @@ playwright_bin.playwright_binary(
     data = [
         ":node_modules",
         ":srcs",
+        "//:node_modules/@types/react",
+        "//:node_modules/@types/react-dom",
     ],
     visibility = ["//visibility:public"],
 )
@@ -142,6 +155,8 @@ js_test(
         ":playwright",
         ":preview",
         ":srcs",
+        "//:node_modules/@types/react",
+        "//:node_modules/@types/react-dom",
         "//tests:e2e_stack",
     ],
     entry_point = "bazel-e2e.mjs",

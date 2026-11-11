@@ -21,9 +21,11 @@ python.toolchain(python_version = "3.13")
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
+    download_only = True,
+    experimental_index_url = "https://pypi.org/simple",
     hub_name = "pypi",
     python_version = "3.13",
-    requirements_lock = "//tools/bazel:requirements.lock",
+    requirements_by_platform = {"//tools/bazel:requirements.lock": "linux_x86_64,linux_aarch64,osx_aarch64,osx_x86_64"},
 )
 use_repo(pip, "pypi")
 
@@ -114,3 +116,61 @@ http_file(
     sha256 = "8100c67d1ea547fc34dd638db20876921349df99c42608fdfdcf1cef15c1d6ff",
     urls = ["https://repo.maven.apache.org/maven2/io/grpc/protoc-gen-grpc-java/1.76.0/protoc-gen-grpc-java-1.76.0-osx-aarch_64.exe"],
 )
+
+bazel_dep(name = "rules_oci", version = "2.3.0")
+bazel_dep(name = "rules_distroless", version = "0.9.4")
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+oci.pull(
+    name = "python_base",
+    digest = "sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90",
+    image = "docker.io/library/python",
+    platforms = [
+        "linux/amd64",
+        "linux/arm64/v8",
+    ],
+)
+oci.pull(
+    name = "nginx_base",
+    digest = "sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236",
+    image = "docker.io/library/nginx",
+    platforms = [
+        "linux/amd64",
+        "linux/arm64/v8",
+    ],
+)
+use_repo(oci, "nginx_base", "nginx_base_linux_amd64", "nginx_base_linux_arm64_v8", "python_base", "python_base_linux_amd64", "python_base_linux_arm64_v8")
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "docker_cli_x86_64",
+    build_file_content = 'exports_files(["docker/docker"])',
+    sha256 = "4f798b3ee1e0140eab5bf30b0edc4e84f4cdb53255a429dc3bbae9524845d640",
+    urls = ["https://download.docker.com/linux/static/stable/x86_64/docker-27.5.1.tgz"],
+)
+
+http_archive(
+    name = "docker_cli_aarch64",
+    build_file_content = 'exports_files(["docker/docker"])',
+    sha256 = "e6b53725a73763ab3f988c73f8772eaed429754c1a579db5ff11f21990fd1817",
+    urls = ["https://download.docker.com/linux/static/stable/aarch64/docker-27.5.1.tgz"],
+)
+
+apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
+apt.sources_list(
+    architectures = [
+        "amd64",
+        "arm64",
+    ],
+    components = ["main"],
+    suites = ["trixie"],
+    types = ["deb"],
+    uris = ["https://snapshot.debian.org/archive/debian/20261110T000000Z"],
+)
+apt.install(
+    dependency_set = "runtime_os",
+    packages = ["curl"],
+    suites = ["trixie"],
+)
+use_repo(apt, "runtime_os")

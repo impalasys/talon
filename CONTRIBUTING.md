@@ -94,8 +94,8 @@ pnpm build
 If your change touches container builds, also run:
 
 ```bash
-docker build -f dockerfiles/oss-runtime.Dockerfile .
-docker build -f dockerfiles/oss-ui.Dockerfile .
+bazel run //dockerfiles:runtime_image
+bazel run //dockerfiles:ui_image
 ```
 
 ## SDK releases

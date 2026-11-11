@@ -233,32 +233,10 @@ def resolve_container_platform(value: str) -> str | None:
     return raw
 
 
-def build_runtime_image(
-    tag: str,
-    no_cache: bool,
-    dockerfile: str,
-    container_platform: str | None,
-    cargo_features: str | None = None,
-) -> None:
-    env = os.environ.copy()
-    if Path(dockerfile).name == "oss-runtime.Dockerfile":
-        env["DOCKER_BUILDKIT"] = "1"
-    cmd = [
-        "docker",
-        "build",
-        "-f",
-        dockerfile,
-        "-t",
-        tag,
-    ]
-    if container_platform:
-        cmd.extend(["--platform", container_platform])
-    if cargo_features:
-        cmd.extend(["--build-arg", f"CARGO_FEATURES={cargo_features}"])
-    if no_cache:
-        cmd.append("--no-cache")
-    cmd.append(".")
-    subprocess.run(cmd, cwd=REPO_ROOT, env=env, check=True)
+def build_runtime_image(tag: str, configs: list[str]) -> None:
+    workspace = Path(os.environ.get("BUILD_WORKSPACE_DIRECTORY", REPO_ROOT))
+    subprocess.run(["bazel", "run", *["--config=" + config for config in configs], "//dockerfiles:benchmark_image"], cwd=workspace, check=True)
+    subprocess.run(["docker", "tag", "talon-bench-runtime:dev", tag], check=True)
 
 
 def generate_project_name() -> str:
@@ -1844,7 +1822,6 @@ async def amain() -> None:
     parser.add_argument("--progress-interval-seconds", type=float, default=5.0)
     parser.add_argument("--stats-interval-seconds", type=float, default=2.0)
     parser.add_argument("--image-tag", default="talon-bench-runtime:latest")
-    parser.add_argument("--dockerfile", default="bench/runtime.Dockerfile")
     parser.add_argument(
         "--container-platform",
         default="auto",
@@ -1864,7 +1841,6 @@ async def amain() -> None:
     parser.add_argument("--heap-profile", action="store_true")
     parser.add_argument("--heap-profile-delay-seconds", type=int, default=8)
     parser.add_argument("--skip-build", action="store_true")
-    parser.add_argument("--no-cache", action="store_true")
     parser.add_argument("--output-dir", default="bench/results")
     args = parser.parse_args()
     args.project_name = args.project_name or generate_project_name()
@@ -1931,21 +1907,12 @@ async def amain() -> None:
         raise ValueError("--heap-profile-delay-seconds must be non-negative")
 
     if not args.skip_build:
-        cargo_features = ",".join(
-            feature
-            for feature in (
-                "cpu-profile" if args.cpu_profile else None,
-                "heap-profile" if args.heap_profile else None,
-            )
-            if feature
-        )
-        build_runtime_image(
-            args.image_tag,
-            args.no_cache,
-            args.dockerfile,
-            args.container_platform,
-            cargo_features or None,
-        )
+        configs = []
+        if args.cpu_profile:
+            configs.append("cpu-profile")
+        if args.heap_profile:
+            configs.append("heap-profile")
+        build_runtime_image(args.image_tag, configs)
 
     results = []
     print(f"using docker compose project {args.project_name}", flush=True)

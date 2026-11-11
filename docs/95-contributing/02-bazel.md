@@ -7,7 +7,8 @@ required for container builds and the Rust library/infrastructure tests.
 
 On Ubuntu, install `pkg-config libssl-dev clang libclang-dev cmake`. On macOS,
 install the Xcode command line tools. RocksDB requires libclang; configure
-`LIBCLANG_PATH` in your environment if it is installed outside standard locations.
+`LIBCLANG_PATH` through `build --action_env=LIBCLANG_PATH=/path/to/lib` in
+`.bazelrc.local` if it is installed outside standard locations.
 
 ## Build and test
 
@@ -79,18 +80,32 @@ with Cargo. No paths or compatibility aliases from the former monorepo are used.
 
 ```bash
 # Run on Linux so native binaries match the container OS.
-bazel run //dockerfiles:runtime_image -- --tag talon-runtime:dev
-bazel run //dockerfiles:benchmark_image -- --tag talon-bench:dev
+bazel run //dockerfiles:runtime_image
+bazel run //dockerfiles:benchmark_image
 # Static UI and ACP images can be packaged from either supported host OS.
-bazel run //dockerfiles:ui_image -- --tag talon-ui:dev
+bazel run //dockerfiles:ui_image
 bazel run //dockerfiles:acp_image -- --tag talon-acp:dev
 
 bazel build //:release-dist
 ```
 
-Docker packages declared, precompiled Bazel contexts. It does not compile Rust
-or JS again in CI. Direct Docker builds and Compose use a Bazel builder stage
-on Linux. The runtime image retains the Python E2E tools and Monty runtime.
+`rules_oci` assembles runtime, benchmark, and UI images from Bazel outputs.
+Base images are pinned by digest. Debian packages come from a fixed snapshot;
+Python/Monty wheels and the Docker client are checksum-pinned. Stable dependency,
+configuration, and application layers are separate so code changes reuse the
+other layers. Image assembly needs no Docker daemon or Docker Buildx.
+`oci_load` loads an image locally; `oci_push` publishes directly to the registry.
+
+The runtime retains the Python E2E tools, Monty, Docker client, curl, and the
+model catalog. The only remaining Dockerfile builds the ACP developer-tool
+sandbox, which installs compilers and external coding agents. Its Bazel target
+continues to build that tooling image separately.
+
+Runtime images require a Linux builder matching the desired CPU architecture;
+CI builds Linux x86-64. macOS supports native binary releases and UI image
+assembly. For Compose, first load the runtime and UI images on a Linux builder,
+then run `docker compose up`; Compose uses the local `:dev` tags. It no longer
+compiles application images itself.
 
 `bazel-bin/release-dist/` contains the platform's four optimized runtime binaries,
 configuration files, full model catalog, deterministic tar archives and SHA256

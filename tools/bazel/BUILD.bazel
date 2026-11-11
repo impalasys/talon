@@ -105,3 +105,32 @@ py_test(
     imports = ["."],
     deps = ["@rules_python//python/runfiles"],
 )
+
+py_binary(
+    name = "image_layer",
+    srcs = ["image_layer.py"],
+    visibility = ["//visibility:public"],
+)
+
+platform(
+    name = "linux_amd64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "merge_layers",
+    srcs = ["merge_layers.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "merge_layers_test",
+    srcs = [
+        "merge_layers.py",
+        "merge_layers_test.py",
+    ],
+)
