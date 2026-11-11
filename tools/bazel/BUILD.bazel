@@ -112,6 +112,14 @@ py_binary(
     visibility = ["//visibility:public"],
 )
 
+py_test(
+    name = "image_configs_test",
+    srcs = ["image_configs_test.py"],
+    args = ["$(rootpath //dockerfiles:runtime_configs)"],
+    data = ["//dockerfiles:runtime_configs"],
+    deps = [requirement("pyyaml")],
+)
+
 platform(
     name = "linux_amd64",
     constraint_values = [

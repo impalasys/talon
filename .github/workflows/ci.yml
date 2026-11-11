@@ -38,11 +38,11 @@ jobs:
     - name: Build and publish OCI image
       run: |
         bazel build //dockerfiles:runtime
+        bazel run //dockerfiles:runtime_image
+        docker run --rm talon-runtime:dev sh -ec 'talon-cli --help >/dev/null; python3 -c "import pytest, grpc, boto3"; monty --help >/dev/null; docker --version; curl --version'
         if [[ "$PUBLISH_IMAGE" == "true" ]]; then
           bazel run //dockerfiles:runtime_push -- --tag latest --tag "sha-${GITHUB_SHA}"
         fi
-        bazel run //dockerfiles:runtime_image
-        docker run --rm talon-runtime:dev sh -ec 'talon-cli --help >/dev/null; python3 -c "import pytest, grpc, boto3"; monty --help >/dev/null; docker --version; curl --version'
       env:
         PUBLISH_IMAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
   acp_harness_image:
@@ -112,7 +112,7 @@ jobs:
   sightline_e2e_screenshots:
     name: Sightline E2E Screenshots
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 60
     permissions:
       actions: read
       contents: read
@@ -152,7 +152,7 @@ jobs:
   python_e2e:
     name: Python E2E
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       TESTCONTAINERS_RYUK_DISABLED: 'true'
     steps:
@@ -191,7 +191,11 @@ jobs:
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
           || '' }}
     - name: Build release archives
-      run: bazel build --action_env=TALON_GOOGLE_CLIENT_ID --action_env=TALON_GOOGLE_CLIENT_SECRET //:release-dist
+      run: |
+        options=()
+        if [[ -n "$TALON_GOOGLE_CLIENT_ID" ]]; then options+=(--action_env=TALON_GOOGLE_CLIENT_ID); fi
+        if [[ -n "$TALON_GOOGLE_CLIENT_SECRET" ]]; then options+=(--action_env=TALON_GOOGLE_CLIENT_SECRET); fi
+        bazel build "${options[@]}" //:release-dist
       env:
         TALON_GOOGLE_CLIENT_ID: ${{ secrets.TALON_GOOGLE_CLIENT_ID }}
         TALON_GOOGLE_CLIENT_SECRET: ${{ secrets.TALON_GOOGLE_CLIENT_SECRET }}

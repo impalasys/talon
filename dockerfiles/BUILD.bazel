@@ -26,6 +26,12 @@ image_layer(
 )
 
 image_layer(
+    name = "benchmark_binaries",
+    binaries = "//:benchmark_binaries",
+    target_compatible_with = LINUX,
+)
+
+image_layer(
     name = "runtime_configs",
     configs = "//:runtime_data",
 )
@@ -110,7 +116,7 @@ oci_image(
     tars = [
         ":runtime_os",
         ":runtime_configs",
-        ":runtime_binaries",
+        ":benchmark_binaries",
     ],
     workdir = "/data/talon",
 )

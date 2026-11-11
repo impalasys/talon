@@ -8,7 +8,7 @@ def _image_layer_impl(ctx):
         entries.append([file.path, "usr/local/bin/" + file.basename, "755"])
         inputs.append(file)
     for file in ctx.files.configs:
-        relative = "models/" + file.basename if file.dirname.endswith("/models") else file.basename
+        relative = file.short_path if file.short_path.startswith("models/") else file.basename
         entries.append([file.path, "data/talon/" + relative, "644"])
         inputs.append(file)
     for label, destination in ctx.attr.files.items():

@@ -39,7 +39,8 @@ OPENAI_API_KEY=your-real-api-key
 From the repository root:
 
 ```bash
-docker compose up --build -d
+scripts/build-images.sh
+docker compose up -d
 ```
 
 Wait for the stack to come up, then open `http://localhost:3000` and connect Sightline to `http://localhost:50051`.

@@ -60,6 +60,13 @@ rust.toolchain(
 )
 
 crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+
+# rules_rust defaults Cargo build scripts to one worker. Bound RocksDB's C++
+# compilation to four workers so cold Linux/release builds can use CI's CPUs.
+crate.annotation(
+    build_script_env = {"NUM_JOBS": "4"},
+    crate = "librocksdb-sys",
+)
 crate.from_cargo(
     name = "crates",
     cargo_lockfile = "//tools/bazel:Cargo.lock",

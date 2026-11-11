@@ -26,6 +26,8 @@ integration tests and doctests, formatting checks, SDK generation freshness,
 package checks, and UI coverage. Keep Docker running for the Rust library tests.
 The production build and E2E binary targets enable AWS and RocksDB automatically;
 ordinary development binaries keep Cargo's default features.
+RocksDB's native C++ build uses four workers; other Cargo build scripts retain
+the Rust rules' default concurrency.
 
 Infrastructure, browser, and stress tests are explicit targets because they
 need Docker, browser installations, external services, or substantially more time:
@@ -79,6 +81,9 @@ with Cargo. No paths or compatibility aliases from the former monorepo are used.
 ## Docker and releases
 
 ```bash
+# Build and load runtime + UI images using Docker on macOS or Linux.
+scripts/build-images.sh
+
 # Run on Linux so native binaries match the container OS.
 bazel run //dockerfiles:runtime_image
 bazel run //dockerfiles:benchmark_image
@@ -103,9 +108,13 @@ continues to build that tooling image separately.
 
 Runtime images require a Linux builder matching the desired CPU architecture;
 CI builds Linux x86-64. macOS supports native binary releases and UI image
-assembly. For Compose, first load the runtime and UI images on a Linux builder,
-then run `docker compose up`; Compose uses the local `:dev` tags. It no longer
-compiles application images itself.
+assembly. For Compose, load the runtime and UI images, then run `docker compose up`.
+Compose uses local `:dev` tags; `TALON_RUNTIME_IMAGE` and `TALON_UI_IMAGE` can
+select other tags. `scripts/build-images.sh` provides a native Linux builder
+inside Docker for macOS and Linux users. It builds the same OCI targets without
+Dockerfiles or a nested Docker daemon, exports their archives, and loads them
+into the host Docker daemon. Its `talon-bazel-linux-<arch>` volume preserves the
+Bazel caches between runs. Pass `runtime`, `ui`, or `benchmark` to select images.
 
 `bazel-bin/release-dist/` contains the platform's four optimized runtime binaries,
 configuration files, full model catalog, deterministic tar archives and SHA256

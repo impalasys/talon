@@ -305,6 +305,15 @@ configured_files(
 )
 
 configured_files(
+    name = "benchmark_binaries",
+    release = True,
+    targets = [
+        ":talon-node",
+        ":talon-cli",
+    ],
+)
+
+configured_files(
     name = "e2e_binaries",
     release = True,
     targets = [":binaries"],
