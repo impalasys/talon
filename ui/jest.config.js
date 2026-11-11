@@ -1,4 +1,8 @@
 const customJestConfig = {
+  rootDir: process.env.JS_BINARY__EXECROOT
+    ? require("path").join(process.env.JS_BINARY__EXECROOT, process.env.JS_BINARY__BINDIR, "ui")
+    : __dirname,
+  roots: ["<rootDir>/lib", "<rootDir>/components"],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
   testPathIgnorePatterns: [
@@ -16,6 +20,8 @@ const customJestConfig = {
     '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
   },
   collectCoverage: true,
+  coverageDirectory: process.env.TEST_UNDECLARED_OUTPUTS_DIR || "coverage",
+  ...(process.env.TEST_TMPDIR ? { cacheDirectory: process.env.TEST_TMPDIR + "/jest" } : {}),
   collectCoverageFrom: [
     'lib/**/*.{ts,tsx}',
     '../packages/talon-chat/src/**/*.{ts,tsx}',

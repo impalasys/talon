@@ -1,0 +1,59 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "go.mod",
+    "go.sum",
+])
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "client.go",
+        "clientset_gen.go",
+        "grpc_web.go",
+    ],
+    importpath = "github.com/impalasys/talon/sdk/go/talon-client",
+    deps = [
+        "//sdk/go/talon-client/talon/v1:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//credentials:go_default_library",
+        "@org_golang_google_grpc//credentials/insecure:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_protobuf//proto:go_default_library",
+    ],
+)
+
+go_test(
+    name = "unit_tests",
+    srcs = ["client_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//sdk/go/talon-client/talon/events:go_default_library",
+        "//sdk/go/talon-client/talon/v1:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_protobuf//proto:go_default_library",
+    ],
+)
+
+exports_files(["VERSION"])
+
+filegroup(
+    name = "generated_sources",
+    srcs = glob(["clientset_gen.go"]) + ["//sdk/go/talon-client/talon/" + name + ":generated_sources" for name in [
+        "config",
+        "data",
+        "events",
+        "external",
+        "resources",
+        "routing",
+        "v1",
+    ]],
+    visibility = ["//visibility:public"],
+)

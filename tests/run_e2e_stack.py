@@ -7,7 +7,7 @@ import threading
 from pathlib import Path
 
 # Add generated protos to path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "sdk" / "python" / "talon-client" / "src"))
+sys.path.insert(0, str(Path(__file__).absolute().parents[1] / "sdk" / "python" / "talon-client" / "src"))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
@@ -26,7 +26,7 @@ E2E_STACK = os.environ.get("TALON_E2E_STACK", "gcp").strip().lower()
 E2E_AUTH_FILE = Path(
     os.environ.get(
         "TALON_E2E_AUTH_FILE",
-        str(Path(__file__).resolve().parents[1] / "target" / "talon-e2e-auth.json"),
+        str(Path(__file__).absolute().parents[1] / "target" / "talon-e2e-auth.json"),
     )
 )
 

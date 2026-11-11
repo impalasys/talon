@@ -1,0 +1,19 @@
+load("@crates//:defs.bzl", "crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_test")
+
+rust_binary(
+    name = "codegen",
+    srcs = ["src/main.rs"],
+    edition = "2021",
+    visibility = ["//visibility:public"],
+    deps = crate_deps(
+        ["tonic-build"],
+        package_name = "talon",
+    ),
+)
+
+rust_test(
+    name = "unit_tests",
+    crate = ":codegen",
+    edition = "2021",
+)

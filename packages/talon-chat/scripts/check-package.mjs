@@ -10,19 +10,11 @@ const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const tempRoot = await mkdtemp(join(tmpdir(), "talon-chat-package-"));
 
 try {
-  const packDir = join(tempRoot, "pack");
+  const archive = process.argv[2];
+  assert.ok(archive, "pass a Bazel-built npm archive to this package test");
   const extractDir = join(tempRoot, "extract");
-  await mkdir(packDir);
   await mkdir(extractDir);
-
-  execFileSync("pnpm", ["pack", "--pack-destination", packDir], {
-    cwd: packageRoot,
-    stdio: "inherit",
-  });
-
-  const archives = (await readdir(packDir)).filter((name) => name.endsWith(".tgz"));
-  assert.equal(archives.length, 1, `expected one package archive, found ${archives.length}`);
-  execFileSync("tar", ["-xzf", join(packDir, archives[0]), "-C", extractDir], { stdio: "inherit" });
+  execFileSync("tar", ["-xzf", resolve(archive), "-C", extractDir], { stdio: "inherit" });
 
   const packedRoot = join(extractDir, "package");
   const manifest = JSON.parse(await readFile(join(packedRoot, "package.json"), "utf8"));

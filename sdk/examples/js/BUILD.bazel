@@ -1,0 +1,39 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//sdk/examples/js:typescript/package_json.bzl", typescript_bin = "bin")
+
+npm_link_all_packages(name = "node_modules")
+
+js_library(
+    name = "sources",
+    srcs = glob([
+        "src/**",
+        "tsconfig.json",
+        "package.json",
+    ]),
+    data = [
+        "//sdk/js/talon-client:pkg",
+        "//sdk/js/talon-server:pkg",
+    ],
+    deps = ["//sdk/js:config"],
+)
+
+typescript_bin.tsc_binary(
+    name = "tsc",
+    data = [":node_modules"],
+)
+
+js_run_binary(
+    name = "build",
+    srcs = [
+        ":node_modules",
+        ":sources",
+    ],
+    args = [
+        "-p",
+        "tsconfig.json",
+    ],
+    chdir = package_name(),
+    out_dirs = ["dist"],
+    tool = ":tsc",
+)

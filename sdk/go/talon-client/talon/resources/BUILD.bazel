@@ -1,0 +1,41 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+package(default_visibility = ["//visibility:public"])
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "agents.pb.go",
+        "channels.pb.go",
+        "common.pb.go",
+        "connectors.pb.go",
+        "deployments.pb.go",
+        "files.pb.go",
+        "knowledge.pb.go",
+        "mcp.pb.go",
+        "namespaces.pb.go",
+        "resource.pb.go",
+        "sandboxes.pb.go",
+        "schedules.pb.go",
+        "secrets.pb.go",
+        "sessions.pb.go",
+        "skills.pb.go",
+        "tasks.pb.go",
+        "usage.pb.go",
+        "workers.pb.go",
+        "workflows.pb.go",
+    ],
+    importpath = "github.com/impalasys/talon/sdk/go/talon-client/talon/resources",
+    deps = [
+        "//sdk/go/talon-client/talon/routing:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
+        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
+        "@org_golang_google_protobuf//types/known/structpb:go_default_library",
+    ],
+)
+
+filegroup(
+    name = "generated_sources",
+    srcs = glob(["*.go"]),
+    visibility = ["//visibility:public"],
+)

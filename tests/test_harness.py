@@ -6,7 +6,7 @@ import conftest
 from e2e import stack
 
 
-def test_conftest_binary_helpers_cover_candidate_and_path_resolution(monkeypatch: Any) -> None:
+def test_conftest_binary_helpers_cover_candidate_and_path_resolution(monkeypatch: Any, tmp_path: Path) -> None:
     # Verify the binary lookup helpers try expected filename variants and fall
     # back to the system PATH when local artifacts are absent.
     assert list(conftest.binary_candidates("talon_server")) == [
@@ -19,7 +19,8 @@ def test_conftest_binary_helpers_cover_candidate_and_path_resolution(monkeypatch
     ]
 
     monkeypatch.delenv("BUILD_WORKSPACE_DIRECTORY", raising=False)
-    monkeypatch.setattr(conftest, "get_runfile_binary_path", lambda name: None)
+    monkeypatch.setattr(stack, "get_runfile_binary_path", lambda name: None)
+    monkeypatch.setattr(stack, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(conftest.shutil, "which", lambda name: f"/usr/bin/{name}")
     assert conftest.get_binary_path("talon_server") == "/usr/bin/talon_server"
 

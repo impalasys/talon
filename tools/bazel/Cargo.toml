@@ -13,4 +13,7 @@ path = "features.rs"
 aws-sdk-dynamodb = { version = "1.103" }
 aws-sdk-scheduler = { version = "=1.102.0" }
 aws-sdk-sqs = { version = "1.102" }
+pprof = { version = "0.15", features = ["flamegraph"] }
 rocksdb = { version = "0.24", default-features = false, features = ["lz4", "bindgen-runtime"] }
+tikv-jemalloc-ctl = { version = "0.7", features = ["profiling", "stats"] }
+tikv-jemallocator = { version = "0.7", features = ["profiling"] }

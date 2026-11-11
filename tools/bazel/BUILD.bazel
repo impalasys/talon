@@ -1,11 +1,107 @@
+load("@pypi//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+load(":go_tools.bzl", "gofmt_binary")
 load(":protoc.bzl", "protoc_binary")
 
 exports_files([
     "Cargo.toml",
+    "go.mod",
+    "go.sum",
     "Cargo.lock",
+    "requirements.lock",
+    "pytest_main.py",
+    "node_tests.mjs",
+    "image_builder.py",
+])
+
+py_binary(
+    name = "release_packager",
+    srcs = ["release_packager.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "release_packager_test",
+    srcs = [
+        "release_packager.py",
+        "release_packager_test.py",
+    ],
+    imports = ["."],
+)
+
+exports_files([
+    "artifacts.bzl",
+    "configured_files.bzl",
 ])
 
 protoc_binary(
     name = "protoc",
     visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "context_builder",
+    srcs = ["context_builder.py"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "node_tests_entry",
+    srcs = ["node_tests.mjs"],
+    outs = ["node_tests_entry.mjs"],
+    cmd = "cp $< $@",
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "npm_archiver",
+    srcs = ["npm_archiver.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "python_packager",
+    srcs = ["python_packager.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("build"),
+        requirement("hatchling"),
+    ],
+)
+
+exports_files(["maven_install.json"])
+
+gofmt_binary(
+    name = "gofmt",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "grpc_java",
+    actual = select({
+        "//:linux_x86_64": "@grpc_java_linux_x86_64//file:downloaded",
+        "//:linux_arm64": "@grpc_java_linux_aarch_64//file:downloaded",
+        "//:darwin_arm64": "@grpc_java_osx_aarch_64//file:downloaded",
+        "//conditions:default": "@grpc_java_osx_x86_64//file:downloaded",
+    }),
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "sdk_codegen",
+    srcs = ["sdk_codegen.py"],
+    visibility = ["//visibility:public"],
+    deps = [requirement("grpcio-tools")],
+)
+
+exports_files(["sync_generated.py"])
+
+py_test(
+    name = "sync_generated_test",
+    srcs = [
+        "sync_generated.py",
+        "sync_generated_test.py",
+    ],
+    imports = ["."],
+    deps = ["@rules_python//python/runfiles"],
 )

@@ -36,7 +36,7 @@ except ImportError as exc:
     ) from exc
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).absolute().parents[1]
 TESTS_DIR = REPO_ROOT / "tests"
 GENERATED_DIR = TESTS_DIR / "generated"
 DEV_JWT_ENV_PATH = REPO_ROOT / "dockerfiles" / "dev-jwt.env"

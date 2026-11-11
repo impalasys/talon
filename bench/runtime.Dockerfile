@@ -1,54 +1,19 @@
-FROM rust:1.95.0-slim AS builder
-
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    clang \
-    g++ \
-    libclang-dev \
-    pkg-config \
-    make \
-    libssl-dev \
-    protobuf-compiler \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /usr/src/talon
-ARG CARGO_FEATURES="rocksdb"
-
-COPY Cargo.toml Cargo.lock build.rs ./
-COPY third_party ./third_party
-COPY proto ./proto
-COPY sdk/rust/talon-client ./sdk/rust/talon-client
-COPY tools/install-hooks ./tools/install-hooks
-COPY src ./src
-COPY talon.yaml ./talon.yaml
-COPY models.yaml ./models.yaml
-
-RUN if [ -n "$CARGO_FEATURES" ]; then \
-        cargo build --release --locked --features "$CARGO_FEATURES" \
-          --bin talon-node; \
-    else \
-        cargo build --release --locked \
-          --bin talon-node; \
-    fi && \
-    mkdir -p /usr/src/talon/dist && \
-    cp /usr/src/talon/target/release/talon-node /usr/src/talon/dist/talon-node
-
+# syntax=docker/dockerfile:1.7
+FROM gcr.io/bazel-public/bazel:9.3.2 AS builder
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config libssl-dev clang libclang-dev cmake && rm -rf /var/lib/apt/lists/*
+WORKDIR /workspace
+COPY . .
+RUN --mount=type=cache,target=/root/.cache/bazel \
+    bazel --output_user_root=/root/.cache/bazel build //dockerfiles:runtime_context \
+    && cp -rL bazel-bin/dockerfiles/runtime_context /out
 FROM debian:trixie-slim
-
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    libssl3 \
-    libstdc++6 \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /usr/src/talon/dist/talon-node /usr/local/bin/talon-node
-COPY --from=builder /usr/src/talon/models.yaml /data/talon/models.yaml
-
-RUN mkdir -p /data/talon
-
-ENV TALON_DATA_DIR=/data/talon
-ENV RUST_LOG=info
-
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl libssl3 libstdc++6 && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /out/bin/talon-node /out/bin/talon-cli /usr/local/bin/
+COPY models.yaml /data/talon/
+COPY models/ /data/talon/models/
+ENV TALON_DATA_DIR=/data/talon RUST_LOG=info
 WORKDIR /data/talon
-
 CMD ["talon-node"]

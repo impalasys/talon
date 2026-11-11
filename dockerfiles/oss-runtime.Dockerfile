@@ -1,117 +1,58 @@
 # syntax=docker/dockerfile:1.7
-
-FROM rust:1.95.0-slim AS chef
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang \
-    g++ \
-    libclang-dev \
-    make \
-    pkg-config \
-    libssl-dev \
-    protobuf-compiler \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN cargo install cargo-chef --locked
-
-WORKDIR /usr/src/talon
-
+# CI supplies a Bazel-built context and selects runtime-from-bazel. A direct
+# docker build uses the same Bazel targets inside the Linux builder below.
 FROM docker:27-cli AS docker-cli
 
-FROM chef AS planner
-
-COPY Cargo.toml Cargo.lock build.rs ./
-COPY third_party ./third_party
-COPY proto ./proto
-COPY sdk/rust/talon-client ./sdk/rust/talon-client
-COPY tools/install-hooks ./tools/install-hooks
-COPY src ./src
-COPY talon.yaml ./talon.yaml
-COPY models.yaml ./models.yaml
-RUN cargo chef prepare --recipe-path recipe.json
-
-FROM chef AS builder
-
-COPY --from=planner /usr/src/talon/recipe.json recipe.json
-COPY sdk/rust/talon-client ./sdk/rust/talon-client
-COPY tools/install-hooks ./tools/install-hooks
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git \
-    cargo chef cook --release --features rocksdb --recipe-path recipe.json
-
-COPY Cargo.toml Cargo.lock build.rs ./
-COPY third_party ./third_party
-COPY proto ./proto
-COPY sdk/rust/talon-client ./sdk/rust/talon-client
-COPY tools/install-hooks ./tools/install-hooks
-COPY src ./src
-COPY talon.yaml ./talon.yaml
-COPY models.yaml ./models.yaml
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release --locked --features rocksdb \
-      --bin talon-server --bin talon-worker --bin talon-cli --bin talon-node && \
-    mkdir -p /usr/src/talon/dist && \
-    cp /usr/src/talon/target/release/talon-server /usr/src/talon/dist/talon-server && \
-    cp /usr/src/talon/target/release/talon-worker /usr/src/talon/dist/talon-worker && \
-    cp /usr/src/talon/target/release/talon-cli /usr/src/talon/dist/talon-cli && \
-    cp /usr/src/talon/target/release/talon-node /usr/src/talon/dist/talon-node
-
-FROM debian:trixie-slim AS benchmark-runtime
-
+FROM debian:trixie-slim AS runtime-base
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    libssl3 \
-    libstdc++6 \
+    ca-certificates curl python3 python3-venv libssl3 libstdc++6 \
     && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /usr/src/talon/dist/talon-node /usr/local/bin/talon-node
-COPY --from=builder /usr/src/talon/dist/talon-cli /usr/local/bin/talon-cli
-RUN mkdir -p /data/talon && command -v talon-node >/dev/null && command -v talon-cli >/dev/null
-
-ENV TALON_DATA_DIR=/data/talon
-ENV RUST_LOG=info
-
+COPY tools/bazel/requirements.lock /tmp/talon-requirements.lock
+RUN python3 -m venv /opt/talon-e2e-venv \
+    && /opt/talon-e2e-venv/bin/pip install --no-cache-dir --require-hashes -r /tmp/talon-requirements.lock \
+    && rm /tmp/talon-requirements.lock
+RUN python3 -m venv /opt/talon-monty-venv \
+    && /opt/talon-monty-venv/bin/pip install --no-cache-dir pydantic-monty-runtime==0.0.21 \
+    && ln -s /opt/talon-monty-venv/bin/monty /usr/local/bin/monty
+COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
+ENV TALON_DATA_DIR=/data/talon RUST_LOG=info
 WORKDIR /data/talon
+EXPOSE 50051 8081
+CMD ["talon-server"]
 
+FROM runtime-base AS runtime-from-bazel
+COPY bin/ /usr/local/bin/
+COPY talon.yaml models.yaml /data/talon/
+COPY models/ /data/talon/models/
+
+FROM debian:trixie-slim AS benchmark-base
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl libssl3 libstdc++6 && rm -rf /var/lib/apt/lists/*
+ENV TALON_DATA_DIR=/data/talon RUST_LOG=info
+WORKDIR /data/talon
 CMD ["talon-node"]
 
-FROM debian:trixie-slim
+FROM benchmark-base AS benchmark-from-bazel
+COPY bin/talon-node bin/talon-cli /usr/local/bin/
+COPY models.yaml /data/talon/
+COPY models/ /data/talon/models/
 
+FROM gcr.io/bazel-public/bazel:9.3.2 AS bazel-builder
+USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    python3 \
-    python3-venv \
-    libssl3 \
-    && rm -rf /var/lib/apt/lists/*
+    pkg-config libssl-dev clang libclang-dev cmake && rm -rf /var/lib/apt/lists/*
+WORKDIR /workspace
+COPY . .
+RUN --mount=type=cache,target=/root/.cache/bazel \
+    bazel --output_user_root=/root/.cache/bazel build //dockerfiles:runtime_context \
+    && cp -rL bazel-bin/dockerfiles/runtime_context /out
 
-COPY tests/requirements.txt /tmp/talon-e2e-requirements.txt
-RUN python3 -m venv /opt/talon-e2e-venv && \
-    /opt/talon-e2e-venv/bin/pip install --no-cache-dir -r /tmp/talon-e2e-requirements.txt && \
-    rm -f /tmp/talon-e2e-requirements.txt
+FROM benchmark-base AS benchmark-runtime
+COPY --from=bazel-builder /out/bin/talon-node /out/bin/talon-cli /usr/local/bin/
+COPY models.yaml /data/talon/
+COPY models/ /data/talon/models/
 
-RUN python3 -m venv /opt/talon-monty-venv && \
-    /opt/talon-monty-venv/bin/pip install --no-cache-dir pydantic-monty-runtime==0.0.21 && \
-    ln -s /opt/talon-monty-venv/bin/monty /usr/local/bin/monty && \
-    monty --version
-
-COPY --from=builder /usr/src/talon/dist/talon-server /usr/local/bin/talon-server
-COPY --from=builder /usr/src/talon/dist/talon-worker /usr/local/bin/talon-worker
-COPY --from=builder /usr/src/talon/dist/talon-cli /usr/local/bin/talon-cli
-COPY --from=builder /usr/src/talon/dist/talon-node /usr/local/bin/talon-node
-COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
-RUN command -v talon-cli >/dev/null
-RUN mkdir -p /data/talon
-COPY --from=builder /usr/src/talon/talon.yaml /data/talon/talon.yaml
-COPY --from=builder /usr/src/talon/models.yaml /data/talon/models.yaml
-
-ENV TALON_DATA_DIR=/data/talon
-ENV RUST_LOG=info
-
-WORKDIR /data/talon
-
-EXPOSE 50051 8081
-
-CMD ["talon-server"]
+FROM runtime-base AS runtime
+COPY --from=bazel-builder /out/bin/ /usr/local/bin/
+COPY talon.yaml models.yaml /data/talon/
+COPY models/ /data/talon/models/

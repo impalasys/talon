@@ -1,0 +1,30 @@
+name: Set up Talon Bazel
+description: Install Bazel, native prerequisites, and optional trusted BuildBuddy access
+inputs:
+  buildbuddy-api-key:
+    description: Cache writer credential; pass only on trusted main-branch builds
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - uses: bazel-contrib/setup-bazel@0.19.2
+      with:
+        bazelisk-cache: true
+        disk-cache: talon-bazel
+        repository-cache: true
+    - name: Install Linux native prerequisites
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends pkg-config libssl-dev clang libclang-dev cmake
+    - name: Configure trusted remote caching
+      shell: bash
+      env:
+        BUILDBUDDY_API_KEY: ${{ inputs.buildbuddy-api-key }}
+      run: |
+        if [[ -n "$BUILDBUDDY_API_KEY" ]]; then
+          umask 077
+          printf 'build --config=buildbuddy\nbuild --remote_header=x-buildbuddy-api-key=%s\nbuild --bes_header=x-buildbuddy-api-key=%s\n' "$BUILDBUDDY_API_KEY" "$BUILDBUDDY_API_KEY" > .bazelrc.local
+        fi

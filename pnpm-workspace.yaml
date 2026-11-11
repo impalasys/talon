@@ -4,6 +4,7 @@ packages:
   - "packages/*"
   - "sdk/js"
   - "sdk/js/*"
+  - "sdk/examples/js"
 allowBuilds:
   esbuild: true
   sharp: true

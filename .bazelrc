@@ -2,14 +2,15 @@ common --enable_bzlmod
 build --incompatible_strict_action_env
 build --enable_platform_specific_config
 build --verbose_failures
+build --define=GATEWAY_URL=
 build --@protobuf//bazel/toolchains:prefer_prebuilt_protoc
 test --test_output=errors
 test --test_env=PATH
 test --test_env=DOCKER_HOST
 
 build:release --compilation_mode=opt
-build:aws --define=talon_aws=true
-build:rocksdb --define=talon_rocksdb=true
+build:aws --//:with_aws=true
+build:rocksdb --//:with_rocksdb=true
 
 # Rust 1.95's stripped Mach-O proc-macros cannot be loaded on macOS.
 build:macos --@rules_rust//rust/settings:extra_exec_rustc_flags=-Cstrip=none
@@ -22,3 +23,11 @@ build:buildbuddy --remote_timeout=10m
 build:buildbuddy --remote_cache_compression
 
 try-import %workspace%/.bazelrc.local
+
+build --java_language_version=17
+build --tool_java_language_version=17
+build --java_runtime_version=remotejdk_17
+build --tool_java_runtime_version=remotejdk_17
+
+build:cpu-profile --//:with_cpu_profile=true
+build:heap-profile --//:with_heap_profile=true

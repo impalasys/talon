@@ -1,0 +1,25 @@
+load("@crates//:defs.bzl", "crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_test")
+
+rust_binary(
+    name = "example",
+    srcs = ["src/main.rs"],
+    edition = "2021",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//sdk/rust/talon-client:talon_client",
+        "//sdk/rust/talon-server:talon_server",
+    ] + crate_deps(
+        [
+            "anyhow",
+            "tokio",
+        ],
+        package_name = "talon",
+    ),
+)
+
+rust_test(
+    name = "unit_tests",
+    crate = ":example",
+    edition = "2021",
+)

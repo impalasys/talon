@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 
 const packageDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const storybookDir = path.join(packageDir, "storybook-static");
-const outputDir = path.join(packageDir, "storybook-screenshots");
+const storybookDir = path.resolve(process.argv[2] || path.join(packageDir, "storybook-static"));
+const outputDir = process.env.TEST_UNDECLARED_OUTPUTS_DIR || path.join(packageDir, "storybook-screenshots");
 
 const stories = [
   {

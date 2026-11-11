@@ -1,0 +1,49 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+load("//tools/bazel:artifacts.bzl", "container_context")
+
+container_context(
+    name = "runtime_context",
+    binaries = "//:production_binaries",
+    configs = "//:runtime_data",
+    dockerfile = "oss-runtime.Dockerfile",
+    requirements = "//tools/bazel:requirements.lock",
+    target_compatible_with = ["@platforms//os:linux"],
+    visibility = ["//visibility:public"],
+)
+
+container_context(
+    name = "ui_context",
+    dockerfile = "oss-ui.Dockerfile",
+    web = "//ui:dist",
+)
+
+container_context(
+    name = "acp_context",
+    dockerfile = "codex-acp.Dockerfile",
+)
+
+[
+    py_binary(
+        name = name,
+        srcs = ["//tools/bazel:image_builder.py"],
+        args = [
+            "--context",
+            "dockerfiles/" + context,
+            "--target",
+            stage,
+        ],
+        data = [":" + context],
+        main = "//tools/bazel:image_builder.py",
+        target_compatible_with = ["@platforms//os:linux"] if context == "runtime_context" else [],
+        visibility = ["//visibility:public"],
+        deps = ["@rules_python//python/runfiles"],
+    )
+    for name, context, stage in [
+        ("runtime_image", "runtime_context", "runtime-from-bazel"),
+        ("benchmark_image", "runtime_context", "benchmark-from-bazel"),
+        ("ui_image", "ui_context", "ui-from-bazel"),
+        ("acp_image", "acp_context", "acp-runtime"),
+    ]
+]
+
+exports_files(["dev-jwt.env"])

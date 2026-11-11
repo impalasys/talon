@@ -4,9 +4,52 @@ module(
 )
 
 bazel_dep(name = "rules_rust", version = "0.75.0")
-bazel_dep(name = "protobuf", version = "36.2")
+bazel_dep(name = "protobuf", version = "34.1")
 bazel_dep(name = "aspect_rules_js", version = "3.6.0")
 bazel_dep(name = "rules_nodejs", version = "6.7.7")
+bazel_dep(name = "rules_python", version = "1.8.0")
+bazel_dep(name = "rules_shell", version = "0.8.0")
+bazel_dep(name = "bazel_skylib", version = "1.9.2")
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "rules_go", version = "0.65.0")
+bazel_dep(name = "gazelle", version = "0.54.0")
+bazel_dep(name = "rules_java", version = "9.9.0")
+bazel_dep(name = "rules_jvm_external", version = "7.2")
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(python_version = "3.13")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "pypi",
+    python_version = "3.13",
+    requirements_lock = "//tools/bazel:requirements.lock",
+)
+use_repo(pip, "pypi")
+
+go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
+go_sdk.download(version = "1.26.0")
+
+go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
+go_deps.from_file(go_work = "//:go.work")
+use_repo(go_deps, "com_github_golang_jwt_jwt_v5", "org_golang_google_grpc", "org_golang_google_grpc_cmd_protoc_gen_go_grpc", "org_golang_google_protobuf")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    artifacts = [
+        "com.google.protobuf:protobuf-java:4.34.1",
+        "io.grpc:grpc-api:1.76.0",
+        "io.grpc:grpc-stub:1.76.0",
+        "io.grpc:grpc-protobuf:1.76.0",
+        "io.grpc:grpc-netty-shaded:1.76.0",
+        "org.apache.tomcat:annotations-api:6.0.53",
+        "org.junit.jupiter:junit-jupiter:5.13.4",
+        "org.junit.platform:junit-platform-console-standalone:1.13.4",
+    ],
+    lock_file = "//tools/bazel:maven_install.json",
+    repositories = ["https://repo.maven.apache.org/maven2"],
+)
+use_repo(maven, "maven")
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(
@@ -41,3 +84,33 @@ npm.npm_translate_lock(
     verify_node_modules_ignored = "//:.bazelignore",
 )
 use_repo(npm, "npm")
+
+http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+http_file(
+    name = "grpc_java_linux_x86_64",
+    executable = True,
+    sha256 = "01926d84912cb0073abd9b3104675416d30f2b1757376b526fa0dfbb94272218",
+    urls = ["https://repo.maven.apache.org/maven2/io/grpc/protoc-gen-grpc-java/1.76.0/protoc-gen-grpc-java-1.76.0-linux-x86_64.exe"],
+)
+
+http_file(
+    name = "grpc_java_linux_aarch_64",
+    executable = True,
+    sha256 = "3a692ad56221ad4ba9a5e98a07ca91e6766c93b047d68653c4468c4cccae8a14",
+    urls = ["https://repo.maven.apache.org/maven2/io/grpc/protoc-gen-grpc-java/1.76.0/protoc-gen-grpc-java-1.76.0-linux-aarch_64.exe"],
+)
+
+http_file(
+    name = "grpc_java_osx_x86_64",
+    executable = True,
+    sha256 = "8100c67d1ea547fc34dd638db20876921349df99c42608fdfdcf1cef15c1d6ff",
+    urls = ["https://repo.maven.apache.org/maven2/io/grpc/protoc-gen-grpc-java/1.76.0/protoc-gen-grpc-java-1.76.0-osx-x86_64.exe"],
+)
+
+http_file(
+    name = "grpc_java_osx_aarch_64",
+    executable = True,
+    sha256 = "8100c67d1ea547fc34dd638db20876921349df99c42608fdfdcf1cef15c1d6ff",
+    urls = ["https://repo.maven.apache.org/maven2/io/grpc/protoc-gen-grpc-java/1.76.0/protoc-gen-grpc-java-1.76.0-osx-aarch_64.exe"],
+)

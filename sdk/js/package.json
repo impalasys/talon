@@ -11,6 +11,8 @@
     "build": "pnpm --filter @impalasys/talon-client --filter @impalasys/talon-server build"
   },
   "devDependencies": {
+    "@bufbuild/protoc-gen-es": "1.10.1",
+    "@connectrpc/protoc-gen-connect-es": "1.7.0",
     "@types/node": "^24.9.1",
     "typescript": "^6.0.3"
   }

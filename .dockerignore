@@ -15,3 +15,6 @@ docs-site/node_modules
 packages/*/dist
 
 bench/results
+
+bazel-*
+.bazelrc.local

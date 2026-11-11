@@ -4,12 +4,13 @@
 from __future__ import annotations
 
 import re
+import os
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(os.environ.get("CODEGEN_ROOT", Path(__file__).absolute().parents[2]))
 PROTO_DIR = ROOT / "proto/talon/v1"
 GO_OUT = ROOT / "sdk/go/talon-client/clientset_gen.go"
 JS_OUT = ROOT / "sdk/js/talon-client/src/clientset.ts"

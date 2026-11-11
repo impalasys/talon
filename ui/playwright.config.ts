@@ -1,34 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
-import fs from 'fs';
 
-const API_PORT = process.env.API_PORT || '50051';
 const WEB_PORT = process.env.WEB_PORT || '3000';
 const E2E_READY_PORT = process.env.READY_PORT || process.env.E2E_READY_PORT || '8090';
-const SETUP_PYTHON_BIN = process.env.pythonLocation
-  ? `${process.env.pythonLocation}/bin/python`
-  : null;
-const DEFAULT_PYTHON_BIN = process.env.CI
-  ? (SETUP_PYTHON_BIN || 'python3')
-  : (fs.existsSync('/usr/bin/python3') ? '/usr/bin/python3' : 'python3');
-const PYTHON_BIN = process.env.PYTHON_BIN || DEFAULT_PYTHON_BIN;
-const reuseExistingServer = process.env.REUSE_EXISTING_SERVER === 'true'
-  ? true
-  : process.env.REUSE_EXISTING_SERVER === 'false'
-    ? false
-    : !process.env.CI;
-const E2E_STACK = (process.env.TALON_E2E_STACK || 'gcp').toLowerCase();
-const BACKEND_BUILD_COMMAND = [
-  'case "' + E2E_STACK + '" in',
-  'rocksdb|rocksdb_local|rocksdb-local) cargo build --locked --features rocksdb --bin talon-node --bin talon-cli ;;',
-  'aws|aws_local|aws-local) cargo build --locked --features aws --bin talon-server --bin talon-worker --bin talon-cli ;;',
-  '*) if [ ! -x target/debug/talon-server ] || [ ! -x target/debug/talon-worker ] || [ ! -x target/debug/talon-cli ]; then cargo build --locked --bin talon-server --bin talon-worker --bin talon-cli; fi ;;',
-  'esac',
-].join(' ');
-const DEFAULT_BACKEND_COMMAND = [
-  'cd ..',
-  BACKEND_BUILD_COMMAND,
-  `PYTHONPATH=.. PATH="$PWD/target/debug:$PATH" ${PYTHON_BIN} tests/run_e2e_stack.py`,
-].join(' && ');
+const reuseExistingServer = process.env.REUSE_EXISTING_SERVER === 'true';
+const DEFAULT_BACKEND_COMMAND = 'cd .. && bazel run //tests:e2e_stack';
 
 export default defineConfig({
   testDir: './e2e',
@@ -37,7 +12,8 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   timeout: process.env.CI ? 120000 : 120000,
-  reporter: [['html', { open: 'never' }], ['list']],
+  reporter: [['html', { open: 'never', outputFolder: process.env.TEST_UNDECLARED_OUTPUTS_DIR ? `${process.env.TEST_UNDECLARED_OUTPUTS_DIR}/report` : 'playwright-report' }], ['list']],
+  outputDir: process.env.TEST_UNDECLARED_OUTPUTS_DIR ? `${process.env.TEST_UNDECLARED_OUTPUTS_DIR}/results` : 'test-results',
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
     trace: 'on-first-retry',
@@ -60,7 +36,7 @@ export default defineConfig({
       stderr: 'pipe',
     },
     {
-      command: `pnpm --filter @impalasys/talon-client build && VITE_GATEWAY_URL=http://127.0.0.1:${API_PORT} pnpm exec vite --host 0.0.0.0 --port ${WEB_PORT} --strictPort`,
+      command: process.env.FRONTEND_COMMAND || 'cd .. && bazel run //ui:preview',
       url: `http://127.0.0.1:${WEB_PORT}`,
       reuseExistingServer,
       timeout: 60000,

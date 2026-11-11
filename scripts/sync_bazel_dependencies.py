@@ -7,9 +7,9 @@ from pathlib import Path
 import tomllib
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).absolute().parents[1]
 BAZEL_DIR = ROOT / "tools" / "bazel"
-FEATURES = ("aws", "rocksdb")
+FEATURES = ("aws", "rocksdb", "cpu-profile", "heap-profile")
 
 
 def manifest() -> str:
@@ -37,6 +37,10 @@ def manifest() -> str:
     for name in dependencies:
         value = cargo["dependencies"][name]
         if isinstance(value, dict):
+            value = dict(value)
+            forwarded = {item.split("/", 1)[1] for feature in FEATURES for item in cargo["features"][feature] if item.startswith(name + "/")}
+            if forwarded:
+                value["features"] = sorted(set(value.get("features", [])) | forwarded)
             fields = ", ".join(
                 f"{key} = {json.dumps(item)}"
                 for key, item in value.items()

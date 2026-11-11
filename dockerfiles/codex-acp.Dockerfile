@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:22-bookworm-slim
+FROM node:22-bookworm-slim AS acp-runtime
 
 ARG CODEX_CLI_VERSION=latest
 ARG CODEX_ACP_VERSION=0.16.0
@@ -10,7 +10,7 @@ ARG OPENCODE_VERSION=latest
 
 LABEL org.opencontainers.image.title="Talon ACP Harness Sandbox"
 LABEL org.opencontainers.image.description="ACP-compatible coding harnesses for Talon Docker sandboxes"
-LABEL org.opencontainers.image.source="https://github.com/impala-systems/talon"
+LABEL org.opencontainers.image.source="https://github.com/impalasys/talon"
 
 ENV NODE_ENV=production
 ENV NPM_CONFIG_AUDIT=false

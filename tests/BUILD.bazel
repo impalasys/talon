@@ -1,0 +1,123 @@
+load("@pypi//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+
+py_library(
+    name = "support",
+    srcs = glob(
+        ["**/*.py"],
+        exclude = [
+            "test_*.py",
+            "conftest.py",
+            "run_e2e_stack.py",
+        ],
+    ),
+    data = glob([
+        "e2e/manifests/**",
+        "fixtures/**/*.json",
+    ]) + ["//:test_fixtures"],
+    imports = [
+        ".",
+        "generated",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//sdk/python/talon-client:talon_client",
+        "@rules_python//python/runfiles",
+    ] + [requirement(name) for name in [
+        "pytest",
+        "pytest-cov",
+        "pytest-asyncio",
+        "grpcio",
+        "googleapis-common-protos",
+        "fastapi",
+        "uvicorn",
+        "httpx",
+        "pytest-httpserver",
+        "requests",
+        "zstandard",
+        "testcontainers",
+        "psycopg2-binary",
+        "boto3",
+        "a2a-sdk",
+        "PyYAML",
+    ]],
+)
+
+py_test(
+    name = "e2e_tests",
+    size = "large",
+    srcs = [
+        "conftest.py",
+        "//tools/bazel:pytest_main.py",
+    ] + glob(["test_*.py"]),
+    args = ["tests/" + path for path in glob(
+        ["test_*.py"],
+        exclude = ["test_durable_sessions_stress.py"],
+    )],
+    data = [
+        "//:e2e_binaries",
+        "//:talon-mock-acp",
+    ],
+    main = "//tools/bazel:pytest_main.py",
+    tags = [
+        "exclusive",
+        "manual",
+        "no-cache",
+        "no-remote-exec",
+        "requires-docker",
+    ],
+    deps = [":support"],
+)
+
+py_test(
+    name = "harness_test",
+    srcs = [
+        "conftest.py",
+        "test_harness.py",
+        "//tools/bazel:pytest_main.py",
+    ],
+    args = ["tests/test_harness.py"],
+    main = "//tools/bazel:pytest_main.py",
+    deps = [":support"],
+)
+
+py_binary(
+    name = "e2e_stack",
+    srcs = ["run_e2e_stack.py"],
+    data = ["//:e2e_binaries"],
+    main = "run_e2e_stack.py",
+    visibility = ["//visibility:public"],
+    deps = [":support"],
+)
+
+filegroup(
+    name = "generated",
+    srcs = glob(["generated/**"]),
+    visibility = ["//visibility:public"],
+)
+
+exports_files(glob([
+    "*.rs",
+    "fixtures/*.rs",
+]))
+
+py_test(
+    name = "stress",
+    size = "enormous",
+    srcs = [
+        "conftest.py",
+        "test_durable_sessions_stress.py",
+        "//tools/bazel:pytest_main.py",
+    ],
+    args = ["tests/test_durable_sessions_stress.py"],
+    data = ["//:e2e_binaries"],
+    main = "//tools/bazel:pytest_main.py",
+    tags = [
+        "exclusive",
+        "manual",
+        "no-cache",
+        "no-remote-exec",
+        "requires-docker",
+    ],
+    deps = [":support"],
+)

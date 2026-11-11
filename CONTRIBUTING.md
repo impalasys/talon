@@ -124,7 +124,8 @@ for the docs workflow.
 If proto changes affect generated reference pages, regenerate them:
 
 ```bash
-pnpm --filter @impalasys/talon-docs generate:reference
+bazel build //docs-site:reference
+cp -R bazel-bin/docs-site/generated-reference/. docs/05-reference/generated/
 ```
 
 Review generated diffs rather than treating them as opaque build output.

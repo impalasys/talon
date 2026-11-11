@@ -1,0 +1,56 @@
+load("@pypi//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+load("//tools/bazel:distributions.bzl", "python_distribution")
+
+py_library(
+    name = "talon_client",
+    srcs = glob(["src/**/*.py"]),
+    imports = ["src"],
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("grpcio"),
+        requirement("protobuf"),
+    ],
+)
+
+py_test(
+    name = "unit_tests",
+    srcs = ["//tools/bazel:pytest_main.py"] + glob(["tests/**/*.py"]),
+    args = ["sdk/python/talon-client/tests"],
+    main = "//tools/bazel:pytest_main.py",
+    deps = [
+        ":talon_client",
+        requirement("pytest"),
+    ],
+)
+
+filegroup(
+    name = "package_sources",
+    srcs = glob(
+        [
+            "src/**",
+            "README.md",
+            "pyproject.toml",
+        ],
+        exclude = [
+            "**/__pycache__/**",
+            "**/*.pyc",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
+python_distribution(
+    name = "dist",
+    manifest = "pyproject.toml",
+    sources = ":package_sources",
+    visibility = ["//visibility:public"],
+)
+
+exports_files(["pyproject.toml"])
+
+filegroup(
+    name = "generated_sources",
+    srcs = glob(["src/talon_client/**"]),
+    visibility = ["//visibility:public"],
+)

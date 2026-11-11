@@ -1,0 +1,79 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+load("//tools/bazel:sdk_codegen.bzl", "sdk_sources")
+
+exports_files([
+    "VERSION",
+    "version.bzl",
+])
+
+filegroup(
+    name = "version_manifests",
+    srcs = [
+        "VERSION",
+        "version.bzl",
+        "//packages/talon-chat:package.json",
+        "//sdk/go/talon-client:VERSION",
+        "//sdk/go/talon-server:VERSION",
+        "//sdk/java:build.gradle.kts",
+        "//sdk/js:package.json",
+        "//sdk/js/talon-client:package.json",
+        "//sdk/js/talon-node-darwin-arm64:package.json",
+        "//sdk/js/talon-node-linux-x64:package.json",
+        "//sdk/js/talon-server:package.json",
+        "//sdk/python/talon-client:pyproject.toml",
+        "//sdk/python/talon-server:pyproject.toml",
+        "//sdk/rust/talon-client:Cargo.toml",
+        "//sdk/rust/talon-server:Cargo.toml",
+        "//ui:package.json",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sdk_sources(
+    name = "generated",
+    clientsets = "//scripts/sdk:clientsets",
+    config = "//scripts/sdk:codegen.json",
+    connect = "//sdk/js:protoc-gen-connect-es",
+    es = "//sdk/js:protoc-gen-es",
+    go = "@org_golang_google_protobuf//cmd/protoc-gen-go",
+    go_grpc = "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
+    gofmt = "//tools/bazel:gofmt",
+    java = "//tools/bazel:grpc_java",
+    protoc = "//tools/bazel:protoc",
+    protos = "//:proto_sources",
+    rust = "//sdk/rust/tools/codegen:codegen",
+)
+
+py_binary(
+    name = "update_generated",
+    srcs = ["//tools/bazel:sync_generated.py"],
+    data = [
+        "VERSION",
+        ":generated",
+    ],
+    main = "//tools/bazel:sync_generated.py",
+    deps = ["@rules_python//python/runfiles"],
+)
+
+py_test(
+    name = "generated_test",
+    srcs = ["//tools/bazel:sync_generated.py"],
+    data = [
+        "VERSION",
+        ":checked_in_generated",
+        ":generated",
+    ],
+    main = "//tools/bazel:sync_generated.py",
+    deps = ["@rules_python//python/runfiles"],
+)
+
+filegroup(
+    name = "checked_in_generated",
+    srcs = [
+        "//sdk/go/talon-client:generated_sources",
+        "//sdk/java/talon-client:generated_sources",
+        "//sdk/js/talon-client:generated_sources",
+        "//sdk/python/talon-client:generated_sources",
+        "//sdk/rust/talon-client:generated_sources",
+    ],
+)

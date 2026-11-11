@@ -6904,7 +6904,10 @@ dependencies = [
  "aws-sdk-dynamodb",
  "aws-sdk-scheduler",
  "aws-sdk-sqs",
+ "pprof",
  "rocksdb",
+ "tikv-jemalloc-ctl",
+ "tikv-jemallocator",
 ]
 
 [[package]]

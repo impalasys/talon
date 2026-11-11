@@ -1,26 +1,11 @@
 name: Publish Packages
-
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - "sdk/**"
-      - "packages/talon-chat/**"
-      - "proto/**"
-      - "scripts/sdk/**"
-      - "buf.gen.sdk.yaml"
-      - "pnpm-lock.yaml"
-  workflow_dispatch:
-
 permissions:
   contents: write
   id-token: write
-
 jobs:
   detect:
     name: Detect Version Changes
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       sdk_version: ${{ steps.detect.outputs.sdk_version }}
       sdk_version_changed: ${{ steps.detect.outputs.sdk_version_changed }}
@@ -51,21 +36,20 @@ jobs:
       java_changed: ${{ steps.detect.outputs.java_changed }}
       needs_node_binaries: ${{ steps.detect.outputs.needs_node_binaries }}
     steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Detect changed SDK versions
-        id: detect
-        env:
-          BASE_SHA: ${{ github.event.before }}
-        run: python3 scripts/sdk/detect_version_changes.py
-
-      - name: Verify coordinated SDK versions
-        run: |
-          python3 scripts/sdk/check_versions.py
-          node scripts/sdk/check_js_packages.mjs
-
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Detect changed SDK versions
+      id: detect
+      env:
+        BASE_SHA: ${{ github.event.before }}
+      run: python3 scripts/sdk/detect_version_changes.py
+    - name: Verify coordinated SDK versions
+      run: bazel test //scripts/sdk:versions_test //scripts/sdk:packages_test
   build-node-binaries:
     name: Build talon-node SDK Binary
     if: needs.detect.outputs.needs_node_binaries == 'true'
@@ -74,392 +58,304 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: linux-x64
-            runner: ubuntu-latest
-          - platform: darwin-arm64
-            runner: macos-15
+        - platform: linux-x64
+          runner: ubuntu-24.04
+        - platform: darwin-arm64
+          runner: macos-15
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust artifacts
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install Linux build tools
-        if: runner.os == 'Linux'
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
-
-      - name: Install macOS build tools
-        if: runner.os == 'macOS'
-        run: |
-          set -euo pipefail
-          brew install protobuf
-
-      - name: Configure protoc
-        run: |
-          set -euo pipefail
-          protoc_path="$(command -v protoc)"
-          echo "PROTOC=${protoc_path}" >> "$GITHUB_ENV"
-          "${protoc_path}" --version
-
-      - name: Build talon-node
-        run: cargo build --locked --release --bin talon-node
-
-      - name: Package talon-node
-        run: |
-          set -euo pipefail
-          mkdir -p "dist/talon-node-${{ matrix.platform }}"
-          cp "target/release/talon-node" "dist/talon-node-${{ matrix.platform }}/"
-          tar -C dist -czf "dist/talon-node-${{ matrix.platform }}.tar.gz" "talon-node-${{ matrix.platform }}"
-          python3 -c 'import hashlib, pathlib, sys; p = pathlib.Path(sys.argv[1]); print(f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p}")' "dist/talon-node-${{ matrix.platform }}.tar.gz" > "dist/talon-node-${{ matrix.platform }}.tar.gz.sha256"
-
-      - name: Upload talon-node binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: talon-node-${{ matrix.platform }}
-          path: |
-            dist/talon-node-${{ matrix.platform }}.tar.gz
-            dist/talon-node-${{ matrix.platform }}.tar.gz.sha256
-          if-no-files-found: error
-
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Build Bazel release distribution
+      run: |-
+        bazel build //:release-dist
+        mkdir -p dist
+        cp bazel-bin/release-dist/talon-node-*.tar.gz* dist/
+    - name: Upload talon-node binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: talon-node-${{ matrix.platform }}
+        path: |
+          dist/talon-node-${{ matrix.platform }}.tar.gz
+          dist/talon-node-${{ matrix.platform }}.tar.gz.sha256
+        if-no-files-found: error
   publish-node-release:
     name: Publish talon-node Release Assets
     if: always() && needs.detect.outputs.needs_node_binaries == 'true' && needs.build-node-binaries.result == 'success'
     needs:
-      - detect
-      - build-node-binaries
-    runs-on: ubuntu-latest
+    - detect
+    - build-node-binaries
+    runs-on: ubuntu-24.04
     steps:
-      - name: Download talon-node binaries
-        uses: actions/download-artifact@v4
-        with:
-          pattern: talon-node-*
-          path: dist
-          merge-multiple: true
-
-      - name: Create or update GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          SDK_VERSION: ${{ needs.detect.outputs.sdk_version }}
-        run: |
-          set -euo pipefail
-          tag="v${SDK_VERSION}"
-          title="Talon SDK ${tag}"
-          notes="Talon SDK ${tag} release assets."
-          assets=(
-            dist/talon-node-linux-x64.tar.gz
-            dist/talon-node-linux-x64.tar.gz.sha256
-            dist/talon-node-darwin-arm64.tar.gz
-            dist/talon-node-darwin-arm64.tar.gz.sha256
-          )
-          for asset in "${assets[@]}"; do
-            test -s "$asset"
-          done
-          if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" "${assets[@]}" --clobber
-            gh release edit "$tag" --title "$title" --notes "$notes" --latest
-          else
-            gh release create "$tag" "${assets[@]}" --title "$title" --notes "$notes" --latest --target "$GITHUB_SHA"
-          fi
-
+    - name: Download talon-node binaries
+      uses: actions/download-artifact@v4
+      with:
+        pattern: talon-node-*
+        path: dist
+        merge-multiple: true
+    - name: Create or update GitHub Release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        SDK_VERSION: ${{ needs.detect.outputs.sdk_version }}
+      run: |
+        set -euo pipefail
+        tag="v${SDK_VERSION}"
+        title="Talon SDK ${tag}"
+        notes="Talon SDK ${tag} release assets."
+        assets=(
+          dist/talon-node-linux-x64.tar.gz
+          dist/talon-node-linux-x64.tar.gz.sha256
+          dist/talon-node-darwin-arm64.tar.gz
+          dist/talon-node-darwin-arm64.tar.gz.sha256
+        )
+        for asset in "${assets[@]}"; do
+          test -s "$asset"
+        done
+        if gh release view "$tag" >/dev/null 2>&1; then
+          gh release upload "$tag" "${assets[@]}" --clobber
+          gh release edit "$tag" --title "$title" --notes "$notes" --latest
+        else
+          gh release create "$tag" "${assets[@]}" --title "$title" --notes "$notes" --latest --target "$GITHUB_SHA"
+        fi
   publish-go:
     name: Publish Go Module Tags
-    if: always() && needs.detect.outputs.go_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result == 'success')
+    if: always() && needs.detect.outputs.go_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result
+      == 'success')
     needs:
-      - detect
-      - publish-node-release
-    runs-on: ubuntu-latest
+    - detect
+    - publish-node-release
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Create and push Go module tags
-        env:
-          GO_CLIENT_CHANGED: ${{ needs.detect.outputs.go_client_changed }}
-          GO_CLIENT_VERSION: ${{ needs.detect.outputs.go_client_version }}
-          GO_SERVER_CHANGED: ${{ needs.detect.outputs.go_server_changed }}
-          GO_SERVER_VERSION: ${{ needs.detect.outputs.go_server_version }}
-        run: |
-          set -euo pipefail
-          tag_if_changed() {
-            local changed="$1"
-            local tag="$2"
-            if [ "$changed" != "true" ]; then
-              return 0
-            fi
-            if git rev-parse "$tag" >/dev/null 2>&1; then
-              echo "Tag $tag already exists; skipping"
-              return 0
-            fi
-            git tag "$tag" "$GITHUB_SHA"
-            git push origin "$tag"
-          }
-          tag_if_changed "$GO_CLIENT_CHANGED" "sdk/go/talon-client/v${GO_CLIENT_VERSION}"
-          tag_if_changed "$GO_SERVER_CHANGED" "sdk/go/talon-server/v${GO_SERVER_VERSION}"
-
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+    - name: Configure Git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+    - name: Create and push Go module tags
+      env:
+        GO_CLIENT_CHANGED: ${{ needs.detect.outputs.go_client_changed }}
+        GO_CLIENT_VERSION: ${{ needs.detect.outputs.go_client_version }}
+        GO_SERVER_CHANGED: ${{ needs.detect.outputs.go_server_changed }}
+        GO_SERVER_VERSION: ${{ needs.detect.outputs.go_server_version }}
+      run: |
+        set -euo pipefail
+        tag_if_changed() {
+          local changed="$1"
+          local tag="$2"
+          if [ "$changed" != "true" ]; then
+            return 0
+          fi
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists; skipping"
+            return 0
+          fi
+          git tag "$tag" "$GITHUB_SHA"
+          git push origin "$tag"
+        }
+        tag_if_changed "$GO_CLIENT_CHANGED" "sdk/go/talon-client/v${GO_CLIENT_VERSION}"
+        tag_if_changed "$GO_SERVER_CHANGED" "sdk/go/talon-server/v${GO_SERVER_VERSION}"
   publish-rust:
     name: Publish Rust Crates
-    if: always() && needs.detect.outputs.rust_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result == 'success')
+    if: always() && needs.detect.outputs.rust_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' ||
+      needs.publish-node-release.result == 'success')
     needs:
-      - detect
-      - publish-node-release
-    runs-on: ubuntu-latest
+    - detect
+    - publish-node-release
+    runs-on: ubuntu-24.04
     env:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust artifacts
-        uses: Swatinem/rust-cache@v2
-
-      - name: Download talon-node binaries
-        if: needs.detect.outputs.rust_server_changed == 'true'
-        uses: actions/download-artifact@v4
-        with:
-          pattern: talon-node-*
-          path: dist
-          merge-multiple: true
-
-      - name: Install talon-node binaries into Rust package
-        if: needs.detect.outputs.rust_server_changed == 'true'
-        run: |
-          set -euo pipefail
-          for platform in linux-x64 darwin-arm64; do
-            mkdir -p "sdk/rust/talon-server/bin/${platform}"
-            tar -xzf "dist/talon-node-${platform}.tar.gz" -C /tmp
-            cp "/tmp/talon-node-${platform}/talon-node" "sdk/rust/talon-server/bin/${platform}/talon-node"
-          done
-
-      - name: Publish changed Rust crates
-        env:
-          RUST_CLIENT_CHANGED: ${{ needs.detect.outputs.rust_client_changed }}
-          RUST_SERVER_CHANGED: ${{ needs.detect.outputs.rust_server_changed }}
-        run: |
-          set -euo pipefail
-          if [ -z "${CARGO_REGISTRY_TOKEN}" ]; then
-            echo "CARGO_REGISTRY_TOKEN is required"
-            exit 1
-          fi
-          if [ "$RUST_CLIENT_CHANGED" = "true" ]; then
-            cargo publish --manifest-path sdk/rust/talon-client/Cargo.toml
-          fi
-          if [ "$RUST_SERVER_CHANGED" = "true" ]; then
-            cargo publish --manifest-path sdk/rust/talon-server/Cargo.toml
-          fi
-
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Test Rust SDK packages with Bazel
+      run: bazel test //sdk/rust/...
+    - name: Set up Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+    - name: Download talon-node binaries
+      if: needs.detect.outputs.rust_server_changed == 'true'
+      uses: actions/download-artifact@v4
+      with:
+        pattern: talon-node-*
+        path: dist
+        merge-multiple: true
+    - name: Install talon-node binaries into Rust package
+      if: needs.detect.outputs.rust_server_changed == 'true'
+      run: |
+        set -euo pipefail
+        for platform in linux-x64 darwin-arm64; do
+          mkdir -p "sdk/rust/talon-server/bin/${platform}"
+          tar -xzf "dist/talon-node-${platform}.tar.gz" -C /tmp
+          cp "/tmp/talon-node-${platform}/talon-node" "sdk/rust/talon-server/bin/${platform}/talon-node"
+        done
+    - name: Publish changed Rust crates
+      env:
+        RUST_CLIENT_CHANGED: ${{ needs.detect.outputs.rust_client_changed }}
+        RUST_SERVER_CHANGED: ${{ needs.detect.outputs.rust_server_changed }}
+      run: |
+        set -euo pipefail
+        if [ -z "${CARGO_REGISTRY_TOKEN}" ]; then
+          echo "CARGO_REGISTRY_TOKEN is required"
+          exit 1
+        fi
+        if [ "$RUST_CLIENT_CHANGED" = "true" ]; then
+          cargo publish --no-verify --manifest-path sdk/rust/talon-client/Cargo.toml
+        fi
+        if [ "$RUST_SERVER_CHANGED" = "true" ]; then
+          cargo publish --no-verify --manifest-path sdk/rust/talon-server/Cargo.toml
+        fi
   publish-npm:
     name: Publish npm Packages
-    if: always() && needs.detect.outputs.sdk_version_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result == 'success')
+    if: always() && needs.detect.outputs.sdk_version_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true'
+      || needs.publish-node-release.result == 'success')
     needs:
-      - detect
-      - publish-node-release
-    runs-on: ubuntu-latest
+    - detect
+    - publish-node-release
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10.17.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org"
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Ensure npm supports trusted publishing
-        run: npm install -g npm@latest
-
-      - name: Verify JS package wiring
-        run: pnpm --dir sdk/js check:packages
-
-      - name: Install JS workspace
-        run: pnpm install --frozen-lockfile
-
-      - name: Download talon-node binaries
-        if: needs.detect.outputs.js_node_linux_changed == 'true' || needs.detect.outputs.js_node_darwin_changed == 'true'
-        uses: actions/download-artifact@v4
-        with:
-          pattern: talon-node-*
-          path: dist
-          merge-multiple: true
-
-      - name: Install talon-node binaries into npm packages
-        if: needs.detect.outputs.js_node_linux_changed == 'true' || needs.detect.outputs.js_node_darwin_changed == 'true'
-        run: |
-          set -euo pipefail
-          if [ "${{ needs.detect.outputs.js_node_linux_changed }}" = "true" ]; then
-            mkdir -p sdk/js/talon-node-linux-x64/bin
-            tar -xzf dist/talon-node-linux-x64.tar.gz -C /tmp
-            cp /tmp/talon-node-linux-x64/talon-node sdk/js/talon-node-linux-x64/bin/talon-node
-            chmod 755 sdk/js/talon-node-linux-x64/bin/talon-node
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '24'
+        registry-url: https://registry.npmjs.org
+        cache: pnpm
+        cache-dependency-path: pnpm-lock.yaml
+    - name: Ensure npm supports trusted publishing
+      run: npm install -g npm@latest
+    - name: Download talon-node binaries
+      if: needs.detect.outputs.js_node_linux_changed == 'true' || needs.detect.outputs.js_node_darwin_changed == 'true'
+      uses: actions/download-artifact@v4
+      with:
+        pattern: talon-node-*
+        path: dist
+        merge-multiple: true
+    - name: Install talon-node binaries into npm packages
+      if: needs.detect.outputs.js_node_linux_changed == 'true' || needs.detect.outputs.js_node_darwin_changed == 'true'
+      run: |
+        set -euo pipefail
+        if [ "${{ needs.detect.outputs.js_node_linux_changed }}" = "true" ]; then
+          mkdir -p sdk/js/talon-node-linux-x64/bin
+          tar -xzf dist/talon-node-linux-x64.tar.gz -C /tmp
+          cp /tmp/talon-node-linux-x64/talon-node sdk/js/talon-node-linux-x64/bin/talon-node
+          chmod 755 sdk/js/talon-node-linux-x64/bin/talon-node
+        fi
+        if [ "${{ needs.detect.outputs.js_node_darwin_changed }}" = "true" ]; then
+          mkdir -p sdk/js/talon-node-darwin-arm64/bin
+          tar -xzf dist/talon-node-darwin-arm64.tar.gz -C /tmp
+          cp /tmp/talon-node-darwin-arm64/talon-node sdk/js/talon-node-darwin-arm64/bin/talon-node
+          chmod 755 sdk/js/talon-node-darwin-arm64/bin/talon-node
+        fi
+    - name: Verify npm binary package executables
+      if: needs.detect.outputs.js_node_linux_changed == 'true' || needs.detect.outputs.js_node_darwin_changed == 'true'
+      run: |
+        set -euo pipefail
+        if [ "${{ needs.detect.outputs.js_node_linux_changed }}" = "true" ]; then
+          test -x sdk/js/talon-node-linux-x64/bin/talon-node
+        fi
+        if [ "${{ needs.detect.outputs.js_node_darwin_changed }}" = "true" ]; then
+          test -x sdk/js/talon-node-darwin-arm64/bin/talon-node
+        fi
+    - name: Validate SDKs and packed chat artifact
+      run: bazel test //scripts/sdk:packages_test //sdk/js/... //packages/talon-chat:unit_tests //packages/talon-chat:package_test
+    - name: Publish changed npm packages
+      env:
+        SDK_VERSION: ${{ needs.detect.outputs.sdk_version }}
+      run: |
+        set -euo pipefail
+        publish_at_sdk_version() {
+          local package="$1"
+          local package_path="$2"
+          if npm view "${package}@${SDK_VERSION}" version >/dev/null 2>&1; then
+            echo "${package}@${SDK_VERSION} already exists; skipping"
+            return 0
           fi
-          if [ "${{ needs.detect.outputs.js_node_darwin_changed }}" = "true" ]; then
-            mkdir -p sdk/js/talon-node-darwin-arm64/bin
-            tar -xzf dist/talon-node-darwin-arm64.tar.gz -C /tmp
-            cp /tmp/talon-node-darwin-arm64/talon-node sdk/js/talon-node-darwin-arm64/bin/talon-node
-            chmod 755 sdk/js/talon-node-darwin-arm64/bin/talon-node
-          fi
-
-      - name: Verify npm binary package executables
-        if: needs.detect.outputs.js_node_linux_changed == 'true' || needs.detect.outputs.js_node_darwin_changed == 'true'
-        run: |
-          set -euo pipefail
-          if [ "${{ needs.detect.outputs.js_node_linux_changed }}" = "true" ]; then
-            test -x sdk/js/talon-node-linux-x64/bin/talon-node
-          fi
-          if [ "${{ needs.detect.outputs.js_node_darwin_changed }}" = "true" ]; then
-            test -x sdk/js/talon-node-darwin-arm64/bin/talon-node
-          fi
-
-      - name: Verify npm binary package tarball executables
-        if: needs.detect.outputs.js_node_linux_changed == 'true' || needs.detect.outputs.js_node_darwin_changed == 'true'
-        run: |
-          set -euo pipefail
-          verify_packed_binary() {
-            local package_path="$1"
-            local pack_dir
-            pack_dir="$(mktemp -d)"
-            pnpm --dir "$package_path" pack --pack-destination "$pack_dir"
-            tar -tvf "$pack_dir"/*.tgz | grep -E '^-rwxr-xr-x .*package/bin/talon-node$'
-          }
-          if [ "${{ needs.detect.outputs.js_node_linux_changed }}" = "true" ]; then
-            verify_packed_binary sdk/js/talon-node-linux-x64
-          fi
-          if [ "${{ needs.detect.outputs.js_node_darwin_changed }}" = "true" ]; then
-            verify_packed_binary sdk/js/talon-node-darwin-arm64
-          fi
-
-      - name: Build Talon chat package
-        run: pnpm --filter @impalasys/talon-chat build
-
-      - name: Verify Talon chat package artifact
-        run: pnpm --filter @impalasys/talon-chat test:package
-
-      - name: Build JS SDK packages
-        run: |
-          pnpm --filter @impalasys/talon-client build
-          pnpm --filter @impalasys/talon-server build
-
-      - name: Publish changed npm packages
-        env:
-          SDK_VERSION: ${{ needs.detect.outputs.sdk_version }}
-        run: |
-          set -euo pipefail
-          publish_at_sdk_version() {
-            local package="$1"
-            local package_path="$2"
-            if npm view "${package}@${SDK_VERSION}" version >/dev/null 2>&1; then
-              echo "${package}@${SDK_VERSION} already exists; skipping"
-              return 0
-            fi
-            local pack_dir
-            pack_dir="$(mktemp -d)"
-            pnpm --dir "$package_path" pack --pack-destination "$pack_dir"
-            npm publish "$pack_dir"/*.tgz --access public
-          }
-          publish_at_sdk_version "@impalasys/talon-chat" "packages/talon-chat"
-          publish_at_sdk_version "@impalasys/talon-node-linux-x64" "sdk/js/talon-node-linux-x64"
-          publish_at_sdk_version "@impalasys/talon-node-darwin-arm64" "sdk/js/talon-node-darwin-arm64"
-          publish_at_sdk_version "@impalasys/talon-client" "sdk/js/talon-client"
-          publish_at_sdk_version "@impalasys/talon-server" "sdk/js/talon-server"
-
+          bazel build "//${package_path}:archive"
+          npm publish "bazel-bin/${package_path}/archive.tgz" --access public
+        }
+        publish_at_sdk_version "@impalasys/talon-chat" "packages/talon-chat"
+        publish_at_sdk_version "@impalasys/talon-node-linux-x64" "sdk/js/talon-node-linux-x64"
+        publish_at_sdk_version "@impalasys/talon-node-darwin-arm64" "sdk/js/talon-node-darwin-arm64"
+        publish_at_sdk_version "@impalasys/talon-client" "sdk/js/talon-client"
+        publish_at_sdk_version "@impalasys/talon-server" "sdk/js/talon-server"
   publish-python:
     name: Publish Python Packages
-    if: always() && needs.detect.outputs.python_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result == 'success')
+    if: always() && needs.detect.outputs.python_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' ||
+      needs.publish-node-release.result == 'success')
     needs:
-      - detect
-      - publish-node-release
-    runs-on: ubuntu-latest
+    - detect
+    - publish-node-release
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-          cache: "pip"
-          cache-dependency-path: |
-            sdk/python/talon-client/pyproject.toml
-            sdk/python/talon-server/pyproject.toml
-
-      - name: Install Python build dependencies
-        run: |
-          set -euo pipefail
-          python -m pip install build
-
-      - name: Build Python client package
-        if: needs.detect.outputs.python_client_changed == 'true'
-        run: python -m build sdk/python/talon-client --outdir sdk/python/dist/client
-
-      - name: Publish Python client to PyPI
-        if: needs.detect.outputs.python_client_changed == 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: sdk/python/dist/client
-          skip-existing: true
-
-      - name: Build Python server package
-        if: needs.detect.outputs.python_server_changed == 'true'
-        run: python -m build sdk/python/talon-server --outdir sdk/python/dist/server
-
-      - name: Publish Python server to PyPI
-        if: needs.detect.outputs.python_server_changed == 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: sdk/python/dist/server
-          skip-existing: true
-
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Build Python client package
+      if: needs.detect.outputs.python_client_changed == 'true'
+      run: bazel build //sdk/python/talon-client:dist
+    - name: Publish Python client to PyPI
+      if: needs.detect.outputs.python_client_changed == 'true'
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages-dir: bazel-bin/sdk/python/talon-client/dist/
+        skip-existing: true
+    - name: Build Python server package
+      if: needs.detect.outputs.python_server_changed == 'true'
+      run: bazel build //sdk/python/talon-server:dist
+    - name: Publish Python server to PyPI
+      if: needs.detect.outputs.python_server_changed == 'true'
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages-dir: bazel-bin/sdk/python/talon-server/dist/
+        skip-existing: true
   publish-java:
     name: Publish Java Packages
-    if: always() && needs.detect.outputs.java_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result == 'success')
+    if: always() && needs.detect.outputs.java_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' ||
+      needs.publish-node-release.result == 'success')
     needs:
-      - detect
-      - publish-node-release
-    runs-on: ubuntu-latest
+    - detect
+    - publish-node-release
+    runs-on: ubuntu-24.04
     env:
       MAVEN_PUBLISH_URL: ${{ secrets.MAVEN_PUBLISH_URL }}
       MAVEN_PUBLISH_USERNAME: ${{ secrets.MAVEN_PUBLISH_USERNAME }}
       MAVEN_PUBLISH_PASSWORD: ${{ secrets.MAVEN_PUBLISH_PASSWORD }}
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-version: "8.14.3"
-
-      - name: Publish Java SDKs
-        working-directory: sdk/java
-        run: |
-          set -euo pipefail
-          if [ -z "${MAVEN_PUBLISH_URL}" ]; then
-            echo "MAVEN_PUBLISH_URL is required"
-            exit 1
-          fi
-          gradle publish
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Build and publish native Java artifacts
+      run: |-
+        test -n "$MAVEN_PUBLISH_URL"
+        export MAVEN_REPO="$MAVEN_PUBLISH_URL" MAVEN_USER="$MAVEN_PUBLISH_USERNAME" MAVEN_PASSWORD="$MAVEN_PUBLISH_PASSWORD"
+        bazel test //sdk/java/...
+        bazel run //sdk/java/talon-client:talon_client.publish
+        bazel run //sdk/java/talon-server:talon_server.publish
+'on':
+  push:
+    branches:
+    - main
+    paths:
+    - sdk/**
+    - packages/talon-chat/**
+    - proto/**
+    - scripts/sdk/**
+    - buf.gen.sdk.yaml
+    - pnpm-lock.yaml
+  workflow_dispatch: null

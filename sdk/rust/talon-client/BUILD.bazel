@@ -1,6 +1,6 @@
 load("@crates//:defs.bzl", "aliases", "all_crate_deps")
 load("@rules_rust//cargo:defs.bzl", "cargo_toml_env_vars")
-load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_doc_test", "rust_library", "rust_test")
 
 exports_files(["Cargo.toml"])
 
@@ -11,8 +11,12 @@ cargo_toml_env_vars(
 
 rust_library(
     name = "talon_client",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(
+        ["src/**/*.rs"],
+        exclude = ["src/generated/**"],
+    ),
     aliases = aliases(package_name = "talon/sdk/rust/talon-client"),
+    compile_data = glob(["src/generated/**/*.rs"]),
     crate_root = "src/lib.rs",
     edition = "2021",
     proc_macro_deps = all_crate_deps(
@@ -39,4 +43,15 @@ rust_test(
         package_name = "talon/sdk/rust/talon-client",
         normal_dev = True,
     ),
+)
+
+rust_doc_test(
+    name = "doc_tests",
+    crate = ":talon_client",
+)
+
+filegroup(
+    name = "generated_sources",
+    srcs = glob(["src/generated/**"]),
+    visibility = ["//visibility:public"],
 )

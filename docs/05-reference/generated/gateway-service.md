@@ -11,7 +11,7 @@ The Talon gateway API is defined by the domain service files in `proto/talon/v1/
 - Package: `talon.v1`
 - Services: `NamespaceService`, `ResourceService`, `SessionService`, `ChannelService`, `WorkflowService`, `KnowledgeService`, `AuthService`, `ConnectorService`, `SearchService`
 - Transport modes: native gRPC and gRPC-Web on the gateway port
-- Total RPC methods: **45**
+- Total RPC methods: **48**
 
 ## NamespaceService
 
@@ -79,6 +79,11 @@ The Talon gateway API is defined by the domain service files in `proto/talon/v1/
 - Request: `ListSessionMessagesRequest`
 - Response: `ListSessionMessagesResponse`
 
+### `ListQueuedMessages`
+
+- Request: `ListQueuedSessionMessagesRequest`
+- Response: `ListQueuedSessionMessagesResponse`
+
 ### `Delete`
 
 - Request: `DeleteSessionRequest`
@@ -88,6 +93,16 @@ The Talon gateway API is defined by the domain service files in `proto/talon/v1/
 
 - Request: `ClearSessionRequest`
 - Response: `ClearSessionResponse`
+
+### `Compact`
+
+- Request: `CompactSessionRequest`
+- Response: `talon.events.SessionMessagePartEvent` (server stream)
+
+### `Doctor`
+
+- Request: `DoctorSessionRequest`
+- Response: `DoctorSessionResponse`
 
 ### `SendMessage`
 

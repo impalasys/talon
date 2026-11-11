@@ -1,7 +1,11 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_deps")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@rules_rust//cargo:defs.bzl", "cargo_build_script", "cargo_toml_env_vars")
-load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_doc_test", "rust_library", "rust_test", "rustfmt_test")
+load("//tools/bazel:artifacts.bzl", "release_distribution")
+load("//tools/bazel:configured_files.bzl", "configured_files")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -17,12 +21,12 @@ npm_link_all_packages(name = "node_modules")
 
 config_setting(
     name = "aws",
-    define_values = {"talon_aws": "true"},
+    flag_values = {":with_aws": "true"},
 )
 
 config_setting(
     name = "rocksdb",
-    define_values = {"talon_rocksdb": "true"},
+    flag_values = {":with_rocksdb": "true"},
 )
 
 _FEATURES = select({
@@ -30,6 +34,14 @@ _FEATURES = select({
     "//conditions:default": [],
 }) + select({
     ":rocksdb": ["rocksdb"],
+    "//conditions:default": [],
+})
+
+_FEATURES += select({
+    ":cpu-profile": ["cpu-profile"],
+    "//conditions:default": [],
+}) + select({
+    ":heap-profile": ["heap-profile"],
     "//conditions:default": [],
 })
 
@@ -50,6 +62,23 @@ _RUNTIME_DEPS = all_crate_deps(
 }) + select({
     ":rocksdb": crate_deps(
         ["rocksdb"],
+        package_name = "tools/talon-bazel-features",
+    ),
+    "//conditions:default": [],
+})
+
+_RUNTIME_DEPS += select({
+    ":cpu-profile": crate_deps(
+        ["pprof"],
+        package_name = "tools/talon-bazel-features",
+    ),
+    "//conditions:default": [],
+}) + select({
+    ":heap-profile": crate_deps(
+        [
+            "tikv-jemallocator",
+            "tikv-jemalloc-ctl",
+        ],
         package_name = "tools/talon-bazel-features",
     ),
     "//conditions:default": [],
@@ -150,7 +179,7 @@ rust_library(
 
 rust_binary(
     name = "talon-mock-acp",
-    srcs = ["tests/fixtures/mock_acp.rs"],
+    srcs = ["//tests:fixtures/mock_acp.rs"],
     edition = "2021",
     rustc_env_files = [":cargo_env"],
     deps = crate_deps(
@@ -203,7 +232,7 @@ rust_test(
 [
     rust_test(
         name = name + "_test",
-        srcs = ["tests/" + name + ".rs"],
+        srcs = ["//tests:" + name + ".rs"],
         aliases = aliases(
             package_name = "talon",
             normal_dev = True,
@@ -268,3 +297,141 @@ rust_test(
         "node",
     ]
 ]
+
+configured_files(
+    name = "production_binaries",
+    release = True,
+    targets = [":binaries"],
+)
+
+configured_files(
+    name = "e2e_binaries",
+    release = True,
+    targets = [":binaries"],
+)
+
+config_setting(
+    name = "linux_x86_64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+config_setting(
+    name = "linux_arm64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
+config_setting(
+    name = "darwin_arm64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
+release_distribution(
+    name = "release-dist",
+    binaries = ":production_binaries",
+    configs = ":runtime_data",
+    platform = select({
+        ":linux_x86_64": "linux-x86_64",
+        ":linux_arm64": "linux-aarch64",
+        ":darwin_arm64": "darwin-arm64",
+        "//conditions:default": "darwin-x86_64",
+    }),
+    sdk_platform = select({
+        ":linux_x86_64": "linux-x64",
+        ":linux_arm64": "linux-arm64",
+        ":darwin_arm64": "darwin-arm64",
+        "//conditions:default": "darwin-x64",
+    }),
+)
+
+filegroup(
+    name = "proto_sources",
+    srcs = glob([
+        "proto/**",
+        "third_party/**",
+    ]),
+)
+
+filegroup(
+    name = "test_fixtures",
+    srcs = ["src/control/security/test_rsa_private_key.pem"] + glob(["models/**"]) + [
+        "models.yaml",
+        "talon.docker-compose.yaml",
+        "talon.yaml",
+    ],
+)
+
+bool_flag(
+    name = "with_aws",
+    build_setting_default = False,
+)
+
+bool_flag(
+    name = "with_rocksdb",
+    build_setting_default = False,
+)
+
+filegroup(
+    name = "cli_sources",
+    srcs = glob(["src/cli/**"]),
+    visibility = ["//visibility:public"],
+)
+
+rust_doc_test(
+    name = "doc_tests",
+    crate = ":talon",
+)
+
+rustfmt_test(
+    name = "format_test",
+    targets = [
+        ":talon",
+        ":talon-server",
+        ":talon-worker",
+        ":talon-cli",
+        ":talon-node",
+        ":talon-mock-acp",
+        ":mock_acp_cli_test",
+        ":monty_embedded_test",
+        ":postgres_tls_startup_test",
+        "//sdk/rust/talon-client:talon_client",
+        "//sdk/rust/talon-server:talon_server",
+        "//sdk/rust/tools/codegen:codegen",
+        "//sdk/examples/rust:example",
+        "//tools/install-hooks:install-hooks",
+    ],
+)
+
+bool_flag(
+    name = "with_cpu_profile",
+    build_setting_default = False,
+)
+
+bool_flag(
+    name = "with_heap_profile",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "cpu-profile",
+    flag_values = {":with_cpu_profile": "true"},
+)
+
+config_setting(
+    name = "heap-profile",
+    flag_values = {":with_heap_profile": "true"},
+)
+
+js_library(
+    name = "proto_js",
+    srcs = [":proto_sources"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,50 @@
+load("@rules_python//python:defs.bzl", "py_test")
+
+filegroup(
+    name = "sources",
+    srcs = glob(["*.py"]),
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "resource_proto_test",
+    srcs = ["check_resource_proto_oneofs.py"],
+    data = ["//:proto_sources"],
+    main = "check_resource_proto_oneofs.py",
+)
+
+py_test(
+    name = "resource_cli_test",
+    srcs = ["check_resource_cli_support.py"],
+    data = [
+        "//:cli_sources",
+        "//:proto_sources",
+    ],
+    main = "check_resource_cli_support.py",
+)
+
+py_test(
+    name = "resource_cli_unit_test",
+    srcs = [
+        "check_resource_cli_support.py",
+        "test_check_resource_cli_support.py",
+    ],
+    data = [
+        "//:cli_sources",
+        "//:proto_sources",
+    ],
+    main = "test_check_resource_cli_support.py",
+)
+
+py_test(
+    name = "dependency_sync_test",
+    srcs = ["sync_bazel_dependencies.py"],
+    args = ["--check"],
+    data = [
+        "//:Cargo.lock",
+        "//:Cargo.toml",
+        "//tools/bazel:Cargo.lock",
+        "//tools/bazel:Cargo.toml",
+    ],
+    main = "sync_bazel_dependencies.py",
+)
