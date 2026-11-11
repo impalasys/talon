@@ -1,0 +1,270 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_deps")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@rules_rust//cargo:defs.bzl", "cargo_build_script", "cargo_toml_env_vars")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "Cargo.toml",
+    "Cargo.lock",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    ".bazelignore",
+])
+
+npm_link_all_packages(name = "node_modules")
+
+config_setting(
+    name = "aws",
+    define_values = {"talon_aws": "true"},
+)
+
+config_setting(
+    name = "rocksdb",
+    define_values = {"talon_rocksdb": "true"},
+)
+
+_FEATURES = select({
+    ":aws": ["aws"],
+    "//conditions:default": [],
+}) + select({
+    ":rocksdb": ["rocksdb"],
+    "//conditions:default": [],
+})
+
+# With multiple manifests, crate_universe keys the root package by its Cargo name.
+_RUNTIME_DEPS = all_crate_deps(
+    package_name = "talon",
+    normal = True,
+) + select({
+    ":aws": crate_deps(
+        [
+            "aws-sdk-dynamodb",
+            "aws-sdk-scheduler",
+            "aws-sdk-sqs",
+        ],
+        package_name = "tools/talon-bazel-features",
+    ),
+    "//conditions:default": [],
+}) + select({
+    ":rocksdb": crate_deps(
+        ["rocksdb"],
+        package_name = "tools/talon-bazel-features",
+    ),
+    "//conditions:default": [],
+})
+
+cargo_toml_env_vars(
+    name = "cargo_env",
+    src = "Cargo.toml",
+)
+
+cargo_build_script(
+    name = "build_script",
+    srcs = ["build.rs"],
+    aliases = aliases(
+        package_name = "talon",
+        build = True,
+        build_proc_macro = True,
+    ),
+    build_script_env = {"PROTOC": "$(execpath //tools/bazel:protoc)"},
+    build_script_env_files = [":cargo_env"],
+    crate_name = "talon_build_script",
+    data = glob([
+        "proto/**/*.proto",
+        "third_party/googleapis/**/*.proto",
+    ]),
+    edition = "2021",
+    pkg_name = "talon",
+    proc_macro_deps = all_crate_deps(
+        package_name = "talon",
+        build_proc_macro = True,
+    ),
+    rustc_env_files = [":cargo_env"],
+    tools = ["//tools/bazel:protoc"],
+    deps = all_crate_deps(
+        package_name = "talon",
+        build = True,
+    ),
+)
+
+filegroup(
+    name = "runtime_data",
+    srcs = glob(["models/**/*.yaml"]) + [
+        "models.yaml",
+        "talon.docker-compose.yaml",
+        "talon.yaml",
+    ],
+)
+
+rust_library(
+    name = "talon",
+    srcs = glob(
+        ["src/**/*.rs"],
+        exclude = ["src/bin/*.rs"],
+    ),
+    aliases = aliases(package_name = "talon"),
+    compile_data = glob(["src/**/testdata/**"]) + [
+        "proto/resources.toml",
+        "src/control/security/test_rsa_private_key.pem",
+        ":runtime_data",
+    ],
+    crate_features = _FEATURES,
+    crate_root = "src/lib.rs",
+    edition = "2021",
+    proc_macro_deps = all_crate_deps(
+        package_name = "talon",
+        proc_macro = True,
+    ),
+    rustc_env_files = [":cargo_env"],
+    deps = _RUNTIME_DEPS + [
+        ":build_script",
+        "//sdk/rust/talon-client:talon_client",
+    ],
+)
+
+[
+    rust_binary(
+        name = "talon-" + name,
+        srcs = ["src/bin/" + source + ".rs"],
+        aliases = aliases(package_name = "talon"),
+        compile_data = ["src/control/security/test_rsa_private_key.pem"],
+        crate_features = _FEATURES,
+        crate_name = "talon_" + name,
+        edition = "2021",
+        proc_macro_deps = all_crate_deps(
+            package_name = "talon",
+            proc_macro = True,
+        ),
+        rustc_env_files = [":cargo_env"],
+        deps = _RUNTIME_DEPS + [":talon"],
+    )
+    for name, source in [
+        ("server", "server"),
+        ("worker", "worker"),
+        ("cli", "cli"),
+        ("node", "node"),
+    ]
+]
+
+rust_binary(
+    name = "talon-mock-acp",
+    srcs = ["tests/fixtures/mock_acp.rs"],
+    edition = "2021",
+    rustc_env_files = [":cargo_env"],
+    deps = crate_deps(
+        [
+            "anyhow",
+            "serde",
+            "serde_json",
+            "tokio",
+        ],
+        package_name = "talon",
+    ),
+)
+
+filegroup(
+    name = "binaries",
+    srcs = [
+        ":talon-cli",
+        ":talon-node",
+        ":talon-server",
+        ":talon-worker",
+    ],
+)
+
+rust_test(
+    name = "talon_test",
+    aliases = aliases(
+        package_name = "talon",
+        normal_dev = True,
+        proc_macro_dev = True,
+    ),
+    crate = ":talon",
+    crate_features = _FEATURES,
+    data = [":runtime_data"],
+    edition = "2021",
+    proc_macro_deps = all_crate_deps(
+        package_name = "talon",
+        proc_macro_dev = True,
+    ),
+    rustc_env = {"CARGO_MANIFEST_DIR": "."},
+    tags = [
+        "no-remote-exec",
+        "requires-docker",
+    ],
+    deps = all_crate_deps(
+        package_name = "talon",
+        normal_dev = True,
+    ),
+)
+
+[
+    rust_test(
+        name = name + "_test",
+        srcs = ["tests/" + name + ".rs"],
+        aliases = aliases(
+            package_name = "talon",
+            normal_dev = True,
+            proc_macro_dev = True,
+        ),
+        compile_data = ["src/control/security/test_rsa_private_key.pem"],
+        data = [
+            ":talon-mock-acp",
+            ":talon-node",
+            ":talon-server",
+            ":talon-worker",
+        ],
+        edition = "2021",
+        proc_macro_deps = all_crate_deps(
+            package_name = "talon",
+            proc_macro = True,
+            proc_macro_dev = True,
+        ),
+        rustc_env = {
+            "CARGO_BIN_EXE_talon-server": "./$(rootpath :talon-server)",
+            "CARGO_BIN_EXE_talon-worker": "./$(rootpath :talon-worker)",
+            "CARGO_BIN_EXE_talon-node": "./$(rootpath :talon-node)",
+            "CARGO_BIN_EXE_talon-mock-acp": "./$(rootpath :talon-mock-acp)",
+        },
+        deps = _RUNTIME_DEPS + all_crate_deps(
+            package_name = "talon",
+            normal_dev = True,
+        ) + [":talon"],
+    )
+    for name in [
+        "mock_acp_cli",
+        "monty_embedded",
+        "postgres_tls_startup",
+    ]
+]
+
+# Cargo also runs unit tests declared inside each binary.
+[
+    rust_test(
+        name = "talon_" + name + "_test",
+        aliases = aliases(
+            package_name = "talon",
+            normal_dev = True,
+            proc_macro_dev = True,
+        ),
+        crate = ":talon-" + name,
+        crate_features = _FEATURES,
+        edition = "2021",
+        proc_macro_deps = all_crate_deps(
+            package_name = "talon",
+            proc_macro_dev = True,
+        ),
+        deps = all_crate_deps(
+            package_name = "talon",
+            normal_dev = True,
+        ),
+    )
+    for name in [
+        "server",
+        "worker",
+        "cli",
+        "node",
+    ]
+]

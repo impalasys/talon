@@ -1,7 +1,7 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@npm//:defs.bzl", "npm_link_all_packages")
-load("@npm//talon/sdk/js/talon-client:typescript/package_json.bzl", typescript_bin = "bin")
+load("@npm//sdk/js/talon-client:typescript/package_json.bzl", typescript_bin = "bin")
 
 npm_link_all_packages(name = "node_modules")
 
@@ -53,8 +53,8 @@ npm_package(
     name = "pkg",
     srcs = [
         "package.json",
-        ":data",
         ":build",
+        ":data",
     ],
     visibility = ["//visibility:public"],
 )

@@ -12,15 +12,8 @@ use std::path::{Component, Path, PathBuf};
 pub mod llm_auth;
 pub mod secrets;
 
-// The generated code's location depends on the build system (Cargo vs. Bazel)
-#[cfg(not(feature = "bazel"))]
 pub mod proto {
     include!(concat!(env!("OUT_DIR"), "/talon.config.rs"));
-}
-
-#[cfg(feature = "bazel")]
-pub mod proto {
-    pub use talon_config_proto::talon::config::*;
 }
 
 pub use proto::{

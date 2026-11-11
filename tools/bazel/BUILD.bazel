@@ -1,0 +1,11 @@
+load(":protoc.bzl", "protoc_binary")
+
+exports_files([
+    "Cargo.toml",
+    "Cargo.lock",
+])
+
+protoc_binary(
+    name = "protoc",
+    visibility = ["//visibility:public"],
+)

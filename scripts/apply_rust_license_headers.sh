@@ -6,7 +6,9 @@ cd "$ROOT"
 
 files=()
 while IFS= read -r -d '' file; do
-  files+=("$file")
+  if [[ -f "$file" ]]; then
+    files+=("$file")
+  fi
 done < <(git ls-files -z '*.rs')
 
 if [[ "${#files[@]}" -eq 0 ]]; then

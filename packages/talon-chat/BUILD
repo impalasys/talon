@@ -1,7 +1,7 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@npm//:defs.bzl", "npm_link_all_packages")
-load("@npm//talon/packages/talon-chat:typescript/package_json.bzl", typescript_bin = "bin")
+load("@npm//packages/talon-chat:tsup/package_json.bzl", tsup_bin = "bin")
 
 npm_link_all_packages(name = "node_modules")
 
@@ -14,6 +14,8 @@ filegroup(
             "src/**/*.ts",
             "src/**/*.tsx",
             "tsconfig.json",
+            "tsup.config.ts",
+            "README.md",
         ],
         exclude = [
             "src/**/*.stories.tsx",
@@ -30,8 +32,8 @@ js_library(
     visibility = ["//visibility:public"],
 )
 
-typescript_bin.tsc_binary(
-    name = "tsc",
+tsup_bin.tsup_binary(
+    name = "tsup",
     data = [":node_modules"],
     visibility = ["//visibility:private"],
 )
@@ -43,12 +45,12 @@ js_run_binary(
         ":srcs",
     ],
     args = [
-        "-p",
-        "tsconfig.json",
+        "--config",
+        "tsup.config.ts",
     ],
     chdir = package_name(),
     out_dirs = ["dist"],
-    tool = ":tsc",
+    tool = ":tsup",
     visibility = ["//visibility:public"],
 )
 
@@ -62,9 +64,9 @@ npm_package(
     name = "pkg",
     srcs = [
         "package.json",
-        ":data",
         ":build",
+        ":data",
     ],
-    data = ["//talon/sdk/js/talon-client:pkg"],
+    data = ["//sdk/js/talon-client:pkg"],
     visibility = ["//visibility:public"],
 )

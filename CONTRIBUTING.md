@@ -17,7 +17,7 @@ Do not add private infrastructure, secrets, or deployment configuration.
 ```text
 src/                  Rust runtime, gateway, worker, control plane, CLI
 src/bin/              talon-server, talon-worker, talon-cli entrypoints
-ui/                   Next.js operator UI
+ui/                   Vite operator UI
 packages/talon-chat/ React client package for Talon-backed chat surfaces
 sdk/                  Client packages and examples
 proto/                Protobuf service and schema definitions
@@ -51,6 +51,19 @@ The `Talon CLA Agreement` check updates automatically after the comment is
 posted.
 
 ## Validation
+
+Talon’s Bazel configuration and labels are rooted in this standalone repository.
+
+Install Bazelisk, then build and test using the pinned Bazel and Rust versions:
+
+```bash
+bazel build //:binaries
+bazel test //...
+```
+
+The Rust library tests need Docker. See [the Bazel guide](./docs/95-contributing/02-bazel.md)
+for feature configurations, frontend targets, dependency updates, and optional
+BuildBuddy caching. Cargo and pnpm remain supported as described below.
 
 To enable the repository pre-push hook in a worktree, run:
 

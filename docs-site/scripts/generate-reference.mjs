@@ -58,13 +58,13 @@ sidebar:
   order: 1
 ---
 
-This section is generated from Talon's canonical source files in the monorepo:
+This section is generated from Talon's canonical source files in this repository:
 
-- \`talon/proto/talon/v1/*.proto\`
-- \`talon/proto/config.proto\`
-- \`talon/proto/resources/*.proto\`
-- \`talon/proto/data/*.proto\`
-- \`talon/proto/external/*.proto\`
+- \`proto/talon/v1/*.proto\`
+- \`proto/config.proto\`
+- \`proto/resources/*.proto\`
+- \`proto/data/*.proto\`
+- \`proto/external/*.proto\`
 
 The generated pages are intentionally static artifacts checked into the repo so API changes are reviewable in pull requests.
 `,
@@ -97,7 +97,7 @@ await generateSchemaReference({
   title: "Manifest Schema",
   slug: "manifests-schema",
   intro:
-    "This page summarizes the control-plane resource messages used by Talon manifests. The YAML manifests in `talon/manifests/**` compile into these durable resource shapes.",
+    "This page summarizes the control-plane resource messages used by Talon manifests. The YAML manifests in `manifests/**` compile into these durable resource shapes.",
 });
 
 async function generateGatewayReference() {

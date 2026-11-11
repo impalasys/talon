@@ -1,0 +1,43 @@
+module(
+    name = "talon",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "rules_rust", version = "0.75.0")
+bazel_dep(name = "protobuf", version = "36.2")
+bazel_dep(name = "aspect_rules_js", version = "3.6.0")
+bazel_dep(name = "rules_nodejs", version = "6.7.7")
+
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = "2021",
+    versions = ["1.95.0"],
+)
+
+crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+crate.from_cargo(
+    name = "crates",
+    cargo_lockfile = "//tools/bazel:Cargo.lock",
+    manifests = [
+        "//:Cargo.toml",
+        "//tools/bazel:Cargo.toml",
+    ],
+    supported_platform_triples = [
+        "aarch64-apple-darwin",
+        "aarch64-unknown-linux-gnu",
+        "x86_64-apple-darwin",
+        "x86_64-unknown-linux-gnu",
+    ],
+)
+use_repo(crate, "crates")
+
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(node_version = "22.21.1")
+
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+npm.npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
+)
+use_repo(npm, "npm")

@@ -1,0 +1,24 @@
+common --enable_bzlmod
+build --incompatible_strict_action_env
+build --enable_platform_specific_config
+build --verbose_failures
+build --@protobuf//bazel/toolchains:prefer_prebuilt_protoc
+test --test_output=errors
+test --test_env=PATH
+test --test_env=DOCKER_HOST
+
+build:release --compilation_mode=opt
+build:aws --define=talon_aws=true
+build:rocksdb --define=talon_rocksdb=true
+
+# Rust 1.95's stripped Mach-O proc-macros cannot be loaded on macOS.
+build:macos --@rules_rust//rust/settings:extra_exec_rustc_flags=-Cstrip=none
+
+# Opt in after configuring authentication in .bazelrc.local or CI.
+build:buildbuddy --bes_results_url=https://app.buildbuddy.io/invocation/
+build:buildbuddy --bes_backend=grpcs://remote.buildbuddy.io
+build:buildbuddy --remote_cache=grpcs://remote.buildbuddy.io
+build:buildbuddy --remote_timeout=10m
+build:buildbuddy --remote_cache_compression
+
+try-import %workspace%/.bazelrc.local

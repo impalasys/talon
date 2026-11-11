@@ -1,24 +1,28 @@
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
 load("@npm//:defs.bzl", "npm_link_all_packages")
-load("@npm//talon/ui:typescript/package_json.bzl", typescript_bin = "bin")
-load("@npm//talon/ui:vite/package_json.bzl", vite_bin = "bin")
+load("@npm//ui:typescript/package_json.bzl", typescript_bin = "bin")
+load("@npm//ui:vite/package_json.bzl", vite_bin = "bin")
 
 npm_link_all_packages(name = "node_modules")
 
 filegroup(
     name = "srcs",
-    srcs = glob([
-        "**/*.css",
-        "**/*.d.ts",
-        "**/*.html",
-        "**/*.json",
-        "**/*.mts",
-        "**/*.ts",
-        "**/*.tsx",
-        "package.json",
-        "tsconfig.json",
-        "vite.config.ts",
-    ], exclude = ["node_modules/**"], allow_empty = True),
+    srcs = glob(
+        [
+            "**/*.css",
+            "**/*.d.ts",
+            "**/*.html",
+            "**/*.json",
+            "**/*.mts",
+            "**/*.ts",
+            "**/*.tsx",
+            "package.json",
+            "tsconfig.json",
+            "vite.config.ts",
+        ],
+        allow_empty = True,
+        exclude = ["node_modules/**"],
+    ),
     visibility = ["//visibility:private"],
 )
 
@@ -32,8 +36,8 @@ typescript_bin.tsc_test(
     data = [
         ":node_modules",
         ":srcs",
-        "//talon/packages/talon-chat:src",
-        "//talon/sdk/js/talon-client:src",
+        "//packages/talon-chat:src",
+        "//sdk/js/talon-client:src",
     ],
     tags = ["pre-push"],
 )
@@ -43,8 +47,8 @@ vite_bin.vite_binary(
     data = [
         ":node_modules",
         ":srcs",
-        "//talon/packages/talon-chat:src",
-        "//talon/sdk/js/talon-client:src",
+        "//packages/talon-chat:src",
+        "//sdk/js/talon-client:src",
     ],
     visibility = ["//visibility:private"],
 )

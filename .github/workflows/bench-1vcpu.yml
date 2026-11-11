@@ -1,9 +1,7 @@
 name: Talon 1 vCPU Benchmark
 
-# Managed by Copybara from impalasys/code.
-# Keep this repo-root workflow mirrored from the monorepo overlay.
 # PR reporting is handled by pr-report.yml; mirror this producer/reporter split
-# in the upstream overlay before changing the source workflow again.
+# when changing this workflow.
 
 on:
   pull_request:
@@ -19,7 +17,6 @@ on:
   push:
     branches:
       - main
-      - "internal-preview/**"
     paths:
       - ".github/workflows/bench-1vcpu.yml"
       - "bench/**"

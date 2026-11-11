@@ -176,8 +176,8 @@ def get_runfile_binary_path(name: str) -> str | None:
     repo = runfiles_manifest.CurrentRepository()
     for candidate in binary_candidates(name):
         for runfile in (
-            f"{repo}/talon/{candidate}" if repo else None,
-            f"_main/talon/{candidate}",
+            f"{repo}/{candidate}" if repo else None,
+            f"_main/{candidate}",
             f"talon/{candidate}",
         ):
             if runfile is None:
@@ -193,7 +193,7 @@ def get_binary_path(name: str) -> str:
     workspace = os.environ.get("BUILD_WORKSPACE_DIRECTORY")
     for candidate in binary_candidates(name):
         if workspace:
-            path = Path(workspace) / "bazel-bin" / "talon" / candidate
+            path = Path(workspace) / "bazel-bin" / candidate
             if path.exists():
                 return str(path)
 
@@ -201,7 +201,7 @@ def get_binary_path(name: str) -> str:
         if runfile_path:
             return runfile_path
 
-        for base in (REPO_ROOT / "bazel-bin" / "talon", REPO_ROOT / "target" / "debug", REPO_ROOT / "target" / "release"):
+        for base in (REPO_ROOT / "bazel-bin", REPO_ROOT / "target" / "debug", REPO_ROOT / "target" / "release"):
             path = base / candidate
             if path.exists():
                 return str(path)

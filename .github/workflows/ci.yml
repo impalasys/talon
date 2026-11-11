@@ -1,16 +1,12 @@
 name: Talon OSS CI
 
-# Managed by Copybara from impalasys/code.
-# Keep this repo-root workflow mirrored from the monorepo overlay.
-# PR reporting is handled by pr-report.yml; mirror this producer/reporter split
-# in the upstream overlay before changing the source workflow again.
+# PR reporting is handled by pr-report.yml. Keep the producer/reporter split.
 
 on:
   pull_request:
   push:
     branches:
       - main
-      - "internal-preview/**"
 
 concurrency:
   group: talon-oss-${{ github.workflow }}-${{ github.ref }}
@@ -20,6 +16,44 @@ permissions:
   contents: read
 
 jobs:
+  bazel:
+    name: Bazel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: bazel-contrib/setup-bazel@0.19.2
+        with:
+          bazelisk-cache: true
+          disk-cache: talon-bazel
+          repository-cache: true
+
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev clang libclang-dev cmake
+
+      - name: Verify Cargo and Bazel dependency versions agree
+        run: python3 scripts/sync_bazel_dependencies.py --check
+
+      - name: Build and test with Bazel
+        env:
+          # Cache writers are restricted to trusted main-branch builds.
+          BUILDBUDDY_API_KEY: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY || '' }}
+        run: |
+          build_options=()
+          if [[ -n "${BUILDBUDDY_API_KEY}" ]]; then
+            build_options+=(
+              --config=buildbuddy
+              "--remote_header=x-buildbuddy-api-key=${BUILDBUDDY_API_KEY}"
+              "--bes_header=x-buildbuddy-api-key=${BUILDBUDDY_API_KEY}"
+            )
+          fi
+          bazel test "${build_options[@]}" //...
+
+      - name: Validate AWS and RocksDB target configuration
+        run: bazel build --nobuild --config=aws --config=rocksdb //:binaries
+
   proto_lint:
     name: Proto Lint
     runs-on: ubuntu-latest
