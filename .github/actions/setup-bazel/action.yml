@@ -11,7 +11,9 @@ runs:
     - uses: bazel-contrib/setup-bazel@0.19.2
       with:
         bazelisk-cache: true
-        disk-cache: talon-bazel
+        # Concurrent jobs must each save their own action cache. With one key,
+        # the first (usually UI) job wins and Rust/E2E outputs are never saved.
+        disk-cache: talon-bazel-${{ github.workflow }}-${{ github.job }}
         repository-cache: true
     - name: Install Linux native prerequisites
       if: runner.os == 'Linux'
