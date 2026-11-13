@@ -73,11 +73,15 @@ Registry upload clients remain responsible for publishing: npm, Cargo
 (`publish --no-verify`, after Bazel tests), PyPI's publishing action, and the Java
 Bazel publication targets. Deployment tools consume prebuilt static output.
 
-Python SDK `:dist` targets run the pinned upstream Hatchling CLI with
-`rules_python`, using each package's `pyproject.toml` for both wheels and source
-distributions. No local Python packaging implementation is needed. The native
-`rules_python` `py_wheel` rule builds wheels but does not replace this complete
-wheel/sdist backend; using it here would duplicate package metadata in BUILD files.
+Python SDK `:dist` targets use the pinned upstream Hatchling backend through
+`rules_python`, using each package's `pyproject.toml` for wheels and source
+distributions. A small input-materialization shim remains: Hatchling otherwise
+archives the Linux sandbox's absolute symlinks into sdists. Separate copying
+actions do not fix this, because Bazel presents their outputs as symlinks to the
+next action too. The shim copies and builds in one action; it does not implement
+package formats or metadata. The native `rules_python` `py_wheel` rule covers
+wheels; replacing this full backend would also require sdist support and a
+solution for sharing `pyproject.toml` metadata.
 `bazel test //sdk/python:packages_test` verifies the actual artifacts and checks
 that each source distribution rebuilds a byte-identical wheel. Explicit Hatch
 file selection keeps checkout/build metadata out of published source packages.
@@ -103,6 +107,7 @@ adapters compose upstream rules rather than implementing compilers or packagers:
 | `configured_files.bzl` | Talon's AWS/RocksDB and release-mode transition. A dedicated dependency on [with_cfg.bzl](https://github.com/fmeum/with_cfg.bzl) could replace the handwritten transition/provider forwarding with configured filegroups; the feature policy would remain. The already-imported platform transition only switches platforms. |
 | `sdk_codegen.py` | Invokes upstream generators and applies Talon's SDK layout/import normalization and custom clientsets. Language-specific proto rules could replace individual invocations in a larger refactor; postprocessing would remain. |
 | `sync_generated.py` | Checks/updates checked-in SDK sources while preserving hand-written files and removing stale generated files. |
+| `python_packager.py` | Materializes sandbox inputs before invoking Hatchling's standard wheel/sdist backend functions. It contains no archive writer or metadata implementation; native `py_wheel` is not a drop-in replacement for both artifacts. |
 
 ## Docker and releases
 

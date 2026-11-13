@@ -24,6 +24,7 @@ class PackagesTest(unittest.TestCase):
                 with tarfile.open(sdist) as archive:
                     # Checkout/build metadata must never leak into published sources.
                     for member in archive.getmembers():
+                        self.assertFalse(member.issym() or member.islnk(), member.name)
                         relative = Path(member.name).parts[1:]
                         self.assertTrue(relative)
                         self.assertIn(relative[0], {"src", "README.md", "pyproject.toml", "PKG-INFO", ".gitignore"})

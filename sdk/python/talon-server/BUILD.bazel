@@ -41,23 +41,19 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-# Use the same upstream backend and package metadata as a normal Python build.
+# The shim materializes sandbox symlinks before calling the upstream backend.
 run_binary(
     name = "dist",
-    srcs = [":package_sources"],
-    args = [
-        "build",
-        "-t",
-        "wheel",
-        "-t",
-        "sdist",
-        "-d",
-        "../../../$@",
+    srcs = [
+        "pyproject.toml",
+        ":package_sources",
     ],
-    chdir = "sdk/python/talon-server",
-    env = {"SOURCE_DATE_EPOCH": "315532800"},
+    args = [
+        "$(execpath pyproject.toml)",
+        "$@",
+    ],
     out_dirs = ["dist"],
-    tool = "//tools/bazel:hatchling",
+    tool = "//tools/bazel:python_packager",
     visibility = ["//visibility:public"],
 )
 
