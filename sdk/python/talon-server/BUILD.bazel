@@ -1,6 +1,6 @@
+load("@bazel_lib//lib:run_binary.bzl", "run_binary")
 load("@pypi//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
-load("//tools/bazel:distributions.bzl", "python_distribution")
 
 py_library(
     name = "talon_server",
@@ -36,10 +36,18 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-python_distribution(
+run_binary(
     name = "dist",
-    manifest = "pyproject.toml",
-    sources = ":package_sources",
+    srcs = [
+        "pyproject.toml",
+        ":package_sources",
+    ],
+    args = [
+        "$(execpath pyproject.toml)",
+        "$@",
+    ],
+    out_dirs = ["dist"],
+    tool = "//tools/bazel:python_packager",
     visibility = ["//visibility:public"],
 )
 

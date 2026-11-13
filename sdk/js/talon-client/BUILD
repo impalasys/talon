@@ -1,5 +1,6 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary", "js_test")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@bazel_lib//lib:directory_path.bzl", "directory_path")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@npm//sdk/js/talon-client:typescript/package_json.bzl", typescript_bin = "bin")
 
@@ -61,17 +62,20 @@ npm_package(
     visibility = ["//visibility:public"],
 )
 
+directory_path(
+    name = "unit_test_entry",
+    directory = ":build",
+    path = "index.test.js",
+)
+
 js_test(
     name = "unit_tests",
-    args = [
-        "--test",
-        "$(rootpath :build)/index.test.js",
-    ],
     data = [
         ":build",
         ":node_modules",
     ],
-    entry_point = "//tools/bazel:node_tests_entry",
+    entry_point = ":unit_test_entry",
+    node_options = ["--test"],
 )
 
 alias(

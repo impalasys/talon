@@ -20,7 +20,7 @@ rust_library(
             "serde_json",
             "tempfile",
         ],
-        package_name = "talon",
+        package_name = "",
     ),
 )
 

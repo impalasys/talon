@@ -1,5 +1,5 @@
+load("@bazel_lib//lib:run_binary.bzl", "run_binary")
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
-load("//tools/bazel:sdk_codegen.bzl", "sdk_sources")
 
 exports_files([
     "VERSION",
@@ -29,19 +29,34 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-sdk_sources(
+_GENERATORS = {
+    "clientsets": "//scripts/sdk:clientsets",
+    "connect": "//sdk/js:protoc-gen-connect-es",
+    "es": "//sdk/js:protoc-gen-es",
+    "go": "@org_golang_google_protobuf//cmd/protoc-gen-go",
+    "go-grpc": "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
+    "gofmt": "//tools/bazel:gofmt",
+    "java": "//tools/bazel:grpc_java",
+    "protoc": "//tools/bazel:protoc",
+    "rust": "//sdk/rust/tools/codegen:codegen",
+}
+
+run_binary(
     name = "generated",
-    clientsets = "//scripts/sdk:clientsets",
-    config = "//scripts/sdk:codegen.json",
-    connect = "//sdk/js:protoc-gen-connect-es",
-    es = "//sdk/js:protoc-gen-es",
-    go = "@org_golang_google_protobuf//cmd/protoc-gen-go",
-    go_grpc = "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
-    gofmt = "//tools/bazel:gofmt",
-    java = "//tools/bazel:grpc_java",
-    protoc = "//tools/bazel:protoc",
-    protos = "//:proto_sources",
-    rust = "//sdk/rust/tools/codegen:codegen",
+    srcs = [
+        "//:proto_sources",
+        "//scripts/sdk:codegen.json",
+    ],
+    args = [
+        "--output",
+        "$@",
+        "--config",
+        "$(execpath //scripts/sdk:codegen.json)",
+    ] + ["--" + name + " $(execpath " + label + ")" for name, label in _GENERATORS.items()],
+    mnemonic = "TalonSDKCodegen",
+    out_dirs = ["generated"],
+    tool = "//tools/bazel:sdk_codegen",
+    tools = _GENERATORS.values(),
 )
 
 py_binary(

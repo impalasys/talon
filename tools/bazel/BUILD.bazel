@@ -5,12 +5,8 @@ load(":protoc.bzl", "protoc_binary")
 
 exports_files([
     "Cargo.toml",
-    "go.mod",
-    "go.sum",
-    "Cargo.lock",
     "requirements.lock",
     "pytest_main.py",
-    "node_tests.mjs",
     "image_builder.py",
 ])
 
@@ -21,14 +17,6 @@ exports_files([
 
 protoc_binary(
     name = "protoc",
-    visibility = ["//visibility:public"],
-)
-
-genrule(
-    name = "node_tests_entry",
-    srcs = ["node_tests.mjs"],
-    outs = ["node_tests_entry.mjs"],
-    cmd = "cp $< $@",
     visibility = ["//visibility:public"],
 )
 

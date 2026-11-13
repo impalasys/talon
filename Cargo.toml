@@ -3,6 +3,11 @@ name = "talon"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = ["tools/bazel", "tools/install-hooks"]
+default-members = ["."]
+resolver = "2"
+
 [features]
 aws = ["dep:aws-sdk-dynamodb", "dep:aws-sdk-scheduler", "dep:aws-sdk-sqs"]
 cpu-profile = ["dep:pprof"]

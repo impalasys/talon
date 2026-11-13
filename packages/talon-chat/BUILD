@@ -93,19 +93,22 @@ js_library(
     deps = [":node_modules"],
 )
 
+_UNIT_TESTS = glob(["src/**/*.test.ts"])
+
 js_test(
     name = "unit_tests",
-    args = [
-        "--experimental-strip-types",
-        "--test",
-    ] + glob(["src/**/*.test.ts"]),
+    args = _UNIT_TESTS[1:],
     chdir = package_name(),
     data = [
         ":all_sources",
         ":node_modules",
         "//sdk/js/talon-client:pkg",
     ],
-    entry_point = "//tools/bazel:node_tests_entry",
+    entry_point = _UNIT_TESTS[0],
+    node_options = [
+        "--experimental-strip-types",
+        "--test",
+    ],
 )
 
 alias(

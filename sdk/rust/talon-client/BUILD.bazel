@@ -15,18 +15,16 @@ rust_library(
         ["src/**/*.rs"],
         exclude = ["src/generated/**"],
     ),
-    aliases = aliases(package_name = "talon/sdk/rust/talon-client"),
+    aliases = aliases(),
     compile_data = glob(["src/generated/**/*.rs"]),
     crate_root = "src/lib.rs",
     edition = "2021",
     proc_macro_deps = all_crate_deps(
-        package_name = "talon/sdk/rust/talon-client",
         proc_macro = True,
     ),
     rustc_env_files = [":cargo_env"],
     visibility = ["//visibility:public"],
     deps = all_crate_deps(
-        package_name = "talon/sdk/rust/talon-client",
         normal = True,
     ),
 )
@@ -34,13 +32,11 @@ rust_library(
 rust_test(
     name = "talon_client_test",
     aliases = aliases(
-        package_name = "talon/sdk/rust/talon-client",
         normal_dev = True,
     ),
     crate = ":talon_client",
     edition = "2021",
     deps = all_crate_deps(
-        package_name = "talon/sdk/rust/talon-client",
         normal_dev = True,
     ),
 )

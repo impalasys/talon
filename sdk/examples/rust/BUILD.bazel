@@ -14,7 +14,7 @@ rust_binary(
             "anyhow",
             "tokio",
         ],
-        package_name = "talon",
+        package_name = "",
     ),
 )
 

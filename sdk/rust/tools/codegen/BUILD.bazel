@@ -8,7 +8,7 @@ rust_binary(
     visibility = ["//visibility:public"],
     deps = crate_deps(
         ["tonic-build"],
-        package_name = "talon",
+        package_name = "",
     ),
 )
 

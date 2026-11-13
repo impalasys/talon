@@ -7,7 +7,8 @@ import tempfile
 
 from build import ProjectBuilder
 
-source, output = map(lambda path: Path(path).absolute(), sys.argv[1:3])
+manifest, output = map(lambda path: Path(path).absolute(), sys.argv[1:3])
+source = manifest.parent
 output.mkdir(parents=True, exist_ok=True)
 os.environ["SOURCE_DATE_EPOCH"] = "315532800"
 with tempfile.TemporaryDirectory() as directory:

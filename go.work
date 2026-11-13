@@ -1,7 +1,6 @@
 go 1.26.0
 
 use (
-    ./tools/bazel
     ./sdk/go/talon-client
     ./sdk/go/talon-server
     ./sdk/examples/go

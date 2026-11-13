@@ -41,9 +41,7 @@ py_test(
     srcs = ["sync_bazel_dependencies.py"],
     args = ["--check"],
     data = [
-        "//:Cargo.lock",
         "//:Cargo.toml",
-        "//tools/bazel:Cargo.lock",
         "//tools/bazel:Cargo.toml",
     ],
     main = "sync_bazel_dependencies.py",

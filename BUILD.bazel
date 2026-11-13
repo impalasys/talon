@@ -45,9 +45,7 @@ _FEATURES += select({
     "//conditions:default": [],
 })
 
-# With multiple manifests, crate_universe keys the root package by its Cargo name.
 _RUNTIME_DEPS = all_crate_deps(
-    package_name = "talon",
     normal = True,
 ) + select({
     ":aws": crate_deps(
@@ -56,13 +54,13 @@ _RUNTIME_DEPS = all_crate_deps(
             "aws-sdk-scheduler",
             "aws-sdk-sqs",
         ],
-        package_name = "tools/talon-bazel-features",
+        package_name = "tools/bazel",
     ),
     "//conditions:default": [],
 }) + select({
     ":rocksdb": crate_deps(
         ["rocksdb"],
-        package_name = "tools/talon-bazel-features",
+        package_name = "tools/bazel",
     ),
     "//conditions:default": [],
 })
@@ -70,7 +68,7 @@ _RUNTIME_DEPS = all_crate_deps(
 _RUNTIME_DEPS += select({
     ":cpu-profile": crate_deps(
         ["pprof"],
-        package_name = "tools/talon-bazel-features",
+        package_name = "tools/bazel",
     ),
     "//conditions:default": [],
 }) + select({
@@ -79,7 +77,7 @@ _RUNTIME_DEPS += select({
             "tikv-jemallocator",
             "tikv-jemalloc-ctl",
         ],
-        package_name = "tools/talon-bazel-features",
+        package_name = "tools/bazel",
     ),
     "//conditions:default": [],
 })
@@ -93,7 +91,6 @@ cargo_build_script(
     name = "build_script",
     srcs = ["build.rs"],
     aliases = aliases(
-        package_name = "talon",
         build = True,
         build_proc_macro = True,
     ),
@@ -107,13 +104,11 @@ cargo_build_script(
     edition = "2021",
     pkg_name = "talon",
     proc_macro_deps = all_crate_deps(
-        package_name = "talon",
         build_proc_macro = True,
     ),
     rustc_env_files = [":cargo_env"],
     tools = ["//tools/bazel:protoc"],
     deps = all_crate_deps(
-        package_name = "talon",
         build = True,
     ),
 )
@@ -133,7 +128,7 @@ rust_library(
         ["src/**/*.rs"],
         exclude = ["src/bin/*.rs"],
     ),
-    aliases = aliases(package_name = "talon"),
+    aliases = aliases(),
     compile_data = glob(["src/**/testdata/**"]) + [
         "proto/resources.toml",
         "src/control/security/test_rsa_private_key.pem",
@@ -143,7 +138,6 @@ rust_library(
     crate_root = "src/lib.rs",
     edition = "2021",
     proc_macro_deps = all_crate_deps(
-        package_name = "talon",
         proc_macro = True,
     ),
     rustc_env_files = [":cargo_env"],
@@ -157,13 +151,12 @@ rust_library(
     rust_binary(
         name = "talon-" + name,
         srcs = ["src/bin/" + source + ".rs"],
-        aliases = aliases(package_name = "talon"),
+        aliases = aliases(),
         compile_data = ["src/control/security/test_rsa_private_key.pem"],
         crate_features = _FEATURES,
         crate_name = "talon_" + name,
         edition = "2021",
         proc_macro_deps = all_crate_deps(
-            package_name = "talon",
             proc_macro = True,
         ),
         rustc_env_files = [":cargo_env"],
@@ -189,7 +182,6 @@ rust_binary(
             "serde_json",
             "tokio",
         ],
-        package_name = "talon",
     ),
 )
 
@@ -206,7 +198,6 @@ filegroup(
 rust_test(
     name = "talon_test",
     aliases = aliases(
-        package_name = "talon",
         normal_dev = True,
         proc_macro_dev = True,
     ),
@@ -215,7 +206,6 @@ rust_test(
     data = [":runtime_data"],
     edition = "2021",
     proc_macro_deps = all_crate_deps(
-        package_name = "talon",
         proc_macro_dev = True,
     ),
     rustc_env = {"CARGO_MANIFEST_DIR": "."},
@@ -224,7 +214,6 @@ rust_test(
         "requires-docker",
     ],
     deps = all_crate_deps(
-        package_name = "talon",
         normal_dev = True,
     ),
 )
@@ -234,7 +223,6 @@ rust_test(
         name = name + "_test",
         srcs = ["//tests:" + name + ".rs"],
         aliases = aliases(
-            package_name = "talon",
             normal_dev = True,
             proc_macro_dev = True,
         ),
@@ -247,7 +235,6 @@ rust_test(
         ],
         edition = "2021",
         proc_macro_deps = all_crate_deps(
-            package_name = "talon",
             proc_macro = True,
             proc_macro_dev = True,
         ),
@@ -258,7 +245,6 @@ rust_test(
             "CARGO_BIN_EXE_talon-mock-acp": "./$(rootpath :talon-mock-acp)",
         },
         deps = _RUNTIME_DEPS + all_crate_deps(
-            package_name = "talon",
             normal_dev = True,
         ) + [":talon"],
     )
@@ -274,7 +260,6 @@ rust_test(
     rust_test(
         name = "talon_" + name + "_test",
         aliases = aliases(
-            package_name = "talon",
             normal_dev = True,
             proc_macro_dev = True,
         ),
@@ -282,11 +267,9 @@ rust_test(
         crate_features = _FEATURES,
         edition = "2021",
         proc_macro_deps = all_crate_deps(
-            package_name = "talon",
             proc_macro_dev = True,
         ),
         deps = all_crate_deps(
-            package_name = "talon",
             normal_dev = True,
         ),
     )

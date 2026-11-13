@@ -155,14 +155,23 @@ bazel build //:binaries
 python3 scripts/sync_bazel_dependencies.py --check
 ```
 
-Commit the Bazel metadata manifest/lock, `MODULE.bazel.lock`, and relevant language
-locks with dependency changes. The metadata-only Cargo package resolves optional
-feature dependencies without enabling them in ordinary builds. The separate lock
-also records SDK development dependencies; CI checks registry versions against
-the root Cargo lock. Maven dependencies are pinned in
+Commit the generated metadata manifest, root `Cargo.lock`, `MODULE.bazel.lock`,
+and relevant language locks with dependency changes. Cargo and Bazel share the
+root lock; there is no second Rust dependency lock to synchronize. The root
+Cargo workspace includes the metadata-only feature package and hook installer,
+with `default-members = ["."]` keeping ordinary Cargo builds scoped to Talon.
+The metadata package resolves optional dependencies for Bazel without enabling
+those features in ordinary builds. Maven dependencies are pinned in
 `tools/bazel/maven_install.json`; repin with `REPIN=1 bazel run @maven//:pin`.
 Python dependencies use `tools/bazel/requirements.lock`, generated with
 `uv pip compile --universal --python-version 3.13 --generate-hashes tools/bazel/requirements.in -o tools/bazel/requirements.lock`.
+
+`tools/bazel` contains dependency pins and the small integration points that need
+Talon-specific behavior: production feature selection, release layout/checksums,
+SDK generation/synchronization, and test entry points. Archive construction,
+package assembly, and generic build actions come from `rules_pkg`, `rules_js`,
+`rules_distroless`, and `bazel_lib`. The Go gRPC generator is pinned directly in
+`MODULE.bazel`; it does not need a synthetic Go module.
 
 ## BuildBuddy setup
 

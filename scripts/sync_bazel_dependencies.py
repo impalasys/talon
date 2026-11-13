@@ -52,28 +52,16 @@ def manifest() -> str:
     return "\n".join(lines) + "\n"
 
 
-def registry_packages(path: Path) -> set[tuple[str, str, str, str]]:
-    lock = tomllib.loads(path.read_text())
-    return {
-        (p["name"], p["version"], p["source"], p.get("checksum", ""))
-        for p in lock["package"]
-        if "source" in p
-    }
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     expected = manifest()
     if args.check:
-        if (BAZEL_DIR / "Cargo.toml").read_text() != expected or registry_packages(
-            ROOT / "Cargo.lock"
-        ) != registry_packages(BAZEL_DIR / "Cargo.lock"):
+        if (BAZEL_DIR / "Cargo.toml").read_text() != expected:
             parser.exit(1, "Bazel dependency metadata is stale. Run python3 scripts/sync_bazel_dependencies.py, then bazel build //:binaries.\n")
         return
     (BAZEL_DIR / "Cargo.toml").write_text(expected)
-    (BAZEL_DIR / "Cargo.lock").write_bytes((ROOT / "Cargo.lock").read_bytes())
 
 
 if __name__ == "__main__":

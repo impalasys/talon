@@ -6898,6 +6898,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "talon-bazel-features"
+version = "0.0.0"
+dependencies = [
+ "aws-sdk-dynamodb",
+ "aws-sdk-scheduler",
+ "aws-sdk-sqs",
+ "pprof",
+ "rocksdb",
+ "tikv-jemalloc-ctl",
+ "tikv-jemallocator",
+]
+
+[[package]]
 name = "talon-client"
 version = "0.2.11"
 dependencies = [
@@ -6907,9 +6920,14 @@ dependencies = [
  "prost 0.13.5",
  "prost-types 0.13.5",
  "reqwest 0.12.28",
+ "tokio",
  "tonic 0.12.3",
  "tonic-web",
 ]
+
+[[package]]
+name = "talon-install-hooks"
+version = "0.0.0"
 
 [[package]]
 name = "tap"
