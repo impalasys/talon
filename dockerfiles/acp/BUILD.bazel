@@ -10,6 +10,17 @@ load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 package(default_visibility = ["//visibility:public"])
 
+[platform(
+    name = "linux_" + architecture,
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:" + cpu,
+    ],
+) for architecture, cpu in [
+    ("x86_64", "x86_64"),
+    ("arm64", "aarch64"),
+]]
+
 write_file(
     name = "smoke_runner",
     out = "smoke_test.sh",

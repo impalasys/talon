@@ -154,7 +154,7 @@ use_repo(oci, "nginx_base", "nginx_base_linux_amd64", "nginx_base_linux_arm64_v8
 
 oci.pull(
     name = "acp_node_base",
-    digest = "sha256:25b3eb23a00590b7499f2a2ce939322727fcce1b15fdd69754fcd09536a3ae2c",
+    digest = "sha256:c3bf4cf764467f1bf9789fde549971a2cf8e720196df6cf3f95bafa590e5f4af",
     image = "docker.io/library/node",
     platforms = [
         "linux/amd64",
@@ -262,16 +262,6 @@ apt.install(
 )
 use_repo(apt, "runtime_os")
 
-apt.sources_list(
-    architectures = [
-        "amd64",
-        "arm64",
-    ],
-    components = ["main"],
-    suites = ["bookworm"],
-    types = ["deb"],
-    uris = ["https://snapshot.debian.org/archive/debian/20261110T000000Z"],
-)
 apt.install(
     dependency_set = "acp_os",
     packages = [
@@ -288,6 +278,6 @@ apt.install(
         "python3-pip",
         "ripgrep",
     ],
-    suites = ["bookworm"],
+    suites = ["trixie"],
 )
 use_repo(apt, "acp_os")

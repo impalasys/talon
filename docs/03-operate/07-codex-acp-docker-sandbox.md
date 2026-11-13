@@ -8,13 +8,17 @@ scripts/build-images.sh acp
 # Or build/load directly on a Linux host matching the image architecture.
 bazel run //dockerfiles:acp_image
 
-# On Linux with Docker, build/load and exercise the packaged agents.
+# Linux builders can also cross-assemble pinned layers for either CPU:
+bazel build //dockerfiles:acp_image --platforms=//dockerfiles/acp:linux_x86_64 --output_groups=tarball
+# Use //dockerfiles/acp:linux_arm64 for ARM64.
+
+# On a matching Linux host with Docker, build/load and exercise the agents.
 bazel test //dockerfiles/acp:smoke_test --test_output=streamed
 ```
 
 The image is assembled with `rules_oci`; no Dockerfile or install-time package
 scripts are executed. The Node base is digest-pinned, Debian tools come from the
-2026-11-10 Bookworm snapshot, and native agent archives are checksum-pinned for
+2026-11-10 Trixie snapshot, and native agent archives are checksum-pinned for
 Linux x86-64 and ARM64. The Claude ACP adapter and its JavaScript dependency
 closure are packaged by `rules_js` from the pnpm lock.
 

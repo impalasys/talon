@@ -58,6 +58,9 @@ def initialize(command):
 assert os.getuid() == 1001 and os.getgid() == 1001
 assert pwd.getpwuid(os.getuid()).pw_name == "codex"
 assert Path.cwd() == Path("/workspace")
+for directory in ["/bin", "/lib", "/sbin"]:
+    path = Path(directory)
+    assert path.is_symlink() and path.resolve().is_dir(), directory
 for directory in ["/workspace", os.environ["HOME"], os.environ["CODEX_HOME"],
                   os.environ["CLAUDE_CONFIG_DIR"], os.environ["OPENCODE_CONFIG_DIR"]]:
     with tempfile.NamedTemporaryFile(dir=directory):

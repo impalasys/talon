@@ -114,9 +114,12 @@ three ACP initialization paths, native CLIs, compilers, certificates, and the
 unprivileged filesystem layout. This explicit test is excluded from `//...`
 because it loads and runs a Docker image.
 
-Runtime and ACP images require a Linux builder matching the desired CPU architecture;
+Runtime images require a Linux builder matching the desired CPU architecture;
 CI builds Linux x86-64. macOS supports native binary releases and UI image
-assembly. For Compose, load the runtime and UI images, then run `docker compose up`.
+assembly. ACP layers can also be cross-assembled on Linux using
+`--platforms=//dockerfiles/acp:linux_x86_64` or
+`--platforms=//dockerfiles/acp:linux_arm64`. Run the smoke test with a matching
+Docker platform. For Compose, load the runtime and UI images, then run `docker compose up`.
 Compose uses local `:dev` tags; `TALON_RUNTIME_IMAGE` and `TALON_UI_IMAGE` can
 select other tags. `scripts/build-images.sh` provides a native Linux builder
 inside Docker for macOS and Linux users. It builds the same OCI targets without
