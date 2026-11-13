@@ -173,7 +173,7 @@ jobs:
     - name: Run Python E2E suite
       run: bazel test //tests:e2e_tests --test_env=TESTCONTAINERS_RYUK_DISABLED=true
   binary_artifacts:
-    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Binary Artifacts
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Binary Artifacts (${{ matrix.os }}, ${{ matrix.artifact_name }}, ${{ matrix.sdk_platform }})
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs:
     - bazel

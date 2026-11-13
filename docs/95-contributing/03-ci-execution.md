@@ -10,20 +10,34 @@ BuildBuddy-versus-GitHub speedup yet.
 The [successful baseline run](https://github.com/impalasys/talon/actions/runs/43135197791)
 at commit `b08bf05e`, before the packaging cleanup, recorded these step durations:
 
-| Step | Duration |
-| --- | --- |
-| Build and test all Bazel targets | 45m 56s |
-| Python E2E, including building its binaries | 36m 55s |
-| Live UI E2E, including building its backend | 30m 00s |
-| Linux release archives | 29m 39s |
-| macOS ARM64 release archives | 41m 15s |
+| Step | Earlier cold run (`b08bf05e`) | Cleanup run with GitHub disk-cache reuse (`13523444`) |
+| --- | --- | --- |
+| Build and test all Bazel targets | 45m 56s | 3m 11s |
+| Python E2E, including building its binaries | 36m 55s | 6m 36s |
+| Live UI E2E, including building its backend | 30m 00s | 1m 52s |
+| Linux release archives | 29m 39s | 1m 03s |
+| macOS ARM64 release archives | 41m 15s | 2m 10s |
 
 These are individual step wall times, not additive pipeline times. The release
 matrix waits for the Bazel, runtime-image and UI jobs. The PR run did not use
 BuildBuddy: its writer credential is restricted to main-branch pushes. These
 numbers therefore cannot establish the performance of GitHub Actions *with*
 BuildBuddy caching. Repository downloads were cached; native compilation still
-accounted for much of the work.
+accounted for much of the work in the earlier run.
+
+The [cleanup run](https://github.com/impalasys/talon/actions/runs/43372372395)
+used GitHub's existing per-job disk caches, not BuildBuddy. The commits differ:
+packaging changed, two helper tests were replaced by actual release-archive
+verification, and the default unit-target count changed from 42 to 40. This is
+observational evidence of cache reuse, not a controlled provider benchmark.
+It shows why the cold times alone are not a reason to replace the orchestrator.
+
+Separately, [authenticated cache verification passed](https://github.com/impalasys/talon/actions/runs/43372492922).
+A fresh input forced an upload, then an independent output base with disk caching
+disabled obtained **1 remote cache hit** and matching output. The
+[BuildBuddy read invocation](https://app.buildbuddy.io/invocation/929f75b6-0433-4945-875f-6f87c291ba77)
+records the read. This proves cache connectivity and read/write behavior, not
+production-build performance or Workflows execution speed.
 
 ## Where Workflows could be faster
 
