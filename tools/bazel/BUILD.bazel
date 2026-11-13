@@ -21,11 +21,10 @@ protoc_binary(
 )
 
 py_binary(
-    name = "python_packager",
-    srcs = ["python_packager.py"],
+    name = "hatchling",
+    main_module = "hatchling",
     visibility = ["//visibility:public"],
     deps = [
-        requirement("build"),
         requirement("hatchling"),
     ],
 )

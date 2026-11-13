@@ -36,18 +36,23 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+# Use the same upstream backend and package metadata as a normal Python build.
 run_binary(
     name = "dist",
-    srcs = [
-        "pyproject.toml",
-        ":package_sources",
-    ],
+    srcs = [":package_sources"],
     args = [
-        "$(execpath pyproject.toml)",
-        "$@",
+        "build",
+        "-t",
+        "wheel",
+        "-t",
+        "sdist",
+        "-d",
+        "../../../$@",
     ],
+    chdir = "sdk/python/talon-server",
+    env = {"SOURCE_DATE_EPOCH": "315532800"},
     out_dirs = ["dist"],
-    tool = "//tools/bazel:python_packager",
+    tool = "//tools/bazel:hatchling",
     visibility = ["//visibility:public"],
 )
 

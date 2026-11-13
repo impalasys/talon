@@ -73,10 +73,33 @@ Registry upload clients remain responsible for publishing: npm, Cargo
 (`publish --no-verify`, after Bazel tests), PyPI's publishing action, and the Java
 Bazel publication targets. Deployment tools consume prebuilt static output.
 
+Python SDK `:dist` targets run the pinned upstream Hatchling CLI with
+`rules_python`, using each package's `pyproject.toml` for both wheels and source
+distributions. No local Python packaging implementation is needed. The native
+`rules_python` `py_wheel` rule builds wheels but does not replace this complete
+wheel/sdist backend; using it here would duplicate package metadata in BUILD files.
+`bazel test //sdk/python:packages_test` verifies the actual artifacts and checks
+that each source distribution rebuilds a byte-identical wheel. Explicit Hatch
+file selection keeps checkout/build metadata out of published source packages.
+
 Cargo manifests and package-manager scripts remain useful for IDEs and downstream
 consumers; CI no longer compiles the same code through Cargo, Gradle, and pnpm.
 Bazel runs the existing Rust `build.rs`, sharing protobuf types and serde behavior
 with Cargo. No paths or compatibility aliases from the former monorepo are used.
+
+### Remaining Bazel support code
+
+Most of `tools/bazel` is generated dependency metadata and tests. Its small
+adapters compose upstream rules rather than implementing compilers or packagers:
+
+| Files | Purpose and remaining upstream opportunities |
+| --- | --- |
+| `artifacts.bzl`, `checksums.py` | `rules_pkg` builds archives; Talon defines their layout and checksum manifests. A generic checksum command could replace the single-archive case, but not the per-member manifest by itself. |
+| `go_tools.bzl`, `protoc.bzl` | Expose executables from selected upstream toolchains. Keep toolchain resolution, including prebuilt protoc; hardcoded SDK paths or the source-built `@protobuf//:protoc` are not equivalent. |
+| `configured_files.bzl` | Talon's AWS/RocksDB and release-mode transition. The upstream platform transition only switches platforms. |
+| `sdk_codegen.py` | Invokes upstream generators and applies Talon's SDK layout/import normalization and custom clientsets. Language-specific proto rules could replace individual invocations in a larger refactor; postprocessing would remain. |
+| `sync_generated.py` | Checks/updates checked-in SDK sources while preserving hand-written files and removing stale generated files. |
+| `pytest_main.py` | Calls upstream pytest and routes its cache and screenshots to Bazel test outputs. `main_module = "pytest"` can replace invocation once those output settings move into test configuration. |
 
 ## Docker and releases
 

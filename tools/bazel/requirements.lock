@@ -125,10 +125,6 @@ botocore==1.44.0 \
     # via
     #   boto3
     #   s3transfer
-build==1.3.0 \
-    --hash=sha256:698edd0ea270bde950f53aed21f3a0135672206f3911e0176261a31e0e07b397 \
-    --hash=sha256:7145f0b5061ba90a1500d60bd1b13ca0a8a4cebdd0cc16ed8adf1c0e739f43b4
-    # via -r tools/bazel/requirements.in
 certifi==2026.10.23 \
     --hash=sha256:a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd \
     --hash=sha256:e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1
@@ -416,12 +412,10 @@ click==8.5.1 \
     --hash=sha256:8bb5376d2006950386f8c6427613334a2acadc5f559cb80e638d00b4df957e37 \
     --hash=sha256:9bbfada76703fd1d784b83eea012e3e8c6a001a876543ef104fa56aaaeb072b4
     # via uvicorn
-colorama==0.4.6 ; os_name == 'nt' or sys_platform == 'win32' \
+colorama==0.4.6 ; sys_platform == 'win32' \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
-    # via
-    #   build
-    #   pytest
+    # via pytest
 coverage==7.17.2 \
     --hash=sha256:01303d9e68b6e6bdc5459b54e3bd0e3539c94c25b50ac7362b7cbcacbc815fbc \
     --hash=sha256:0439f77deb5c023003533ae8909a9aa1e174c847d655327035b1e542c7c8a54e \
@@ -1063,7 +1057,6 @@ packaging==26.3 \
     --hash=sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79 \
     --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c
     # via
-    #   build
     #   hatchling
     #   pytest
 pathspec==1.1.1 \
@@ -1400,10 +1393,6 @@ pymysql==1.2.4 \
     --hash=sha256:491558165b8e11f3644c5f9cfb30cc9c9111ffd54e53d3aa91b9a0a20be2294f \
     --hash=sha256:e169bed906168fffd0088925f45b3df024c2775c6fd128da0df773d47c458840
     # via aiomysql
-pyproject-hooks==1.3.3 \
-    --hash=sha256:5fc53fdac9f7bd63fbcdc868fb5f90b4784d78a53a3d3388cd738b807441a20b \
-    --hash=sha256:defda19b854fa0d3bd4f76ea4ddcba8abd7dcfcdd585a6690ade050744fc5f43
-    # via build
 pytest==8.4.2 \
     --hash=sha256:86c0d0b93306b961d58d62a4db4879f27fe25513d4b969df351abdddb3c30e01 \
     --hash=sha256:872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79
