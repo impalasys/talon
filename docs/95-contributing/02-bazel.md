@@ -87,14 +87,15 @@ scripts/build-images.sh
 # Run on Linux so native binaries match the container OS.
 bazel run //dockerfiles:runtime_image
 bazel run //dockerfiles:benchmark_image
-# Static UI and ACP images can be packaged from either supported host OS.
+# Static UI image assembly also works on macOS.
 bazel run //dockerfiles:ui_image
-bazel run //dockerfiles:acp_image -- --tag talon-acp:dev
+# Build/load the ACP developer sandbox through the Linux helper.
+scripts/build-images.sh acp
 
 bazel build //:release-dist
 ```
 
-`rules_oci` assembles runtime, benchmark, and UI images from Bazel outputs.
+`rules_oci` assembles runtime, benchmark, UI, and ACP images from Bazel outputs.
 Base images are pinned by digest. Debian packages come from a fixed snapshot;
 Python/Monty wheels and the Docker client are checksum-pinned. Stable dependency,
 configuration, and application layers are separate so code changes reuse the
@@ -102,11 +103,18 @@ other layers. Image assembly needs no Docker daemon or Docker Buildx.
 `oci_load` loads an image locally; `oci_push` publishes directly to the registry.
 
 The runtime retains the Python E2E tools, Monty, Docker client, curl, and the
-model catalog. The only remaining Dockerfile builds the ACP developer-tool
-sandbox, which installs compilers and external coding agents. Its Bazel target
-continues to build that tooling image separately.
+model catalog. The ACP developer-tool sandbox packages pinned native coding
+agents and the locked Claude ACP JavaScript adapter using maintained rules. It also includes the
+Debian build toolchain, a generated CA bundle, and an unprivileged `codex` user
+with writable home/config/workspace directories. No application image uses a
+Dockerfile or Docker Buildx. `//dockerfiles:acp_push` publishes the ACP image;
+CI retains all four existing GHCR repository names through its `--repository` flag.
+Run `bazel test //dockerfiles/acp:smoke_test` on Linux with Docker to check all
+three ACP initialization paths, native CLIs, compilers, certificates, and the
+unprivileged filesystem layout. This explicit test is excluded from `//...`
+because it loads and runs a Docker image.
 
-Runtime images require a Linux builder matching the desired CPU architecture;
+Runtime and ACP images require a Linux builder matching the desired CPU architecture;
 CI builds Linux x86-64. macOS supports native binary releases and UI image
 assembly. For Compose, load the runtime and UI images, then run `docker compose up`.
 Compose uses local `:dev` tags; `TALON_RUNTIME_IMAGE` and `TALON_UI_IMAGE` can

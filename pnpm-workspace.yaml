@@ -1,4 +1,5 @@
 packages:
+  - "dockerfiles/acp"
   - "ui"
   - "docs-site"
   - "packages/*"
@@ -17,6 +18,9 @@ onlyBuiltDependencies:
   - workerd
 
 packageExtensions:
+  '@zed-industries/claude-code-acp@0.16.2':
+    dependencies:
+      zod: 4.4.3
   '@tailgrids/icons@2.0.0':
     dependencies:
       react: 19.2.3

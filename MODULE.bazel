@@ -152,6 +152,17 @@ oci.pull(
 )
 use_repo(oci, "nginx_base", "nginx_base_linux_amd64", "nginx_base_linux_arm64_v8", "python_base", "python_base_linux_amd64", "python_base_linux_arm64_v8")
 
+oci.pull(
+    name = "acp_node_base",
+    digest = "sha256:25b3eb23a00590b7499f2a2ce939322727fcce1b15fdd69754fcd09536a3ae2c",
+    image = "docker.io/library/node",
+    platforms = [
+        "linux/amd64",
+        "linux/arm64/v8",
+    ],
+)
+use_repo(oci, "acp_node_base", "acp_node_base_linux_amd64", "acp_node_base_linux_arm64_v8")
+
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
@@ -166,6 +177,71 @@ http_archive(
     build_file_content = 'exports_files(["docker/docker"])',
     sha256 = "e6b53725a73763ab3f988c73f8772eaed429754c1a579db5ff11f21990fd1817",
     urls = ["https://download.docker.com/linux/static/stable/aarch64/docker-27.5.1.tgz"],
+)
+
+# Native agent distributions are fetched without executing npm install scripts.
+http_archive(
+    name = "acp_codex_x86_64",
+    build_file_content = 'exports_files(glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]))\nfilegroup(name = "files", srcs = glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]), visibility = ["//visibility:public"])',
+    integrity = "sha512-0RfDOlpWUh3JthqYuD0Eu1Ot4m58rO2JGbKkJIEbJEMb3MwdLeVLMEvlxgHwmsknq41sF8xXlr0RB5ygFWOMaw==",
+    strip_prefix = "package",
+    urls = ["https://registry.npmjs.org/@openai/codex/-/codex-0.168.0-linux-x64.tgz"],
+)
+
+http_archive(
+    name = "acp_codex_aarch64",
+    build_file_content = 'exports_files(glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]))\nfilegroup(name = "files", srcs = glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]), visibility = ["//visibility:public"])',
+    integrity = "sha512-QQh3WpLwWhGimv4QeP9rmuLv/qpql6QDUI9eFHkaB+I4rGi6SXHnXCSiMWZhki1Rz6gZM5U/YHypRjnY1A57BQ==",
+    strip_prefix = "package",
+    urls = ["https://registry.npmjs.org/@openai/codex/-/codex-0.168.0-linux-arm64.tgz"],
+)
+
+http_archive(
+    name = "acp_codex_acp_x86_64",
+    build_file_content = 'exports_files(glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]))\nfilegroup(name = "files", srcs = glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]), visibility = ["//visibility:public"])',
+    integrity = "sha512-xs5zZBLpJuciEbZNx6ZSNL0qCa9h3i/zWpj40sp6QtF+L4Ow/7qzHdBzboGhHdcz1jrLedfZeRFDA2Elj8TLMA==",
+    strip_prefix = "package",
+    urls = ["https://registry.npmjs.org/@zed-industries/codex-acp-linux-x64/-/codex-acp-linux-x64-0.16.0.tgz"],
+)
+
+http_archive(
+    name = "acp_codex_acp_aarch64",
+    build_file_content = 'exports_files(glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]))\nfilegroup(name = "files", srcs = glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]), visibility = ["//visibility:public"])',
+    integrity = "sha512-8HaZGWVPVs1N6yqImLCKlnlcYTYc9BMCEhaVJk0ON9lyofhK9mOBBAHQndKC4Scqq5JLUHQIOyb8+jwHUe3hSQ==",
+    strip_prefix = "package",
+    urls = ["https://registry.npmjs.org/@zed-industries/codex-acp-linux-arm64/-/codex-acp-linux-arm64-0.16.0.tgz"],
+)
+
+http_archive(
+    name = "acp_claude_x86_64",
+    build_file_content = 'exports_files(glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]))\nfilegroup(name = "files", srcs = glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]), visibility = ["//visibility:public"])',
+    integrity = "sha512-cUAH9W7KrcfM5v7hWjvv1rurvAAgvOe+BVfOlk17sXH3Vqh9V+tVj0WZin6RiJ8MiZ7RpEtVfaVKPcgrY3x6Vw==",
+    strip_prefix = "package",
+    urls = ["https://registry.npmjs.org/@anthropic-ai/claude-code-linux-x64/-/claude-code-linux-x64-2.1.323.tgz"],
+)
+
+http_archive(
+    name = "acp_claude_aarch64",
+    build_file_content = 'exports_files(glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]))\nfilegroup(name = "files", srcs = glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]), visibility = ["//visibility:public"])',
+    integrity = "sha512-7Bq+2p46Utor4m4T5f+RLdmTSjP6I/isQYQTGqVDJKAuhDE6dxEBFw/0yzO/PGqcmYRi45mJeN/Ln1XQqHFhcg==",
+    strip_prefix = "package",
+    urls = ["https://registry.npmjs.org/@anthropic-ai/claude-code-linux-arm64/-/claude-code-linux-arm64-2.1.323.tgz"],
+)
+
+http_archive(
+    name = "acp_opencode_x86_64",
+    build_file_content = 'exports_files(glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]))\nfilegroup(name = "files", srcs = glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]), visibility = ["//visibility:public"])',
+    integrity = "sha512-9kA+st3XXtCXMPx5f3Ld1u19uoHTO2u2Btt8a2cqhJ4GIqVbD1mXLevj3LHFEmtuQoFGk+UstGnl38sCqXj5sQ==",
+    strip_prefix = "package",
+    urls = ["https://registry.npmjs.org/opencode-linux-x64-baseline/-/opencode-linux-x64-baseline-1.19.5.tgz"],
+)
+
+http_archive(
+    name = "acp_opencode_aarch64",
+    build_file_content = 'exports_files(glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]))\nfilegroup(name = "files", srcs = glob(["**"], exclude = ["BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel"]), visibility = ["//visibility:public"])',
+    integrity = "sha512-u2HFRI6v1nNMVKiV34An8XrGBxJeZ+RCg2tYu3SqlGODKqKsr5RoEbaX1tnsfGb+rETh9AJVX9kS8dSZXPufsA==",
+    strip_prefix = "package",
+    urls = ["https://registry.npmjs.org/opencode-linux-arm64/-/opencode-linux-arm64-1.19.5.tgz"],
 )
 
 apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
@@ -185,3 +261,33 @@ apt.install(
     suites = ["trixie"],
 )
 use_repo(apt, "runtime_os")
+
+apt.sources_list(
+    architectures = [
+        "amd64",
+        "arm64",
+    ],
+    components = ["main"],
+    suites = ["bookworm"],
+    types = ["deb"],
+    uris = ["https://snapshot.debian.org/archive/debian/20261110T000000Z"],
+)
+apt.install(
+    dependency_set = "acp_os",
+    packages = [
+        "bash",
+        "build-essential",
+        "ca-certificates",
+        "curl",
+        "git",
+        "jq",
+        "mawk",
+        "openssh-client",
+        "procps",
+        "python3",
+        "python3-pip",
+        "ripgrep",
+    ],
+    suites = ["bookworm"],
+)
+use_repo(apt, "acp_os")

@@ -3,11 +3,27 @@
 Talon does not depend on third-party ACP Docker images. Build the local sandbox image from this repository, then reference that image from a `SandboxClass`.
 
 ```bash
-docker build \
-  -f dockerfiles/codex-acp.Dockerfile \
-  -t talon-acp-harness:local \
-  .
+scripts/build-images.sh acp
+
+# Or build/load directly on a Linux host matching the image architecture.
+bazel run //dockerfiles:acp_image
+
+# On Linux with Docker, build/load and exercise the packaged agents.
+bazel test //dockerfiles/acp:smoke_test --test_output=streamed
 ```
+
+The image is assembled with `rules_oci`; no Dockerfile or install-time package
+scripts are executed. The Node base is digest-pinned, Debian tools come from the
+2026-11-10 Bookworm snapshot, and native agent archives are checksum-pinned for
+Linux x86-64 and ARM64. The Claude ACP adapter and its JavaScript dependency
+closure are packaged by `rules_js` from the pnpm lock.
+
+Pinned agents: Codex CLI 0.168.0, Codex ACP 0.16.0, Claude Code 2.1.323,
+Claude Code ACP 0.16.2, and OpenCode 1.19.5. Update native versions and integrity
+values in `MODULE.bazel`; update the Claude ACP dependency in
+`dockerfiles/acp/package.json` and regenerate the pnpm lock. CI checks native CLI
+startup, compilers, certificate trust, writable directories, and ACP initialization
+for all three harnesses as the unprivileged `codex` user, without credentials.
 
 Main branch publishes the same image to GHCR:
 

@@ -7,7 +7,6 @@ exports_files([
     "Cargo.toml",
     "requirements.lock",
     "pytest_main.py",
-    "image_builder.py",
     "sdk_codegen.py",
 ])
 

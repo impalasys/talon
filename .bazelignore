@@ -1,4 +1,5 @@
 node_modules
+dockerfiles/acp/node_modules
 target
 ui/node_modules
 ui/dist

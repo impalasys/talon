@@ -6,7 +6,7 @@ image_names=("$@")
 if [[ ${#image_names[@]} == 0 ]]; then image_names=(runtime ui); fi
 image_targets=()
 for image in "${image_names[@]}"; do
-  case "$image" in runtime|ui|benchmark) ;; *) echo "Expected runtime, ui, or benchmark" >&2; exit 2 ;; esac
+  case "$image" in runtime|ui|benchmark|acp) ;; *) echo "Expected runtime, ui, benchmark, or acp" >&2; exit 2 ;; esac
   image_targets+=("//dockerfiles:${image}_image")
 done
 bazel_version="$(cat "$repo_root/.bazelversion")"
