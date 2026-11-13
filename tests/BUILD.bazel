@@ -55,9 +55,12 @@ py_test(
     size = "large",
     srcs = [
         "conftest.py",
-        "//tools/bazel:pytest_main.py",
     ] + glob(["test_*.py"]),
-    args = ["tests/" + path for path in glob(
+    args = [
+        "-q",
+        "-o",
+        "cache_dir=$$TEST_UNDECLARED_OUTPUTS_DIR/pytest-cache",
+    ] + ["tests/" + path for path in glob(
         ["test_*.py"],
         exclude = ["test_durable_sessions_stress.py"],
     )],
@@ -65,7 +68,7 @@ py_test(
         "//:e2e_binaries",
         "//:talon-mock-acp",
     ],
-    main = "//tools/bazel:pytest_main.py",
+    main_module = "pytest",
     tags = [
         "exclusive",
         "manual",
@@ -81,10 +84,14 @@ py_test(
     srcs = [
         "conftest.py",
         "test_harness.py",
-        "//tools/bazel:pytest_main.py",
     ],
-    args = ["tests/test_harness.py"],
-    main = "//tools/bazel:pytest_main.py",
+    args = [
+        "-q",
+        "-o",
+        "cache_dir=$$TEST_UNDECLARED_OUTPUTS_DIR/pytest-cache",
+        "tests/test_harness.py",
+    ],
+    main_module = "pytest",
     deps = [":support"],
 )
 
@@ -114,11 +121,15 @@ py_test(
     srcs = [
         "conftest.py",
         "test_durable_sessions_stress.py",
-        "//tools/bazel:pytest_main.py",
     ],
-    args = ["tests/test_durable_sessions_stress.py"],
+    args = [
+        "-q",
+        "-o",
+        "cache_dir=$$TEST_UNDECLARED_OUTPUTS_DIR/pytest-cache",
+        "tests/test_durable_sessions_stress.py",
+    ],
     data = ["//:e2e_binaries"],
-    main = "//tools/bazel:pytest_main.py",
+    main_module = "pytest",
     tags = [
         "exclusive",
         "manual",

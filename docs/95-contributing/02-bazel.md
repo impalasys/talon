@@ -81,6 +81,10 @@ wheel/sdist backend; using it here would duplicate package metadata in BUILD fil
 `bazel test //sdk/python:packages_test` verifies the actual artifacts and checks
 that each source distribution rebuilds a byte-identical wheel. Explicit Hatch
 file selection keeps checkout/build metadata out of published source packages.
+Python test targets also invoke upstream pytest directly with `rules_python`
+`main_module = "pytest"`. Pytest expands the cache directory's environment
+variable at test runtime, keeping its cache in Bazel test outputs without a
+custom launcher.
 
 Cargo manifests and package-manager scripts remain useful for IDEs and downstream
 consumers; CI no longer compiles the same code through Cargo, Gradle, and pnpm.
@@ -96,10 +100,9 @@ adapters compose upstream rules rather than implementing compilers or packagers:
 | --- | --- |
 | `artifacts.bzl`, `checksums.py` | `rules_pkg` builds archives; Talon defines their layout and checksum manifests. A generic checksum command could replace the single-archive case, but not the per-member manifest by itself. |
 | `go_tools.bzl`, `protoc.bzl` | Expose executables from selected upstream toolchains. Keep toolchain resolution, including prebuilt protoc; hardcoded SDK paths or the source-built `@protobuf//:protoc` are not equivalent. |
-| `configured_files.bzl` | Talon's AWS/RocksDB and release-mode transition. The upstream platform transition only switches platforms. |
+| `configured_files.bzl` | Talon's AWS/RocksDB and release-mode transition. A dedicated dependency on [with_cfg.bzl](https://github.com/fmeum/with_cfg.bzl) could replace the handwritten transition/provider forwarding with configured filegroups; the feature policy would remain. The already-imported platform transition only switches platforms. |
 | `sdk_codegen.py` | Invokes upstream generators and applies Talon's SDK layout/import normalization and custom clientsets. Language-specific proto rules could replace individual invocations in a larger refactor; postprocessing would remain. |
 | `sync_generated.py` | Checks/updates checked-in SDK sources while preserving hand-written files and removing stale generated files. |
-| `pytest_main.py` | Calls upstream pytest and routes its cache and screenshots to Bazel test outputs. `main_module = "pytest"` can replace invocation once those output settings move into test configuration. |
 
 ## Docker and releases
 

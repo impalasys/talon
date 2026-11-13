@@ -11,9 +11,14 @@ py_library(
 
 py_test(
     name = "unit_tests",
-    srcs = ["//tools/bazel:pytest_main.py"] + glob(["tests/**/*.py"]),
-    args = ["sdk/python/talon-server/tests"],
-    main = "//tools/bazel:pytest_main.py",
+    srcs = glob(["tests/**/*.py"]),
+    args = [
+        "-q",
+        "-o",
+        "cache_dir=$$TEST_UNDECLARED_OUTPUTS_DIR/pytest-cache",
+        "sdk/python/talon-server/tests",
+    ],
+    main_module = "pytest",
     deps = [
         ":talon_server",
         requirement("pytest"),

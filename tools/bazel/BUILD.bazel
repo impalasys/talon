@@ -6,7 +6,6 @@ load(":protoc.bzl", "protoc_binary")
 exports_files([
     "Cargo.toml",
     "requirements.lock",
-    "pytest_main.py",
     "sdk_codegen.py",
 ])
 
