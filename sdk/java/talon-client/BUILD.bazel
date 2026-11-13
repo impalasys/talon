@@ -48,6 +48,19 @@ java_test(
 
 filegroup(
     name = "generated_sources",
-    srcs = glob(["src/main/java/**/*.java"]),
+    srcs = glob([
+        "src/main/java/talon/**",
+        "src/main/java/systems/impala/talon/client/TalonClientset.java",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generated_metadata",
+    srcs = glob(
+        include = ["src/main/java/talon/**"],
+        allow_empty = True,
+        exclude = ["**/*.java"],
+    ),
     visibility = ["//visibility:public"],
 )

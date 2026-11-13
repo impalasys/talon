@@ -51,3 +51,13 @@ filegroup(
     srcs = glob(["src/generated/**"]),
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "generated_metadata",
+    srcs = glob(
+        include = ["src/generated/**"],
+        allow_empty = True,
+        exclude = ["**/*.rs"],
+    ),
+    visibility = ["//visibility:public"],
+)

@@ -3,6 +3,16 @@
 load("@bazel_skylib//rules:select_file.bzl", "select_file")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "strip_prefix")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@with_cfg.bzl", "with_cfg")
+
+# Production artifacts always include both storage backends and optimized code.
+production_filegroup, _production_filegroup = (
+    with_cfg(native.filegroup)
+        .set(Label("//:with_aws"), True)
+        .set(Label("//:with_rocksdb"), True)
+        .set("compilation_mode", "opt")
+        .build()
+)
 
 def release_distribution(name, binaries, configs, platform, sdk_platform):
     pkg_files(

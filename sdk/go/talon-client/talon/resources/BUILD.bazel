@@ -36,6 +36,16 @@ go_library(
 
 filegroup(
     name = "generated_sources",
-    srcs = glob(["*.go"]),
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generated_metadata",
+    srcs = glob(
+        include = ["**"],
+        allow_empty = True,
+        exclude = ["**/*.go"],
+    ),
     visibility = ["//visibility:public"],
 )

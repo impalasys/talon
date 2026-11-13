@@ -46,7 +46,31 @@ exports_files(["VERSION"])
 
 filegroup(
     name = "generated_sources",
-    srcs = glob(["clientset_gen.go"]) + ["//sdk/go/talon-client/talon/" + name + ":generated_sources" for name in [
+    srcs = glob(
+        [
+            "clientset_gen.go",
+            "talon/**",
+        ],
+        allow_empty = True,
+    ) + ["//sdk/go/talon-client/talon/" + name + ":generated_sources" for name in [
+        "config",
+        "data",
+        "events",
+        "external",
+        "resources",
+        "routing",
+        "v1",
+    ]],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generated_metadata",
+    srcs = glob(
+        ["talon/**"],
+        allow_empty = True,
+        exclude = ["**/*.go"],
+    ) + ["//sdk/go/talon-client/talon/" + name + ":generated_metadata" for name in [
         "config",
         "data",
         "events",

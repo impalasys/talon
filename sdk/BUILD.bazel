@@ -1,6 +1,11 @@
+load("@bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("@bazel_lib//lib:run_binary.bzl", "run_binary")
 load("@pypi//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+load("@rules_proto_grpc//:defs.bzl", "proto_plugin")
+load("@rules_python//python:defs.bzl", "py_binary")
+load("//scripts/sdk:codegen.bzl", "GO_OPTIONS", "SDK_PROTO_SOURCES")
+load(":proto_rules.bzl", "sdk_proto_compile")
+load(":source_updates.bzl", "sdk_source_updates")
 
 exports_files([
     "VERSION",
@@ -30,74 +35,211 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-_GENERATORS = {
-    "clientsets": "//scripts/sdk:clientsets",
-    "connect": "//sdk/js:protoc-gen-connect-es",
-    "es": "//sdk/js:protoc-gen-es",
-    "go": "@org_golang_google_protobuf//cmd/protoc-gen-go",
-    "go-grpc": "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
-    "gofmt": "//tools/bazel:gofmt",
-    "java": "//tools/bazel:grpc_java",
-    "protoc": "//tools/bazel:protoc",
-    "rust": "//sdk/rust/tools/codegen:codegen",
-}
+# Compilation actions, toolchains and output merging belong to rules_proto_grpc.
+# Direct-source mode preserves comments and implicit json_name formatting.
+proto_plugin(
+    name = "go_plugin",
+    options = GO_OPTIONS,
+    output_directory = True,
+    protoc_plugin_name = "go",
+    quirks = ["QUIRK_DIRECT_MODE"],
+    tool = "@org_golang_google_protobuf//cmd/protoc-gen-go",
+)
 
+proto_plugin(
+    name = "go_grpc_plugin",
+    options = GO_OPTIONS,
+    output_directory = True,
+    protoc_plugin_name = "go-grpc",
+    quirks = ["QUIRK_DIRECT_MODE"],
+    tool = "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
+)
+
+proto_plugin(
+    name = "java_plugin",
+    output_directory = True,
+    protoc_plugin_name = "java",
+    quirks = ["QUIRK_DIRECT_MODE"],
+)
+
+proto_plugin(
+    name = "java_grpc_plugin",
+    output_directory = True,
+    protoc_plugin_name = "grpc-java",
+    quirks = ["QUIRK_DIRECT_MODE"],
+    tool = "//tools/bazel:grpc_java",
+)
+
+proto_plugin(
+    name = "es_plugin",
+    options = [
+        "target=ts",
+        "import_extension=.js",
+    ],
+    output_directory = True,
+    protoc_plugin_name = "es",
+    quirks = ["QUIRK_DIRECT_MODE"],
+    tool = "//sdk/js:protoc-gen-es",
+)
+
+proto_plugin(
+    name = "connect_plugin",
+    options = [
+        "target=ts",
+        "import_extension=.js",
+    ],
+    output_directory = True,
+    protoc_plugin_name = "connect-es",
+    quirks = ["QUIRK_DIRECT_MODE"],
+    tool = "//sdk/js:protoc-gen-connect-es",
+)
+
+[sdk_proto_compile(
+    name = "raw_" + language,
+    extra_plugins = plugins,
+    extra_protoc_args = ["--experimental_allow_proto3_optional"],
+    protos = ["//:sdk_protos"],
+) for language, plugins in {
+    "go": [
+        ":go_plugin",
+        ":go_grpc_plugin",
+    ],
+    "java": [
+        ":java_plugin",
+        ":java_grpc_plugin",
+    ],
+    "js": [
+        ":es_plugin",
+        ":connect_plugin",
+    ],
+}.items()]
+
+# Keep Python's protobuf 6 / grpcio 1.76 generator, matching the published SDK.
 py_binary(
-    name = "codegen",
-    srcs = ["//tools/bazel:sdk_codegen.py"],
-    data = _GENERATORS.values(),
-    main = "//tools/bazel:sdk_codegen.py",
+    name = "python_protoc",
+    main_module = "grpc_tools.protoc",
     deps = [requirement("grpcio-tools")],
 )
 
 run_binary(
-    name = "generated",
-    srcs = [
-        "//:proto_sources",
-        "//scripts/sdk:codegen.json",
-    ],
+    name = "raw_python",
+    srcs = ["//:proto_sources"],
     args = [
-        "--output",
-        "$@",
-        "--config",
-        "$(execpath //scripts/sdk:codegen.json)",
-    ] + ["--" + name + " $(execpath " + label + ")" for name, label in _GENERATORS.items()],
-    mnemonic = "TalonSDKCodegen",
-    out_dirs = ["generated"],
-    tool = ":codegen",
-    tools = _GENERATORS.values(),
+        "-I.",
+        "-Ithird_party/googleapis",
+        "--experimental_allow_proto3_optional",
+        "--python_out=$@",
+        "--pyi_out=$@",
+        "--grpc_python_out=$@",
+    ] + SDK_PROTO_SOURCES,
+    out_dirs = ["raw_python"],
+    tool = ":python_protoc",
 )
 
 py_binary(
-    name = "update_generated",
-    srcs = ["//tools/bazel:sync_generated.py"],
-    data = [
-        "VERSION",
-        ":generated",
-    ],
-    main = "//tools/bazel:sync_generated.py",
-    deps = ["@rules_python//python/runfiles"],
+    name = "normalize",
+    srcs = ["normalize_generated.py"],
+    main = "normalize_generated.py",
 )
 
-py_test(
-    name = "generated_test",
-    srcs = ["//tools/bazel:sync_generated.py"],
-    data = [
-        "VERSION",
-        ":checked_in_generated",
-        ":generated",
+[run_binary(
+    name = "normalized_" + language,
+    srcs = [":raw_" + language],
+    args = [
+        language,
+        "$(execpath :raw_" + language + ")",
+        "$@",
     ],
-    main = "//tools/bazel:sync_generated.py",
-    deps = ["@rules_python//python/runfiles"],
+    out_dirs = ["normalized_" + language],
+    tool = ":normalize",
+) for language in [
+    "java",
+    "js",
+    "python",
+]]
+
+# Clientset facades and Rust-specific headers are Talon code-generation policy.
+run_binary(
+    name = "clientsets",
+    srcs = ["//:proto_sources"],
+    env = {
+        "CODEGEN_ROOT": ".",
+        "CODEGEN_OUTPUT": "$@",
+    },
+    out_dirs = ["clientsets"],
+    tool = "//scripts/sdk:clientsets",
 )
 
-filegroup(
-    name = "checked_in_generated",
+run_binary(
+    name = "go_clientset",
+    srcs = [":clientsets"],
+    args = ["$(execpath :clientsets)/sdk/go/talon-client/clientset_gen.go"],
+    stdout = "clientset_gen.go",
+    tool = "//tools/bazel:gofmt",
+)
+
+run_binary(
+    name = "rust_generated",
+    srcs = ["//:proto_sources"],
+    args = [
+        ".",
+        "$@",
+    ],
+    env = {"PROTOC": "$(execpath //tools/bazel:protoc)"},
+    out_dirs = ["rust_generated"],
+    tool = "//sdk/rust/tools/codegen",
+    tools = ["//tools/bazel:protoc"],
+)
+
+copy_to_directory(
+    name = "generated",
     srcs = [
-        "//sdk/go/talon-client:generated_sources",
-        "//sdk/java/talon-client:generated_sources",
-        "//sdk/js/talon-client:generated_sources",
-        "//sdk/python/talon-client:generated_sources",
-        "//sdk/rust/talon-client:generated_sources",
+        ":clientsets",
+        ":go_clientset",
+        ":normalized_java",
+        ":normalized_js",
+        ":normalized_python",
+        ":raw_go",
+        ":rust_generated",
     ],
+    exclude_srcs_patterns = ["sdk/clientsets/sdk/go/talon-client/clientset_gen.go"],
+    replace_prefixes = {
+        "sdk/raw_go": "sdk/go/talon-client",
+        "sdk/normalized_java": "sdk/java/talon-client/src/main/java",
+        "sdk/normalized_js": "sdk/js/talon-client/src/gen",
+        "sdk/normalized_python": "sdk/python/talon-client/src/talon_client",
+        "sdk/clientsets/": "",
+        "sdk/clientset_gen.go": "sdk/go/talon-client/clientset_gen.go",
+        "sdk/rust_generated": "sdk/rust/talon-client/src/generated",
+    },
+    root_paths = [],
+    visibility = ["//visibility:public"],
 )
+
+# Complete update inputs preserve BUILD files and non-generated metadata.
+copy_to_directory(
+    name = "generated_with_metadata",
+    srcs = [":generated"] + ["//sdk/" + language + "/talon-client:generated_metadata" for language in [
+        "go",
+        "java",
+        "js",
+        "python",
+        "rust",
+    ]],
+    replace_prefixes = {"sdk/generated": ""},
+    root_paths = [],
+)
+
+copy_to_directory(
+    name = "checked_in_generated",
+    srcs = ["//sdk/" + language + "/talon-client:generated_sources" for language in [
+        "go",
+        "java",
+        "js",
+        "python",
+        "rust",
+    ]],
+    root_paths = [],
+)
+
+sdk_source_updates()

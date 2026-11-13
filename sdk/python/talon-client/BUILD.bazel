@@ -65,6 +65,36 @@ exports_files(["pyproject.toml"])
 
 filegroup(
     name = "generated_sources",
-    srcs = glob(["src/talon_client/**"]),
+    srcs = glob(
+        ["src/talon_client/proto/**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/*.pyc",
+        ],
+    ) + [
+        "src/talon_client/__init__.py",
+        "src/talon_client/clientset.py",
+        "src/talon_client/config.py",
+        "src/talon_client/data.py",
+        "src/talon_client/events.py",
+        "src/talon_client/external.py",
+        "src/talon_client/harness.py",
+        "src/talon_client/resources.py",
+        "src/talon_client/v1.py",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generated_metadata",
+    srcs = glob(
+        include = ["src/talon_client/proto/**"],
+        allow_empty = True,
+        exclude = [
+            "**/*.py",
+            "**/*.pyi",
+            "**/__pycache__/**",
+        ],
+    ),
     visibility = ["//visibility:public"],
 )

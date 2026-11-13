@@ -6,12 +6,10 @@ load(":protoc.bzl", "protoc_binary")
 exports_files([
     "Cargo.toml",
     "requirements.lock",
-    "sdk_codegen.py",
 ])
 
 exports_files([
     "artifacts.bzl",
-    "configured_files.bzl",
 ])
 
 protoc_binary(
@@ -51,18 +49,6 @@ alias(
         "//conditions:default": "@grpc_java_osx_x86_64//file:downloaded",
     }),
     visibility = ["//visibility:public"],
-)
-
-exports_files(["sync_generated.py"])
-
-py_test(
-    name = "sync_generated_test",
-    srcs = [
-        "sync_generated.py",
-        "sync_generated_test.py",
-    ],
-    imports = ["."],
-    deps = ["@rules_python//python/runfiles"],
 )
 
 py_test(

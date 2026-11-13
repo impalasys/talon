@@ -20,7 +20,7 @@ js_test(
     entry_point = "check_js_packages.mjs",
 )
 
-exports_files(["codegen.json"])
+exports_files(["codegen.bzl"])
 
 py_binary(
     name = "clientsets",

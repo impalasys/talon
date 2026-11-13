@@ -2,10 +2,11 @@ load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_deps")
 load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@protobuf//bazel:proto_library.bzl", "proto_library")
 load("@rules_rust//cargo:defs.bzl", "cargo_build_script", "cargo_toml_env_vars")
 load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_doc_test", "rust_library", "rust_test", "rustfmt_test")
-load("//tools/bazel:artifacts.bzl", "release_distribution")
-load("//tools/bazel:configured_files.bzl", "configured_files")
+load("//scripts/sdk:codegen.bzl", "SDK_PROTO_SOURCES")
+load("//tools/bazel:artifacts.bzl", "production_filegroup", "release_distribution")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -281,25 +282,22 @@ rust_test(
     ]
 ]
 
-configured_files(
+production_filegroup(
     name = "production_binaries",
-    release = True,
-    targets = [":binaries"],
+    srcs = [":binaries"],
 )
 
-configured_files(
+production_filegroup(
     name = "benchmark_binaries",
-    release = True,
-    targets = [
-        ":talon-node",
+    srcs = [
         ":talon-cli",
+        ":talon-node",
     ],
 )
 
-configured_files(
+production_filegroup(
     name = "e2e_binaries",
-    release = True,
-    targets = [":binaries"],
+    srcs = [":binaries"],
 )
 
 config_setting(
@@ -350,6 +348,18 @@ filegroup(
         "proto/**",
         "third_party/**",
     ]),
+)
+
+proto_library(
+    name = "sdk_struct_proto",
+    srcs = ["third_party/googleapis/google/protobuf/struct.proto"],
+    strip_import_prefix = "third_party/googleapis",
+)
+
+proto_library(
+    name = "sdk_protos",
+    srcs = SDK_PROTO_SOURCES,
+    deps = [":sdk_struct_proto"],
 )
 
 filegroup(

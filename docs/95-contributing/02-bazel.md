@@ -104,9 +104,9 @@ adapters compose upstream rules rather than implementing compilers or packagers:
 | --- | --- |
 | `artifacts.bzl`, `checksums.py` | `rules_pkg` builds archives; Talon defines their layout and checksum manifests. A generic checksum command could replace the single-archive case, but not the per-member manifest by itself. |
 | `go_tools.bzl`, `protoc.bzl` | Expose executables from selected upstream toolchains. Keep toolchain resolution, including prebuilt protoc; hardcoded SDK paths or the source-built `@protobuf//:protoc` are not equivalent. |
-| `configured_files.bzl` | Talon's AWS/RocksDB and release-mode transition. A dedicated dependency on [with_cfg.bzl](https://github.com/fmeum/with_cfg.bzl) could replace the handwritten transition/provider forwarding with configured filegroups; the feature policy would remain. The already-imported platform transition only switches platforms. |
-| `sdk_codegen.py` | Invokes upstream generators and applies Talon's SDK layout/import normalization and custom clientsets. Language-specific proto rules could replace individual invocations in a larger refactor; postprocessing would remain. |
-| `sync_generated.py` | Checks/updates checked-in SDK sources while preserving hand-written files and removing stale generated files. |
+| `artifacts.bzl` production filegroup | [with_cfg.bzl](https://github.com/fmeum/with_cfg.bzl) applies AWS/RocksDB and optimized compilation to production artifacts. Talon only defines the feature policy. |
+| `sdk/proto_rules.bzl`, `sdk/normalize_generated.py` | A thin binding to `rules_proto_grpc` compiles Go/Java/JS with pinned plugins; direct-source mode preserves published comments. Python invokes the pinned `grpc_tools.protoc` module for protobuf/runtime compatibility. Talon retains whitespace/import/package policy and custom clientset facades. |
+| `sdk/source_updates.bzl` | Declares destination ownership for upstream `copy_to_directory`, `directory_path`, `write_source_files` and `diff_test`. Complete update inputs include BUILD files and other metadata. No custom copy/delete/check implementation remains. |
 | `python_packager.py` | Materializes sandbox inputs before invoking Hatchling's standard wheel/sdist backend functions. It contains no archive writer or metadata implementation; native `py_wheel` is not a drop-in replacement for both artifacts. |
 
 ## Docker and releases
@@ -183,7 +183,7 @@ secrets. Runtime OAuth environment configuration remains available.
 ## Generated sources and dependencies
 
 ```bash
-# Generate with pinned tools and copy only generated SDK files into the checkout.
+# Generate with pinned tools and update the owned SDK destinations.
 scripts/sdk/generate.sh
 bazel test //sdk:generated_test
 
@@ -196,6 +196,18 @@ python3 scripts/sync_bazel_dependencies.py
 bazel build //:binaries
 python3 scripts/sync_bazel_dependencies.py --check
 ```
+
+SDK updates replace only the five generated directories declared in
+`sdk/source_updates.bzl` and the individual clientset/facade files. Handwritten
+SDK helpers outside those directories are preserved. Complete directory inputs
+combine generated files with checked-in non-generated metadata, including Go
+`BUILD.bazel` files and Rust's `.gitkeep`. Add new handwritten helpers outside
+owned generated directories; maintain metadata through each SDK package's
+`generated_metadata` filegroup. Freshness uses upstream `diff_test` against a
+tree assembled from declared checked-in files, so stale file additions/removals
+invalidate the check. It never relies on a source-directory label as an input.
+`//sdk:update_generated_test` runs the real upstream updater twice against a
+temporary checkout, checking content, stale removal and helper/metadata preservation.
 
 Commit the generated metadata manifest, root `Cargo.lock`, `MODULE.bazel.lock`,
 and relevant language locks with dependency changes. Cargo and Bazel share the

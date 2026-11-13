@@ -94,3 +94,13 @@ filegroup(
     ]),
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "generated_metadata",
+    srcs = glob(
+        include = ["src/gen/**"],
+        allow_empty = True,
+        exclude = ["**/*.ts"],
+    ),
+    visibility = ["//visibility:public"],
+)
