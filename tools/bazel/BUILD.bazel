@@ -8,6 +8,7 @@ exports_files([
     "requirements.lock",
     "pytest_main.py",
     "image_builder.py",
+    "sdk_codegen.py",
 ])
 
 exports_files([
@@ -46,13 +47,6 @@ alias(
         "//conditions:default": "@grpc_java_osx_x86_64//file:downloaded",
     }),
     visibility = ["//visibility:public"],
-)
-
-py_binary(
-    name = "sdk_codegen",
-    srcs = ["sdk_codegen.py"],
-    visibility = ["//visibility:public"],
-    deps = [requirement("grpcio-tools")],
 )
 
 exports_files(["sync_generated.py"])

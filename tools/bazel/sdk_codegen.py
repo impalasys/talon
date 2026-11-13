@@ -19,7 +19,9 @@ root.mkdir(parents=True, exist_ok=True)
 for directory in ['proto', 'third_party']:
     shutil.copytree(directory, root / directory, dirs_exist_ok=True)
 tools = {name: str(Path(getattr(args, name.replace('-', '_'))).absolute()) for name in ['protoc','go','go-grpc','java','es','connect','rust','clientsets','gofmt']}
-env = {key: value for key, value in os.environ.items() if key not in ["RUNFILES_DIR", "RUNFILES_MANIFEST_FILE", "JAVA_RUNFILES", "PYTHON_RUNFILES"]}
+env = dict(os.environ)
+if env.get("RUNFILES_DIR"):
+    env["RUNFILES"] = env["RUNFILES_DIR"]
 env.update(CODEGEN_ROOT=str(root), PROTOC=tools['protoc'], PYTHONPATH=os.pathsep.join(sys.path))
 
 def run(command):

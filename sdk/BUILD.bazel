@@ -1,4 +1,5 @@
 load("@bazel_lib//lib:run_binary.bzl", "run_binary")
+load("@pypi//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 
 exports_files([
@@ -41,6 +42,14 @@ _GENERATORS = {
     "rust": "//sdk/rust/tools/codegen:codegen",
 }
 
+py_binary(
+    name = "codegen",
+    srcs = ["//tools/bazel:sdk_codegen.py"],
+    data = _GENERATORS.values(),
+    main = "//tools/bazel:sdk_codegen.py",
+    deps = [requirement("grpcio-tools")],
+)
+
 run_binary(
     name = "generated",
     srcs = [
@@ -55,7 +64,7 @@ run_binary(
     ] + ["--" + name + " $(execpath " + label + ")" for name, label in _GENERATORS.items()],
     mnemonic = "TalonSDKCodegen",
     out_dirs = ["generated"],
-    tool = "//tools/bazel:sdk_codegen",
+    tool = ":codegen",
     tools = _GENERATORS.values(),
 )
 
