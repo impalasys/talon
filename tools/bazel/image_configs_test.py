@@ -14,7 +14,7 @@ class ImageConfigsTest(unittest.TestCase):
     def test_all_inherited_configs_are_in_the_image(self):
         with tarfile.open(LAYER) as layer:
             configs = {
-                member.name: yaml.safe_load(layer.extractfile(member))
+                member.name.removeprefix("./"): yaml.safe_load(layer.extractfile(member))
                 for member in layer.getmembers()
                 if member.isfile() and member.name.endswith(".yaml")
             }

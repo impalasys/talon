@@ -73,7 +73,8 @@ jobs:
       run: |-
         bazel build //:release-dist
         mkdir -p dist
-        cp bazel-bin/release-dist/talon-node-*.tar.gz* dist/
+        cp bazel-bin/release-dist/talon-node-*.tar.gz dist/
+        cp bazel-bin/release-dist/node.sha256 "dist/talon-node-${{ matrix.platform }}.tar.gz.sha256"
     - name: Upload talon-node binary
       uses: actions/upload-artifact@v4
       with:
@@ -283,7 +284,7 @@ jobs:
             return 0
           fi
           bazel build "//${package_path}:archive"
-          npm publish "bazel-bin/${package_path}/archive.tgz" --access public
+          npm publish "bazel-bin/${package_path}/pkg.tgz" --access public
         }
         publish_at_sdk_version "@impalasys/talon-chat" "packages/talon-chat"
         publish_at_sdk_version "@impalasys/talon-node-linux-x64" "sdk/js/talon-node-linux-x64"

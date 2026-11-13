@@ -5,8 +5,10 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  # Skipped manual-run jobs must not replace the real PR check contexts.
   bazel:
-    name: Bazel
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Bazel
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v5
@@ -17,7 +19,8 @@ jobs:
     - name: Build and test all unit targets
       run: bazel test //...
   runtime_image:
-    name: Runtime Image
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Runtime Image
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -46,7 +49,8 @@ jobs:
       env:
         PUBLISH_IMAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
   acp_harness_image:
-    name: ACP Harness Sandbox Image
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}ACP Harness Sandbox Image
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -83,7 +87,8 @@ jobs:
       env:
         PUBLISH_IMAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
   ui:
-    name: UI
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}UI
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -110,7 +115,8 @@ jobs:
       env:
         PUBLISH_IMAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
   sightline_e2e_screenshots:
-    name: Sightline E2E Screenshots
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Sightline E2E Screenshots
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:
@@ -150,7 +156,8 @@ jobs:
         if-no-files-found: error
         retention-days: 14
   python_e2e:
-    name: Python E2E
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Python E2E
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
@@ -166,7 +173,7 @@ jobs:
     - name: Run Python E2E suite
       run: bazel test //tests:e2e_tests --test_env=TESTCONTAINERS_RYUK_DISABLED=true
   binary_artifacts:
-    name: Binary Artifacts
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Binary Artifacts
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs:
     - bazel
@@ -196,6 +203,7 @@ jobs:
         if [[ -n "$TALON_GOOGLE_CLIENT_ID" ]]; then options+=(--action_env=TALON_GOOGLE_CLIENT_ID); fi
         if [[ -n "$TALON_GOOGLE_CLIENT_SECRET" ]]; then options+=(--action_env=TALON_GOOGLE_CLIENT_SECRET); fi
         bazel build "${options[@]}" //:release-dist
+        bazel test "${options[@]}" //tools/bazel:release_archives_test
       env:
         TALON_GOOGLE_CLIENT_ID: ${{ secrets.TALON_GOOGLE_CLIENT_ID }}
         TALON_GOOGLE_CLIENT_SECRET: ${{ secrets.TALON_GOOGLE_CLIENT_SECRET }}
@@ -204,18 +212,53 @@ jobs:
         mkdir -p dist
         cp -R bazel-bin/release-dist/. dist/
         mv "dist/talon-${{ matrix.artifact_name }}.tar.gz" "dist/talon-${{ matrix.artifact_name }}-${GITHUB_SHA}.tar.gz"
+        mv dist/node.sha256 "dist/talon-node-${{ matrix.sdk_platform }}.tar.gz.sha256"
     - name: Upload binary artifact bundle
       uses: actions/upload-artifact@v4
       with:
         name: talon-${{ matrix.artifact_name }}-${{ github.sha }}
         path: |
           dist/talon-${{ matrix.artifact_name }}-${{ github.sha }}.tar.gz
-          dist/talon-${{ matrix.artifact_name }}/SHA256SUMS
+          dist/SHA256SUMS
           dist/talon-node-${{ matrix.sdk_platform }}.tar.gz
           dist/talon-node-${{ matrix.sdk_platform }}.tar.gz.sha256
         if-no-files-found: error
         retention-days: 14
+  buildbuddy_cache_probe:
+    name: BuildBuddy Cache Verification
+    # Only repository writers can dispatch this job. PR events never receive
+    # the writer credential, including PRs originating from forks.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ secrets.BUILDBUDDY_API_KEY }}
+    - name: Verify remote write and independent read
+      shell: bash
+      run: |
+        test -s .bazelrc.local || { echo 'BUILDBUDDY_API_KEY is missing'; exit 1; }
+        printf 'Run %s/%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" >> tools/bazel/cache_probe/input.txt
+        options=(--disk_cache= --color=no --curses=no --remote_download_outputs=all)
+        bazel --output_base="$RUNNER_TEMP/buildbuddy-write" build "${options[@]}" \
+          --noremote_accept_cached --remote_upload_local_results=true \
+          //tools/bazel/cache_probe:action 2>&1 | tee "$RUNNER_TEMP/buildbuddy-write.log"
+        bazel --output_base="$RUNNER_TEMP/buildbuddy-read" build "${options[@]}" \
+          --remote_accept_cached --remote_upload_local_results=false \
+          //tools/bazel/cache_probe:action 2>&1 | tee "$RUNNER_TEMP/buildbuddy-read.log"
+        grep -Eq '[1-9][0-9]* remote cache hit' "$RUNNER_TEMP/buildbuddy-read.log"
+        cmp tools/bazel/cache_probe/input.txt bazel-bin/tools/bazel/cache_probe/output.txt
+    - name: Upload cache verification logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: buildbuddy-cache-verification
+        path: ${{ runner.temp }}/buildbuddy-*.log
+        if-no-files-found: error
 'on':
+  workflow_dispatch:
   pull_request: null
   push:
     branches:

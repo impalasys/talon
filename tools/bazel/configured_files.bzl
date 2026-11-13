@@ -29,10 +29,3 @@ configured_files = rule(
         "_allowlist_function_transition": attr.label(default = "@bazel_tools//tools/allowlists/function_transition_allowlist"),
     },
 )
-
-def _linux_platform_impl(settings, attr):
-    return {"//command_line_option:platforms": ["//tools/bazel:linux_amd64"]}
-
-_linux_platform = transition(implementation = _linux_platform_impl, inputs = [], outputs = ["//command_line_option:platforms"])
-
-linux_files = rule(implementation = _configured_files_impl, attrs = {"targets": attr.label_list(cfg = _linux_platform), "_allowlist_function_transition": attr.label(default = "@bazel_tools//tools/allowlists/function_transition_allowlist")})

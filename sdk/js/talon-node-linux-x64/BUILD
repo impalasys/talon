@@ -1,6 +1,5 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
-load("//tools/bazel:distributions.bzl", "npm_archive")
 
 npm_package(
     name = "pkg",
@@ -9,13 +8,13 @@ npm_package(
         "index.js",
         "package.json",
     ]),
+    packable = True,
     visibility = ["//visibility:public"],
 )
 
-npm_archive(
+alias(
     name = "archive",
-    package = ":pkg",
-    require_binary = True,
+    actual = ":pkg.pack",
     tags = ["manual"],
     visibility = ["//visibility:public"],
 )

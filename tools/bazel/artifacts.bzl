@@ -1,54 +1,59 @@
-"""Deterministic runtime distributions built from Bazel binaries."""
+"""Talon release layout; archive construction is provided by rules_pkg."""
 
-def _release_distribution_impl(ctx):
-    output = ctx.actions.declare_directory(ctx.label.name)
-    args = ctx.actions.args()
-    args.add("--output", output.path)
-    args.add("--platform", ctx.attr.platform)
-    args.add("--sdk-platform", ctx.attr.sdk_platform)
-    for file in ctx.files.binaries:
-        args.add("--binary", file.path)
-    for file in ctx.files.configs:
-        args.add("--config", file.path)
-    ctx.actions.run(
-        executable = ctx.executable._packager,
-        arguments = [args],
-        inputs = ctx.files.binaries + ctx.files.configs,
-        outputs = [output],
-        mnemonic = "TalonReleaseDistribution",
-        progress_message = "Packaging Talon release binaries",
+load("@bazel_skylib//rules:select_file.bzl", "select_file")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "strip_prefix")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+
+def release_distribution(name, binaries, configs, platform, sdk_platform):
+    pkg_files(
+        name = name + "_binaries",
+        srcs = [binaries],
+        strip_prefix = strip_prefix.files_only(),
+        attributes = pkg_attributes(mode = "0755"),
     )
-    return [DefaultInfo(files = depset([output]))]
-
-release_distribution = rule(
-    implementation = _release_distribution_impl,
-    attrs = {
-        "binaries": attr.label(mandatory = True),
-        "configs": attr.label(mandatory = True),
-        "platform": attr.string(mandatory = True),
-        "sdk_platform": attr.string(mandatory = True),
-        "_packager": attr.label(default = "//tools/bazel:release_packager", executable = True, cfg = "exec"),
-    },
-)
-
-def _container_context_impl(ctx):
-    output = ctx.actions.declare_directory(ctx.label.name)
-    args = ctx.actions.args()
-    args.add("--output", output.path)
-    args.add("--dockerfile", ctx.file.dockerfile.path)
-    ctx.actions.run(
-        executable = ctx.executable._builder,
-        arguments = [args],
-        inputs = [ctx.file.dockerfile],
-        outputs = [output],
-        mnemonic = "TalonContainerContext",
+    pkg_files(
+        name = name + "_configs",
+        srcs = [configs],
+        strip_prefix = strip_prefix.from_root(),
+        attributes = pkg_attributes(mode = "0644"),
     )
-    return [DefaultInfo(files = depset([output]))]
-
-container_context = rule(
-    implementation = _container_context_impl,
-    attrs = {
-        "dockerfile": attr.label(allow_single_file = True, mandatory = True),
-        "_builder": attr.label(default = "//tools/bazel:context_builder", executable = True, cfg = "exec"),
-    },
-)
+    pkg_tar(name = name + "_payload", srcs = [":" + name + "_binaries", ":" + name + "_configs"])
+    native.genrule(
+        name = name + "_checksums",
+        srcs = [":" + name + "_payload"],
+        outs = [name + "/SHA256SUMS"],
+        tools = ["//tools/bazel:checksums"],
+        cmd = "$(execpath //tools/bazel:checksums) contents $(location :" + name + "_payload) $@",
+    )
+    pkg_tar(
+        name = name + "_runtime",
+        deps = [":" + name + "_payload"],
+        srcs = [":" + name + "_checksums"],
+        package_dir = "talon-" + platform,
+        package_file_name = name + "/talon-" + platform + ".tar.gz",
+        extension = "tar.gz",
+        mode = "0644",
+    )
+    select_file(name = name + "_node_binary", srcs = binaries, subpath = "talon-node")
+    pkg_files(
+        name = name + "_node_files",
+        srcs = [":" + name + "_node_binary"],
+        strip_prefix = strip_prefix.files_only(),
+        attributes = pkg_attributes(mode = "0755"),
+    )
+    pkg_tar(
+        name = name + "_node",
+        srcs = [":" + name + "_node_files"],
+        package_dir = "talon-node-" + sdk_platform,
+        package_file_name = name + "/talon-node-" + sdk_platform + ".tar.gz",
+        extension = "tar.gz",
+        mode = "0644",
+    )
+    native.genrule(
+        name = name + "_node_checksum",
+        srcs = [":" + name + "_node"],
+        outs = [name + "/node.sha256"],
+        tools = ["//tools/bazel:checksums"],
+        cmd = "$(execpath //tools/bazel:checksums) archive $(location :" + name + "_node) $@",
+    )
+    native.filegroup(name = name, srcs = [":" + name + suffix for suffix in ["_runtime", "_node", "_node_checksum", "_checksums"]])

@@ -1,9 +1,11 @@
-load("@pypi//:requirements.bzl", "requirement", "whl_requirement")
+load("@bazel_skylib//rules:select_file.bzl", "select_file")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@pypi//:requirements.bzl", "requirement")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
+load("@rules_pkg//pkg:mappings.bzl", "REMOVE_BASE_DIRECTORY", "pkg_attributes", "pkg_files", "pkg_mklink", "strip_prefix")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_python//python:defs.bzl", "py_binary")
-load("//tools/bazel:artifacts.bzl", "container_context")
-load("//tools/bazel:configured_files.bzl", "linux_files")
-load("//tools/bazel:image_layer.bzl", "debian_layer", "image_layer")
+load("@rules_python//python:packaging.bzl", "py_package")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -19,21 +21,46 @@ NGINX_BASE = select({
 
 LINUX = ["@platforms//os:linux"]
 
-image_layer(
+pkg_files(
+    name = "runtime_binary_files",
+    srcs = ["//:production_binaries"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "usr/local/bin",
+    strip_prefix = strip_prefix.files_only(),
+    target_compatible_with = LINUX,
+)
+
+pkg_tar(
     name = "runtime_binaries",
-    binaries = "//:production_binaries",
+    srcs = [":runtime_binary_files"],
     target_compatible_with = LINUX,
 )
 
-image_layer(
+pkg_files(
+    name = "benchmark_binary_files",
+    srcs = ["//:benchmark_binaries"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "usr/local/bin",
+    strip_prefix = strip_prefix.files_only(),
+    target_compatible_with = LINUX,
+)
+
+pkg_tar(
     name = "benchmark_binaries",
-    binaries = "//:benchmark_binaries",
+    srcs = [":benchmark_binary_files"],
     target_compatible_with = LINUX,
 )
 
-image_layer(
+pkg_files(
+    name = "runtime_config_files",
+    srcs = ["//:runtime_data"],
+    prefix = "data/talon",
+    strip_prefix = strip_prefix.from_root(),
+)
+
+pkg_tar(
     name = "runtime_configs",
-    configs = "//:runtime_data",
+    srcs = [":runtime_config_files"],
 )
 
 alias(
@@ -44,16 +71,102 @@ alias(
     }),
 )
 
-image_layer(
-    name = "docker_cli_layer",
-    files = {":docker_cli": "usr/local/bin/docker"},
+pkg_files(
+    name = "docker_cli_files",
+    srcs = [":docker_cli"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "usr/local/bin",
+    strip_prefix = strip_prefix.files_only(),
 )
 
-image_layer(
+pkg_tar(
+    name = "docker_cli_layer",
+    srcs = [":docker_cli_files"],
+)
+
+# rules_python collects transitive wheel files; rules_pkg maps them into the image.
+py_package(
+    name = "python_runtime_packages",
+    deps = ["//tests:third_party"],
+)
+
+# These wheels generate the same pkgutil namespace initializer as protobuf.
+# Keep one copy; rules_pkg continues to reject every other path collision.
+_GOOGLE_NAMESPACE_WHEELS = [
+    "googleapis-common-protos",
+    "google-api-core",
+    "google-auth",
+]
+
+[select_file(
+    name = "namespace_" + package.replace("-", "_"),
+    srcs = requirement(package),
+    subpath = "site-packages/google/__init__.py",
+    target_compatible_with = LINUX,
+) for package in _GOOGLE_NAMESPACE_WHEELS]
+
+pkg_files(
+    name = "python_package_files",
+    srcs = [":python_runtime_packages"],
+    excludes = [":namespace_" + package.replace("-", "_") for package in _GOOGLE_NAMESPACE_WHEELS],
+    prefix = "usr/local/lib/python3.13/site-packages",
+    strip_prefix = strip_prefix.from_root("site-packages"),
+    target_compatible_with = LINUX,
+)
+
+select_file(
+    name = "monty_binary",
+    srcs = "@pypi//pydantic_monty_runtime:extracted_whl_files",
+    subpath = "bin/monty",
+    target_compatible_with = LINUX,
+)
+
+pkg_files(
+    name = "monty_files",
+    srcs = [":monty_binary"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "usr/local/bin",
+    strip_prefix = strip_prefix.files_only(),
+    target_compatible_with = LINUX,
+)
+
+write_file(
+    name = "pytest_entry",
+    out = "pytest",
+    content = [
+        "#!/usr/local/bin/python3",
+        "import pytest",
+        "raise SystemExit(pytest.console_main())",
+    ],
+    is_executable = True,
+)
+
+pkg_files(
+    name = "pytest_file",
+    srcs = [":pytest_entry"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "opt/talon-e2e-venv/bin",
+)
+
+[pkg_mklink(
+    name = name,
+    link_name = link,
+    target = target,
+) for name, link, target in [
+    ("python_alias", "opt/talon-e2e-venv/bin/python", "/usr/local/bin/python3"),
+    ("python3_alias", "opt/talon-e2e-venv/bin/python3", "/usr/local/bin/python3"),
+    ("monty_alias", "opt/talon-monty-venv/bin/monty", "/usr/local/bin/monty"),
+]]
+
+pkg_tar(
     name = "python_tools",
-    monty_whl = whl_requirement("pydantic-monty-runtime"),
-    python_packages = [
-        "//tests:support",
+    srcs = [
+        ":monty_alias",
+        ":monty_files",
+        ":pytest_file",
+        ":python3_alias",
+        ":python_alias",
+        ":python_package_files",
     ],
     target_compatible_with = LINUX,
 )
@@ -67,19 +180,6 @@ oci_image(
         ":python_tools",
         ":docker_cli_layer",
     ],
-)
-
-linux_files(
-    name = "runtime_base_linux_amd64",
-    tags = ["manual"],
-    targets = [":runtime_base"],
-)
-
-oci_load(
-    name = "runtime_base_image",
-    image = ":runtime_base_linux_amd64",
-    repo_tags = ["talon-runtime-base:check"],
-    tags = ["manual"],
 )
 
 oci_image(
@@ -121,14 +221,28 @@ oci_image(
     workdir = "/data/talon",
 )
 
-image_layer(
-    name = "ui_assets",
-    web = "//ui:dist",
+pkg_files(
+    name = "ui_files",
+    srcs = ["//ui:dist"],
+    prefix = "usr/share/nginx/html",
+    renames = {"//ui:dist": REMOVE_BASE_DIRECTORY},
 )
 
-image_layer(
+pkg_tar(
+    name = "ui_assets",
+    srcs = [":ui_files"],
+)
+
+pkg_files(
+    name = "nginx_config_files",
+    srcs = ["nginx.conf"],
+    prefix = "etc/nginx/conf.d",
+    renames = {"nginx.conf": "default.conf"},
+)
+
+pkg_tar(
     name = "nginx_config",
-    files = {"nginx.conf": "etc/nginx/conf.d/default.conf"},
+    srcs = [":nginx_config_files"],
 )
 
 oci_image(
@@ -162,29 +276,26 @@ oci_image(
     "ui",
 ]]
 
-container_context(
-    name = "acp_context",
-    dockerfile = "codex-acp.Dockerfile",
-)
-
 py_binary(
     name = "acp_image",
     srcs = ["//tools/bazel:image_builder.py"],
     args = [
-        "--context",
-        "dockerfiles/acp_context",
+        "--dockerfile",
+        "dockerfiles/codex-acp.Dockerfile",
         "--target",
         "acp-runtime",
     ],
-    data = [":acp_context"],
+    data = ["codex-acp.Dockerfile"],
     main = "//tools/bazel:image_builder.py",
     deps = ["@rules_python//python/runfiles"],
 )
 
 exports_files(["dev-jwt.env"])
 
-debian_layer(
+# rules_distroless installs the selected Debian packages and package metadata,
+# then flattens their layers with its maintained tar toolchain.
+alias(
     name = "runtime_os",
-    packages = "@runtime_os//:packages",
+    actual = "@runtime_os//:flat",
     target_compatible_with = LINUX,
 )

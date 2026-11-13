@@ -2,7 +2,6 @@ load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary", "js_test")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@npm//sdk/js/talon-client:typescript/package_json.bzl", typescript_bin = "bin")
-load("//tools/bazel:distributions.bzl", "npm_archive")
 
 npm_link_all_packages(name = "node_modules")
 
@@ -58,6 +57,7 @@ npm_package(
         ":build",
         ":data",
     ],
+    packable = True,
     visibility = ["//visibility:public"],
 )
 
@@ -74,9 +74,9 @@ js_test(
     entry_point = "//tools/bazel:node_tests_entry",
 )
 
-npm_archive(
+alias(
     name = "archive",
-    package = ":pkg",
+    actual = ":pkg.pack",
     visibility = ["//visibility:public"],
 )
 

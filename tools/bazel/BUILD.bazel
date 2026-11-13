@@ -14,21 +14,6 @@ exports_files([
     "image_builder.py",
 ])
 
-py_binary(
-    name = "release_packager",
-    srcs = ["release_packager.py"],
-    visibility = ["//visibility:public"],
-)
-
-py_test(
-    name = "release_packager_test",
-    srcs = [
-        "release_packager.py",
-        "release_packager_test.py",
-    ],
-    imports = ["."],
-)
-
 exports_files([
     "artifacts.bzl",
     "configured_files.bzl",
@@ -39,23 +24,11 @@ protoc_binary(
     visibility = ["//visibility:public"],
 )
 
-py_binary(
-    name = "context_builder",
-    srcs = ["context_builder.py"],
-    visibility = ["//visibility:public"],
-)
-
 genrule(
     name = "node_tests_entry",
     srcs = ["node_tests.mjs"],
     outs = ["node_tests_entry.mjs"],
     cmd = "cp $< $@",
-    visibility = ["//visibility:public"],
-)
-
-py_binary(
-    name = "npm_archiver",
-    srcs = ["npm_archiver.py"],
     visibility = ["//visibility:public"],
 )
 
@@ -106,12 +79,6 @@ py_test(
     deps = ["@rules_python//python/runfiles"],
 )
 
-py_binary(
-    name = "image_layer",
-    srcs = ["image_layer.py"],
-    visibility = ["//visibility:public"],
-)
-
 py_test(
     name = "image_configs_test",
     srcs = ["image_configs_test.py"],
@@ -120,25 +87,23 @@ py_test(
     deps = [requirement("pyyaml")],
 )
 
-platform(
-    name = "linux_amd64",
-    constraint_values = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 py_binary(
-    name = "merge_layers",
-    srcs = ["merge_layers.py"],
+    name = "checksums",
+    srcs = ["checksums.py"],
     visibility = ["//visibility:public"],
 )
 
 py_test(
-    name = "merge_layers_test",
-    srcs = [
-        "merge_layers.py",
-        "merge_layers_test.py",
+    name = "release_archives_test",
+    srcs = ["release_archives_test.py"],
+    args = [
+        "$(rootpath //:release-dist_runtime)",
+        "$(rootpath //:release-dist_node)",
     ],
+    data = [
+        "//:release-dist_node",
+        "//:release-dist_runtime",
+    ],
+    tags = ["manual"],
+    deps = [requirement("pyyaml")],
 )

@@ -14,9 +14,14 @@
   "files": ["bin", "index.js"],
   "publishConfig": {
     "access": "public",
-    "executableFiles": ["bin/talon-node"]
+    "executableFiles": [
+      "bin/talon-node"
+    ]
   },
   "exports": {
     ".": "./index.js"
+  },
+  "scripts": {
+    "prepack": "node -e \"require('node:fs').accessSync('bin/talon-node', require('node:fs').constants.X_OK)\""
   }
 }

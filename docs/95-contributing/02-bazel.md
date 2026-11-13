@@ -116,9 +116,13 @@ Dockerfiles or a nested Docker daemon, exports their archives, and loads them
 into the host Docker daemon. Its `talon-bazel-linux-<arch>` volume preserves the
 Bazel caches between runs. Pass `runtime`, `ui`, or `benchmark` to select images.
 
-`bazel-bin/release-dist/` contains the platform's four optimized runtime binaries,
-configuration files, full model catalog, deterministic tar archives and SHA256
-checksums. It also contains the `talon-node` SDK archive. CI builds Linux x86-64
+`bazel-bin/release-dist/` contains deterministic runtime and `talon-node` SDK
+archives, `SHA256SUMS` for the runtime contents, and `node.sha256` for the SDK
+archive. The runtime archive contains all four optimized binaries, configuration
+files, and the full model catalog. `rules_pkg` builds both archives; the small
+checksum tool only generates their manifests. Run
+`bazel test //tools/bazel:release_archives_test` to verify the actual archive
+layout, checksums, modes and packaged CLI. CI builds Linux x86-64
 and macOS ARM64 bundles. Platform npm archives require the corresponding
 Bazel-built release executable to be staged before packaging; missing binaries
 fail the archive action.
@@ -167,6 +171,23 @@ key to this repository's Actions secrets as `BUILDBUDDY_API_KEY`. Every build jo
 uses the shared Bazel setup action, which enables remote caching and build-event
 uploads for trusted pushes to `main`. PRs use the CI disk cache without receiving
 the writer key. Builds work without the secret.
+
+Repository writers can verify the secret before merging with the explicit
+manual cache-probe job:
+
+```bash
+gh workflow run ci.yml --ref YOUR_TRUSTED_BRANCH
+```
+
+Manual dispatch runs only `BuildBuddy Cache Verification`, not the complete CI
+matrix. This is the sole exception to main-only writer access. It uploads one
+small action and builds it again with an independent output base and disk
+caching disabled; the second log must report a remote cache hit. Each run uses
+a unique probe input so it checks a new upload as well as a read.
+Logs are attached to the run; the API key is never printed.
+
+See [the CI execution assessment](./03-ci-execution.md) for the measured baseline,
+Workflows tradeoffs, and the comparison needed before migrating CI.
 
 For a developer machine, put authentication in the ignored `.bazelrc.local`:
 

@@ -2,6 +2,29 @@ load("@pypi//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 py_library(
+    name = "third_party",
+    visibility = ["//visibility:public"],
+    deps = [requirement(name) for name in [
+        "pytest",
+        "pytest-cov",
+        "pytest-asyncio",
+        "grpcio",
+        "googleapis-common-protos",
+        "fastapi",
+        "uvicorn",
+        "httpx",
+        "pytest-httpserver",
+        "requests",
+        "zstandard",
+        "testcontainers",
+        "psycopg2-binary",
+        "boto3",
+        "a2a-sdk",
+        "PyYAML",
+    ]],
+)
+
+py_library(
     name = "support",
     srcs = glob(
         ["**/*.py"],
@@ -21,26 +44,10 @@ py_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        ":third_party",
         "//sdk/python/talon-client:talon_client",
         "@rules_python//python/runfiles",
-    ] + [requirement(name) for name in [
-        "pytest",
-        "pytest-cov",
-        "pytest-asyncio",
-        "grpcio",
-        "googleapis-common-protos",
-        "fastapi",
-        "uvicorn",
-        "httpx",
-        "pytest-httpserver",
-        "requests",
-        "zstandard",
-        "testcontainers",
-        "psycopg2-binary",
-        "boto3",
-        "a2a-sdk",
-        "PyYAML",
-    ]],
+    ],
 )
 
 py_test(
