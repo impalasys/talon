@@ -21,7 +21,8 @@ You will create:
 Create `.env` from `.env.example` and set `OPENAI_API_KEY`, then start the local stack with the optional channel tutorial profile:
 
 ```bash
-docker compose --profile tutorial-channels up --build -d
+scripts/build-images.sh
+docker compose --profile tutorial-channels up -d
 ```
 
 This starts the normal local stack and runs a one-shot bootstrap service that applies the channel tutorial manifests from `manifests/examples/channel-collaboration`.
