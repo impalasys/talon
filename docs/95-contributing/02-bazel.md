@@ -191,10 +191,10 @@ bazel test //sdk:generated_test
 bazel build //docs-site:reference
 cp -R bazel-bin/docs-site/generated-reference/. docs/05-reference/generated/
 
-# After updating Cargo.toml and Cargo.lock:
-python3 scripts/sync_bazel_dependencies.py
+# After updating Cargo.toml and Cargo.lock (requires Python 3.11+ for tomllib):
+python3.11 scripts/sync_bazel_dependencies.py
 bazel build //:binaries
-python3 scripts/sync_bazel_dependencies.py --check
+python3.11 scripts/sync_bazel_dependencies.py --check
 ```
 
 SDK updates replace only the five generated directories declared in

@@ -232,8 +232,8 @@ jobs:
       with:
         node-version: '24'
         registry-url: https://registry.npmjs.org
-        cache: pnpm
-        cache-dependency-path: pnpm-lock.yaml
+        # Bazel owns dependency installation and caching; npm only uploads archives.
+        package-manager-cache: false
     - name: Ensure npm supports trusted publishing
       run: npm install -g npm@latest
     - name: Download talon-node binaries

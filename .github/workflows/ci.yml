@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v5
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup-bazel
       with:
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
@@ -27,6 +29,8 @@ jobs:
       packages: write
     steps:
     - uses: actions/checkout@v5
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup-bazel
       with:
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
@@ -57,6 +61,8 @@ jobs:
       packages: write
     steps:
     - uses: actions/checkout@v5
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup-bazel
       with:
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
@@ -89,6 +95,8 @@ jobs:
       packages: write
     steps:
     - uses: actions/checkout@v5
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup-bazel
       with:
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
@@ -120,6 +128,8 @@ jobs:
       TESTCONTAINERS_RYUK_DISABLED: 'true'
     steps:
     - uses: actions/checkout@v5
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup-bazel
       with:
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
@@ -158,6 +168,8 @@ jobs:
       TESTCONTAINERS_RYUK_DISABLED: 'true'
     steps:
     - uses: actions/checkout@v5
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup-bazel
       with:
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
@@ -187,6 +199,8 @@ jobs:
     environment: desktop
     steps:
     - uses: actions/checkout@v5
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup-bazel
       with:
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
@@ -207,6 +221,29 @@ jobs:
         cp -R bazel-bin/release-dist/. dist/
         mv "dist/talon-${{ matrix.artifact_name }}.tar.gz" "dist/talon-${{ matrix.artifact_name }}-${GITHUB_SHA}.tar.gz"
         mv dist/node.sha256 "dist/talon-node-${{ matrix.sdk_platform }}.tar.gz.sha256"
+    - name: Verify native npm release archive
+      env:
+        SDK_PLATFORM: ${{ matrix.sdk_platform }}
+      run: |
+        package="sdk/js/talon-node-${SDK_PLATFORM}"
+        staging="$(mktemp -d)"
+        tar -xzf "dist/talon-node-${SDK_PLATFORM}.tar.gz" -C "$staging"
+        mkdir -p "${package}/bin"
+        install -m 755 "$staging/talon-node-${SDK_PLATFORM}/talon-node" "${package}/bin/talon-node"
+        bazel build "//${package}:archive"
+        python3 - <<'PY'
+        import os
+        from pathlib import Path
+        import tarfile
+
+        package = Path("sdk/js") / ("talon-node-" + os.environ["SDK_PLATFORM"])
+        with tarfile.open(Path("bazel-bin") / package / "pkg.tgz") as archive:
+            binary = archive.getmember("package/bin/talon-node")
+            assert binary.isfile() and binary.mode & 0o111, "npm binary must be executable"
+            assert archive.extractfile(binary).read() == (package / "bin/talon-node").read_bytes()
+            archive.getmember("package/index.js")
+            archive.getmember("package/package.json")
+        PY
     - name: Upload binary artifact bundle
       uses: actions/upload-artifact@v4
       with:
@@ -227,6 +264,8 @@ jobs:
     timeout-minutes: 15
     steps:
     - uses: actions/checkout@v5
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup-bazel
       with:
         buildbuddy-api-key: ${{ secrets.BUILDBUDDY_API_KEY }}
