@@ -4,6 +4,7 @@ import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.MethodDescriptor;
 import org.junit.jupiter.api.Test;
+import talon.harness.Llm;
 import talon.v1.NamespaceServiceGrpc;
 import talon.v1.Resources;
 
@@ -35,6 +36,34 @@ final class GeneratedTypesTest {
         assertNotNull(clientset.authFuture());
         assertEquals(NamespaceServiceGrpc.SERVICE_NAME, clientset.namespaces().getChannel()
             .authority());
+    }
+
+    @Test
+    void chatContentPartByteRangeRoundTrips() throws Exception {
+        Llm.ByteRange range = Llm.ByteRange.newBuilder().setStart(0).setEnd(5).build();
+        Llm.ChatContentPart part = Llm.ChatContentPart.newBuilder()
+            .setText("héllo wörld")
+            .setByteRange(range)
+            .build();
+        Llm.ChatContentPart decoded = Llm.ChatContentPart.parseFrom(part.toByteArray());
+        assertEquals(part, decoded);
+        assertEquals(5L, decoded.getByteRange().getEnd());
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void toolOutputDeprecatedByteRangeReceiptRoundTrips() throws Exception {
+        Llm.ToolOutput output = Llm.ToolOutput.newBuilder()
+            .addContentParts(Llm.ChatContentPart.newBuilder().setText("abc"))
+            .setSummary("s")
+            .setByteRange(Llm.ToolOutputByteRange.newBuilder()
+                .setStart(0)
+                .setEnd(3)
+                .setNextByte(3))
+            .build();
+        Llm.ToolOutput decoded = Llm.ToolOutput.parseFrom(output.toByteArray());
+        assertEquals(output, decoded);
+        assertEquals(3L, decoded.getByteRange().getNextByte());
     }
 
     private static final class FakeChannel extends Channel {
