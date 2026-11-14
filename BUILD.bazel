@@ -1,12 +1,15 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@bazel_skylib//rules:select_file.bzl", "select_file")
 load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_deps")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@protobuf//bazel:proto_library.bzl", "proto_library")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "strip_prefix")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_rust//cargo:defs.bzl", "cargo_build_script", "cargo_toml_env_vars")
 load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_doc_test", "rust_library", "rust_test", "rustfmt_test")
 load("//scripts/sdk:codegen.bzl", "SDK_PROTO_SOURCES")
-load("//tools/bazel:artifacts.bzl", "production_filegroup", "release_distribution")
+load("//tools/bazel:production.bzl", "production_filegroup")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -324,22 +327,101 @@ config_setting(
     ],
 )
 
-release_distribution(
+# Runtime releases and node SDK packages deliberately use different platform names.
+_RUNTIME_PLATFORM = select({
+    ":linux_x86_64": "linux-x86_64",
+    ":linux_arm64": "linux-aarch64",
+    ":darwin_arm64": "darwin-arm64",
+    "//conditions:default": "darwin-x86_64",
+})
+
+_SDK_PLATFORM = select({
+    ":linux_x86_64": "linux-x64",
+    ":linux_arm64": "linux-arm64",
+    ":darwin_arm64": "darwin-arm64",
+    "//conditions:default": "darwin-x64",
+})
+
+pkg_files(
+    name = "release-dist_binaries",
+    srcs = [":production_binaries"],
+    attributes = pkg_attributes(mode = "0755"),
+    strip_prefix = strip_prefix.files_only(),
+)
+
+pkg_files(
+    name = "release-dist_configs",
+    srcs = [":runtime_data"],
+    attributes = pkg_attributes(mode = "0644"),
+    strip_prefix = strip_prefix.from_root(),
+)
+
+pkg_tar(
+    name = "release-dist_payload",
+    srcs = [
+        ":release-dist_binaries",
+        ":release-dist_configs",
+    ],
+)
+
+genrule(
+    name = "release-dist_checksums",
+    srcs = [":release-dist_payload"],
+    outs = ["release-dist/SHA256SUMS"],
+    cmd = "$(execpath //tools/bazel:checksums) contents $(location :release-dist_payload) $@",
+    tools = ["//tools/bazel:checksums"],
+)
+
+pkg_tar(
+    name = "release-dist_runtime",
+    srcs = [":release-dist_checksums"],
+    extension = "tar.gz",
+    mode = "0644",
+    package_dir = "talon-" + _RUNTIME_PLATFORM,
+    package_file_name = "release-dist/talon-" + _RUNTIME_PLATFORM + ".tar.gz",
+    deps = [":release-dist_payload"],
+)
+
+select_file(
+    name = "release-dist_node_binary",
+    srcs = ":production_binaries",
+    subpath = "talon-node",
+)
+
+pkg_files(
+    name = "release-dist_node_files",
+    srcs = [":release-dist_node_binary"],
+    attributes = pkg_attributes(mode = "0755"),
+    strip_prefix = strip_prefix.files_only(),
+)
+
+pkg_tar(
+    name = "release-dist_node",
+    srcs = [":release-dist_node_files"],
+    extension = "tar.gz",
+    mode = "0644",
+    package_dir = "talon-node-" + _SDK_PLATFORM,
+    package_file_name = "release-dist/talon-node-" + _SDK_PLATFORM + ".tar.gz",
+)
+
+genrule(
+    name = "release-dist_node_checksum",
+    srcs = [":release-dist_node"],
+    outs = ["release-dist/node.sha256"],
+    cmd = "$(execpath //tools/bazel:checksums) archive $(location :release-dist_node) $@",
+    tools = ["//tools/bazel:checksums"],
+)
+
+filegroup(
     name = "release-dist",
-    binaries = ":production_binaries",
-    configs = ":runtime_data",
-    platform = select({
-        ":linux_x86_64": "linux-x86_64",
-        ":linux_arm64": "linux-aarch64",
-        ":darwin_arm64": "darwin-arm64",
-        "//conditions:default": "darwin-x86_64",
-    }),
-    sdk_platform = select({
-        ":linux_x86_64": "linux-x64",
-        ":linux_arm64": "linux-arm64",
-        ":darwin_arm64": "darwin-arm64",
-        "//conditions:default": "darwin-x64",
-    }),
+    # Preserve the established aggregate output order.
+    srcs = [
+        # do not sort
+        ":release-dist_runtime",
+        ":release-dist_node",
+        ":release-dist_node_checksum",
+        ":release-dist_checksums",
+    ],
 )
 
 filegroup(

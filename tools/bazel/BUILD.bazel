@@ -9,7 +9,7 @@ exports_files([
 ])
 
 exports_files([
-    "artifacts.bzl",
+    "production.bzl",
 ])
 
 protoc_binary(

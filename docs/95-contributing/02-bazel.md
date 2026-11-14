@@ -102,9 +102,9 @@ adapters compose upstream rules rather than implementing compilers or packagers:
 
 | Files | Purpose and remaining upstream opportunities |
 | --- | --- |
-| `artifacts.bzl`, `checksums.py` | `rules_pkg` builds archives; Talon defines their layout and checksum manifests. A generic checksum command could replace the single-archive case, but not the per-member manifest by itself. |
+| Root `BUILD.bazel`, `checksums.py` | Release layout is declared directly with upstream `rules_pkg` and `select_file` rules. Talon defines archive roots, platform spellings, modes, runtime data and checksum manifests; there is no release wrapper macro. The checksum helper retains the per-member and node-archive manifest policy. |
 | `go_tools.bzl`, `protoc.bzl` | Expose executables from selected upstream toolchains. Keep toolchain resolution, including prebuilt protoc; hardcoded SDK paths or the source-built `@protobuf//:protoc` are not equivalent. |
-| `artifacts.bzl` production filegroup | [with_cfg.bzl](https://github.com/fmeum/with_cfg.bzl) applies AWS/RocksDB and optimized compilation to production artifacts. Talon only defines the feature policy. |
+| `production.bzl` | [with_cfg.bzl](https://github.com/fmeum/with_cfg.bzl) applies AWS/RocksDB and optimized compilation to production artifacts. Talon only defines the feature policy. |
 | `sdk/proto_rules.bzl`, `sdk/normalize_generated.py` | A thin binding to `rules_proto_grpc` compiles Go/Java/JS with pinned plugins; direct-source mode preserves published comments. Python invokes the pinned `grpc_tools.protoc` module for protobuf/runtime compatibility. Talon retains whitespace/import/package policy and custom clientset facades. |
 | `sdk/source_updates.bzl` | Declares destination ownership for upstream `copy_to_directory`, `directory_path`, `write_source_files` and `diff_test`. Complete update inputs include BUILD files and other metadata. No custom copy/delete/check implementation remains. |
 | `python_packager.py` | Materializes sandbox inputs before invoking Hatchling's standard wheel/sdist backend functions. It contains no archive writer or metadata implementation; native `py_wheel` is not a drop-in replacement for both artifacts. |
