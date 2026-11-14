@@ -17,7 +17,8 @@ cp .env.example .env
 Set `OPENAI_API_KEY` in `.env`, then start the local stack:
 
 ```bash
-docker compose up --build -d
+scripts/build-images.sh
+docker compose up -d
 ```
 
 ## Choose the right surface

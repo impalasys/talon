@@ -25,12 +25,15 @@ struct Method {
 }
 
 fn main() {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(4)
-        .expect("repo root")
-        .to_path_buf();
-    let out_dir = root.join("sdk/rust/talon-client/src/generated");
+    let mut args = std::env::args_os().skip(1);
+    let root = args
+        .next()
+        .map(PathBuf::from)
+        .unwrap_or_else(|| std::env::current_dir().expect("working directory"));
+    let out_dir = args
+        .next()
+        .map(PathBuf::from)
+        .unwrap_or_else(|| root.join("sdk/rust/talon-client/src/generated"));
     let v1_protos = talon_v1_protos(&root);
     let mut protos = vec![
         root.join("proto/config.proto"),

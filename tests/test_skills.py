@@ -124,7 +124,12 @@ def test_skill_package_create_list_read_and_path_guard(
     read_file = client.files.ReadFile(
         ReadFileRequest(file=FileRef(namespace=namespace, path=entrypoint))
     )
-    assert read_file.content == instructions
+    content = read_file.content
+    if read_file.signed_url:
+        downloaded = requests.get(read_file.signed_url, timeout=30)
+        downloaded.raise_for_status()
+        content = downloaded.content
+    assert content == instructions
 
     with pytest.raises(grpc.RpcError) as error:
         client.files.CreateFile(

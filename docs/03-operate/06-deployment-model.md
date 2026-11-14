@@ -70,9 +70,9 @@ The local stack in this repo uses Docker Compose to start:
 
 ## Documentation source
 
-Documentation source in this repository lives under `talon/docs`.
+Documentation source in this repository lives under `docs`.
 
-Generated reference pages are produced from the proto definitions and checked into `talon/docs/05-reference/generated` so API and schema changes remain reviewable in version control.
+Generated reference pages are produced from the proto definitions and checked into `docs/05-reference/generated` so API and schema changes remain reviewable in version control.
 
 ## Edge and API surfaces
 

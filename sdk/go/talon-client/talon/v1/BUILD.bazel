@@ -1,0 +1,59 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+package(default_visibility = ["//visibility:public"])
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "auth.pb.go",
+        "auth_grpc.pb.go",
+        "cas.pb.go",
+        "cas_grpc.pb.go",
+        "channels.pb.go",
+        "channels_grpc.pb.go",
+        "connectors.pb.go",
+        "connectors_grpc.pb.go",
+        "files.pb.go",
+        "files_grpc.pb.go",
+        "knowledge.pb.go",
+        "knowledge_grpc.pb.go",
+        "namespaces.pb.go",
+        "namespaces_grpc.pb.go",
+        "resources.pb.go",
+        "resources_grpc.pb.go",
+        "search.pb.go",
+        "search_grpc.pb.go",
+        "sessions.pb.go",
+        "sessions_grpc.pb.go",
+        "workflows.pb.go",
+        "workflows_grpc.pb.go",
+    ],
+    importpath = "github.com/impalasys/talon/sdk/go/talon-client/talon/v1",
+    deps = [
+        "//sdk/go/talon-client/talon/data:go_default_library",
+        "//sdk/go/talon-client/talon/events:go_default_library",
+        "//sdk/go/talon-client/talon/external:go_default_library",
+        "//sdk/go/talon-client/talon/resources:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
+        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
+    ],
+)
+
+filegroup(
+    name = "generated_sources",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generated_metadata",
+    srcs = glob(
+        include = ["**"],
+        allow_empty = True,
+        exclude = ["**/*.go"],
+    ),
+    visibility = ["//visibility:public"],
+)

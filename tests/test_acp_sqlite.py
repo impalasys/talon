@@ -104,23 +104,10 @@ def ensure_docker_acp_image(image):
     if image not in local_images:
         pytest.skip(f"Docker image {image} is not available locally")
 
-    dockerfile = conftest.REPO_ROOT / "dockerfiles" / "codex-acp.Dockerfile"
-    build = subprocess.run(
-        [
-            "docker",
-            "build",
-            "-f",
-            str(dockerfile),
-            "-t",
-            image,
-            str(conftest.REPO_ROOT),
-        ],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    assert build.returncode == 0, (
-        f"failed to build {image}\nstdout:\n{build.stdout}\nstderr:\n{build.stderr}"
+    pytest.fail(
+        f"Docker image {image} is not available. Build/load the Bazel OCI image "
+        "with scripts/build-images.sh acp before running live ACP tests. "
+        f"For a custom local tag, run docker tag talon-acp-harness:local {image}."
     )
 
 

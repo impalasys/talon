@@ -13,5 +13,11 @@ license = "AGPL-3.0-only"
 [project.optional-dependencies]
 test = ["pytest>=8,<9"]
 
+[tool.hatch.build]
+ignore-vcs = true
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/README.md", "/pyproject.toml"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/talon_server"]

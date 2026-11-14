@@ -1,55 +1,34 @@
 name: Talon Chat Screenshots
-
-on:
-  pull_request:
-    paths:
-      - "packages/talon-chat/**"
-      - "pnpm-lock.yaml"
-      - ".github/workflows/talon-chat-screenshots.yml"
-
 permissions:
   actions: read
   contents: read
-
 concurrency:
   group: talon-chat-screenshots-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   screenshots:
     name: Capture Storybook Screenshots
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10.17.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright Chromium
-        run: pnpm --filter @impalasys/talon-chat exec playwright install --with-deps chromium
-
-      - name: Build Storybook
-        run: pnpm --filter @impalasys/talon-chat build-storybook
-
-      - name: Capture screenshots
-        run: pnpm --filter @impalasys/talon-chat screenshots
-
-      - name: Upload screenshots
-        id: upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: talon-chat-storybook-screenshots
-          path: packages/talon-chat/storybook-screenshots/*.png
-          if-no-files-found: error
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Install Playwright Chromium
+      run: bazel run //packages/talon-chat:playwright -- install --with-deps chromium
+    - name: Capture screenshots of Bazel-built Storybook
+      run: bazel test //packages/talon-chat:screenshots
+    - name: Upload screenshots
+      id: upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: talon-chat-storybook-screenshots
+        path: bazel-testlogs/packages/talon-chat/screenshots/test.outputs/*.png
+        if-no-files-found: error
+'on':
+  pull_request:
+    paths:
+    - packages/talon-chat/**
+    - pnpm-lock.yaml
+    - .github/workflows/talon-chat-screenshots.yml

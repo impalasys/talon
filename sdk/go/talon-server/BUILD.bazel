@@ -1,0 +1,30 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "go.mod",
+    "go.sum",
+])
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "jwt.go",
+        "server.go",
+    ],
+    importpath = "github.com/impalasys/talon/sdk/go/talon-server",
+    deps = ["@com_github_golang_jwt_jwt_v5//:go_default_library"],
+)
+
+go_test(
+    name = "unit_tests",
+    srcs = [
+        "jwt_test.go",
+        "server_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = ["@com_github_golang_jwt_jwt_v5//:go_default_library"],
+)
+
+exports_files(["VERSION"])

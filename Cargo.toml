@@ -3,8 +3,12 @@ name = "talon"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = ["tools/bazel", "tools/install-hooks"]
+default-members = ["."]
+resolver = "2"
+
 [features]
-bazel = []
 aws = ["dep:aws-sdk-dynamodb", "dep:aws-sdk-scheduler", "dep:aws-sdk-sqs"]
 cpu-profile = ["dep:pprof"]
 heap-profile = [
@@ -40,14 +44,12 @@ pprof = { version = "0.15", features = ["flamegraph"], optional = true }
 tikv-jemallocator = { version = "0.7", optional = true }
 tikv-jemalloc-ctl = { version = "0.7", optional = true }
 redb = "1.0"
-rocksdb = { version = "0.24", default-features = false, features = ["lz4"], optional = true }
+rocksdb = { version = "0.24", default-features = false, features = ["lz4", "bindgen-runtime"], optional = true }
 reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls", "stream"] }
 # Azure's generated clients expose a reqwest transport but default to native
 # TLS. Enable that transport without native TLS, then select reqwest 0.13's
 # rustls-backed default TLS implementation explicitly.
 reqwest_azure = { package = "reqwest", version = "0.13.2", default-features = false, features = ["default-tls"] }
-# rand 0.10 coexists with older workspace rand versions, so crate_universe emits
-# a versioned alias; keep talon/BUILD.bazel on @crates//:rand-0.10.1.
 rand = "0.10"
 rmcp = { version = "1.8", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
 rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }

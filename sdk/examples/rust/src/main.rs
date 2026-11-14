@@ -10,8 +10,9 @@ use talon_server::{Options, Server};
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let server = Server::start(Options::default())?;
-    let mut client =
-        NativeTalonClient::connect(format!("http://{}", server.grpc_endpoint())).await?;
+    let mut client = NativeTalonClient::connect(format!("http://{}", server.grpc_endpoint()))
+        .await
+        .map_err(anyhow::Error::from_boxed)?;
 
     client
         .namespaces

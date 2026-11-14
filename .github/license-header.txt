@@ -1,0 +1,2 @@
+Copyright (C) {{.Year}} Impala Systems, Inc.
+SPDX-License-Identifier: AGPL-3.0-only

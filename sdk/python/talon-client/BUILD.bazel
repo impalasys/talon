@@ -1,0 +1,100 @@
+load("@bazel_lib//lib:run_binary.bzl", "run_binary")
+load("@pypi//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+
+py_library(
+    name = "talon_client",
+    srcs = glob(["src/**/*.py"]),
+    imports = ["src"],
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("grpcio"),
+        requirement("protobuf"),
+    ],
+)
+
+py_test(
+    name = "unit_tests",
+    srcs = glob(["tests/**/*.py"]),
+    args = [
+        "-q",
+        "-o",
+        "cache_dir=$$TEST_UNDECLARED_OUTPUTS_DIR/pytest-cache",
+        "sdk/python/talon-client/tests",
+    ],
+    main_module = "pytest",
+    deps = [
+        ":talon_client",
+        requirement("pytest"),
+    ],
+)
+
+filegroup(
+    name = "package_sources",
+    srcs = glob(
+        [
+            "src/**",
+            "README.md",
+            "pyproject.toml",
+        ],
+        exclude = [
+            "**/__pycache__/**",
+            "**/*.pyc",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
+# The shim materializes sandbox symlinks before calling the upstream backend.
+run_binary(
+    name = "dist",
+    srcs = [
+        "pyproject.toml",
+        ":package_sources",
+    ],
+    args = [
+        "$(execpath pyproject.toml)",
+        "$@",
+    ],
+    out_dirs = ["dist"],
+    tool = "//tools/bazel:python_packager",
+    visibility = ["//visibility:public"],
+)
+
+exports_files(["pyproject.toml"])
+
+filegroup(
+    name = "generated_sources",
+    srcs = glob(
+        ["src/talon_client/proto/**"],
+        exclude = [
+            "**/__pycache__/**",
+            "**/*.pyc",
+        ],
+    ) + [
+        "src/talon_client/__init__.py",
+        "src/talon_client/clientset.py",
+        "src/talon_client/config.py",
+        "src/talon_client/data.py",
+        "src/talon_client/events.py",
+        "src/talon_client/external.py",
+        "src/talon_client/harness.py",
+        "src/talon_client/resources.py",
+        "src/talon_client/v1.py",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generated_metadata",
+    srcs = glob(
+        include = ["src/talon_client/proto/**"],
+        allow_empty = True,
+        exclude = [
+            "**/*.py",
+            "**/*.pyi",
+            "**/__pycache__/**",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)

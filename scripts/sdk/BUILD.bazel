@@ -1,0 +1,30 @@
+load("@aspect_rules_js//js:defs.bzl", "js_test")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+
+exports_files(["generate.sh"])
+
+py_test(
+    name = "versions_test",
+    srcs = ["check_versions.py"],
+    data = ["//sdk:version_manifests"],
+    main = "check_versions.py",
+)
+
+js_test(
+    name = "packages_test",
+    data = [
+        "//sdk/js/talon-node-darwin-arm64:manifest",
+        "//sdk/js/talon-node-linux-x64:manifest",
+        "//sdk/js/talon-server:manifest",
+    ],
+    entry_point = "check_js_packages.mjs",
+)
+
+exports_files(["codegen.bzl"])
+
+py_binary(
+    name = "clientsets",
+    srcs = ["generate_clientsets.py"],
+    main = "generate_clientsets.py",
+    visibility = ["//visibility:public"],
+)

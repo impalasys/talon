@@ -19,6 +19,7 @@ VERSION_FILES = [
 ]
 
 MANIFEST_VERSION_PATTERNS = {
+    "sdk/version.bzl": r'(^SDK_VERSION\s*=\s*")[^"]+("\s*$)',
     "sdk/rust/talon-client/Cargo.toml": r'(^version\s*=\s*")[^"]+("\s*$)',
     "sdk/rust/talon-server/Cargo.toml": r'(^version\s*=\s*")[^"]+("\s*$)',
     "sdk/python/talon-client/pyproject.toml": r'(^version\s*=\s*")[^"]+("\s*$)',

@@ -1,7 +1,8 @@
-load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
+load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary", "js_test")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@bazel_lib//lib:directory_path.bzl", "directory_path")
 load("@npm//:defs.bzl", "npm_link_all_packages")
-load("@npm//talon/sdk/js/talon-client:typescript/package_json.bzl", typescript_bin = "bin")
+load("@npm//sdk/js/talon-client:typescript/package_json.bzl", typescript_bin = "bin")
 
 npm_link_all_packages(name = "node_modules")
 
@@ -19,6 +20,7 @@ js_library(
     name = "src",
     srcs = [":srcs"],
     visibility = ["//visibility:public"],
+    deps = [":node_modules"],
 )
 
 typescript_bin.tsc_binary(
@@ -53,8 +55,52 @@ npm_package(
     name = "pkg",
     srcs = [
         "package.json",
-        ":data",
         ":build",
+        ":data",
     ],
+    packable = True,
+    visibility = ["//visibility:public"],
+)
+
+directory_path(
+    name = "unit_test_entry",
+    directory = ":build",
+    path = "index.test.js",
+)
+
+js_test(
+    name = "unit_tests",
+    data = [
+        ":build",
+        ":node_modules",
+    ],
+    entry_point = ":unit_test_entry",
+    node_options = ["--test"],
+)
+
+alias(
+    name = "archive",
+    actual = ":pkg.pack",
+    visibility = ["//visibility:public"],
+)
+
+exports_files(["package.json"])
+
+filegroup(
+    name = "generated_sources",
+    srcs = glob([
+        "src/gen/**",
+        "src/clientset.ts",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generated_metadata",
+    srcs = glob(
+        include = ["src/gen/**"],
+        allow_empty = True,
+        exclude = ["**/*.ts"],
+    ),
     visibility = ["//visibility:public"],
 )

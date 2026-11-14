@@ -1,0 +1,11 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+
+py_binary(
+    name = "example",
+    srcs = ["main.py"],
+    main = "main.py",
+    deps = [
+        "//sdk/python/talon-client:talon_client",
+        "//sdk/python/talon-server:talon_server",
+    ],
+)

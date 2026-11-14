@@ -1,516 +1,259 @@
 name: Talon OSS CI
-
-# Managed by Copybara from impalasys/code.
-# Keep this repo-root workflow mirrored from the monorepo overlay.
-# PR reporting is handled by pr-report.yml; mirror this producer/reporter split
-# in the upstream overlay before changing the source workflow again.
-
-on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - "internal-preview/**"
-
 concurrency:
   group: talon-oss-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 permissions:
   contents: read
-
 jobs:
-  proto_lint:
-    name: Proto Lint
-    runs-on: ubuntu-latest
+  # Skipped manual-run jobs must not replace the real PR check contexts.
+  bazel:
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Bazel
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Reject oneof in resource-facing protos
-        run: python3 scripts/check_resource_proto_oneofs.py
-
-      - name: Verify CLI resource support metadata
-        run: |
-          python3 scripts/check_resource_cli_support.py
-          python3 -m unittest discover -s scripts -p 'test_check_resource_cli_support.py'
-
-  cargo:
-    name: Cargo
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-
-      - name: Cache Rust artifacts
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler
-
-      - name: Cargo metadata
-        run: cargo metadata --locked
-
-      - name: Cargo fmt
-        run: cargo fmt --all --check
-
-      - name: Cargo build
-        run: cargo build --locked --bins
-
-      - name: Cargo test
-        run: cargo test --locked
-
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Build and test all unit targets
+      run: bazel test //...
   runtime_image:
-    name: Runtime Image
-    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Runtime Image
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Log in to GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build runtime image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: dockerfiles/oss-runtime.Dockerfile
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          load: false
-          tags: |
-            ghcr.io/impalasys/talon-runtime:latest
-            ghcr.io/impalasys/talon-runtime:sha-${{ github.sha }}
-          cache-from: type=gha,scope=talon-runtime
-          cache-to: type=gha,mode=max,scope=talon-runtime
-
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Log in to GHCR
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and publish OCI image
+      run: |
+        bazel build //dockerfiles:runtime
+        bazel run //dockerfiles:runtime_image
+        docker run --rm talon-runtime:dev sh -ec 'talon-cli --help >/dev/null; python3 -c "import pytest, grpc, boto3"; monty --help >/dev/null; docker --version; curl --version'
+        if [[ "$PUBLISH_IMAGE" == "true" ]]; then
+          bazel run //dockerfiles:runtime_push -- --tag latest --tag "sha-${GITHUB_SHA}"
+        fi
+      env:
+        PUBLISH_IMAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
   acp_harness_image:
-    name: ACP Harness Sandbox Image
-    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}ACP Harness Sandbox Image
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Log in to GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build ACP harness sandbox image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: dockerfiles/codex-acp.Dockerfile
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          load: false
-          tags: |
-            ghcr.io/impalasys/talon-acp-harness:latest
-            ghcr.io/impalasys/talon-acp-harness:sha-${{ github.sha }}
-            ghcr.io/impalasys/talon-codex-acp:latest
-            ghcr.io/impalasys/talon-codex-acp:sha-${{ github.sha }}
-            ghcr.io/impalasys/talon-claude-code-acp:latest
-            ghcr.io/impalasys/talon-claude-code-acp:sha-${{ github.sha }}
-            ghcr.io/impalasys/talon-opencode-acp:latest
-            ghcr.io/impalasys/talon-opencode-acp:sha-${{ github.sha }}
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Log in to GHCR
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and verify ACP OCI image
+      run: |
+        bazel test //dockerfiles/acp:smoke_test --test_output=streamed
+        if [[ "$PUBLISH_IMAGE" == "true" ]]; then
+          for repository in talon-acp-harness talon-codex-acp talon-claude-code-acp talon-opencode-acp; do
+            bazel run //dockerfiles:acp_push -- --repository "ghcr.io/impalasys/${repository}" \
+              --tag latest --tag "sha-${GITHUB_SHA}"
+          done
+        fi
+      env:
+        PUBLISH_IMAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
   ui:
-    name: UI
-    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}UI
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10.17.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Install UI dependencies
-        working-directory: ui
-        run: pnpm install --frozen-lockfile
-
-      - name: Build UI
-        working-directory: ui
-        run: pnpm build
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Log in to GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build UI image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: dockerfiles/oss-ui.Dockerfile
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          load: false
-          tags: |
-            ghcr.io/impalasys/talon-ui:latest
-            ghcr.io/impalasys/talon-ui:sha-${{ github.sha }}
-          build-args: |
-            NEXT_PUBLIC_GATEWAY_URL=http://localhost:50051
-
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Log in to GHCR
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and publish OCI image
+      run: |
+        bazel build //dockerfiles:ui
+        if [[ "$PUBLISH_IMAGE" == "true" ]]; then
+          bazel run //dockerfiles:ui_push -- --tag latest --tag "sha-${GITHUB_SHA}"
+        fi
+      env:
+        PUBLISH_IMAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
   sightline_e2e_screenshots:
-    name: Sightline E2E Screenshots
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Sightline E2E Screenshots
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
     permissions:
       actions: read
       contents: read
     env:
-      TESTCONTAINERS_RYUK_DISABLED: "true"
-      SIGHTLINE_SCREENSHOT_DIR: ../target/sightline-e2e-screenshots
+      TESTCONTAINERS_RYUK_DISABLED: 'true'
     steps:
-      - uses: actions/checkout@v5
-        with:
-          persist-credentials: false
-
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust artifacts
-        uses: Swatinem/rust-cache@v2
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10.17.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler
-
-      - name: Install Python test dependencies
-        run: python -m pip install -r tests/requirements.txt
-
-      - name: Install UI dependencies
-        working-directory: ui
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright Chromium
-        working-directory: ui
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Check Docker daemon
-        run: docker info
-
-      - name: Run live session reconciliation and screenshot E2E
-        working-directory: ui
-        run: pnpm test:e2e --grep "Live session reconciliation|@screenshots"
-
-      - name: Upload Sightline screenshots
-        id: upload
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: sightline-e2e-screenshots
-          path: target/sightline-e2e-screenshots/*.png
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload dark preview screenshot
-        id: upload-preview
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: sightline-e2e-dark-preview
-          path: target/sightline-e2e-screenshots/sightline-chat-dark.png
-          if-no-files-found: error
-          retention-days: 14
-
-  sdk:
-    name: SDKs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: "1.25"
-
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10.17.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-version: "8.14.3"
-
-      - name: Install protobuf compiler
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends protobuf-compiler
-
-      - name: Install Go protoc plugins
-        run: |
-          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.10
-          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
-
-      - name: Regenerate SDK clients
-        run: scripts/sdk/generate.sh
-
-      - name: Verify SDK package versions
-        run: python3 scripts/sdk/check_versions.py
-
-      - name: Verify generated SDK clients are checked in
-        run: git diff --exit-code -- sdk scripts buf.gen.sdk.yaml
-
-      - name: Test Go SDKs
-        run: |
-          (cd sdk/go/talon-client && go test ./...)
-          (cd sdk/go/talon-server && go test ./...)
-
-      - name: Test Rust SDKs
-        run: |
-          cargo fmt --manifest-path sdk/rust/Cargo.toml --all --check
-          cargo fmt --manifest-path sdk/examples/rust/Cargo.toml --all --check
-          cargo test --manifest-path sdk/rust/Cargo.toml
-
-      - name: Test Java SDKs
-        working-directory: sdk/java
-        run: gradle test
-
-      - name: Test Python SDKs
-        run: |
-          python -m pip install -e sdk/python/talon-client -e sdk/python/talon-server pytest
-          pytest -q sdk/python/talon-client/tests sdk/python/talon-server/tests
-
-      - name: Test JS SDKs
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm --dir sdk/js check:packages
-          pnpm --dir sdk/js typecheck
-          pnpm --dir sdk/js test
-
-      - name: Test Talon chat package
-        run: |
-          pnpm --filter @impalasys/talon-chat build
-          pnpm --filter @impalasys/talon-chat test
-          pnpm --filter @impalasys/talon-chat test:package
-
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Install Playwright Chromium
+      run: bazel run //ui:playwright -- install --with-deps chromium
+    - name: Check Docker daemon
+      run: docker info
+    - name: Run live session reconciliation and screenshot E2E
+      run: bazel test //ui:e2e --test_arg=--grep --test_arg="Live session reconciliation|@screenshots" --test_env=CI=true
+        --test_env=TESTCONTAINERS_RYUK_DISABLED=true
+    - name: Upload Sightline screenshots
+      id: upload
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: sightline-e2e-screenshots
+        path: bazel-testlogs/ui/e2e/test.outputs/*.png
+        if-no-files-found: error
+        retention-days: 14
+    - name: Upload dark preview screenshot
+      id: upload-preview
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: sightline-e2e-dark-preview
+        path: bazel-testlogs/ui/e2e/test.outputs/sightline-chat-dark.png
+        if-no-files-found: error
+        retention-days: 14
   python_e2e:
-    name: Python E2E
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    if: github.event_name != 'workflow_dispatch'
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Python E2E
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
     env:
-      TESTCONTAINERS_RYUK_DISABLED: "true"
+      TESTCONTAINERS_RYUK_DISABLED: 'true'
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust artifacts
-        uses: Swatinem/rust-cache@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler libclang-dev
-          LIBCLANG_DIR="$(dirname "$(find /usr/lib -name libclang.so -o -name 'libclang-*.so' | head -n 1)")"
-          echo "LIBCLANG_PATH=${LIBCLANG_DIR}" >> "${GITHUB_ENV}"
-
-      - name: Check Docker daemon
-        run: docker info
-
-      - name: Build Talon binaries
-        run: cargo build --locked --features aws,rocksdb --bins
-
-      - name: Install Python test dependencies
-        run: python -m pip install -r tests/requirements.txt
-
-      - name: Run Python E2E suite
-        run: |
-          pytest -q \
-            tests/test_a2a_compat.py \
-            tests/test_harness.py \
-            tests/test_mock_llm.py \
-            tests/test_workers.py \
-            tests/test_chat.py \
-            tests/test_connectors.py \
-            tests/test_delegation.py \
-            tests/test_search.py \
-            tests/test_resources.py \
-            tests/test_workflows.py \
-            tests/test_cli_sqlite.py \
-            tests/test_acp_sqlite.py
-
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Check Docker daemon
+      run: docker info
+    - name: Run Python E2E suite
+      run: bazel test //tests:e2e_tests --test_env=TESTCONTAINERS_RYUK_DISABLED=true
   binary_artifacts:
-    name: Binary Artifacts
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Binary Artifacts (${{ matrix.os }}, ${{ matrix.artifact_name }}, ${{ matrix.sdk_platform }})
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs:
-      - cargo
-      - runtime_image
-      - ui
-      - sdk
+    - bazel
+    - runtime_image
+    - ui
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            artifact_name: linux-x86_64
-            sdk_platform: linux-x64
-          - os: macos-14
-            artifact_name: darwin-arm64
-            sdk_platform: darwin-arm64
+        - os: ubuntu-24.04
+          artifact_name: linux-x86_64
+          sdk_platform: linux-x64
+        - os: macos-15
+          artifact_name: darwin-arm64
+          sdk_platform: darwin-arm64
     runs-on: ${{ matrix.os }}
     environment: desktop
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Rust artifacts
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install Linux build dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler
-
-      - name: Install macOS build dependencies
-        if: runner.os == 'macOS'
-        run: brew install protobuf
-
-      - name: Build release binaries
-        run: cargo build --locked --release --bin talon-server --bin talon-worker --bin talon-node
-
-      - name: Build release CLI
-        env:
-          TALON_GOOGLE_CLIENT_ID: ${{ secrets.TALON_GOOGLE_CLIENT_ID }}
-          TALON_GOOGLE_CLIENT_SECRET: ${{ secrets.TALON_GOOGLE_CLIENT_SECRET }}
-        run: cargo build --locked --release --bin talon-cli
-
-      - name: Package binaries
-        run: |
-          ARTIFACT_DIR="dist/talon-${{ matrix.artifact_name }}"
-          mkdir -p "$ARTIFACT_DIR"
-          cp target/release/talon-server "$ARTIFACT_DIR"/
-          cp target/release/talon-worker "$ARTIFACT_DIR"/
-          cp target/release/talon-cli "$ARTIFACT_DIR"/
-          cp target/release/talon-node "$ARTIFACT_DIR"/
-          cp talon.yaml "$ARTIFACT_DIR"/
-          cp models.yaml "$ARTIFACT_DIR"/
-          if [ "${RUNNER_OS}" = "macOS" ]; then
-            (
-              cd "$ARTIFACT_DIR"
-              shasum -a 256 talon-server talon-worker talon-cli talon-node talon.yaml models.yaml > SHA256SUMS
-            )
-          else
-            (
-              cd "$ARTIFACT_DIR"
-              sha256sum \
-                talon-server \
-                talon-worker \
-                talon-cli \
-                talon-node \
-                talon.yaml \
-                models.yaml > SHA256SUMS
-            )
-          fi
-          tar -C dist -czf "dist/talon-${{ matrix.artifact_name }}-${GITHUB_SHA}.tar.gz" "talon-${{ matrix.artifact_name }}"
-          SDK_NODE_DIR="dist/talon-node-${{ matrix.sdk_platform }}"
-          mkdir -p "$SDK_NODE_DIR"
-          cp target/release/talon-node "$SDK_NODE_DIR"/
-          tar -C dist -czf "dist/talon-node-${{ matrix.sdk_platform }}.tar.gz" "talon-node-${{ matrix.sdk_platform }}"
-          if [ "${RUNNER_OS}" = "macOS" ]; then
-            shasum -a 256 "dist/talon-node-${{ matrix.sdk_platform }}.tar.gz" > "dist/talon-node-${{ matrix.sdk_platform }}.tar.gz.sha256"
-          else
-            sha256sum "dist/talon-node-${{ matrix.sdk_platform }}.tar.gz" > "dist/talon-node-${{ matrix.sdk_platform }}.tar.gz.sha256"
-          fi
-
-      - name: Upload binary artifact bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: talon-${{ matrix.artifact_name }}-${{ github.sha }}
-          path: |
-            dist/talon-${{ matrix.artifact_name }}-${{ github.sha }}.tar.gz
-            dist/talon-${{ matrix.artifact_name }}/SHA256SUMS
-            dist/talon-node-${{ matrix.sdk_platform }}.tar.gz
-            dist/talon-node-${{ matrix.sdk_platform }}.tar.gz.sha256
-          if-no-files-found: error
-          retention-days: 14
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Build release archives
+      run: |
+        options=()
+        if [[ -n "$TALON_GOOGLE_CLIENT_ID" ]]; then options+=(--action_env=TALON_GOOGLE_CLIENT_ID); fi
+        if [[ -n "$TALON_GOOGLE_CLIENT_SECRET" ]]; then options+=(--action_env=TALON_GOOGLE_CLIENT_SECRET); fi
+        bazel build "${options[@]}" //:release-dist
+        bazel test "${options[@]}" //tools/bazel:release_archives_test
+      env:
+        TALON_GOOGLE_CLIENT_ID: ${{ secrets.TALON_GOOGLE_CLIENT_ID }}
+        TALON_GOOGLE_CLIENT_SECRET: ${{ secrets.TALON_GOOGLE_CLIENT_SECRET }}
+    - name: Stage release archives
+      run: |-
+        mkdir -p dist
+        cp -R bazel-bin/release-dist/. dist/
+        mv "dist/talon-${{ matrix.artifact_name }}.tar.gz" "dist/talon-${{ matrix.artifact_name }}-${GITHUB_SHA}.tar.gz"
+        mv dist/node.sha256 "dist/talon-node-${{ matrix.sdk_platform }}.tar.gz.sha256"
+    - name: Upload binary artifact bundle
+      uses: actions/upload-artifact@v4
+      with:
+        name: talon-${{ matrix.artifact_name }}-${{ github.sha }}
+        path: |
+          dist/talon-${{ matrix.artifact_name }}-${{ github.sha }}.tar.gz
+          dist/SHA256SUMS
+          dist/talon-node-${{ matrix.sdk_platform }}.tar.gz
+          dist/talon-node-${{ matrix.sdk_platform }}.tar.gz.sha256
+        if-no-files-found: error
+        retention-days: 14
+  buildbuddy_cache_probe:
+    name: BuildBuddy Cache Verification
+    # Only repository writers can dispatch this job. PR events never receive
+    # the writer credential, including PRs originating from forks.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ secrets.BUILDBUDDY_API_KEY }}
+    - name: Verify remote write and independent read
+      shell: bash
+      run: |
+        test -s .bazelrc.local || { echo 'BUILDBUDDY_API_KEY is missing'; exit 1; }
+        printf 'Run %s/%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" >> tools/bazel/cache_probe/input.txt
+        options=(--disk_cache= --color=no --curses=no --remote_download_outputs=all)
+        bazel --output_base="$RUNNER_TEMP/buildbuddy-write" build "${options[@]}" \
+          --noremote_accept_cached --remote_upload_local_results=true \
+          //tools/bazel/cache_probe:action 2>&1 | tee "$RUNNER_TEMP/buildbuddy-write.log"
+        bazel --output_base="$RUNNER_TEMP/buildbuddy-read" build "${options[@]}" \
+          --remote_accept_cached --remote_upload_local_results=false \
+          //tools/bazel/cache_probe:action 2>&1 | tee "$RUNNER_TEMP/buildbuddy-read.log"
+        grep -Eq '[1-9][0-9]* remote cache hit' "$RUNNER_TEMP/buildbuddy-read.log"
+        cmp tools/bazel/cache_probe/input.txt bazel-bin/tools/bazel/cache_probe/output.txt
+    - name: Upload cache verification logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: buildbuddy-cache-verification
+        path: ${{ runner.temp }}/buildbuddy-*.log
+        if-no-files-found: error
+'on':
+  workflow_dispatch:
+  pull_request: null
+  push:
+    branches:
+    - main

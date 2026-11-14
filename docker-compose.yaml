@@ -1,8 +1,6 @@
 services:
   gateway:
-    build:
-      context: .
-      dockerfile: dockerfiles/oss-runtime.Dockerfile
+    image: ${TALON_RUNTIME_IMAGE:-talon-runtime:dev}
     command: ["talon-server"]
     environment:
       RUST_LOG: ${RUST_LOG:-info}
@@ -47,9 +45,7 @@ services:
       start_period: 10s
 
   init-api-key:
-    build:
-      context: .
-      dockerfile: dockerfiles/oss-runtime.Dockerfile
+    image: ${TALON_RUNTIME_IMAGE:-talon-runtime:dev}
     depends_on:
       gateway:
         condition: service_healthy
@@ -81,9 +77,7 @@ services:
         chmod 600 "$$API_KEY_FILE"
 
   worker:
-    build:
-      context: .
-      dockerfile: dockerfiles/oss-runtime.Dockerfile
+    image: ${TALON_RUNTIME_IMAGE:-talon-runtime:dev}
     command: ["talon-worker"]
     environment:
       RUST_LOG: ${RUST_LOG:-info}
@@ -140,9 +134,7 @@ services:
       retries: 5
 
   init-manifests:
-    build:
-      context: .
-      dockerfile: dockerfiles/oss-runtime.Dockerfile
+    image: ${TALON_RUNTIME_IMAGE:-talon-runtime:dev}
     depends_on:
       init-api-key:
         condition: service_completed_successfully
@@ -165,9 +157,7 @@ services:
 
   init-tutorial-channels:
     profiles: ["tutorial-channels"]
-    build:
-      context: .
-      dockerfile: dockerfiles/oss-runtime.Dockerfile
+    image: ${TALON_RUNTIME_IMAGE:-talon-runtime:dev}
     depends_on:
       init-api-key:
         condition: service_completed_successfully
@@ -212,9 +202,7 @@ services:
         condition: service_healthy
 
   ui:
-    build:
-      context: .
-      dockerfile: dockerfiles/oss-ui.Dockerfile
+    image: ${TALON_UI_IMAGE:-talon-ui:dev}
     environment:
       - NODE_ENV=production
       - TALON_OBJECT_STORE_PATH=/data/talon/objects

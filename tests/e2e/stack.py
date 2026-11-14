@@ -33,7 +33,7 @@ SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
 RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
 WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
 INDEX_EVENTS_TOPIC = "talon.index.events"
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).absolute().parents[2]
 MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
 AWS_ACCOUNT_ID = os.environ.get("AWS_ACCOUNT_ID", "000000000000")
 E2E_JWT_ISSUER = os.environ.get(
@@ -176,9 +176,8 @@ def get_runfile_binary_path(name: str) -> str | None:
     repo = runfiles_manifest.CurrentRepository()
     for candidate in binary_candidates(name):
         for runfile in (
-            f"{repo}/talon/{candidate}" if repo else None,
-            f"_main/talon/{candidate}",
-            f"talon/{candidate}",
+            f"{repo}/{candidate}" if repo else None,
+            f"_main/{candidate}",
         ):
             if runfile is None:
                 continue
@@ -191,9 +190,16 @@ def get_runfile_binary_path(name: str) -> str | None:
 
 def get_binary_path(name: str) -> str:
     workspace = os.environ.get("BUILD_WORKSPACE_DIRECTORY")
+    binary_dir = os.environ.get("TALON_BIN_DIR")
+    if binary_dir:
+        for candidate in binary_candidates(name):
+            path = Path(binary_dir) / candidate
+            if path.is_file():
+                return str(path.absolute())
+        raise FileNotFoundError(f"Could not find {name} in TALON_BIN_DIR={binary_dir}")
     for candidate in binary_candidates(name):
         if workspace:
-            path = Path(workspace) / "bazel-bin" / "talon" / candidate
+            path = Path(workspace) / "bazel-bin" / candidate
             if path.exists():
                 return str(path)
 
@@ -201,7 +207,7 @@ def get_binary_path(name: str) -> str:
         if runfile_path:
             return runfile_path
 
-        for base in (REPO_ROOT / "bazel-bin" / "talon", REPO_ROOT / "target" / "debug", REPO_ROOT / "target" / "release"):
+        for base in (REPO_ROOT / "bazel-bin",):
             path = base / candidate
             if path.exists():
                 return str(path)

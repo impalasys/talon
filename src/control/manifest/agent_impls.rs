@@ -43,7 +43,6 @@ fn capabilities_policy_from_proto(
         .collect()
 }
 
-#[cfg(not(feature = "bazel"))]
 pub(crate) mod capabilities_policy_serde {
     use super::*;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};

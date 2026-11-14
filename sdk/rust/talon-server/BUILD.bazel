@@ -1,0 +1,38 @@
+load("@crates//:defs.bzl", "crate_deps")
+load("@rules_rust//cargo:defs.bzl", "cargo_toml_env_vars")
+load("@rules_rust//rust:defs.bzl", "rust_doc_test", "rust_library", "rust_test")
+
+cargo_toml_env_vars(
+    name = "cargo_env",
+    src = "Cargo.toml",
+)
+
+rust_library(
+    name = "talon_server",
+    srcs = glob(["src/**/*.rs"]),
+    crate_name = "talon_server",
+    edition = "2021",
+    rustc_env_files = [":cargo_env"],
+    visibility = ["//visibility:public"],
+    deps = crate_deps(
+        [
+            "anyhow",
+            "serde_json",
+            "tempfile",
+        ],
+        package_name = "",
+    ),
+)
+
+rust_test(
+    name = "unit_tests",
+    crate = ":talon_server",
+    edition = "2021",
+)
+
+rust_doc_test(
+    name = "doc_tests",
+    crate = ":talon_server",
+)
+
+exports_files(["Cargo.toml"])

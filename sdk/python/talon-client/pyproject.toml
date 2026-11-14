@@ -14,5 +14,11 @@ dependencies = [
   "protobuf>=6.33,<7",
 ]
 
+[tool.hatch.build]
+ignore-vcs = true
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/README.md", "/pyproject.toml"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/talon_client"]

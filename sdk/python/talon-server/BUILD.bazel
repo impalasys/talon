@@ -1,0 +1,60 @@
+load("@bazel_lib//lib:run_binary.bzl", "run_binary")
+load("@pypi//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+
+py_library(
+    name = "talon_server",
+    srcs = glob(["src/**/*.py"]),
+    imports = ["src"],
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "unit_tests",
+    srcs = glob(["tests/**/*.py"]),
+    args = [
+        "-q",
+        "-o",
+        "cache_dir=$$TEST_UNDECLARED_OUTPUTS_DIR/pytest-cache",
+        "sdk/python/talon-server/tests",
+    ],
+    main_module = "pytest",
+    deps = [
+        ":talon_server",
+        requirement("pytest"),
+    ],
+)
+
+filegroup(
+    name = "package_sources",
+    srcs = glob(
+        [
+            "src/**",
+            "README.md",
+            "pyproject.toml",
+        ],
+        exclude = [
+            "**/__pycache__/**",
+            "**/*.pyc",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
+# The shim materializes sandbox symlinks before calling the upstream backend.
+run_binary(
+    name = "dist",
+    srcs = [
+        "pyproject.toml",
+        ":package_sources",
+    ],
+    args = [
+        "$(execpath pyproject.toml)",
+        "$@",
+    ],
+    out_dirs = ["dist"],
+    tool = "//tools/bazel:python_packager",
+    visibility = ["//visibility:public"],
+)
+
+exports_files(["pyproject.toml"])

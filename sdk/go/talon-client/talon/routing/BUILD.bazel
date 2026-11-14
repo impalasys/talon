@@ -1,0 +1,32 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+package(default_visibility = ["//visibility:public"])
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "connectors.pb.go",
+        "routing.pb.go",
+    ],
+    importpath = "github.com/impalasys/talon/sdk/go/talon-client/talon/routing",
+    deps = [
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
+        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
+    ],
+)
+
+filegroup(
+    name = "generated_sources",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generated_metadata",
+    srcs = glob(
+        include = ["**"],
+        allow_empty = True,
+        exclude = ["**/*.go"],
+    ),
+    visibility = ["//visibility:public"],
+)

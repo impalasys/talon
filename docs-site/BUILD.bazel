@@ -1,0 +1,90 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_library", "js_run_binary", "js_test")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//docs-site:blume/package_json.bzl", blume_bin = "bin")
+
+npm_link_all_packages(name = "node_modules")
+
+js_library(
+    name = "sources",
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "node_modules/**",
+            "dist/**",
+            ".blume/**",
+            ".blume-verify/**",
+            ".astro/**",
+            "BUILD.bazel",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+    deps = ["//docs:sources"],
+)
+
+blume_bin.blume_binary(
+    name = "blume",
+    data = [
+        ":node_modules",
+        ":sources",
+    ],
+    patch_node_fs = False,
+)
+
+js_run_binary(
+    name = "dist",
+    srcs = [
+        ":node_modules",
+        ":sources",
+    ],
+    args = ["build"],
+    chdir = package_name(),
+    out_dirs = [
+        "dist",
+        ".blume",
+    ],
+    patch_node_fs = False,
+    tool = ":blume",
+    visibility = ["//visibility:public"],
+)
+
+blume_bin.blume_test(
+    name = "check",
+    args = ["check"],
+    chdir = package_name(),
+    data = [
+        ":node_modules",
+        ":sources",
+    ],
+    tags = ["manual"],
+)
+
+js_binary(
+    name = "reference_generator",
+    data = [
+        ":sources",
+        "//:proto_js",
+    ],
+    entry_point = "scripts/generate-reference.mjs",
+)
+
+js_run_binary(
+    name = "reference",
+    srcs = [
+        ":sources",
+        "//:proto_js",
+    ],
+    args = ["generated-reference"],
+    chdir = package_name(),
+    out_dirs = ["generated-reference"],
+    tool = ":reference_generator",
+)
+
+js_test(
+    name = "reference_test",
+    args = ["--check"],
+    data = [
+        ":sources",
+        "//:proto_js",
+    ],
+    entry_point = "scripts/generate-reference.mjs",
+)
