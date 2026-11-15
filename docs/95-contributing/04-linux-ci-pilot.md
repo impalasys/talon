@@ -2,9 +2,10 @@
 
 The repository defines an additional **BuildBuddy Linux pilot** check in
 `buildbuddy.yaml` and a **GitHub Linux pilot** baseline in
-`.github/workflows/buildbuddy-linux-pilot.yml`. Both trigger on pushes to `main`
-and `codex/bb-pilot-*` branches. The GitHub baseline also supports manual
-dispatch. Keep existing required checks, macOS releases, image publishing,
+`.github/workflows/buildbuddy-linux-pilot.yml`. Both trigger on pushes to `main`.
+BuildBuddy also runs on `codex/bb-pilot-*` branch pushes; GitHub baselines for
+pilot branches are **manual only**, using maintainer-triggered dispatch. Keep
+existing required checks, macOS releases, image publishing,
 registry uploads and deployments on GitHub during this experiment.
 
 ## Enable and run
@@ -14,20 +15,26 @@ registry uploads and deployments on GitHub during this experiment.
    checked-in `buildbuddy.yaml`, rather than enabling the default `//...` config.
    The config is inert until the repository is linked and the config is pushed.
 2. The existing GitHub `BUILDBUDDY_API_KEY` secret enables main/manual baseline
-   runs. For automatic pilot branch pushes, add
-   `BUILDBUDDY_READ_ONLY_API_KEY` with **server-enforced read-only cache access**
-   to the same BuildBuddy organization/cache. Do not reuse the writer key.
-   A missing key fails the baseline with an explicit setup message instead of
-   silently comparing different remote cache configurations.
-3. Push a `codex/bb-pilot-*` branch to run both providers against the identical
-   pushed commit, without synthetic PR merges. Opening a PR on that branch is
-   fine, but PR events do not dispatch extra pilot jobs. Fork pushes do not
-   trigger this repository's pilot. Seed `main` before evaluating branch snapshot
-   reuse, then use a Rust edit and a UI-only edit on pilot branches.
-4. Repeat each revision at least five times: rerun the GitHub pilot workflow and
-   the BuildBuddy action from their UIs. Verify the resolved commit on each run.
-   For a manual GitHub run, select the same pilot branch/ref. Do not dispatch
-   `ci.yml`, whose manual entry point is the cache probe.
+   runs. No new credential is needed. Pilot branch pushes and PR events do not
+   receive this key automatically. A missing key fails the manually dispatched
+   baseline with an explicit setup message.
+3. Push a `codex/bb-pilot-*` branch to start BuildBuddy, then manually dispatch
+   the GitHub baseline against the same branch using `gh`:
+
+   ```bash
+   gh workflow run buildbuddy-linux-pilot.yml --repo impalasys/talon --ref codex/bb-pilot-linux
+   gh run list --repo impalasys/talon --workflow buildbuddy-linux-pilot.yml --branch codex/bb-pilot-linux
+   ```
+
+   Both providers build the pushed commit without synthetic PR merges. Verify
+   matching commit SHAs, especially if the branch advances between dispatches.
+   Opening a PR on the pilot branch is fine; PR events do not dispatch extra
+   pilot jobs. Fork pushes do not trigger this repository's pilot. Seed `main`
+   before evaluating branch snapshot reuse, then use a Rust edit and a UI-only
+   edit on pilot branches.
+4. Repeat each revision at least five times: rerun the GitHub pilot workflow
+   with `gh` and the BuildBuddy action from its UI. Verify the resolved commit on
+   each run. Do not dispatch `ci.yml`, whose manual entry point is the cache probe.
 
 ## Workload
 
