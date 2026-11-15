@@ -33,7 +33,7 @@ source /etc/os-release
   exit 1
 }
 # BuildBuddy's runner cleanup also invokes Bazel. Keep startup options in its
-# normal rc lookup so cleanup preserves the same JVM instead of restarting it.
+# normal rc lookup so workload and cleanup can read the same heap setting.
 heap_option='startup --host_jvm_args=-Xmx4g'
 if ! grep -Fxq -- "$heap_option" .bazelrc.local 2>/dev/null; then
   umask 077

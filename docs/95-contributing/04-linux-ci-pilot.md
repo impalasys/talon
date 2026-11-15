@@ -59,8 +59,9 @@ comparison matching. Recycled runners skip installation when already aligned.
 Exact compiler and native package versions are included in the comparison
 fingerprint. Provider kernels are recorded separately because GitHub VMs and
 BuildBuddy microVMs have different hosts/kernels; this is a userspace alignment.
-The heap limit lives in ignored `.bazelrc.local` so BuildBuddy's post-run Bazel
-lock check uses the same startup settings and can retain the warmed JVM.
+The heap limit lives in ignored `.bazelrc.local` to make the same setting
+available to workload and runner-cleanup commands. Cross-run JVM reuse must be
+verified from the counters; it was not demonstrated in the controlled results.
 The Workflow disables BuildBuddy CLI substitution (`bazel_use_cli: false`) to
 use the same plain Bazel client as GitHub, including startup rc handling.
 
@@ -129,7 +130,8 @@ costs. Setup time in JSON is only native prerequisite setup, not total job time.
 Consider moving Linux jobs only after repeated cross-run improvements in both
 median and tail feedback time at acceptable cost (a proposed threshold is at
 least 30%). Keep macOS releases and publishing on GitHub throughout this pilot.
-No provider speedup has been established by adding this configuration.
+See [the measured assessment](./03-ci-execution.md) for repeated timings, source
+probes, and the limits of the resulting migration recommendation.
 
 References: [Workflows setup](https://www.buildbuddy.io/docs/workflows-setup/),
 [runner resources and images](https://www.buildbuddy.io/docs/workflows-config/),

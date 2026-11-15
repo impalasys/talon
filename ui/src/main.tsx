@@ -20,5 +20,3 @@ createRoot(root).render(
     </ThemeProvider>
   </StrictMode>,
 );
-
-// Temporary Linux CI pilot: UI source invalidation probe.
