@@ -21,6 +21,10 @@ class SDKUpdaterTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             checkout = Path(temp) / "checkout"
             shutil.copytree(checked_in_tree, checkout, copy_function=shutil.copyfile)
+            # copytree preserves Bazel's read-only tree directory modes. This
+            # temporary checkout must allow adding handwritten/stale fixtures.
+            for directory, _, _ in os.walk(checkout):
+                Path(directory).chmod(0o755)
             helpers = {
                 "sdk/go/talon-client/client.go": b"handwritten Go helper\n",
                 "sdk/java/talon-client/src/main/java/systems/impala/talon/client/Client.java": b"handwritten Java helper\n",
