@@ -61,11 +61,11 @@ def numeric_metrics(value):
     return value
 
 
-def limit_cpu_affinity():
+def limit_cpu_affinity(count=4):
     """Cap all compiler descendants, including an already-running Bazel JVM."""
-    cpus = sorted(os.sched_getaffinity(0))[:4]
-    if len(cpus) != 4:
-        raise SystemExit(f"Pilot needs four available CPUs; found {len(cpus)}")
+    cpus = sorted(os.sched_getaffinity(0))[:count]
+    if len(cpus) != count:
+        raise SystemExit(f"Pilot needs {count} available CPUs; found {len(cpus)}")
     os.sched_setaffinity(0, cpus)
     # A recycled VM's JVM predates this process, so it does not inherit our
     # mask. Bind its existing threads too, without a warming bazel info call.
@@ -110,9 +110,12 @@ def run(args):
         raise SystemExit("Run the pilot on Ubuntu 24.04 x86_64.")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
-    affinity_cpus = limit_cpu_affinity()
+    affinity_cpus = limit_cpu_affinity(args.cpus)
+    options = [option.replace("--jobs=4", f"--jobs={args.cpus}")
+               .replace("--local_resources=cpu=4", f"--local_resources=cpu={args.cpus}")
+               for option in OPTIONS]
     started = time.time()
-    configuration = {"workloads": WORKLOADS, "options": OPTIONS, "startup_options": STARTUP_OPTIONS,
+    configuration = {"workloads": WORKLOADS, "options": options, "startup_options": STARTUP_OPTIONS,
                      "client": "plain-bazel",
                      "bazel_version": Path(".bazelversion").read_text().strip(),
                      "compiler": capture("/usr/bin/clang-18", "--version"),
@@ -124,7 +127,7 @@ def run(args):
         "commit": capture("git", "rev-parse", "HEAD"),
         "configuration": configuration,
         "configuration_id": hashlib.sha256(json.dumps(configuration, sort_keys=True).encode()).hexdigest(),
-        "requested_cpu": 4, "requested_memory_gb": 16,
+        "requested_cpu": args.cpus, "requested_memory_gb": 16,
         "visible_cpu": os.cpu_count(), "affinity_cpus": affinity_cpus,
         "runner_memory": memory_metadata(),
         "runner_kernel": platform.release(), "started_at": started,
@@ -141,7 +144,7 @@ def run(args):
                 name = f"{iteration}-{phase}"
                 bep = Path(temporary) / f"{name}.jsonl"
                 invocation = str(uuid.uuid4())
-                command = ["bazel", workload[0], *OPTIONS, *workload[1:],
+                command = ["bazel", workload[0], *options, *workload[1:],
                            f"--profile={output / (name + '.profile.gz')}",
                            f"--build_event_json_file={bep}", f"--invocation_id={invocation}"]
                 before = time.monotonic()
@@ -206,6 +209,7 @@ def main():
     runner = sub.add_parser("run")
     runner.add_argument("--provider", choices=("github", "buildbuddy"), required=True)
     runner.add_argument("--output", type=Path, required=True)
+    runner.add_argument("--cpus", type=int, choices=range(1, 81), default=4)
     comparison = sub.add_parser("compare")
     comparison.add_argument("results", type=Path, nargs="+")
     args = parser.parse_args()

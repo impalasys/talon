@@ -23,3 +23,26 @@ actions:
           bash scripts/ci/linux-pilot-setup.sh
           python3 scripts/ci/linux_pilot.py run --provider buildbuddy \
             --output "$BUILDBUDDY_ARTIFACTS_DIRECTORY"
+
+  # Explicit experiment branch only; does not change the matched four-CPU pilot.
+  - name: BuildBuddy Linux CPU sweep
+    os: linux
+    arch: amd64
+    container_image: ubuntu-24.04
+    bazel_use_cli: false
+    resource_requests:
+      cpu: 16
+      memory: 16GB
+      disk: 40GB
+    timeout: 60m
+    allow_concurrent_runs: false
+    allow_concurrent_runs_on_branches: []
+    triggers:
+      push:
+        branches: ["codex/bb-cpu-sweep"]
+    steps:
+      - run: |
+          set -euo pipefail
+          bash scripts/ci/linux-pilot-setup.sh
+          python3 scripts/ci/linux_cpu_sweep.py \
+            --output "$BUILDBUDDY_ARTIFACTS_DIRECTORY" --cpus 4 8 16
