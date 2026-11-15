@@ -4,6 +4,8 @@ actions:
     os: linux
     arch: amd64
     container_image: ubuntu-24.04
+    # Use the same plain Bazel client as GitHub, including startup rc handling.
+    bazel_use_cli: false
     resource_requests:
       cpu: 4
       memory: 16GB

@@ -61,6 +61,8 @@ fingerprint. Provider kernels are recorded separately because GitHub VMs and
 BuildBuddy microVMs have different hosts/kernels; this is a userspace alignment.
 The heap limit lives in ignored `.bazelrc.local` so BuildBuddy's post-run Bazel
 lock check uses the same startup settings and can retain the warmed JVM.
+The Workflow disables BuildBuddy CLI substitution (`bazel_use_cli: false`) to
+use the same plain Bazel client as GitHub, including startup rc handling.
 
 Each run executes these commands, then immediately repeats them:
 

@@ -113,6 +113,7 @@ def run(args):
     affinity_cpus = limit_cpu_affinity()
     started = time.time()
     configuration = {"workloads": WORKLOADS, "options": OPTIONS, "startup_options": STARTUP_OPTIONS,
+                     "client": "plain-bazel",
                      "bazel_version": Path(".bazelversion").read_text().strip(),
                      "compiler": capture("/usr/bin/clang-18", "--version"),
                      "native_packages": capture("dpkg-query", "-W", "-f=${Package}=${Version}\n", *PACKAGES),
