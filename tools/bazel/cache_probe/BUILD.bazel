@@ -1,0 +1,8 @@
+# A small, side-effect-free action used to verify remote cache writes and reads.
+genrule(
+    name = "action",
+    srcs = ["input.txt"],
+    outs = ["output.txt"],
+    cmd = "cat $(SRCS) > $@",
+    tags = ["manual"],
+)

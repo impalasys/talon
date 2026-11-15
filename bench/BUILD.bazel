@@ -1,0 +1,15 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+
+py_binary(
+    name = "benchmark",
+    srcs = ["benchmark_1000_agents.py"],
+    data = glob([
+        "mock_llm_server.py",
+    ]) + [
+        "//dockerfiles:dev-jwt.env",
+        "//tests:generated",
+    ],
+    main = "benchmark_1000_agents.py",
+    visibility = ["//visibility:public"],
+    deps = ["//tests:support"],
+)

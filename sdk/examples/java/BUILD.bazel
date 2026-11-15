@@ -1,0 +1,12 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+
+java_binary(
+    name = "example",
+    srcs = glob(["src/main/java/**/*.java"]),
+    main_class = "systems.impala.talon.examples.App",
+    deps = [
+        "//sdk/java/talon-client:talon_client",
+        "//sdk/java/talon-server:talon_server",
+        "@maven//:io_grpc_grpc_netty_shaded",
+    ],
+)

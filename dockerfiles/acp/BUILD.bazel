@@ -1,0 +1,267 @@
+load("@aspect_rules_js//js:defs.bzl", "js_image_layer")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//dockerfiles/acp:@zed-industries/claude-code-acp/package_json.bzl", claude_acp_bin = "bin")
+load("@rules_distroless//distroless:defs.bzl", "cacerts", "group", "passwd")
+load("@rules_oci//oci:defs.bzl", "oci_image")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs", "pkg_mklink", "strip_prefix")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+package(default_visibility = ["//visibility:public"])
+
+[platform(
+    name = "linux_" + architecture,
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:" + cpu,
+    ],
+) for architecture, cpu in [
+    ("x86_64", "x86_64"),
+    ("arm64", "aarch64"),
+]]
+
+write_file(
+    name = "smoke_runner",
+    out = "smoke_test.sh",
+    content = [
+        "#!/usr/bin/env bash",
+        "set -euo pipefail",
+        '"$1"',
+        'docker run --rm --network none -i talon-acp-harness:local python3 - < "$2"',
+    ],
+    is_executable = True,
+)
+
+sh_test(
+    name = "smoke_test",
+    srcs = [":smoke_runner"],
+    args = [
+        "$(rootpath //dockerfiles:acp_image)",
+        "$(rootpath smoke_test.py)",
+    ],
+    data = [
+        "smoke_test.py",
+        "//dockerfiles:acp_image",
+    ],
+    tags = [
+        "manual",
+        "no-cache",
+        "no-remote-exec",
+        "requires-docker",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+npm_link_all_packages(name = "node_modules")
+
+claude_acp_bin.claude_code_acp_binary(
+    name = "claude-code-acp",
+    data = [":node_modules"],
+)
+
+js_image_layer(
+    name = "claude_acp_layers",
+    binary = ":claude-code-acp",
+    root = "/opt/talon-acp",
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+# Keep upstream resources and native binaries together, including Codex helpers.
+[pkg_files(
+    name = agent + "_files",
+    srcs = select({
+        "@platforms//cpu:aarch64": ["@acp_" + agent + "_aarch64//:files"],
+        "//conditions:default": ["@acp_" + agent + "_x86_64//:files"],
+    }),
+    prefix = "opt/talon-agents/" + agent,
+    strip_prefix = strip_prefix.from_root(),
+) for agent in [
+    "codex",
+    "claude",
+    "opencode",
+]]
+
+[pkg_tar(
+    name = agent + "_layer",
+    srcs = [":" + agent + "_files"],
+    preserve_mode = True,
+) for agent in [
+    "codex",
+    "claude",
+    "opencode",
+]]
+
+pkg_files(
+    name = "codex_acp_files",
+    srcs = select({
+        "@platforms//cpu:aarch64": ["@acp_codex_acp_aarch64//:bin/codex-acp"],
+        "//conditions:default": ["@acp_codex_acp_x86_64//:bin/codex-acp"],
+    }),
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "usr/local/bin",
+    strip_prefix = strip_prefix.files_only(),
+)
+
+_CLI_LINKS = {
+    "codex": select({
+        "@platforms//cpu:aarch64": "/opt/talon-agents/codex/vendor/aarch64-unknown-linux-musl/bin/codex",
+        "//conditions:default": "/opt/talon-agents/codex/vendor/x86_64-unknown-linux-musl/bin/codex",
+    }),
+    "claude": "/opt/talon-agents/claude/claude",
+    "opencode": "/opt/talon-agents/opencode/bin/opencode",
+    "claude-code-acp": "/opt/talon-acp/dockerfiles/acp/claude-code-acp",
+}
+
+[pkg_mklink(
+    name = command + "_link",
+    link_name = "usr/local/bin/" + command,
+    target = target,
+) for command, target in _CLI_LINKS.items()]
+
+_SYSTEM_LINKS = {
+    "cc": "gcc",
+    "c++": "g++",
+    "awk": "mawk",
+}
+
+[pkg_mklink(
+    name = command + "_link",
+    link_name = "usr/bin/" + command,
+    target = target,
+) for command, target in _SYSTEM_LINKS.items()]
+
+pkg_mkdirs(
+    name = "writable_dirs",
+    attributes = pkg_attributes(
+        gid = 1001,
+        mode = "0755",
+        uid = 1001,
+    ),
+    dirs = [
+        "home/codex",
+        "home/codex/.codex",
+        "home/codex/.claude",
+        "home/codex/.config",
+        "home/codex/.config/opencode",
+        "workspace",
+    ],
+)
+
+passwd(
+    name = "passwd",
+    entries = [
+        dict(
+            gid = 0,
+            home = "/root",
+            shell = "/bin/bash",
+            uid = 0,
+            username = "root",
+        ),
+        dict(
+            gid = 1000,
+            home = "/home/node",
+            shell = "/bin/bash",
+            uid = 1000,
+            username = "node",
+        ),
+        dict(
+            gid = 65534,
+            home = "/nonexistent",
+            shell = "/usr/sbin/nologin",
+            uid = 65534,
+            username = "nobody",
+        ),
+        dict(
+            gid = 65534,
+            home = "/nonexistent",
+            shell = "/usr/sbin/nologin",
+            uid = 42,
+            username = "_apt",
+        ),
+        dict(
+            gid = 1001,
+            home = "/home/codex",
+            shell = "/bin/bash",
+            uid = 1001,
+            username = "codex",
+        ),
+    ],
+)
+
+group(
+    name = "group",
+    entries = [
+        dict(
+            name = "root",
+            gid = 0,
+        ),
+        dict(
+            name = "node",
+            gid = 1000,
+        ),
+        dict(
+            name = "nogroup",
+            gid = 65534,
+        ),
+        dict(
+            name = "codex",
+            gid = 1001,
+        ),
+    ],
+)
+
+pkg_tar(
+    name = "layout",
+    srcs = [
+        ":codex_acp_files",
+        ":writable_dirs",
+    ] + [":" + command + "_link" for command in list(_CLI_LINKS) + list(_SYSTEM_LINKS)],
+)
+
+cacerts(
+    name = "ca_certificates",
+    package = "@acp_os//ca-certificates:data",
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+oci_image(
+    name = "image",
+    base = select({
+        "@platforms//cpu:aarch64": "@acp_node_base_linux_arm64_v8//:acp_node_base_linux_arm64_v8",
+        "//conditions:default": "@acp_node_base_linux_amd64//:acp_node_base_linux_amd64",
+    }),
+    cmd = ["codex-acp"],
+    entrypoint = [],
+    env = {
+        "NODE_ENV": "production",
+        "NPM_CONFIG_AUDIT": "false",
+        "NPM_CONFIG_FUND": "false",
+        "NPM_CONFIG_UPDATE_NOTIFIER": "false",
+        "PIP_BREAK_SYSTEM_PACKAGES": "1",
+        "HOME": "/home/codex",
+        "CODEX_HOME": "/home/codex/.codex",
+        "CLAUDE_CONFIG_DIR": "/home/codex/.claude",
+        "OPENCODE_CONFIG_DIR": "/home/codex/.config/opencode",
+        "SSL_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
+    },
+    labels = {
+        "org.opencontainers.image.title": "Talon ACP Harness Sandbox",
+        "org.opencontainers.image.description": "ACP-compatible coding harnesses for Talon Docker sandboxes",
+        "org.opencontainers.image.source": "https://github.com/impalasys/talon",
+    },
+    target_compatible_with = ["@platforms//os:linux"],
+    tars = [
+        "@acp_os//:flat",
+        ":ca_certificates",
+        ":codex_layer",
+        ":claude_layer",
+        ":opencode_layer",
+        ":claude_acp_layers",
+        ":passwd",
+        ":group",
+        ":layout",
+    ],
+    user = "1001:1001",
+    workdir = "/workspace",
+)

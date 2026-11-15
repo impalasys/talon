@@ -1,6 +1,8 @@
 const customJestConfig = {
+  rootDir: require('path').dirname(require('fs').realpathSync.native(__filename)),
+  roots: ["<rootDir>/lib", "<rootDir>/components"],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  testEnvironment: 'jest-environment-jsdom',
+  testEnvironment: require.resolve('jest-environment-jsdom'),
   testPathIgnorePatterns: [
     '<rootDir>/e2e/',
     '/node_modules/',
@@ -13,9 +15,11 @@ const customJestConfig = {
     '\\.(css|less|scss|sass)$': '<rootDir>/test/styleMock.js',
   },
   transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
+    '^.+\\.(ts|tsx)$': [require.resolve('ts-jest'), { tsconfig: '<rootDir>/tsconfig.json' }],
   },
   collectCoverage: true,
+  coverageDirectory: process.env.TEST_UNDECLARED_OUTPUTS_DIR || "coverage",
+  ...(process.env.TEST_TMPDIR ? { cacheDirectory: process.env.TEST_TMPDIR + "/jest" } : {}),
   collectCoverageFrom: [
     'lib/**/*.{ts,tsx}',
     '../packages/talon-chat/src/**/*.{ts,tsx}',

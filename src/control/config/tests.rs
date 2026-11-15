@@ -20,7 +20,8 @@ mod tests {
 
         for entry in std::fs::read_dir(source).unwrap() {
             let entry = entry.unwrap();
-            if entry.file_type().unwrap().is_file() {
+            // Bazel runfiles are symlinks to the checked-in catalog files.
+            if entry.path().is_file() {
                 std::fs::copy(entry.path(), destination.join(entry.file_name())).unwrap();
             }
         }

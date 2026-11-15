@@ -17,7 +17,7 @@ Do not add private infrastructure, secrets, or deployment configuration.
 ```text
 src/                  Rust runtime, gateway, worker, control plane, CLI
 src/bin/              talon-server, talon-worker, talon-cli entrypoints
-ui/                   Next.js operator UI
+ui/                   Vite operator UI
 packages/talon-chat/ React client package for Talon-backed chat surfaces
 sdk/                  Client packages and examples
 proto/                Protobuf service and schema definitions
@@ -52,6 +52,19 @@ posted.
 
 ## Validation
 
+Talon’s Bazel configuration and labels are rooted in this standalone repository.
+
+Install Bazelisk, then build and test using the pinned Bazel and Rust versions:
+
+```bash
+bazel build //:binaries
+bazel test //...
+```
+
+The Rust library tests need Docker. See [the Bazel guide](./docs/95-contributing/02-bazel.md)
+for feature configurations, frontend targets, dependency updates, and optional
+BuildBuddy caching. Cargo and pnpm remain supported as described below.
+
 To enable the repository pre-push hook in a worktree, run:
 
 ```bash
@@ -81,8 +94,8 @@ pnpm build
 If your change touches container builds, also run:
 
 ```bash
-docker build -f dockerfiles/oss-runtime.Dockerfile .
-docker build -f dockerfiles/oss-ui.Dockerfile .
+bazel run //dockerfiles:runtime_image
+bazel run //dockerfiles:ui_image
 ```
 
 ## SDK releases
@@ -111,7 +124,8 @@ for the docs workflow.
 If proto changes affect generated reference pages, regenerate them:
 
 ```bash
-pnpm --filter @impalasys/talon-docs generate:reference
+bazel build //docs-site:reference
+cp -R bazel-bin/docs-site/generated-reference/. docs/05-reference/generated/
 ```
 
 Review generated diffs rather than treating them as opaque build output.

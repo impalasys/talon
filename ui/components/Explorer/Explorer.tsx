@@ -858,7 +858,7 @@ export function Explorer({
           style={{ top: contextMenu?.y || 0, left: contextMenu?.x || 0, width: 1, height: 1, padding: 0 }}
           aria-label="Explorer context menu"
         />
-        <DropdownMenu aria-label="Context Actions" variant="outline">
+        <DropdownMenu aria-label="Context Actions">
           {menuNode?.selection.type === 'namespace' ? (
             <>
               <DropdownItem
@@ -942,7 +942,6 @@ export function Explorer({
             <DropdownItem
               id="delete_item"
               className="text-danger"
-              color="danger"
               onAction={() => {
                 setContextMenu(null);
                 setDeleteConfirm({ isOpen: true, node: menuNode });

@@ -1,4 +1,4 @@
-import {mkdir, readFile, rm, writeFile} from "node:fs/promises";
+import {mkdir, readFile, readdir, rm, writeFile} from "node:fs/promises";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
 
@@ -6,7 +6,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const talonRoot = path.resolve(__dirname, "..", "..");
 const docsRoot = path.resolve(talonRoot, "docs");
-const generatedRoot = path.resolve(docsRoot, "05-reference", "generated");
+const checkedInRoot = path.resolve(docsRoot, "05-reference", "generated");
+const check = process.argv.includes("--check");
+const generatedRoot = check
+  ? path.join(process.env.TEST_TMPDIR, "reference")
+  : path.resolve(process.argv[2] || checkedInRoot);
 const protoRoot = path.resolve(talonRoot, "proto");
 
 const apiProtos = [
@@ -58,13 +62,13 @@ sidebar:
   order: 1
 ---
 
-This section is generated from Talon's canonical source files in the monorepo:
+This section is generated from Talon's canonical source files in this repository:
 
-- \`talon/proto/talon/v1/*.proto\`
-- \`talon/proto/config.proto\`
-- \`talon/proto/resources/*.proto\`
-- \`talon/proto/data/*.proto\`
-- \`talon/proto/external/*.proto\`
+- \`proto/talon/v1/*.proto\`
+- \`proto/config.proto\`
+- \`proto/resources/*.proto\`
+- \`proto/data/*.proto\`
+- \`proto/external/*.proto\`
 
 The generated pages are intentionally static artifacts checked into the repo so API changes are reviewable in pull requests.
 `,
@@ -97,7 +101,7 @@ await generateSchemaReference({
   title: "Manifest Schema",
   slug: "manifests-schema",
   intro:
-    "This page summarizes the control-plane resource messages used by Talon manifests. The YAML manifests in `talon/manifests/**` compile into these durable resource shapes.",
+    "This page summarizes the control-plane resource messages used by Talon manifests. The YAML manifests in `manifests/**` compile into these durable resource shapes.",
 });
 
 async function generateGatewayReference() {
@@ -392,4 +396,13 @@ function isSectionLabel(value) {
 function count(value, token) {
   const cleanValue = value.replace(/\/\/.*$/, "");
   return cleanValue.split(token).length - 1;
+}
+
+if (check) {
+  for (const file of await readdir(generatedRoot, {recursive: true})) {
+    if (!file.endsWith(".md")) continue;
+    const expected = await readFile(path.join(generatedRoot, file), "utf8");
+    const actual = await readFile(path.join(checkedInRoot, file), "utf8");
+    if (expected !== actual) throw new Error(`Generated reference is stale: ${file}`);
+  }
 }

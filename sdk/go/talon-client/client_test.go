@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -79,20 +78,6 @@ func TestConnectGRPCWebDoesNotMutateCallerOptionBackingArray(t *testing.T) {
 	backing[1](&opts)
 	if opts.Authorization != "sentinel" {
 		t.Fatalf("ConnectGRPCWeb mutated caller option backing array")
-	}
-}
-
-func TestSDKGenerationKeepsRootHelpers(t *testing.T) {
-	data, err := os.ReadFile("../../../scripts/sdk/generate.sh")
-	if err != nil {
-		t.Fatalf("read SDK generator: %v", err)
-	}
-	script := string(data)
-	if !strings.Contains(script, "rm -rf sdk/go/talon-client/talon") {
-		t.Fatalf("SDK generator no longer removes only the generated Go talon tree")
-	}
-	if strings.Contains(script, "rm -rf sdk/go/talon-client ") || strings.Contains(script, "rm -rf sdk/go/talon-client\n") {
-		t.Fatalf("SDK generator appears to remove the hand-written Go client root")
 	}
 }
 

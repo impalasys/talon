@@ -18,7 +18,6 @@ pub mod search;
 pub mod sessions;
 pub mod workflows;
 
-#[cfg(not(feature = "bazel"))]
 pub mod generated {
     pub mod config {
         tonic::include_proto!("talon.config");
@@ -43,34 +42,6 @@ pub mod generated {
     }
     pub mod worker_proto {
         tonic::include_proto!("talon.worker.v1");
-    }
-}
-
-#[cfg(feature = "bazel")]
-pub mod generated {
-    pub mod config {
-        pub use talon_config_proto::talon::config::*;
-    }
-    pub mod data {
-        pub use talon_data_connectors_proto::talon::data::*;
-        pub use talon_data_core_proto::talon::data::*;
-        pub use talon_data_proto::talon::data::*;
-        pub use talon_data_routing_proto::talon::data::*;
-    }
-    pub mod harness {
-        pub use talon_harness_proto::talon::harness::*;
-    }
-    pub mod external {
-        pub use talon_external_proto::talon::external::*;
-    }
-    pub mod resources {
-        pub use talon_resources_proto::talon::resources::*;
-    }
-    pub mod proto {
-        pub use talon_api_proto::talon::v1::*;
-    }
-    pub mod worker_proto {
-        pub use talon_worker_proto::talon::worker::v1::*;
     }
 }
 
@@ -107,13 +78,8 @@ pub mod manifests {
     pub type ObjectMeta = super::resources_proto::ResourceMeta;
 }
 
-#[cfg(not(feature = "bazel"))]
 pub mod protobuf_value {
     pub use prost_types::{value, ListValue, Value};
-}
-#[cfg(feature = "bazel")]
-pub mod protobuf_value {
-    pub use struct_proto::google::protobuf::{value, ListValue, Value};
 }
 
 pub use crate::control::events;

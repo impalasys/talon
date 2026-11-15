@@ -17,7 +17,7 @@ export default defineConfig({
     owner: "impalasys",
     repo: "talon",
     branch: "main",
-    dir: "talon/docs-site",
+    dir: "docs-site",
   },
   navigation: {
     tabs: [

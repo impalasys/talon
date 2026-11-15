@@ -6,7 +6,7 @@ ACP coding agent.
 Build the local sandbox image before starting a session:
 
 ```bash
-docker build -f dockerfiles/codex-acp.Dockerfile -t talon-acp-harness:local .
+scripts/build-images.sh acp
 ```
 
 Then apply the manifests:

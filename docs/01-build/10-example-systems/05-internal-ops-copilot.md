@@ -17,7 +17,8 @@ cp .env.example .env
 Start the local stack if it is not already running:
 
 ```bash
-docker compose up --build -d
+scripts/build-images.sh
+docker compose up -d
 ```
 
 ## What you are building

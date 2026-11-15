@@ -130,6 +130,7 @@ This page summarizes the control-plane resource messages that drive Talon agents
 | `name` | `string` | - |
 | `temperature` | `float` | - |
 | `thinking` | `ThinkingConfig` | - |
+| `zero_data_retention` | `bool` | Use provider stateless/zero-data-retention continuation semantics. |
 
 ## `ThinkingConfig`
 

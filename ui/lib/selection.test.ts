@@ -128,7 +128,7 @@ describe('selection helpers', () => {
       fullPath: 'Tenant:other',
     });
     expect(buildSearchParams(true, selectionFromSearchParams(params), params).toString()).toBe(
-      'connected=true&root=Tenant%3Aconic&ns=Tenant%3Aother&type=namespace',
+      'connected=true&root=Tenant%3Aacme&ns=Tenant%3Aother&type=namespace',
     );
   });
 

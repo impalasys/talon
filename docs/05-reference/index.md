@@ -18,4 +18,4 @@ Talon’s reference surface is split between explanatory hand-written material a
 - [Config schema](/talon/docs/reference/generated/config-schema)
 - [Resource schemas](/talon/docs/reference/generated/resource-schemas)
 
-Generated reference comes from the canonical source files in `talon/proto`.
+Generated reference comes from the canonical source files in `proto`.

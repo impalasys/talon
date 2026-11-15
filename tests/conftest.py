@@ -9,7 +9,7 @@ from typing import Iterator
 import pytest
 
 # Important: Add local test helpers and generated client packages to the import path.
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).absolute().parents[1]
 PYTHON_SDK_SRC = REPO_ROOT / "sdk" / "python" / "talon-client" / "src"
 sys.path.insert(0, str(PYTHON_SDK_SRC))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))

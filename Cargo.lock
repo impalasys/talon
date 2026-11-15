@@ -1462,6 +1462,7 @@ checksum = "0b023947811758c97c59bf9d1c188fd619ad4718dcaa767947df1cadb14f39f4"
 dependencies = [
  "glob",
  "libc",
+ "libloading",
 ]
 
 [[package]]
@@ -3689,6 +3690,16 @@ name = "libc"
 version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
+
+[[package]]
+name = "libloading"
+version = "0.8.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7c4b02199fee7c5d21a5ae7d8cfa79a6ef5bb2fc834d6e9058e89c825efdc55"
+dependencies = [
+ "cfg-if",
+ "windows-link",
+]
 
 [[package]]
 name = "libm"
@@ -6887,6 +6898,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "talon-bazel-features"
+version = "0.0.0"
+dependencies = [
+ "aws-sdk-dynamodb",
+ "aws-sdk-scheduler",
+ "aws-sdk-sqs",
+ "pprof",
+ "rocksdb",
+ "tikv-jemalloc-ctl",
+ "tikv-jemallocator",
+]
+
+[[package]]
 name = "talon-client"
 version = "0.2.11"
 dependencies = [
@@ -6896,9 +6920,14 @@ dependencies = [
  "prost 0.13.5",
  "prost-types 0.13.5",
  "reqwest 0.12.28",
+ "tokio",
  "tonic 0.12.3",
  "tonic-web",
 ]
+
+[[package]]
+name = "talon-install-hooks"
+version = "0.0.0"
 
 [[package]]
 name = "tap"

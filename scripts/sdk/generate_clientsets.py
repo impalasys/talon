@@ -4,20 +4,22 @@
 from __future__ import annotations
 
 import re
+import os
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(os.environ.get("CODEGEN_ROOT", Path(__file__).absolute().parents[2]))
+OUTPUT_ROOT = Path(os.environ.get("CODEGEN_OUTPUT", ROOT))
 PROTO_DIR = ROOT / "proto/talon/v1"
-GO_OUT = ROOT / "sdk/go/talon-client/clientset_gen.go"
-JS_OUT = ROOT / "sdk/js/talon-client/src/clientset.ts"
-PY_OUT = ROOT / "sdk/python/talon-client/src/talon_client/clientset.py"
-PY_PACKAGE_DIR = ROOT / "sdk/python/talon-client/src/talon_client"
+GO_OUT = OUTPUT_ROOT / "sdk/go/talon-client/clientset_gen.go"
+JS_OUT = OUTPUT_ROOT / "sdk/js/talon-client/src/clientset.ts"
+PY_OUT = OUTPUT_ROOT / "sdk/python/talon-client/src/talon_client/clientset.py"
+PY_PACKAGE_DIR = OUTPUT_ROOT / "sdk/python/talon-client/src/talon_client"
 PY_INIT_OUT = PY_PACKAGE_DIR / "__init__.py"
 JAVA_OUT = (
-    ROOT
+    OUTPUT_ROOT
     / "sdk/java/talon-client/src/main/java/systems/impala/talon/client/TalonClientset.java"
 )
 V1_PROTO_FILES = sorted(path.name for path in PROTO_DIR.glob("*.proto"))

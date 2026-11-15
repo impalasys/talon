@@ -9,7 +9,8 @@ This example creates a `channel-collaboration` namespace with:
 The default compose stack can apply these resources with:
 
 ```bash
-docker compose --profile tutorial-channels up --build -d
+scripts/build-images.sh
+docker compose --profile tutorial-channels up -d
 ```
 
 Post a channel message through the Talon clientset:

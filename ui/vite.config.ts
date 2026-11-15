@@ -9,6 +9,8 @@ const repoRoot = path.resolve(__dirname, '..');
 export default defineConfig({
   plugins: [react()],
   resolve: {
+    // Linked chat sources and Bazel runfiles must share the app's React runtime.
+    dedupe: ['react', 'react-dom'],
     alias: {
       '@': __dirname,
       '@impalasys/talon-chat': path.resolve(repoRoot, 'packages/talon-chat/src/index.ts'),

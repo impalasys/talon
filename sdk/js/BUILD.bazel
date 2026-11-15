@@ -1,0 +1,26 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//sdk/js:@bufbuild/protoc-gen-es/package_json.bzl", es_bin = "bin")
+load("@npm//sdk/js:@connectrpc/protoc-gen-connect-es/package_json.bzl", connect_bin = "bin")
+
+exports_files(["package.json"])
+
+npm_link_all_packages(name = "node_modules")
+
+es_bin.protoc_gen_es_binary(
+    name = "protoc-gen-es",
+    data = [":node_modules"],
+    visibility = ["//visibility:public"],
+)
+
+connect_bin.protoc_gen_connect_es_binary(
+    name = "protoc-gen-connect-es",
+    data = [":node_modules"],
+    visibility = ["//visibility:public"],
+)
+
+js_library(
+    name = "config",
+    srcs = ["tsconfig.base.json"],
+    visibility = ["//visibility:public"],
+)

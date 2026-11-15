@@ -131,15 +131,11 @@ Talon's limits:
 .venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 250 --latencies 0 --memory 512m --otel --keep-compose-up --sqlite-pool-size 20 --mock-cpus 4 --mock-memory 2g --mock-request-backlog 8192
 ```
 
-The default benchmark image uses `bench/runtime.Dockerfile`, which builds only
-`talon-node` and avoids BuildKit-only syntax so it works on Docker installations
-without Buildx. CI builds the `benchmark-runtime` target from
-`dockerfiles/oss-runtime.Dockerfile`, reusing the regular runtime builder cache
-and then copying only `talon-node` into a small benchmark image.
+The benchmark image is assembled by `rules_oci` from Bazel's production binaries,
+pinned base image, OS packages, and model catalog. Build it on Linux with
+`bazel run //dockerfiles:benchmark_image`. CI uses the same target and tags the
+loaded image for each run. No Dockerfile or Docker build step is involved.
 
-Container platform selection defaults to `--container-platform auto`. On macOS,
-that selects the native Linux container platform for the host CPU, such as
-`linux/arm64` on Apple silicon. Docker Desktop and Apple's `container` tooling
-run Linux containers on macOS, so local macOS runs should build the benchmark
-runtime inside the container with `bench/runtime.Dockerfile`. CI uses
-`--container-platform linux/amd64`.
+The image platform follows the Linux build machine. On macOS, use a Linux
+builder for the runtime image, or run the native Talon binaries for local tests.
+`--skip-build --image-tag <tag>` benchmarks an image that is already loaded.

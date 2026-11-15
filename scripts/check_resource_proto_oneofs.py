@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).absolute().parents[1]
 SCANNED_PATHS = [
     *sorted((ROOT / "proto/resources").glob("*.proto")),
     ROOT / "proto/data/routing.proto",

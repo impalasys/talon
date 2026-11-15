@@ -17,13 +17,15 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 | `controllers` | `map<string, ControllerConfig>` | - |
 | `trust` | `TrustConfig` | - |
 | `models` | `map<string, ModelConfig>` | - |
-| `capabilities` | `map<string, CapabilityGate>` | Deployment-wide action gates; missing actions are allowed by default. |
+| `capabilities` | `map<string, CapabilityGate>` | - |
 
 ## `CapabilityGate`
 
+Deployment-wide capability policy. A missing action is allowed by default; an explicit false disables that action for every agent, while true does not grant it without the agent-level capability.
+
 | Field | Type | Notes |
 | --- | --- | --- |
-| `actions` | `map<string, bool>` | Explicit `false` disables the action globally; `true` does not grant agent access. |
+| `actions` | `map<string, bool>` | - |
 
 ## `ModelConfig`
 
@@ -182,6 +184,7 @@ Sources supply an OIDC subject token; destination adapters exchange it.
 | `data_dir` | `string` | - |
 | `driver` | `string` | - |
 | `url` | `Secret` | - |
+| `auth_mode` | `string` | "password" (default when empty) or "iam" for Cloud SQL IAM authentication. |
 
 ## `MessageBrokerConfig`
 

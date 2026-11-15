@@ -50,8 +50,18 @@ OPENAI_API_KEY=your-real-api-key
 From the repository root:
 
 ```bash
-docker compose up --build -d
+scripts/build-images.sh
+docker compose up -d
 ```
+
+The helper builds `rules_oci` targets in a native Linux container and loads their
+images into Docker. It supports macOS and Linux, uses a persistent Bazel cache,
+and reads the source checkout without host build outputs or credentials. It
+needs Docker and Git; compilers and Bazel are installed inside the builder.
+
+On a Linux development machine with Bazel and its native prerequisites already
+installed, you can instead run `bazel run //dockerfiles:runtime_image` and
+`bazel run //dockerfiles:ui_image`, then `docker compose up -d`.
 
 This starts the local compose stack and brings up:
 

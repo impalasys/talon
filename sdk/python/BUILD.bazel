@@ -1,0 +1,16 @@
+load("@rules_python//python:defs.bzl", "py_test")
+
+py_test(
+    name = "packages_test",
+    srcs = ["packages_test.py"],
+    args = [
+        "$(rootpath //tools/bazel:hatchling)",
+        "$(rootpath //sdk/python/talon-client:dist)",
+        "$(rootpath //sdk/python/talon-server:dist)",
+    ],
+    data = [
+        "//sdk/python/talon-client:dist",
+        "//sdk/python/talon-server:dist",
+        "//tools/bazel:hatchling",
+    ],
+)

@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).absolute().parents[2]
 SDK_VERSION = (ROOT / "sdk" / "VERSION").read_text(encoding="utf-8").strip()
 
 
@@ -40,6 +40,7 @@ def gradle_version(path: str) -> str:
 
 
 PACKAGES = {
+    "sdk/version.bzl": lambda path: assignment_version(path, "SDK_VERSION"),
     "sdk/go/talon-client/VERSION": version_file,
     "sdk/go/talon-server/VERSION": version_file,
     "sdk/rust/talon-client/Cargo.toml": cargo_version,

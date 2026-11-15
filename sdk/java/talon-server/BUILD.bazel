@@ -1,0 +1,33 @@
+load("@rules_java//java:defs.bzl", "java_test")
+load("@rules_jvm_external//:defs.bzl", "java_export")
+load("//sdk:version.bzl", "SDK_VERSION")
+
+java_export(
+    name = "talon_server",
+    srcs = glob(["src/main/java/**/*.java"]),
+    maven_coordinates = "systems.impala:talon-server:" + SDK_VERSION,
+    resources = glob(
+        ["src/main/resources/**"],
+        allow_empty = True,
+    ),
+    tags = ["no-javadocs"],
+    visibility = ["//visibility:public"],
+    deps = [],
+)
+
+java_test(
+    name = "unit_tests",
+    srcs = glob(["src/test/java/**/*.java"]),
+    args = [
+        "execute",
+        "--select-class=systems.impala.talon.server.TalonServerTest",
+        "--fail-if-no-tests",
+    ],
+    main_class = "org.junit.platform.console.ConsoleLauncher",
+    use_testrunner = False,
+    runtime_deps = ["@maven//:org_junit_platform_junit_platform_console_standalone"],
+    deps = [
+        ":talon_server",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+    ],
+)

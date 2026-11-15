@@ -1,64 +1,13 @@
 name: Talon 1 vCPU Benchmark
-
-# Managed by Copybara from impalasys/code.
-# Keep this repo-root workflow mirrored from the monorepo overlay.
-# PR reporting is handled by pr-report.yml; mirror this producer/reporter split
-# in the upstream overlay before changing the source workflow again.
-
-on:
-  pull_request:
-    paths:
-      - ".github/workflows/bench-1vcpu.yml"
-      - "bench/**"
-      - "src/**"
-      - "proto/**"
-      - "tests/generated/proto/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "dockerfiles/oss-runtime.Dockerfile"
-  push:
-    branches:
-      - main
-      - "internal-preview/**"
-    paths:
-      - ".github/workflows/bench-1vcpu.yml"
-      - "bench/**"
-      - "src/**"
-      - "proto/**"
-      - "tests/generated/proto/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "dockerfiles/oss-runtime.Dockerfile"
-  workflow_dispatch:
-    inputs:
-      agents:
-        description: "Concurrent agent/session count"
-        required: true
-        default: "7000"
-      memory:
-        description: "SQLite Talon container memory limit"
-        required: true
-        default: "512m"
-      rocksdb_memory:
-        description: "RocksDB Talon container memory limit"
-        required: true
-        default: "768m"
-      timeout_seconds:
-        description: "Benchmark workload timeout"
-        required: true
-        default: "900"
-
 permissions:
   contents: read
-
 concurrency:
   group: talon-1vcpu-bench-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   benchmark:
     name: 1 vCPU Benchmark
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
       BENCH_AGENTS: ${{ github.event_name == 'workflow_dispatch' && inputs.agents || '7000' }}
@@ -68,104 +17,124 @@ jobs:
       BENCH_IMAGE_TAG: talon-bench-runtime:${{ github.sha }}
       BENCH_OUTPUT_DIR: bench/results/ci-1vcpu
     steps:
-      - uses: actions/checkout@v5
-        with:
-          persist-credentials: false
+    - uses: actions/checkout@v5
+      with:
+        persist-credentials: false
+    - uses: ./.github/actions/setup-bazel
+      with:
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Load Bazel OCI benchmark image
+      run: |-
+        bazel run //dockerfiles:benchmark_image
+        docker tag talon-bench-runtime:dev "${BENCH_IMAGE_TAG}"
+    - name: Run 1 vCPU benchmark matrix
+      run: |
+        status=0
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-          cache: "pip"
+        bazel run //bench:benchmark -- \
+          --skip-build \
+          --database sqlite \
+          --agents "${BENCH_AGENTS}" \
+          --latencies 0 \
+          --memory "${BENCH_MEMORY}" \
+          --timeout-seconds "${BENCH_TIMEOUT_SECONDS}" \
+          --send-concurrency "${BENCH_AGENTS}" \
+          --worker-concurrency "${BENCH_AGENTS}" \
+          --stream-mode batch \
+          --mock-request-backlog 8192 \
+          --progress-interval-seconds 10 \
+          --container-platform linux/amd64 \
+          --image-tag "${BENCH_IMAGE_TAG}" \
+          --output-dir "${GITHUB_WORKSPACE}/${BENCH_OUTPUT_DIR}/sqlite" || status=1
 
-      - name: Install benchmark dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install googleapis-common-protos grpcio protobuf
+        bazel run //bench:benchmark -- \
+          --skip-build \
+          --database rocksdb \
+          --agents "${BENCH_AGENTS}" \
+          --latencies 0 \
+          --memory "${BENCH_ROCKSDB_MEMORY}" \
+          --timeout-seconds "${BENCH_TIMEOUT_SECONDS}" \
+          --send-concurrency "${BENCH_AGENTS}" \
+          --worker-concurrency "${BENCH_AGENTS}" \
+          --stream-mode batch \
+          --mock-request-backlog 8192 \
+          --progress-interval-seconds 10 \
+          --rocksdb-compression none \
+          --rocksdb-write-buffer-size-mb 16 \
+          --rocksdb-max-write-buffer-number 2 \
+          --rocksdb-block-cache-size-mb 16 \
+          --rocksdb-max-background-jobs 2 \
+          --container-platform linux/amd64 \
+          --image-tag "${BENCH_IMAGE_TAG}" \
+          --output-dir "${GITHUB_WORKSPACE}/${BENCH_OUTPUT_DIR}/rocksdb" || status=1
 
-      - name: Show Docker environment
-        run: |
-          docker version
-          docker compose version
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build benchmark runtime image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: dockerfiles/oss-runtime.Dockerfile
-          target: benchmark-runtime
-          tags: ${{ env.BENCH_IMAGE_TAG }}
-          push: false
-          load: true
-          cache-from: |
-            type=gha,scope=talon-bench-runtime
-            type=gha,scope=talon-runtime
-          cache-to: type=gha,mode=max,scope=talon-bench-runtime
-
-      - name: Run 1 vCPU benchmark matrix
-        run: |
-          status=0
-
-          python bench/benchmark_1000_agents.py \
-            --skip-build \
-            --database sqlite \
-            --agents "${BENCH_AGENTS}" \
-            --latencies 0 \
-            --memory "${BENCH_MEMORY}" \
-            --timeout-seconds "${BENCH_TIMEOUT_SECONDS}" \
-            --send-concurrency "${BENCH_AGENTS}" \
-            --worker-concurrency "${BENCH_AGENTS}" \
-            --stream-mode batch \
-            --mock-request-backlog 8192 \
-            --progress-interval-seconds 10 \
-            --container-platform linux/amd64 \
-            --image-tag "${BENCH_IMAGE_TAG}" \
-            --output-dir "${BENCH_OUTPUT_DIR}/sqlite" || status=1
-
-          python bench/benchmark_1000_agents.py \
-            --skip-build \
-            --database rocksdb \
-            --agents "${BENCH_AGENTS}" \
-            --latencies 0 \
-            --memory "${BENCH_ROCKSDB_MEMORY}" \
-            --timeout-seconds "${BENCH_TIMEOUT_SECONDS}" \
-            --send-concurrency "${BENCH_AGENTS}" \
-            --worker-concurrency "${BENCH_AGENTS}" \
-            --stream-mode batch \
-            --mock-request-backlog 8192 \
-            --progress-interval-seconds 10 \
-            --rocksdb-compression none \
-            --rocksdb-write-buffer-size-mb 16 \
-            --rocksdb-max-write-buffer-number 2 \
-            --rocksdb-block-cache-size-mb 16 \
-            --rocksdb-max-background-jobs 2 \
-            --container-platform linux/amd64 \
-            --image-tag "${BENCH_IMAGE_TAG}" \
-            --output-dir "${BENCH_OUTPUT_DIR}/rocksdb" || status=1
-
-          missing_results=0
-          for backend in sqlite rocksdb; do
-            if ! find "${BENCH_OUTPUT_DIR}/${backend}" -maxdepth 1 -name 'talon-bench-*.json' -print -quit | grep -q .; then
-              echo "::error::1 vCPU benchmark did not produce a ${backend} result JSON."
-              missing_results=1
-            fi
-          done
-          if [ "${missing_results}" -ne 0 ]; then
-            exit 1
+        missing_results=0
+        for backend in sqlite rocksdb; do
+          if ! find "${BENCH_OUTPUT_DIR}/${backend}" -maxdepth 1 -name 'talon-bench-*.json' -print -quit | grep -q .; then
+            echo "::error::1 vCPU benchmark did not produce a ${backend} result JSON."
+            missing_results=1
           fi
+        done
+        if [ "${missing_results}" -ne 0 ]; then
+          exit 1
+        fi
 
-          if [ "${status}" -ne 0 ]; then
-            echo "::warning::1 vCPU benchmark missed its success threshold; results are advisory and posted as a PR comment."
-          fi
-
-      - name: Upload benchmark results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: talon-1vcpu-benchmark-${{ github.sha }}
-          path: bench/results/ci-1vcpu/
-          if-no-files-found: error
-          retention-days: 14
+        if [ "${status}" -ne 0 ]; then
+          echo "::warning::1 vCPU benchmark missed its success threshold; results are advisory and posted as a PR comment."
+        fi
+    - name: Upload benchmark results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: talon-1vcpu-benchmark-${{ github.sha }}
+        path: bench/results/ci-1vcpu/
+        if-no-files-found: error
+        retention-days: 14
+'on':
+  pull_request:
+    paths:
+    - .github/workflows/bench-1vcpu.yml
+    - bench/**
+    - src/**
+    - proto/**
+    - tests/generated/proto/**
+    - Cargo.toml
+    - Cargo.lock
+    - dockerfiles/BUILD.bazel
+    - tools/bazel/**
+    - MODULE.bazel
+    - MODULE.bazel.lock
+  push:
+    branches:
+    - main
+    paths:
+    - .github/workflows/bench-1vcpu.yml
+    - bench/**
+    - src/**
+    - proto/**
+    - tests/generated/proto/**
+    - Cargo.toml
+    - Cargo.lock
+    - dockerfiles/BUILD.bazel
+    - tools/bazel/**
+    - MODULE.bazel
+    - MODULE.bazel.lock
+  workflow_dispatch:
+    inputs:
+      agents:
+        description: Concurrent agent/session count
+        required: true
+        default: '7000'
+      memory:
+        description: SQLite Talon container memory limit
+        required: true
+        default: 512m
+      rocksdb_memory:
+        description: RocksDB Talon container memory limit
+        required: true
+        default: 768m
+      timeout_seconds:
+        description: Benchmark workload timeout
+        required: true
+        default: '900'

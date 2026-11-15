@@ -14,6 +14,8 @@ use tokio::{
 };
 
 async fn postgres_tls_startup(binary: &str, mode: &str, trusts_ca: bool, accepts: bool) {
+    // Resolve Bazel runfiles before changing the child process working directory.
+    let binary = std::fs::canonicalize(binary).unwrap();
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let address = listener.local_addr().unwrap();
     let directory = tempfile::tempdir().unwrap();

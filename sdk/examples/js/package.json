@@ -11,8 +11,9 @@
   "dependencies": {
     "@connectrpc/connect": "^1.7.0",
     "@connectrpc/connect-node": "^1.7.0",
-    "@impalasys/talon-client": "file:../../js/talon-client",
-    "@impalasys/talon-server": "file:../../js/talon-server"
+    "@impalasys/talon-client": "workspace:0.2.11",
+    "@impalasys/talon-server": "workspace:0.2.11",
+    "@bufbuild/protobuf": "1.10.1"
   },
   "devDependencies": {
     "@types/node": "^24.9.1",

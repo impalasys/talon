@@ -14,7 +14,7 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.11+ is used in CI.
     import tomli as tomllib  # type: ignore[no-redef]
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).absolute().parents[1]
 DEFAULT_PROTO = ROOT / "proto/resources/resource.proto"
 DEFAULT_REGISTRY = ROOT / "proto/resources.toml"
 EXPECTED_ROUTES = {"generic", "legacy", "namespace", "internal"}
