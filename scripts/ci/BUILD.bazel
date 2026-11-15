@@ -1,0 +1,12 @@
+load("@rules_python//python:defs.bzl", "py_test")
+
+py_test(
+    name = "linux_pilot_test",
+    srcs = [
+        "linux_pilot.py",
+        "test_linux_pilot.py",
+    ],
+    data = ["//:.bazelversion"],
+    imports = ["."],
+    main = "test_linux_pilot.py",
+)

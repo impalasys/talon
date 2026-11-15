@@ -19,6 +19,7 @@ exports_files([
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",
     ".bazelignore",
+    ".bazelversion",
 ])
 
 npm_link_all_packages(name = "node_modules")

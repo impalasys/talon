@@ -1,0 +1,23 @@
+# Experimental Linux checks only; releases and publishing stay in GitHub Actions.
+actions:
+  - name: BuildBuddy Linux pilot
+    os: linux
+    arch: amd64
+    container_image: ubuntu-24.04
+    resource_requests:
+      cpu: 4
+      memory: 16GB
+      disk: 40GB
+    timeout: 90m
+    allow_concurrent_runs: false
+    allow_concurrent_runs_on_branches: []
+    triggers:
+      push:
+        branches: [main, "codex/bb-pilot-*"]
+    steps:
+      - run: |
+          set -euo pipefail
+          export PILOT_SETUP_STARTED_AT="$(date +%s)"
+          bash scripts/ci/linux-pilot-setup.sh
+          python3 scripts/ci/linux_pilot.py run --provider buildbuddy \
+            --output "$BUILDBUDDY_ARTIFACTS_DIRECTORY"

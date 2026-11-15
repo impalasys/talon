@@ -5,6 +5,9 @@ verify BuildBuddy remote caching first. Pilot BuildBuddy Workflows for Linux
 builds before deciding on a broader migration. There is no measured
 BuildBuddy-versus-GitHub speedup yet.
 
+The [Linux pilot runbook](./04-linux-ci-pilot.md) describes the checked-in
+side-by-side configuration, activation and measurement procedure.
+
 ## What we measured
 
 The [successful baseline run](https://github.com/impalasys/talon/actions/runs/43135197791)
@@ -122,5 +125,6 @@ assumed here.
    compute-bound, evaluate BuildBuddy RBE independently of the orchestrator.
 
 A full CI migration or a claim that Workflows is faster would be premature
-without that comparison. The current repository does not enable BuildBuddy
-Workflows or remote execution.
+without that comparison. The Linux pilot now has a checked-in Workflows config;
+running it also requires linking this repository in BuildBuddy. Remote execution
+is disabled in the pilot.
