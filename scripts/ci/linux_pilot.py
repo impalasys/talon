@@ -140,7 +140,7 @@ def run(args):
                 name = f"{iteration}-{phase}"
                 bep = Path(temporary) / f"{name}.jsonl"
                 invocation = str(uuid.uuid4())
-                command = ["bazel", *STARTUP_OPTIONS, workload[0], *OPTIONS, *workload[1:],
+                command = ["bazel", workload[0], *OPTIONS, *workload[1:],
                            f"--profile={output / (name + '.profile.gz')}",
                            f"--build_event_json_file={bep}", f"--invocation_id={invocation}"]
                 before = time.monotonic()

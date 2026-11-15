@@ -12,6 +12,32 @@ import linux_pilot as pilot
 
 
 class PilotTest(unittest.TestCase):
+    def test_cpu_affinity_covers_retained_server_threads_and_workers(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for pid, parent, command, tids in [
+                (10, 1, b"bazel(talon)\0-jar\0/tmp/A-server.jar\0", [10, 11]),
+                (20, 10, b"persistent-compiler-worker\0", [20]),
+                (30, 1, b"unrelated-process\0", [30]),
+            ]:
+                process = root / str(pid)
+                process.mkdir()
+                (process / "cmdline").write_bytes(command)
+                (process / "status").write_text(f"PPid:\t{parent}\n")
+                for tid in tids:
+                    (process / "task" / str(tid)).mkdir(parents=True)
+            with patch.object(pilot, "Path", return_value=root), \
+                    patch.object(pilot.os, "sched_getaffinity", return_value=set(range(7)), create=True), \
+                    patch.object(pilot.os, "sched_setaffinity", create=True) as bind:
+                self.assertEqual(pilot.limit_cpu_affinity(), [0, 1, 2, 3])
+            self.assertEqual({call.args[0] for call in bind.call_args_list}, {0, 10, 11, 20})
+            self.assertTrue(all(call.args[1] == [0, 1, 2, 3] for call in bind.call_args_list))
+
+    def test_cpu_affinity_rejects_a_smaller_runner(self):
+        with patch.object(pilot.os, "sched_getaffinity", return_value={0, 1}, create=True):
+            with self.assertRaisesRegex(SystemExit, "needs four available CPUs"):
+                pilot.limit_cpu_affinity()
+
     def test_success_exports_four_samples_and_no_raw_event_stream(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

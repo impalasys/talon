@@ -48,8 +48,8 @@ part of the comparison fingerprint. This
 matters because BuildBuddy may expose more vCPUs than the reservation requests.
 BuildBuddy requests four CPUs and 16 GiB explicitly; exposed guest CPU count,
 memory and kernel are recorded separately. The local action-memory and JVM heap
-budgets match, but resource requests are not a hard memory cgroup limit.
-matching the public repository's standard GitHub runner. It requests 40 GiB disk
+budgets match, but resource requests are not a hard memory cgroup limit. These
+requests match the public repository's standard GitHub runner. It requests 40 GiB disk
 for native compilation; disk capacity and CPU models can differ. The shared
 setup script installs missing prerequisites and aligns exact native package
 versions from `scripts/ci/linux-pilot-packages.txt`, including Ubuntu's
@@ -59,6 +59,8 @@ comparison matching. Recycled runners skip installation when already aligned.
 Exact compiler and native package versions are included in the comparison
 fingerprint. Provider kernels are recorded separately because GitHub VMs and
 BuildBuddy microVMs have different hosts/kernels; this is a userspace alignment.
+The heap limit lives in ignored `.bazelrc.local` so BuildBuddy's post-run Bazel
+lock check uses the same startup settings and can retain the warmed JVM.
 
 Each run executes these commands, then immediately repeats them:
 
