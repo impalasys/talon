@@ -16,10 +16,17 @@ jobs:
         persist-credentials: false
     - uses: ./.github/actions/setup-bazel
       with:
+        cache-save: true
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
           || '' }}
-    - name: Build and test all unit targets
-      run: bazel test //...
+    - name: Build and test compilation targets
+      # Cache compilation/package-consumer outputs here. The dedicated image
+      # and release jobs validate their archives without duplicating those
+      # large assembly outputs in this shared snapshot.
+      run: |
+        bazel test --build_tests_only //...
+        bazel build //:binaries //:production_binaries //sdk/... \
+          //tools/install-hooks/... //ui:dist //docs-site:dist //packages/talon-chat/...
   runtime_image:
     if: github.event_name != 'workflow_dispatch'
     name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Runtime Image
@@ -203,6 +210,9 @@ jobs:
         persist-credentials: false
     - uses: ./.github/actions/setup-bazel
       with:
+        # Keep the existing native bucket warm while other jobs consolidate.
+        disk-cache: talon-bazel-Talon OSS CI-binary_artifacts
+        cache-save: true
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
           || '' }}
     - name: Build release archives
@@ -268,6 +278,7 @@ jobs:
         persist-credentials: false
     - uses: ./.github/actions/setup-bazel
       with:
+        disk-cache: false
         buildbuddy-api-key: ${{ secrets.BUILDBUDDY_API_KEY }}
     - name: Verify remote write and independent read
       shell: bash

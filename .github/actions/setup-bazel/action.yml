@@ -5,15 +5,24 @@ inputs:
     description: Cache writer credential; pass only on trusted main-branch builds
     required: false
     default: ''
+  disk-cache:
+    description: Shared build cache, or a separate native release cache
+    required: false
+    default: talon-build
+  cache-save:
+    description: Publish snapshots only from the canonical build and native release jobs
+    required: false
+    default: 'false'
 runs:
   using: composite
   steps:
     - uses: bazel-contrib/setup-bazel@0.19.2
       with:
         bazelisk-cache: true
-        # Concurrent jobs must each save their own action cache. With one key,
-        # the first (usually UI) job wins and Rust/E2E outputs are never saved.
-        disk-cache: talon-bazel-${{ github.workflow }}-${{ github.job }}
+        # One producer per bucket avoids both first-writer races and duplicate
+        # snapshots evicting the native release caches under GitHub's quota.
+        disk-cache: ${{ inputs.disk-cache }}
+        cache-save: ${{ inputs.cache-save }}
         repository-cache: true
     - name: Install Linux native prerequisites
       if: runner.os == 'Linux'

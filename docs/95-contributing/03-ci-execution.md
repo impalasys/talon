@@ -39,6 +39,30 @@ disabled obtained **1 remote cache hit** and matching output. The
 records the read. This proves cache connectivity and read/write behavior, not
 production-build performance or Workflows execution speed.
 
+## GitHub cache storage
+
+Pre-merge validation also exposed cache eviction around the repository's default
+storage allowance: a single default-test snapshot occupied 4.56 GB, and recently
+saved native release snapshots disappeared while unrelated jobs saved duplicate
+snapshots. This caused repeated cold native builds even when the source changes
+did not affect runtime code.
+
+The shared setup action now uses upstream `setup-bazel` cache ownership controls.
+Only the full Bazel job writes `talon-build`; the other Linux build/test workflows
+restore that bucket with `cache-save: false`. Native release jobs write
+their existing separate bucket, isolated by upstream OS/architecture keys, to
+retain warm release outputs. Native SDK publication
+restores the release bucket. The shared producer tests with
+`--build_tests_only`, then builds runtime binaries, all SDKs/examples, the hook
+installer, frontend/chat and documentation. Image and runtime-release assembly
+stay in their dedicated jobs so their large outputs do not inflate this shared
+compilation snapshot. Rust already uses `debuginfo=0` for these compilation
+modes; no additional compiler flag or debug-behavior change is needed.
+
+Verify the resulting snapshot sizes against the repository allowance and rerun
+the same revision to confirm restored action-cache hits in both native release
+jobs. This policy uses the existing cache allowance and credential boundaries.
+
 ## Where Workflows could be faster
 
 Both providers can reuse the same BuildBuddy action cache when toolchains,

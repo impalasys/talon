@@ -67,6 +67,7 @@ jobs:
     - uses: actions/checkout@v5
     - uses: ./.github/actions/setup-bazel
       with:
+        disk-cache: talon-bazel-Talon OSS CI-binary_artifacts
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
           || '' }}
     - name: Build Bazel release distribution

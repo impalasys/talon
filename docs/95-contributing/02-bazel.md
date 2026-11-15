@@ -235,6 +235,21 @@ uses the shared Bazel setup action, which enables remote caching and build-event
 uploads for trusted pushes to `main`. PRs use the CI disk cache without receiving
 the writer key. Builds work without the secret.
 
+GitHub disk-cache snapshots have explicit owners. The default `talon-build`
+bucket is written only by the full `Bazel` job; image, E2E, screenshot,
+benchmark, deployment-build and SDK publishing jobs restore it without saving
+duplicate snapshots. Native release jobs retain their existing separate
+`talon-bazel-Talon OSS CI-binary_artifacts` bucket, automatically partitioned by
+OS and architecture by `setup-bazel`, so warm release outputs survive the change.
+The native SDK publishing job restores that release bucket without writing it.
+Repository downloads and Bazelisk are shared per OS/architecture. The producer
+runs all default tests with `--build_tests_only`, then explicitly builds runtime
+binaries, SDKs/examples, the hook installer, frontend/chat and documentation.
+The dedicated image and release jobs validate large archive/OCI outputs without
+duplicating them in the shared compilation snapshot. Compiler settings and the
+existing GitHub/BuildBuddy credential boundaries are unchanged. This policy
+needs no additional secrets or paid storage setting.
+
 Repository writers can verify the secret before merging with the explicit
 manual cache-probe job:
 

@@ -397,6 +397,8 @@ test.describe('Sightline screenshots', () => {
   test('captures the connected chat surface in light and dark mode @screenshots', async ({ page }, testInfo) => {
     await page.emulateMedia({ colorScheme: 'dark' });
     const { chatInput } = await provisionSession(page);
+    // Missing PostCSS inputs leave Tailwind uncompiled while custom CSS loads.
+    await expect(page.locator('body')).toHaveCSS('font-family', /Inter/);
     await chatInput.fill('Sightline screenshot smoke');
 
     const composer = page.locator('form').filter({ has: chatInput });
