@@ -22,6 +22,7 @@ WORKLOADS = (
     ("build", ["build", "//:production_binaries", "//ui:dist"]),
     ("test", ["test", "//ui:unit_tests"]),
 )
+STARTUP_OPTIONS = ["--host_jvm_args=-Xmx4g"]
 OPTIONS = [
     "--config=buildbuddy", "--remote_executor=",
     "--remote_upload_local_results=false", "--remote_accept_cached=true",
@@ -60,24 +61,72 @@ def numeric_metrics(value):
     return value
 
 
+def limit_cpu_affinity():
+    """Cap all compiler descendants, including an already-running Bazel JVM."""
+    cpus = sorted(os.sched_getaffinity(0))[:4]
+    if len(cpus) != 4:
+        raise SystemExit(f"Pilot needs four available CPUs; found {len(cpus)}")
+    os.sched_setaffinity(0, cpus)
+    # A recycled VM's JVM predates this process, so it does not inherit our
+    # mask. Bind its existing threads too, without a warming bazel info call.
+    processes = {}
+    targets = set()
+    for process in Path("/proc").glob("[0-9]*"):
+        try:
+            argv = (process / "cmdline").read_bytes().split(b"\0")
+            parent = next(line for line in (process / "status").read_text().splitlines()
+                          if line.startswith("PPid:"))
+            processes[int(process.name)] = (process, int(parent.split()[1]))
+            if argv[0].startswith(b"bazel(") or any(arg.endswith(b"/A-server.jar") for arg in argv):
+                targets.add(int(process.name))
+        except (FileNotFoundError, ProcessLookupError, PermissionError):
+            continue
+    # Retained persistent compiler workers also predate the new Python process.
+    while True:
+        descendants = {pid for pid, (_, parent) in processes.items() if parent in targets}
+        if descendants <= targets:
+            break
+        targets |= descendants
+    for pid in targets:
+        process = processes[pid][0]
+        try:
+            for thread in (process / "task").iterdir():
+                os.sched_setaffinity(int(thread.name), cpus)
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+    return cpus
+
+
+def memory_metadata():
+    path = Path("/proc/meminfo")
+    if not path.exists():
+        return {}
+    total = next(line for line in path.read_text().splitlines() if line.startswith("MemTotal:"))
+    return {"total_kib": int(total.split()[1])}
+
+
 def run(args):
     if platform.system() != "Linux" or platform.machine() != "x86_64":
         raise SystemExit("Run the pilot on Ubuntu 24.04 x86_64.")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
+    affinity_cpus = limit_cpu_affinity()
     started = time.time()
-    configuration = {"workloads": WORKLOADS, "options": OPTIONS,
+    configuration = {"workloads": WORKLOADS, "options": OPTIONS, "startup_options": STARTUP_OPTIONS,
                      "bazel_version": Path(".bazelversion").read_text().strip(),
                      "compiler": capture("/usr/bin/clang-18", "--version"),
                      "native_packages": capture("dpkg-query", "-W", "-f=${Package}=${Version}\n", *PACKAGES),
-                     "os": platform.freedesktop_os_release()["PRETTY_NAME"]}
+                     "os": platform.freedesktop_os_release()["PRETTY_NAME"],
+                     "cpu_affinity_count": len(affinity_cpus)}
     result = {
         "schema": 1, "provider": args.provider,
         "commit": capture("git", "rev-parse", "HEAD"),
         "configuration": configuration,
         "configuration_id": hashlib.sha256(json.dumps(configuration, sort_keys=True).encode()).hexdigest(),
         "requested_cpu": 4, "requested_memory_gb": 16,
-        "visible_cpu": os.cpu_count(), "runner_kernel": platform.release(), "started_at": started,
+        "visible_cpu": os.cpu_count(), "affinity_cpus": affinity_cpus,
+        "runner_memory": memory_metadata(),
+        "runner_kernel": platform.release(), "started_at": started,
         "setup_seconds": max(0, started - float(os.environ.get("PILOT_SETUP_STARTED_AT", started))),
         "samples": [], "success": False,
     }
@@ -91,7 +140,7 @@ def run(args):
                 name = f"{iteration}-{phase}"
                 bep = Path(temporary) / f"{name}.jsonl"
                 invocation = str(uuid.uuid4())
-                command = ["bazel", workload[0], *OPTIONS, *workload[1:],
+                command = ["bazel", *STARTUP_OPTIONS, workload[0], *OPTIONS, *workload[1:],
                            f"--profile={output / (name + '.profile.gz')}",
                            f"--build_event_json_file={bep}", f"--invocation_id={invocation}"]
                 before = time.monotonic()

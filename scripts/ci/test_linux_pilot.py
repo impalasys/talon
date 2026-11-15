@@ -34,6 +34,7 @@ class PilotTest(unittest.TestCase):
                     patch.object(pilot.platform, "machine", return_value="x86_64"), \
                     patch.object(pilot.platform, "freedesktop_os_release", return_value={"PRETTY_NAME": "Ubuntu 24.04"}), \
                     patch.object(pilot, "capture", return_value="test"), \
+                    patch.object(pilot, "limit_cpu_affinity", return_value=[0, 1, 2, 3]), \
                     contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(pilot.run(args), 0)
             result = json.loads((args.output / "results.json").read_text())
@@ -68,6 +69,7 @@ class PilotTest(unittest.TestCase):
                     patch.object(pilot.platform, "machine", return_value="x86_64"), \
                     patch.object(pilot.platform, "freedesktop_os_release", return_value={"PRETTY_NAME": "Ubuntu 24.04"}), \
                     patch.object(pilot, "capture", return_value="test"), \
+                    patch.object(pilot, "limit_cpu_affinity", return_value=[0, 1, 2, 3]), \
                     contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(pilot.run(args), 17)
             result = json.loads((args.output / "results.json").read_text())

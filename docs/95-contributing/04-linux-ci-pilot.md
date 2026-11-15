@@ -40,7 +40,15 @@ registry uploads and deployments on GitHub during this experiment.
 
 Both providers run `scripts/ci/linux_pilot.py` on Ubuntu 24.04.5 x86-64, with Bazel
 from `.bazelversion`, LLVM 18, four CPU slots and a 12 GiB local action-memory
-budget on a 16 GiB runner. BuildBuddy requests four CPUs and 16 GiB explicitly,
+budget on a runner requesting 16 GiB RAM, with a matching 4 GiB Bazel JVM heap
+limit. The runner pins itself and every retained Bazel JVM
+thread and compiler worker to four allowed CPUs before measurement; new compiler
+processes inherit that affinity. The affinity count and JVM startup options are
+part of the comparison fingerprint. This
+matters because BuildBuddy may expose more vCPUs than the reservation requests.
+BuildBuddy requests four CPUs and 16 GiB explicitly; exposed guest CPU count,
+memory and kernel are recorded separately. The local action-memory and JVM heap
+budgets match, but resource requests are not a hard memory cgroup limit.
 matching the public repository's standard GitHub runner. It requests 40 GiB disk
 for native compilation; disk capacity and CPU models can differ. The shared
 setup script installs missing prerequisites and aligns exact native package
