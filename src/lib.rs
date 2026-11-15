@@ -348,3 +348,5 @@ pub mod test_support {
         }
     }
 }
+
+// Temporary Linux CI pilot: Rust source invalidation probe.
