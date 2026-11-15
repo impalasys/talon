@@ -46,6 +46,21 @@ rust_doc_test(
     crate = ":talon_client",
 )
 
+rust_test(
+    name = "generated_test",
+    srcs = ["tests/generated.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+    ),
+    edition = "2021",
+    visibility = ["//:__pkg__"],
+    deps = [":talon_client"] + all_crate_deps(
+        normal = True,
+        normal_dev = True,
+    ),
+)
+
 filegroup(
     name = "generated_sources",
     srcs = glob(["src/generated/**"]),

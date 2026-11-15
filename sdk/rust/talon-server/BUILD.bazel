@@ -35,4 +35,15 @@ rust_doc_test(
     crate = ":talon_server",
 )
 
+rust_test(
+    name = "api_test",
+    srcs = ["tests/api.rs"],
+    edition = "2021",
+    visibility = ["//:__pkg__"],
+    deps = [":talon_server"] + crate_deps(
+        ["serde_json"],
+        package_name = "",
+    ),
+)
+
 exports_files(["Cargo.toml"])
