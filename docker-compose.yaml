@@ -111,6 +111,9 @@ services:
       - talon-objects:/data/talon/objects
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
+      # The gateway initializes the shared PostgreSQL schemas before the worker.
+      gateway:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       pubsub:
