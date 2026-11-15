@@ -38,13 +38,19 @@ registry uploads and deployments on GitHub during this experiment.
 
 ## Workload
 
-Both providers run `scripts/ci/linux_pilot.py` on Ubuntu 24.04 x86-64, with Bazel
+Both providers run `scripts/ci/linux_pilot.py` on Ubuntu 24.04.5 x86-64, with Bazel
 from `.bazelversion`, LLVM 18, four CPU slots and a 12 GiB local action-memory
 budget on a 16 GiB runner. BuildBuddy requests four CPUs and 16 GiB explicitly,
 matching the public repository's standard GitHub runner. It requests 40 GiB disk
 for native compilation; disk capacity and CPU models can differ. The shared
-setup script only installs missing native prerequisites. Exact compiler and
-native package versions are included in the comparison fingerprint.
+setup script installs missing prerequisites and aligns exact native package
+versions from `scripts/ci/linux-pilot-packages.txt`, including Ubuntu's
+`base-files` release package, glibc, GCC runtime, binutils and LLVM. It verifies
+the resulting Ubuntu 24.04.5 release; it does not rewrite the OS label or relax
+comparison matching. Recycled runners skip installation when already aligned.
+Exact compiler and native package versions are included in the comparison
+fingerprint. Provider kernels are recorded separately because GitHub VMs and
+BuildBuddy microVMs have different hosts/kernels; this is a userspace alignment.
 
 Each run executes these commands, then immediately repeats them:
 

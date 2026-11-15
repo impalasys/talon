@@ -6,7 +6,10 @@ py_test(
         "linux_pilot.py",
         "test_linux_pilot.py",
     ],
-    data = ["//:.bazelversion"],
+    data = [
+        "linux-pilot-packages.txt",
+        "//:.bazelversion",
+    ],
     imports = ["."],
     main = "test_linux_pilot.py",
 )

@@ -15,7 +15,9 @@ import time
 import uuid
 
 
-PACKAGES = ["build-essential", "libssl-dev", "clang-18", "libclang-18-dev", "cmake"]
+PACKAGES = [line.split("=", 1)[0] for line in
+            Path("scripts/ci/linux-pilot-packages.txt").read_text().splitlines()
+            if line and not line.startswith("#")]
 WORKLOADS = (
     ("build", ["build", "//:production_binaries", "//ui:dist"]),
     ("test", ["test", "//ui:unit_tests"]),
@@ -75,7 +77,7 @@ def run(args):
         "configuration": configuration,
         "configuration_id": hashlib.sha256(json.dumps(configuration, sort_keys=True).encode()).hexdigest(),
         "requested_cpu": 4, "requested_memory_gb": 16,
-        "visible_cpu": os.cpu_count(), "started_at": started,
+        "visible_cpu": os.cpu_count(), "runner_kernel": platform.release(), "started_at": started,
         "setup_seconds": max(0, started - float(os.environ.get("PILOT_SETUP_STARTED_AT", started))),
         "samples": [], "success": False,
     }
