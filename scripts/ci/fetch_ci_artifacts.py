@@ -95,9 +95,12 @@ def validate_manifest(manifest, head, base, tree):
     if sum(info['size'] for info in files.values()) > 8 * 1024**3:
         raise RuntimeError('Artifact inventory exceeds transfer limit')
     if base is None:
-        required = {'images/runtime.tar', 'images/ui.tar', 'images/acp.tar'}
+        required = {'images/runtime.tar', 'images/ui.tar', 'images/acp.tar',
+                    'release/talon-node-linux-x64.tar.gz', 'release/node.sha256',
+                    'storybook/index.html', 'sightline-static-export/index.html',
+                    'sightline-e2e-dark-preview/sightline-chat-dark.png'}
         if not required <= files.keys():
-            raise RuntimeError('Full main invocation is missing published images')
+            raise RuntimeError('Full main invocation is missing required publishing artifacts')
 
 
 def unpack(archive, output, files):

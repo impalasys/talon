@@ -100,7 +100,7 @@ jobs:
         if-no-files-found: error
   publish-node-release:
     name: Publish talon-node Release Assets
-    if: always() && needs.detect.outputs.needs_node_binaries == 'true' && needs.build-node-binaries.result == 'success'
+    if: always() && needs.detect.result == 'success' && needs.detect.outputs.needs_node_binaries == 'true' && needs.build-node-binaries.result == 'success'
     needs:
     - detect
     - build-node-binaries
@@ -139,7 +139,7 @@ jobs:
         fi
   publish-go:
     name: Publish Go Module Tags
-    if: always() && needs.detect.outputs.go_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result
+    if: always() && needs.detect.result == 'success' && needs.detect.outputs.go_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result
       == 'success')
     needs:
     - detect
@@ -178,7 +178,7 @@ jobs:
         tag_if_changed "$GO_SERVER_CHANGED" "sdk/go/talon-server/v${GO_SERVER_VERSION}"
   publish-rust:
     name: Publish Rust Crates
-    if: always() && needs.detect.outputs.rust_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' ||
+    if: always() && needs.detect.result == 'success' && needs.detect.outputs.rust_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' ||
       needs.publish-node-release.result == 'success')
     needs:
     - detect
@@ -228,7 +228,7 @@ jobs:
         fi
   publish-npm:
     name: Publish npm Packages
-    if: always() && needs.detect.outputs.sdk_version_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true'
+    if: always() && needs.detect.result == 'success' && needs.detect.outputs.sdk_version_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true'
       || needs.publish-node-release.result == 'success')
     needs:
     - detect
@@ -304,7 +304,7 @@ jobs:
         publish_at_sdk_version "@impalasys/talon-server" "sdk/js/talon-server"
   publish-python:
     name: Publish Python Packages
-    if: always() && needs.detect.outputs.python_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' ||
+    if: always() && needs.detect.result == 'success' && needs.detect.outputs.python_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' ||
       needs.publish-node-release.result == 'success')
     needs:
     - detect
@@ -336,7 +336,7 @@ jobs:
         skip-existing: true
   publish-java:
     name: Publish Java Packages
-    if: always() && needs.detect.outputs.java_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' ||
+    if: always() && needs.detect.result == 'success' && needs.detect.outputs.java_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' ||
       needs.publish-node-release.result == 'success')
     needs:
     - detect

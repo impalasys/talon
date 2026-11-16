@@ -97,8 +97,9 @@ def bazel(phase, verb, arguments, output, result):
 
 
 def copy_tree(source, destination):
-    if source.exists():
-        shutil.copytree(source, destination, dirs_exist_ok=True)
+    if not source.exists():
+        raise RuntimeError(f'Selected artifact directory is missing: {source}')
+    shutil.copytree(source, destination, dirs_exist_ok=True)
 
 
 def export(output, result):
@@ -128,6 +129,8 @@ def export(output, result):
             target = handoff / name / path.name
             target.parent.mkdir(exist_ok=True)
             shutil.copyfile(path, target)
+        if not any((handoff / name).glob('*.png')):
+            raise RuntimeError(f'Selected screenshot suite produced no PNGs: {label}')
     preview = handoff / 'sightline-e2e-screenshots/sightline-chat-dark.png'
     if preview.exists():
         target = handoff / 'sightline-e2e-dark-preview' / preview.name
