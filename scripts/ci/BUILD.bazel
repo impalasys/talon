@@ -24,3 +24,10 @@ py_test(
     imports = ["."],
     main = "test_buildbuddy_gate.py",
 )
+
+py_test(
+    name = "buildbuddy_api_test",
+    srcs = ["buildbuddy_api.py", "test_buildbuddy_api.py"],
+    imports = ["."],
+    main = "test_buildbuddy_api.py",
+)

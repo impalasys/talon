@@ -1,0 +1,31 @@
+name: Verify BuildBuddy artifact retrieval
+on:
+  workflow_dispatch:
+    inputs:
+      invocation:
+        description: Successful invocation to read
+        required: true
+      artifact:
+        description: Artifact name
+        default: full-job.json
+        required: true
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Fetch and verify artifact
+        env:
+          BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
+          INVOCATION: ${{ inputs.invocation }}
+          ARTIFACT: ${{ inputs.artifact }}
+        run: python3 scripts/ci/buildbuddy_api.py --invocation "$INVOCATION" --artifact "$ARTIFACT" --output "$RUNNER_TEMP/artifact"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-buildbuddy-artifact
+          path: ${{ runner.temp }}/artifact
