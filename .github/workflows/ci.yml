@@ -2,6 +2,7 @@ name: Talon OSS CI
 # This workflow relays data and publishes; all Linux validation is in BuildBuddy.
 on:
   pull_request_target:
+    branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]

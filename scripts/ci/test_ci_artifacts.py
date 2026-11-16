@@ -1,5 +1,6 @@
 import hashlib
 import io
+import json
 import tarfile
 import tempfile
 from pathlib import Path
@@ -19,6 +20,31 @@ class HandoffTest(unittest.TestCase):
         manifest['mode'] = 'affected'
         with self.assertRaisesRegex(RuntimeError, 'full monorepo'):
             ci.validate_manifest(manifest, 'h', None, 't')
+
+    def test_pending_retry_does_not_accept_older_success(self):
+        status = {'context': ci.CONTEXT, 'state': 'pending',
+                  'target_url': 'https://impalasys.buildbuddy.io/invocation/' + 'a' * 36,
+                  'creator': {'login': 'buildbuddy-io[bot]'}}
+        rows = [[status, {**status, 'state': 'success'}]]
+        with patch.object(ci.subprocess, 'check_output', return_value=json.dumps(rows)), \
+                patch.object(ci.time, 'monotonic', return_value=1):
+            with self.assertRaisesRegex(RuntimeError, 'Timed out'):
+                ci.wait_status('impalasys/talon', 'a' * 40, 0)
+
+    def test_spoofed_publisher_is_rejected(self):
+        status = {'context': ci.CONTEXT, 'state': 'success',
+                  'target_url': 'https://impalasys.buildbuddy.io/invocation/' + 'a' * 36,
+                  'creator': {'login': 'another-user'}}
+        with patch.object(ci.subprocess, 'check_output', return_value=json.dumps([[status]])):
+            with self.assertRaisesRegex(RuntimeError, 'publisher'):
+                ci.wait_status('impalasys/talon', 'a' * 40, 0)
+
+    def test_changed_pr_is_rejected_before_artifact_access(self):
+        event = {'number': 1, 'pull_request': {'head': {'sha': 'a' * 40}, 'base': {'sha': 'b' * 40}}}
+        current = {'head': {'sha': 'c' * 40}, 'base': {'sha': 'b' * 40}}
+        with patch.object(ci, 'github', return_value=current):
+            with self.assertRaisesRegex(RuntimeError, 'revision changed'):
+                ci.revision(event, 'impalasys/talon')
 
     def test_links_and_path_traversal_are_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:

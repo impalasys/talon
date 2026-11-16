@@ -29,6 +29,8 @@ if args[0] == 'cquery' and '--output=jsonproto' in args: print({configured!r})
 if args[0] == 'test':
     output = next(a.split('=', 1)[1] for a in args if a.startswith('--build_event_json_file='))
     Path(output).write_text(json.dumps({{'id': {{'testSummary': {{'label': {target!r}}}}}, 'testSummary': {{'overallStatus': 'PASSED', 'totalRunCount': 1}}}}) + '\\n')
+if args[0] == 'test' and os.environ.get('CI_FAIL_TEST'):
+    sys.exit(17)
 ''')
             executable.chmod(0o755)
             log = root / 'calls'
@@ -38,8 +40,11 @@ if args[0] == 'test':
                 with patch.dict(os.environ, {'PATH': str(root) + ':' + os.environ['PATH'],
                                               'CI_CALLS': str(log), 'GIT_COMMIT': 'a' * 40}), \
                         patch.object(runner, 'git', return_value='a' * 40), \
-                        patch.object(runner.pilot, 'limit_cpu_affinity'), contextlib.redirect_stdout(io.StringIO()):
+                        patch.object(runner.pilot, 'limit_cpu_affinity', return_value=list(range(16))), contextlib.redirect_stdout(io.StringIO()):
                     self.assertEqual(runner.run(root / 'out', full=True), 0)
+                    with patch.dict(os.environ, {'CI_FAIL_TEST': '1'}):
+                        with self.assertRaisesRegex(RuntimeError, 'exit 17'):
+                            runner.run(root / 'failed', full=True)
             finally:
                 os.chdir(previous)
             calls = [json.loads(line) for line in log.read_text().splitlines()]
@@ -48,6 +53,9 @@ if args[0] == 'test':
             manifest = json.loads((root / 'out/ci-manifest.json').read_text())
             self.assertTrue(manifest['success'])
             self.assertEqual(manifest['tests'], [target])
+            failed = json.loads((root / 'failed/ci-manifest.json').read_text())
+            self.assertFalse(failed['success'])
+            self.assertEqual(failed['samples'][-1]['exit_code'], 17)
 
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+load("@aspect_rules_js//js:defs.bzl", "js_test")
 load("@rules_python//python:defs.bzl", "py_test")
 
 py_test(
@@ -43,4 +44,10 @@ py_test(
     data = ["linux-pilot-packages.txt"],
     imports = ["."],
     main = "test_linux_build.py",
+)
+
+js_test(
+    name = "buildbuddy_report_test",
+    entry_point = "buildbuddy_report_test.cjs",
+    data = ["//.github/scripts:buildbuddy_report"],
 )

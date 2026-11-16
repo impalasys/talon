@@ -87,10 +87,10 @@ def validate_manifest(manifest, head, base, tree):
         raise RuntimeError('Invalid artifact inventory')
     for name, info in files.items():
         path = PurePosixPath(name)
-        if (path.is_absolute() or '..' in path.parts or not path.parts or
+        if (path.is_absolute() or path.as_posix() != name or '..' in path.parts or not path.parts or
                 path.parts[0] not in GROUPS or '\\' in name or
                 not re.fullmatch('[0-9a-f]{64}', info.get('sha256', '')) or
-                not isinstance(info.get('size'), int) or not 0 <= info['size'] <= 8 * 1024**3):
+                type(info.get('size')) is not int or not 0 <= info['size'] <= 8 * 1024**3):
             raise RuntimeError('Unsafe artifact inventory')
     if sum(info['size'] for info in files.values()) > 8 * 1024**3:
         raise RuntimeError('Artifact inventory exceeds transfer limit')

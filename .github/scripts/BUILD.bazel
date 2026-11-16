@@ -1,0 +1,7 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+
+js_library(
+    name = "buildbuddy_report",
+    srcs = ["buildbuddy-report.js"],
+    visibility = ["//scripts/ci:__pkg__"],
+)

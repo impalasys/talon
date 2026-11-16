@@ -154,9 +154,10 @@ def export(output, result):
 
 def run(output, full=False, dry_run=False):
     output.mkdir(parents=True, exist_ok=True)
-    pilot.limit_cpu_affinity(16)
+    affinity = pilot.limit_cpu_affinity(16)
     result = plan(full)
-    result.update(requested_cpu=16, requested_memory_gb=32)
+    result.update(requested_cpu=16, requested_memory_gb=32, affinity_cpus=affinity,
+                  runner_memory=pilot.memory_metadata())
     print('CI_PLAN ' + json.dumps({k: result[k] for k in ('mode', 'head', 'base', 'changed_files', 'tests')}), flush=True)
     started = time.monotonic()
     try:

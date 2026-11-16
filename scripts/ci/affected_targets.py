@@ -153,7 +153,9 @@ def global_change(path: str) -> bool:
     name = Path(path).name
     return (
         name in {"BUILD", "BUILD.bazel", "MODULE.bazel", "MODULE.bazel.lock", "WORKSPACE", "WORKSPACE.bazel",
-                 ".bazelversion", "buildbuddy.yaml", "pnpm-lock.yaml", "pnpm-workspace.yaml", "package.json"}
+                 ".bazelversion", ".bazelignore", "buildbuddy.yaml", "pnpm-lock.yaml", "pnpm-workspace.yaml", "package.json",
+                 "Cargo.toml", "Cargo.lock", "requirements.lock", "requirements.in", "maven_install.json",
+                 "go.work", "go.work.sum", "go.mod", "go.sum"}
         or name.startswith(".bazelrc") or path.endswith(".bzl") or path.startswith(("scripts/ci/", ".github/"))
     )
 
