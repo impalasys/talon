@@ -134,7 +134,14 @@ def export(output, result):
         target.parent.mkdir(exist_ok=True)
         shutil.copyfile(preview, target)
     if '//bench:ci_benchmark' in result['tests']:
-        copy_tree(Path('bazel-testlogs/bench/ci_benchmark/test.outputs'), handoff / 'benchmark')
+        source = Path('bazel-testlogs/bench/ci_benchmark/test.outputs')
+        for path in source.rglob('*'):
+            relative = path.relative_to(source)
+            if path.is_file() and (path.match('talon-bench-*.json') or
+                                   (path.suffix == '.log' and 'data' not in relative.parts)):
+                target = handoff / 'benchmark' / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(path, target)
     if '//ui:dist' in selected:
         bazel('deployment-ui', 'build', ['//ui:dist', '--define=GATEWAY_URL=https://talon.impala.systems'], output, result)
         copy_tree(Path('bazel-bin/ui/dist'), handoff / 'sightline-static-export')

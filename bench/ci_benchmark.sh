@@ -14,5 +14,8 @@ for backend in sqlite rocksdb; do
     --stream-mode batch --mock-request-backlog 8192 --progress-interval-seconds 10 \
     --container-platform linux/amd64 --image-tag talon-bench-runtime:dev \
     --output-dir "$output" "${options[@]}" || echo "Advisory benchmark threshold missed for $backend"
+  # Runtime sockets/FIFOs are not valid Bazel test artifacts. Containers have
+  # exited, so only these transient endpoints need removal from the output tree.
+  find "$output" \( -type s -o -type p \) -delete
   compgen -G "$output/talon-bench-*.json" >/dev/null || { echo "Missing benchmark result for $backend" >&2; exit 1; }
 done
