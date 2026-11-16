@@ -25,7 +25,7 @@ while IFS= read -r specification; do
 done < scripts/ci/linux-pilot-packages.txt
 if (( ${#missing[@]} )); then
   sudo apt-get update
-  sudo apt-get install -y --no-install-recommends "${missing[@]}"
+  sudo apt-get install -y --allow-downgrades --no-install-recommends "${missing[@]}"
 fi
 source /etc/os-release
 [[ "$PRETTY_NAME" == 'Ubuntu 24.04.5 LTS' ]] || {

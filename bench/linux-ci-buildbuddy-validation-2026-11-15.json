@@ -1,0 +1,1037 @@
+{
+  "schema": 1,
+  "date": "2026-11-15",
+  "qualification_url": "https://impalasys.buildbuddy.io/invocation/7a474e8d-1e37-4089-bfe6-48b6b8254f5b",
+  "qualification": {
+    "schema": 1,
+    "commit": "efad06770becff1f9f3b1995c8208981f630e9cb",
+    "requested_cpu": 16,
+    "requested_memory_gb": 32,
+    "affinity_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "runner_memory": {
+      "total_kib": 34436452
+    },
+    "docker_version": "28.1.0",
+    "options": [
+      "--config=buildbuddy",
+      "--remote_executor=",
+      "--remote_upload_local_results=false",
+      "--remote_accept_cached=true",
+      "--remote_download_outputs=all",
+      "--jobs=16",
+      "--local_resources=cpu=16",
+      "--local_resources=memory=20480",
+      "--color=no",
+      "--curses=no",
+      "--repo_env=CC=/usr/bin/clang-18",
+      "--repo_env=CXX=/usr/bin/clang++-18",
+      "--action_env=CC=/usr/bin/clang-18",
+      "--action_env=CXX=/usr/bin/clang++-18",
+      "--action_env=LIBCLANG_PATH=/usr/lib/llvm-18/lib"
+    ],
+    "workloads": [
+      [
+        "test",
+        [
+          "test",
+          "--build_tests_only",
+          "//...",
+          "--nocache_test_results",
+          "--test_output=errors",
+          "--test_env=TALON_DOCKER_SANDBOX_TEST=1",
+          "--test_env=DOCKER_HOST=unix:///var/run/docker.sock"
+        ]
+      ],
+      [
+        "build",
+        [
+          "build",
+          "//:binaries",
+          "//:production_binaries",
+          "//sdk/...",
+          "//tools/install-hooks/...",
+          "//ui:dist",
+          "//docs-site:dist",
+          "//packages/talon-chat/..."
+        ]
+      ]
+    ],
+    "samples": [
+      {
+        "phase": "test",
+        "exit_code": 0,
+        "seconds": 345.954678888,
+        "invocation_url": "https://app.buildbuddy.io/invocation/f88a89fe-60bd-4218-a26b-ac5bcf434cd0",
+        "metrics": {
+          "actionSummary": {
+            "actionsCreated": "16388",
+            "actionsExecuted": "2713",
+            "actionsCreatedNotIncludingAspects": "16372",
+            "actionCacheStatistics": {
+              "sizeInBytes": "1665975",
+              "saveTimeInMs": "7",
+              "hits": 8918,
+              "misses": 2713
+            }
+          },
+          "memoryMetrics": {},
+          "targetMetrics": {
+            "targetsConfigured": "74572",
+            "targetsConfiguredNotIncludingAspects": "70997"
+          },
+          "packageMetrics": {
+            "packagesLoaded": "2235"
+          },
+          "timingMetrics": {
+            "cpuTimeInMs": "233150",
+            "wallTimeInMs": "342801",
+            "analysisPhaseTimeInMs": "37817",
+            "executionPhaseTimeInMs": "335512",
+            "actionsExecutionStartInMs": "7227"
+          },
+          "cumulativeMetrics": {
+            "numAnalyses": 2,
+            "numBuilds": 2
+          },
+          "artifactMetrics": {
+            "sourceArtifactsRead": {
+              "sizeInBytes": "397772960",
+              "count": 1056
+            },
+            "outputArtifactsSeen": {
+              "sizeInBytes": "8032989996",
+              "count": 96021
+            },
+            "outputArtifactsFromActionCache": {
+              "sizeInBytes": "3703779338",
+              "count": 90273
+            },
+            "topLevelArtifacts": {
+              "sizeInBytes": "23124633442",
+              "count": 221949
+            }
+          },
+          "buildGraphMetrics": {
+            "actionLookupValueCount": 68380,
+            "actionCount": 16387,
+            "outputArtifactCount": 15550,
+            "postInvocationSkyframeNodeCount": 478600,
+            "actionLookupValueCountNotIncludingAspects": 64804,
+            "actionCountNotIncludingAspects": 16370,
+            "inputFileConfiguredTargetCount": 56709,
+            "outputFileConfiguredTargetCount": 49,
+            "otherConfiguredTargetCount": 470
+          },
+          "networkMetrics": {
+            "systemNetworkStats": {
+              "bytesSent": "34555885",
+              "bytesRecv": "2081636608",
+              "packetsSent": "128058",
+              "packetsRecv": "227018",
+              "peakBytesSentPerSec": "5911492",
+              "peakBytesRecvPerSec": "527729175",
+              "peakPacketsSentPerSec": "19567",
+              "peakPacketsRecvPerSec": "36846"
+            }
+          },
+          "workerPoolMetrics": {},
+          "dynamicExecutionMetrics": {},
+          "remoteAnalysisCacheStatistics": {}
+        },
+        "tests": [
+          {
+            "label": "//scripts/sdk:packages_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts:resource_proto_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts:dependency_sync_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//docs-site:reference_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts/ci:buildbuddy_gate_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts:resource_cli_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts/sdk:versions_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts:resource_cli_unit_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//tools/bazel:image_configs_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts/ci:linux_pilot_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//tools/install-hooks:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/js/talon-server:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/js/talon-client:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/java/talon-server:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/python:packages_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/python/talon-server:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/python/talon-client:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//packages/talon-chat:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//packages/talon-chat:package_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//tests:harness_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:format_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//ui:typecheck",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/go/talon-server:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//ui:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/java/talon-client:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/go/talon-client:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-server:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-server:doc_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-server:api_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/tools/codegen:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk:generated_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk:update_generated_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-client:talon_client_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/examples/rust:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-client:generated_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-client:doc_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:doc_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:talon_cli_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:talon_server_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:talon_node_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:mock_acp_cli_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:monty_embedded_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:postgres_tls_startup_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:talon_worker_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:talon_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          }
+        ]
+      },
+      {
+        "phase": "build",
+        "exit_code": 0,
+        "seconds": 627.4583453999999,
+        "invocation_url": "https://app.buildbuddy.io/invocation/72058b0a-6944-46a6-a01b-509906e2f0db",
+        "metrics": {
+          "actionSummary": {
+            "actionsCreated": "11732",
+            "actionsExecuted": "7799",
+            "actionsCreatedNotIncludingAspects": "11732",
+            "actionCacheStatistics": {
+              "sizeInBytes": "3081492",
+              "saveTimeInMs": "12",
+              "hits": 1015,
+              "misses": 7800
+            }
+          },
+          "memoryMetrics": {},
+          "targetMetrics": {
+            "targetsConfigured": "15542",
+            "targetsConfiguredNotIncludingAspects": "15541"
+          },
+          "packageMetrics": {
+            "packagesLoaded": "761"
+          },
+          "timingMetrics": {
+            "cpuTimeInMs": "181880",
+            "wallTimeInMs": "626635",
+            "analysisPhaseTimeInMs": "6385",
+            "executionPhaseTimeInMs": "624892",
+            "actionsExecutionStartInMs": "1604"
+          },
+          "cumulativeMetrics": {
+            "numAnalyses": 3,
+            "numBuilds": 3
+          },
+          "artifactMetrics": {
+            "sourceArtifactsRead": {
+              "sizeInBytes": "255716561",
+              "count": 4292
+            },
+            "outputArtifactsSeen": {
+              "sizeInBytes": "5137074300",
+              "count": 82754
+            },
+            "outputArtifactsFromActionCache": {
+              "sizeInBytes": "143864636",
+              "count": 2416
+            },
+            "topLevelArtifacts": {
+              "sizeInBytes": "16884092770",
+              "count": 232778
+            }
+          },
+          "buildGraphMetrics": {
+            "actionLookupValueCount": 71634,
+            "actionCount": 25919,
+            "outputArtifactCount": 24089,
+            "postInvocationSkyframeNodeCount": 568816,
+            "actionLookupValueCountNotIncludingAspects": 71615,
+            "actionCountNotIncludingAspects": 25918,
+            "inputFileConfiguredTargetCount": 56902,
+            "outputFileConfiguredTargetCount": 358,
+            "otherConfiguredTargetCount": 565
+          },
+          "networkMetrics": {
+            "systemNetworkStats": {
+              "bytesSent": "67047775",
+              "bytesRecv": "2882795523",
+              "packetsSent": "248041",
+              "packetsRecv": "400445",
+              "peakBytesSentPerSec": "5911492",
+              "peakBytesRecvPerSec": "527729175",
+              "peakPacketsSentPerSec": "28171",
+              "peakPacketsRecvPerSec": "41593"
+            }
+          },
+          "workerPoolMetrics": {},
+          "dynamicExecutionMetrics": {},
+          "remoteAnalysisCacheStatistics": {}
+        }
+      }
+    ],
+    "success": true,
+    "seconds": 973.4368424415588
+  },
+  "docker_test_evidence": {
+    "environment": "TALON_DOCKER_SANDBOX_TEST=1",
+    "passed_cases": [
+      "harness::sandbox::tests::docker_backend_smoke_when_enabled",
+      "worker::controllers::sandbox::tests::sandbox_lease_service_spins_up_docker_sandbox_when_enabled"
+    ],
+    "rust_library_result": "1023 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"
+  },
+  "github_fallback_validation": {
+    "run_url": "https://github.com/impalasys/talon/actions/runs/43789984177",
+    "commit": "e8c660431926270b92f619f8f12f71d908fabbf6",
+    "job": {
+      "completedAt": "2026-11-16T02:09:54Z",
+      "conclusion": "success",
+      "databaseId": 133045976505,
+      "name": "Bazel",
+      "startedAt": "2026-11-16T02:05:02Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-16T02:05:05Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-16T02:05:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-16T02:05:12Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v5",
+          "number": 2,
+          "startedAt": "2026-11-16T02:05:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-16T02:05:12Z",
+          "conclusion": "skipped",
+          "name": "Verify BuildBuddy Linux build and tests",
+          "number": 3,
+          "startedAt": "2026-11-16T02:05:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-16T02:07:42Z",
+          "conclusion": "success",
+          "name": "Run ./.github/actions/setup-bazel",
+          "number": 4,
+          "startedAt": "2026-11-16T02:05:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-16T02:08:55Z",
+          "conclusion": "success",
+          "name": "Build and test compilation targets",
+          "number": 5,
+          "startedAt": "2026-11-16T02:07:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-16T02:09:51Z",
+          "conclusion": "success",
+          "name": "Post Run ./.github/actions/setup-bazel",
+          "number": 9,
+          "startedAt": "2026-11-16T02:08:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-16T02:09:51Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v5",
+          "number": 10,
+          "startedAt": "2026-11-16T02:09:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-16T02:09:51Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 11,
+          "startedAt": "2026-11-16T02:09:51Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/impalasys/talon/actions/runs/43789984177/job/133045976505"
+    },
+    "routing_flag_during_job": "false"
+  },
+  "compatibility_fixes": [
+    "Use package.json packageManager to pin Bazel pnpm, avoiding downloads from inside a packaging sandbox.",
+    "Disable Astro telemetry for the documentation build, avoiding a write to user-home config in the sandbox."
+  ],
+  "scope": "The existing default Bazel job and its exact build target list, plus explicitly enabled Docker sandbox tests. Dedicated Python/browser E2E and release/publishing jobs retain GitHub producers.",
+  "production_validation_url": "https://impalasys.buildbuddy.io/invocation/46246d25-4c1c-4089-b235-2d2fcb08b700",
+  "production_validation": {
+    "schema": 1,
+    "commit": "e8c660431926270b92f619f8f12f71d908fabbf6",
+    "requested_cpu": 16,
+    "requested_memory_gb": 32,
+    "affinity_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "runner_memory": {
+      "total_kib": 34436452
+    },
+    "docker_version": "28.1.0",
+    "bazel_version": "9.3.2",
+    "os": "Ubuntu 24.04.5 LTS",
+    "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+    "native_packages": "base-files=13ubuntu10.5\nbinutils=2.42-4ubuntu2.10\nbuild-essential=12.10ubuntu1\nclang-18=1:18.1.3-1ubuntu1\ncmake=3.28.3-1build7\ng++-13=13.3.0-6ubuntu2~24.04.1\ngcc-13=13.3.0-6ubuntu2~24.04.1\nlibc6=2.39-0ubuntu8.12\nlibc6-dev=2.39-0ubuntu8.12\nlibclang-18-dev=1:18.1.3-1ubuntu1\nlibgcc-s1=14.2.0-4ubuntu2~24.04.1\nlibssl-dev=3.0.13-0ubuntu3.16\nlibstdc++6=14.2.0-4ubuntu2~24.04.1\nlinux-libc-dev=6.8.0-149.149",
+    "options": [
+      "--config=buildbuddy",
+      "--remote_executor=",
+      "--remote_upload_local_results=false",
+      "--remote_accept_cached=true",
+      "--remote_download_outputs=all",
+      "--jobs=16",
+      "--local_resources=cpu=16",
+      "--local_resources=memory=20480",
+      "--color=no",
+      "--curses=no",
+      "--repo_env=CC=/usr/bin/clang-18",
+      "--repo_env=CXX=/usr/bin/clang++-18",
+      "--action_env=CC=/usr/bin/clang-18",
+      "--action_env=CXX=/usr/bin/clang++-18",
+      "--action_env=LIBCLANG_PATH=/usr/lib/llvm-18/lib"
+    ],
+    "workloads": [
+      [
+        "test",
+        [
+          "test",
+          "--build_tests_only",
+          "//...",
+          "--nocache_test_results",
+          "--test_output=errors",
+          "--test_env=TALON_DOCKER_SANDBOX_TEST=1",
+          "--test_env=DOCKER_HOST=unix:///var/run/docker.sock"
+        ]
+      ],
+      [
+        "build",
+        [
+          "build",
+          "//:binaries",
+          "//:production_binaries",
+          "//sdk/...",
+          "//tools/install-hooks/...",
+          "//ui:dist",
+          "//docs-site:dist",
+          "//packages/talon-chat/..."
+        ]
+      ]
+    ],
+    "samples": [
+      {
+        "phase": "test",
+        "exit_code": 0,
+        "seconds": 359.19847287,
+        "invocation_url": "https://app.buildbuddy.io/invocation/fb19af0c-ccd4-4565-9c5f-93b5da8919fe",
+        "metrics": {
+          "actionSummary": {
+            "actionsCreated": "16388",
+            "actionsExecuted": "2716",
+            "actionsCreatedNotIncludingAspects": "16372",
+            "actionCacheStatistics": {
+              "sizeInBytes": "1665975",
+              "saveTimeInMs": "7",
+              "hits": 8915,
+              "misses": 2716
+            }
+          },
+          "memoryMetrics": {},
+          "targetMetrics": {
+            "targetsConfigured": "74572",
+            "targetsConfiguredNotIncludingAspects": "70997"
+          },
+          "packageMetrics": {
+            "packagesLoaded": "2235"
+          },
+          "timingMetrics": {
+            "cpuTimeInMs": "238340",
+            "wallTimeInMs": "356812",
+            "analysisPhaseTimeInMs": "35646",
+            "executionPhaseTimeInMs": "349949",
+            "actionsExecutionStartInMs": "6793"
+          },
+          "cumulativeMetrics": {
+            "numAnalyses": 2,
+            "numBuilds": 2
+          },
+          "artifactMetrics": {
+            "sourceArtifactsRead": {
+              "sizeInBytes": "397800027",
+              "count": 1058
+            },
+            "outputArtifactsSeen": {
+              "sizeInBytes": "8032992858",
+              "count": 96021
+            },
+            "outputArtifactsFromActionCache": {
+              "sizeInBytes": "3703755101",
+              "count": 90271
+            },
+            "topLevelArtifacts": {
+              "sizeInBytes": "23124636272",
+              "count": 221949
+            }
+          },
+          "buildGraphMetrics": {
+            "actionLookupValueCount": 68380,
+            "actionCount": 16387,
+            "outputArtifactCount": 15550,
+            "postInvocationSkyframeNodeCount": 478600,
+            "actionLookupValueCountNotIncludingAspects": 64804,
+            "actionCountNotIncludingAspects": 16370,
+            "inputFileConfiguredTargetCount": 56709,
+            "outputFileConfiguredTargetCount": 49,
+            "otherConfiguredTargetCount": 470
+          },
+          "networkMetrics": {
+            "systemNetworkStats": {
+              "bytesSent": "34796305",
+              "bytesRecv": "2081153631",
+              "packetsSent": "131773",
+              "packetsRecv": "221346",
+              "peakBytesSentPerSec": "5911492",
+              "peakBytesRecvPerSec": "527729175",
+              "peakPacketsSentPerSec": "19567",
+              "peakPacketsRecvPerSec": "36846"
+            }
+          },
+          "workerPoolMetrics": {},
+          "dynamicExecutionMetrics": {},
+          "remoteAnalysisCacheStatistics": {}
+        },
+        "tests": [
+          {
+            "label": "//scripts/sdk:packages_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//docs-site:reference_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/js/talon-server:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts:resource_cli_unit_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//tools/bazel:image_configs_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/js/talon-client:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts/ci:linux_pilot_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts/sdk:versions_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts:resource_cli_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts:resource_proto_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts:dependency_sync_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//scripts/ci:buildbuddy_gate_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//tools/install-hooks:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/python/talon-server:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/python/talon-client:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/java/talon-server:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/python:packages_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//packages/talon-chat:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//packages/talon-chat:package_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//tests:harness_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:format_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/java/talon-client:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//ui:typecheck",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/go/talon-server:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//ui:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/go/talon-client:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-server:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-server:api_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-server:doc_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/tools/codegen:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk:generated_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk:update_generated_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-client:talon_client_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/examples/rust:unit_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-client:generated_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//sdk/rust/talon-client:doc_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:doc_tests",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:talon_cli_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:talon_server_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:talon_node_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:monty_embedded_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:mock_acp_cli_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:postgres_tls_startup_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:talon_worker_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          },
+          {
+            "label": "//:talon_test",
+            "overallStatus": "PASSED",
+            "totalRunCount": 1
+          }
+        ]
+      },
+      {
+        "phase": "build",
+        "exit_code": 0,
+        "seconds": 670.570425042,
+        "invocation_url": "https://app.buildbuddy.io/invocation/3e633267-bb0d-4c0a-b4f0-b9475be0c3cd",
+        "metrics": {
+          "actionSummary": {
+            "actionsCreated": "11732",
+            "actionsExecuted": "7799",
+            "actionsCreatedNotIncludingAspects": "11732",
+            "actionCacheStatistics": {
+              "sizeInBytes": "3081494",
+              "saveTimeInMs": "11",
+              "hits": 1015,
+              "misses": 7799
+            }
+          },
+          "memoryMetrics": {},
+          "targetMetrics": {
+            "targetsConfigured": "15542",
+            "targetsConfiguredNotIncludingAspects": "15541"
+          },
+          "packageMetrics": {
+            "packagesLoaded": "761"
+          },
+          "timingMetrics": {
+            "cpuTimeInMs": "194930",
+            "wallTimeInMs": "669706",
+            "analysisPhaseTimeInMs": "6023",
+            "executionPhaseTimeInMs": "667425",
+            "actionsExecutionStartInMs": "2147"
+          },
+          "cumulativeMetrics": {
+            "numAnalyses": 3,
+            "numBuilds": 3
+          },
+          "artifactMetrics": {
+            "sourceArtifactsRead": {
+              "sizeInBytes": "255716561",
+              "count": 4292
+            },
+            "outputArtifactsSeen": {
+              "sizeInBytes": "5137115014",
+              "count": 82754
+            },
+            "outputArtifactsFromActionCache": {
+              "sizeInBytes": "143864636",
+              "count": 2416
+            },
+            "topLevelArtifacts": {
+              "sizeInBytes": "16884130654",
+              "count": 232778
+            }
+          },
+          "buildGraphMetrics": {
+            "actionLookupValueCount": 71634,
+            "actionCount": 25919,
+            "outputArtifactCount": 24089,
+            "postInvocationSkyframeNodeCount": 568816,
+            "actionLookupValueCountNotIncludingAspects": 71615,
+            "actionCountNotIncludingAspects": 25918,
+            "inputFileConfiguredTargetCount": 56902,
+            "outputFileConfiguredTargetCount": 358,
+            "otherConfiguredTargetCount": 565
+          },
+          "networkMetrics": {
+            "systemNetworkStats": {
+              "bytesSent": "69404209",
+              "bytesRecv": "2883622158",
+              "packetsSent": "259985",
+              "packetsRecv": "401883",
+              "peakBytesSentPerSec": "6714836",
+              "peakBytesRecvPerSec": "527729175",
+              "peakPacketsSentPerSec": "34624",
+              "peakPacketsRecvPerSec": "51825"
+            }
+          },
+          "workerPoolMetrics": {},
+          "dynamicExecutionMetrics": {},
+          "remoteAnalysisCacheStatistics": {}
+        }
+      }
+    ],
+    "success": true,
+    "seconds": 1029.7942514419556
+  }
+}

@@ -30,12 +30,12 @@ jobs:
       - name: Configure pilot cache access
         shell: bash
         env:
-          # Only maintainer-triggered manual runs reach here.
-          PILOT_CACHE_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
+          # Keep the writer credential on main, including manual runs.
+          PILOT_CACHE_KEY: ${{ github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY || '' }}
         run: |
           set -euo pipefail
           if [[ -z "$PILOT_CACHE_KEY" ]]; then
-            echo 'Pilot requires the existing BUILDBUDDY_API_KEY secret.'
+            echo 'Pilot requires main and the existing BUILDBUDDY_API_KEY secret.'
             exit 1
           fi
           umask 077

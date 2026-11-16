@@ -3,10 +3,18 @@
 Assessment updated 2026-11-15: the Linux pilot now has repeated, matched
 measurements. The controlled workload finishes sooner on BuildBuddy, primarily
 because it avoids GitHub cache restoration and native prerequisite setup.
-A CPU scaling follow-up selects 16 CPUs / 16 GB for BuildBuddy: the source-edit
+A CPU scaling follow-up on a 16-CPU / 16-GB BuildBuddy VM found the source-edit
 workload is 46% faster than the four-CPU cap on the same VM. macOS releases and
 publishing remain on GitHub Actions. See the results below before generalizing
 to Docker-backed or full-pipeline CI.
+
+The first migration step moves the **Bazel build/test job for same-repository
+PRs** to BuildBuddy at 16 CPUs / 32 GB RAM, behind GitHub's existing `Bazel`
+check. [Full validation](./05-linux-ci-migration.md#first-cutover-configuration)
+passed all 45 uncached test targets, including enabled Docker sandbox tests, and
+the complete production/SDK/UI/docs/chat build. Main and forks keep GitHub
+execution; macOS releases, publishing and the other Linux jobs retain their
+GitHub producers. This is separate from the historical timing experiments below.
 
 The [Linux pilot runbook](./04-linux-ci-pilot.md) describes the checked-in
 side-by-side configuration, activation and measurement procedure.
@@ -130,7 +138,7 @@ all per-sample measurements, native package/configuration fingerprints, the
 excluded seed and the rejected 32-CPU request. The original four-CPU matched
 pilot remains available for controlled provider comparisons.
 
-### Limits of this experiment
+### Limits of the controlled timing comparison
 
 - The native userspace matches, but the cloud hosts are not identical. Guest
   kernels differ, and exposed RAM was approximately 15.3 GiB on GitHub versus
@@ -151,7 +159,9 @@ pilot remains available for controlled provider comparisons.
   compiler-speed advantage for BuildBuddy. See the
   [pinned upstream implementation](https://github.com/bazel-contrib/setup-bazel/blob/0.19.2/dist/main/index.js).
 - Docker/Testcontainers, browser E2E, full runtime tests, artifact handoff to
-  release jobs, and paid-plan costs are outside this measured workload. The
+  release jobs, and paid-plan costs are outside the matched timing workload.
+  Later full-job qualification establishes Docker compatibility, not a matched
+  provider performance comparison. The
   current full PR critical path is not proven to improve by the same percentage.
 
 See [the staged migration path](./05-linux-ci-migration.md) for the full-job
@@ -252,8 +262,8 @@ assumed here.
 
 ## Decision and next steps
 
-**Use 16 CPUs / 16 GB for the BuildBuddy performance candidate; retain the
-side-by-side pilot before moving all Linux CI.** The matched four-CPU experiment
+**Run same-repository PR Bazel builds/tests on BuildBuddy at 16 CPUs / 32 GB.**
+Keep the controlled pilot for measuring further migration. The matched four-CPU experiment
 shows 68% lower unchanged-revision turnaround and 16–23% lower turnaround on the
 two source probes. The later CPU sweep shows an additional 46% reduction in
 source-edit command time at 16 versus four CPUs on the same VM. More available
@@ -261,12 +271,13 @@ compute is a material benefit for this workload; equal-CPU results alone do not
 capture it.
 
 The larger allocation strengthens the case for moving Linux compilation to
-BuildBuddy. Complete PR latency with that allocation, Docker-backed suites,
-artifact handoff and costs remain unmeasured. Cross-workflow JVM reuse also
+BuildBuddy. The complete Bazel job, including Docker sandbox tests, now passes on the
+32-GB full-job configuration. Matched full-PR latency, artifact handoff and costs
+remain unmeasured. Cross-workflow JVM reuse also
 remains unproven. The scaling percentage must not be applied directly to the
 older GitHub end-to-end timings, which include different startup/cache state.
 
-Before deciding to move Linux orchestration:
+After the first Bazel cutover, evaluate further Linux migration:
 
 1. Refresh GitHub's disk snapshot after source changes, using a bounded cache
    rotation policy, and compare against that improved baseline.
@@ -279,7 +290,7 @@ Before deciding to move Linux orchestration:
    artifacts, artifact handoff and cost. A fresh-cache comparison remains
    separate work if cold-run performance matters to the decision.
 
-Pilot-branch GitHub baselines remain manual; no new API key was created. macOS
+GitHub baselines remain manual on main; no new API key was created. macOS
 releases, publishing, deployments and existing required checks stay on GitHub
 Actions. Remote execution remains disabled so its performance can be evaluated
 separately from the orchestrator.

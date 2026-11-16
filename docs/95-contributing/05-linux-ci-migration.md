@@ -25,14 +25,25 @@ Set repository variable `BUILDBUDDY_LINUX_PR_BUILDS=false` and rerun CI to resto
 GitHub execution for trusted PRs; the unset default enables BuildBuddy. The
 [operations runbook](./04-linux-ci-pilot.md#operate-the-pr-gate) has the command.
 
-Validation evidence is added alongside the assessment after the complete job
-passes. Two compatibility fixes keep actions independent of writable user homes:
+[Full qualification passed](https://impalasys.buildbuddy.io/invocation/7a474e8d-1e37-4089-bfe6-48b6b8254f5b)
+at `efad0677`: all 45 test targets executed uncached in 345.95 seconds, followed
+by the full build target list in 627.46 seconds. Both opt-in Docker sandbox cases
+passed; the Rust library reported 1,023 passed and zero failed/ignored tests.
+The [evidence](../../bench/linux-ci-buildbuddy-validation-2026-11-15.json) also
+records the successful GitHub fallback job on the migration PR and a second
+[production-config run](https://impalasys.buildbuddy.io/invocation/46246d25-4c1c-4089-b235-2d2fcb08b700)
+at `e8c66043`: 45 uncached targets passed in 359.20 seconds and the full build
+passed in 670.57 seconds. These are qualification durations, not a matched
+provider speedup.
+
+Two compatibility fixes keep actions independent of writable user homes:
 Bazel's pnpm now reads its version from `package.json`, and the documentation
 build explicitly disables Astro telemetry.
 
 ## Runner choice and the 32-vCPU retry
 
-Use **16 requested CPUs / 16 GB RAM** as the current candidate. The Rust source
+The historical scaling candidate used **16 requested CPUs / 16 GB RAM**.
+The full-job cutover uses 32 GB RAM as described above. The Rust source
 edit sweep measured 267.12, 183.82 and 145.10 seconds at CPU caps of 4, 8 and 16,
 respectively. These are command times on one VM, not full PR latency.
 
@@ -58,7 +69,7 @@ The migration can proceed with 16 CPUs independently of that quota change.
 
 | Current producer | First migration step | Later work |
 | --- | --- | --- |
-| `ci.yml` / `bazel` (`Bazel` check) | Full BuildBuddy shadow, then first cutover | Keep its GitHub job ID as a status bridge and fork fallback |
+| `ci.yml` / `bazel` (`Bazel` check) | BuildBuddy execution for same-repository PRs | Keep its GitHub job ID as a status bridge and fork fallback |
 | `runtime_image`, `acp_harness_image`, `ui` | Keep on GitHub | Move build/verification only after an OCI artifact handoff works; publishing stays on GitHub |
 | `python_e2e` | Keep on GitHub | Qualify Docker networking and Testcontainers on BuildBuddy, then move separately |
 | `sightline_e2e_screenshots` | Keep on GitHub | Preserve screenshots, previews and PR reporting before changing its producer |
@@ -74,10 +85,10 @@ Two current dependencies determine the order:
   `sightline-e2e-screenshots` and `sightline-e2e-dark-preview` from that GitHub run.
   BuildBuddy artifacts alone do not satisfy that consumer.
 
-## PR 1: qualify the complete Bazel job
+## Full-job qualification
 
-Merge the additive pilot first. Add a distinct `BuildBuddy Linux build/test`
-shadow action at 16 CPUs, using the same pinned Linux prerequisites and feature
+The cutover adds a distinct `BuildBuddy Linux build/test`
+action at 16 CPUs, using the same pinned Linux prerequisites and feature
 settings. Reproduce the current Bazel job's full coverage:
 
 ```sh
@@ -99,19 +110,20 @@ smaller workload.
 
 Use pushes in the linked base repository for initial shadow runs. This tests
 exact branch commits without automatically running fork PRs on BuildBuddy.
-Keep GitHub's full job active and pilot-branch baselines manual. Retain one
+Keep GitHub's main/fork job active. Historical comparison runs remain manual
+and use the writer credential only on main. Retain one
 canonical GitHub disk-cache writer; fix bounded snapshot rotation separately
 from provider selection so source-only edits can refresh the immutable cache
 keys. No new GitHub
 BuildBuddy key is needed for this stage.
 
-Qualify representative Rust, UI, SDK, schema and configuration changes. Collect
-at least ten paired full-job samples, queue-to-completion time, cache hit rates,
+For subsequent performance evaluation, qualify representative Rust, UI, SDK,
+schema and configuration changes. Collect paired full-job samples,
+queue-to-completion time, cache hit rates,
 peak memory and snapshot transfer usage. Exercise intentional test failure,
-missing/cancelled status and an updated PR head. Promote on full coverage and a
-repeatable latency improvement; the existing proposed threshold is 30% median
-Linux build/test feedback-time reduction with no material tail regression. Also measure overall
-PR completion, because image jobs and macOS can remain the critical path.
+missing/cancelled status and an updated PR head. Evaluate further migration against a repeatable latency improvement; the
+proposed threshold is 30% median Linux build/test feedback-time reduction with
+no material tail regression. Also measure overall PR completion, because image jobs and macOS can remain the critical path.
 
 Investigate snapshot reuse as part of qualification. BuildBuddy documents a
 `first-non-default-ref` default save policy: later pushes can reuse the first
@@ -122,10 +134,10 @@ an explicit snapshot policy using the same change sequence and its transfer
 usage; changing properties itself invalidates the snapshot key. See
 [runner snapshot policies](https://www.buildbuddy.io/docs/remote-runner-introduction/#snapshot-save-policy).
 
-## PR 2: replace compilation behind the existing GitHub gate
+## GitHub gate and fallback
 
-After qualification, preserve the GitHub `bazel` job ID and `Bazel` check name.
-For same-repository PRs, replace its compilation steps with a bounded wait for
+The cutover preserves the GitHub `bazel` job ID and `Bazel` check name.
+For same-repository PRs, its compilation steps are replaced with a bounded wait for
 the distinct BuildBuddy build/test status. For **main and fork PRs**, retain the
 existing GitHub compilation/test steps initially. This keeps the release
 matrix's `needs: bazel` relationship and provides a single check for both paths.
@@ -159,9 +171,9 @@ Use the following revision contract for the bridge implementation:
    which would block the fork fallback.
 
 The bridge reads commit statuses with GitHub's read-only token permissions; it
-does not require a BuildBuddy credential. Verify this contract with a changed
-base branch, stale success, failed build, fork PR and new head before removing
-GitHub compilation on the trusted path. BuildBuddy's
+does not require a BuildBuddy credential. Unit tests exercise changed/stale revisions, merge-tree mismatches, failed or
+missing status, publisher validation and fork rejection. Live validation checks
+the success path and the GitHub fallback. BuildBuddy's
 [trigger and merge documentation](https://www.buildbuddy.io/docs/workflows-config/#merge-with-base)
 describes why default PR behavior needs deliberate handling.
 
@@ -170,9 +182,8 @@ GitHub cache writer credential restricted to main. Keep publishing tokens and
 release environments on GitHub. Audit BuildBuddy's trusted-run secret behavior
 before broadening its triggers; see [secrets](https://www.buildbuddy.io/docs/secrets/).
 
-Rollback is one workflow change: restore the original compilation/test steps
-inside `bazel`, retain its ID/name, and return the BuildBuddy action to shadow
-status. Keep that path available until cutover is established.
+Rollback is the repository-variable switch documented above; the original
+compilation/test steps remain inside `bazel` and keep its ID/name.
 
 ## Later PRs: containers and artifact handoff
 

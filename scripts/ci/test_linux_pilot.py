@@ -138,12 +138,13 @@ class PilotTest(unittest.TestCase):
                         patch.object(cpu_sweep.os, "sched_setaffinity", create=True) as bind, \
                         contextlib.redirect_stdout(io.StringIO()):
                     with self.assertRaisesRegex(RuntimeError, "interrupted sample"):
-                        cpu_sweep.sweep(argparse.Namespace(output=root / "results", cpus=[4, 8, 16]))
+                        cpu_sweep.sweep(argparse.Namespace(output=root / "results", cpus=[4, 8]))
                 self.assertEqual(source.read_bytes(), original)
-                self.assertEqual(calls, [16, 4])
+                self.assertEqual(calls, [8, 4])
                 self.assertEqual(bind.call_args.args, (0, list(range(16))))
                 report = json.loads((root / "results/cpu-sweep.json").read_text())
                 self.assertFalse(report["success"])
+                self.assertEqual(report["reservation_cpu"], 16)
             finally:
                 os.chdir(previous)
 

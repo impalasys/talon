@@ -41,24 +41,24 @@ the production 16-CPU full workload.
    checked-in `buildbuddy.yaml`, rather than enabling the default `//...` config.
    The config is inert until the repository is linked and the config is pushed.
 2. The existing GitHub `BUILDBUDDY_API_KEY` secret enables manual baseline
-   runs. No new credential is needed. Pilot branch pushes and PR events do not
-   receive this key automatically. A missing key fails the manually dispatched
-   baseline with an explicit setup message.
-3. Push a `codex/bb-pilot-control-*` branch to start BuildBuddy, then manually dispatch
-   the GitHub baseline against the same branch using `gh`:
+   runs **on main only**. No new credential was created. Branch and fork runs do
+   not receive the writer key; a manual branch run fails with an explicit setup
+   message. Comparing unmerged source revisions requires a separately authorized
+   read-only credential.
+3. For a matched control at main's current commit, push a
+   `codex/bb-pilot-control-*` branch at that exact commit to start BuildBuddy,
+   then manually dispatch the GitHub baseline on main using `gh`:
 
    ```bash
-   gh workflow run buildbuddy-linux-pilot.yml --repo impalasys/talon --ref codex/bb-pilot-control-linux
-   gh run list --repo impalasys/talon --workflow buildbuddy-linux-pilot.yml --branch codex/bb-pilot-control-linux
+   gh workflow run buildbuddy-linux-pilot.yml --repo impalasys/talon --ref main
+   gh run list --repo impalasys/talon --workflow buildbuddy-linux-pilot.yml --branch main
    ```
 
-   Both providers build the pushed commit without synthetic PR merges. Verify
-   matching commit SHAs, especially if the branch advances between dispatches.
-   Opening a PR on the pilot branch is fine; PR events do not dispatch extra
-   pilot jobs. Fork pushes do not trigger this repository's pilot. Exclude an
-   initial seed run before comparing repeated samples. The production main
-   snapshot uses a different resource configuration; it is not a matched
-   four-CPU control snapshot.
+   Verify matching resolved commit SHAs, especially if main advances between
+   dispatches. PR events do not dispatch extra pilot jobs. Fork pushes do not
+   trigger this repository's pilot. Exclude an initial seed run before comparing
+   repeated samples. The production main snapshot uses a different resource
+   configuration; it is not a matched four-CPU control snapshot.
 4. Repeat each revision at least five times: rerun the GitHub pilot workflow
    with `gh` and the BuildBuddy action from its UI. Verify the resolved commit on
    each run. Do not dispatch `ci.yml`, whose manual entry point is the cache probe.

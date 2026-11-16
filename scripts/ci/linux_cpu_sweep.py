@@ -37,7 +37,7 @@ def sweep(args):
     if not eligible:
         raise SystemExit("No requested CPU size is available")
     report = {"schema": 1, "commit": pilot.capture("git", "rev-parse", "HEAD"),
-              "capacity": capacity(), "reservation_cpu": max(args.cpus), "requested_sizes": args.cpus,
+              "capacity": capacity(), "reservation_cpu": len(available), "requested_sizes": args.cpus,
               "skipped_sizes": sorted(set(args.cpus) - set(eligible)),
               "method": "One excluded seed; unique comment-only Rust input per sample; ascending then descending CPU order. Same VM, 16 GB reservation, 4 GiB JVM, 12 GiB action-memory budget, local execution, remote uploads disabled.",
               "samples": [], "success": False}
@@ -48,7 +48,7 @@ def sweep(args):
         os.environ["PILOT_SETUP_STARTED_AT"] = str(time.time())
         code = pilot.run(argparse.Namespace(provider="buildbuddy", output=output / name, cpus=cpus))
         result = json.loads((output / name / "results.json").read_text())
-        result["requested_cpu"] = max(args.cpus)
+        result["requested_cpu"] = len(available)
         result["cpu_limit"] = cpus
         (output / name / "results.json").write_text(json.dumps(result, indent=2) + "\n")
         row = {"name": name, "cpus": cpus, "success": result["success"],
@@ -90,6 +90,7 @@ def sweep(args):
     finally:
         source.write_bytes(original)
         os.sched_setaffinity(0, available)
+        pilot.limit_cpu_affinity(len(available))
         (output / "cpu-sweep.json").write_text(json.dumps(report, indent=2) + "\n")
         print("CPU_SWEEP_REPORT " + json.dumps(report), flush=True)
 
