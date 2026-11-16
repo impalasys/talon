@@ -37,5 +37,7 @@ runs:
       run: |
         if [[ -n "$BUILDBUDDY_API_KEY" ]]; then
           umask 077
-          printf 'build --config=buildbuddy\nbuild --remote_header=x-buildbuddy-api-key=%s\nbuild --bes_header=x-buildbuddy-api-key=%s\n' "$BUILDBUDDY_API_KEY" "$BUILDBUDDY_API_KEY" > .bazelrc.local
+          # GitHub reports these release/publishing jobs itself. Keep the cache
+          # and BES logs, while Talon CI is the only BuildBuddy commit status.
+          printf 'build --config=buildbuddy\nbuild --build_metadata=DISABLE_COMMIT_STATUS_REPORTING=true\nbuild --remote_header=x-buildbuddy-api-key=%s\nbuild --bes_header=x-buildbuddy-api-key=%s\n' "$BUILDBUDDY_API_KEY" "$BUILDBUDDY_API_KEY" > .bazelrc.local
         fi
