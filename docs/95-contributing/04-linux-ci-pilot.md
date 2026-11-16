@@ -19,8 +19,9 @@ Linux validation runs in one **Talon CI** BuildBuddy Workflow, configured in
   Sightline browser suite, chat screenshots, documentation checks, release
   archive checks and the 1-vCPU benchmark are ordinary targets. New tests are
   discovered from Bazel without maintaining a workflow target list.
-- The stress suite remains explicitly opt-in. The native npm archive aliases
-  remain packaging helpers for the staging steps in GitHub publishing.
+- Process-level durability/restart stress tests are included on Linux too.
+  Only the native npm archive aliases remain manual packaging helpers for the
+  staging steps in GitHub publishing.
 
 Bazel's `exclusive` tags serialize the integration and benchmark suites that
 share Docker resources/ports. The benchmark keeps its existing 1-vCPU container

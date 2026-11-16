@@ -138,10 +138,10 @@ py_test(
     main_module = "pytest",
     tags = [
         "exclusive",
-        "manual",
         "no-cache",
         "no-remote-exec",
         "requires-docker",
     ],
     deps = [":conftest", ":support"],
+    target_compatible_with = ["@platforms//os:linux"],
 )

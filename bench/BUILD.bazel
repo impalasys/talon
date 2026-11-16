@@ -26,3 +26,5 @@ sh_test(
     tags = ["exclusive", "no-cache", "no-remote-exec", "requires-docker"],
     target_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
 )
+
+exports_files(["ci_benchmark.sh"], visibility = ["//scripts/ci:__pkg__"])

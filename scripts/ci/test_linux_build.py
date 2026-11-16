@@ -2,6 +2,7 @@ import contextlib
 import io
 import json
 import os
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -56,6 +57,46 @@ if args[0] == 'test' and os.environ.get('CI_FAIL_TEST'):
             failed = json.loads((root / 'failed/ci-manifest.json').read_text())
             self.assertFalse(failed['success'])
             self.assertEqual(failed['samples'][-1]['exit_code'], 17)
+
+    def test_benchmark_cleanup_preserves_reports_and_removes_runtime_sockets(self):
+        with tempfile.TemporaryDirectory(prefix='talon-ci-', dir='/tmp') as temporary:
+            root = Path(temporary)
+            loader = root / 'loader'
+            loader.write_text('#!/bin/sh\nexit 0\n')
+            loader.chmod(0o755)
+            benchmark = root / 'benchmark'
+            benchmark.write_text("""#!/usr/bin/env python3
+import json, socket, sys
+from pathlib import Path
+output = Path(sys.argv[sys.argv.index('--output-dir') + 1])
+(output / 'data').mkdir(parents=True)
+endpoint = socket.socket(socket.AF_UNIX)
+endpoint.bind(str(output / 'data/broker.sock'))
+endpoint.close()
+(output / 'data/database.db').write_bytes(b'not a report')
+(output / 'talon-bench-test.json').write_text(json.dumps({'success': True}))
+""")
+            benchmark.chmod(0o755)
+            outputs = root / 'bazel-testlogs/bench/ci_benchmark/test.outputs'
+            environment = dict(os.environ, TEST_UNDECLARED_OUTPUTS_DIR=str(outputs))
+            script = Path('bench/ci_benchmark.sh').resolve()
+            result = subprocess.run(['bash', str(script), str(loader), str(benchmark)],
+                                    env=environment, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            for backend in ('sqlite', 'rocksdb'):
+                self.assertFalse((outputs / backend / 'data/broker.sock').exists())
+                self.assertTrue((outputs / backend / 'talon-bench-test.json').exists())
+            artifacts = root / 'artifacts'
+            artifacts.mkdir()
+            manifest = {'targets': [], 'tests': ['//bench:ci_benchmark']}
+            previous = Path.cwd()
+            try:
+                os.chdir(root)
+                runner.export(artifacts, manifest)
+            finally:
+                os.chdir(previous)
+            self.assertEqual(set(manifest['files']), {
+                'benchmark/sqlite/talon-bench-test.json', 'benchmark/rocksdb/talon-bench-test.json'})
 
 
 if __name__ == '__main__':

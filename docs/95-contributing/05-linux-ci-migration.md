@@ -12,7 +12,8 @@ The separate GitHub Linux Bazel, runtime/ACP/UI image validation, Python E2E,
 Sightline browser/screenshots, chat screenshots and benchmark producers are
 consolidated in BuildBuddy. Docker and browser suites are no longer hidden from
 ordinary discovery by `manual` tags. Documentation and release-archive tests
-also participate in normal selection. Stress remains an opt-in workload.
+also participate in normal selection, including the local process-restart
+durability stress suite. Only native npm staging aliases remain manual.
 
 The GitHub provider switch and old Bazel status bridge are removed. BuildBuddy
 runs native PR triggers and publishes its own status. There is one automatic
