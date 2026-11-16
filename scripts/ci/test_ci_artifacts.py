@@ -46,7 +46,7 @@ class HandoffTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'revision changed'):
                 ci.revision(event, 'impalasys/talon')
 
-    def test_relay_uses_the_current_base_then_rechecks_it_after_transfer(self):
+    def test_relay_uses_the_current_base_for_an_unchanged_pr_head(self):
         event = {'number': 1, 'pull_request': {'head': {'sha': 'a' * 40}, 'base': {'sha': 'b' * 40}}}
         current = {'number': 1, 'head': {'sha': 'a' * 40, 'ref': 'feature', 'repo': {'full_name': 'someone/talon'}},
                    'base': {'sha': 'c' * 40}, 'merge_commit_sha': 'd' * 40}
