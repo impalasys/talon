@@ -176,6 +176,9 @@ Use `linux_pilot.py run --cpus 16` with a matching 16-CPU Workflow reservation
 for performance-focused runs. The matched-provider command continues to default
 to four CPUs; its strict comparator rejects unequal CPU configurations.
 
+See [the migration path](./05-linux-ci-migration.md) for the proposed rollout
+and the prerequisite for retrying 32 vCPUs.
+
 References: [Workflows setup](https://www.buildbuddy.io/docs/workflows-setup/),
 [runner resources and images](https://www.buildbuddy.io/docs/workflows-config/),
 [artifact collection](https://www.buildbuddy.io/docs/remote-runner-features/).

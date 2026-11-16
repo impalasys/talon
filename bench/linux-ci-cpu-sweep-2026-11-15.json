@@ -2941,5 +2941,17 @@
       "measured_seconds": 274.92466259002686,
       "cpu_limit": 4
     }
-  ]
+  ],
+  "followup_32cpu_retry": {
+    "commit": "379b81c80d7cffb60eb32b65dbca2f34890f5206",
+    "state": "error",
+    "description": "Failed to start",
+    "status_created_at_utc": "2026-11-16T01:05:12Z",
+    "requested_cpu": 32,
+    "requested_memory_gb": 16,
+    "runner_started": false,
+    "measured_samples": 0,
+    "startup_error": "Failed to start workflow action \"BuildBuddy Linux CPU sweep 32\": Runner requests 32 vCPUs, exceeding your organization's per-runner CPU limit of 16 vCPUs. Reduce the runner size or contact support@buildbuddy.io to discuss your workload and request a higher limit.",
+    "evidence_url": "https://api.github.com/repos/impalasys/talon/commits/379b81c80d7cffb60eb32b65dbca2f34890f5206/status"
+  }
 }

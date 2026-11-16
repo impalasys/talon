@@ -120,8 +120,9 @@ within-workflow JVM reuse. Immediate warm build/test medians were 7.78, 6.18 and
 This is a small, within-VM experiment with cached UI tests and comment-only Rust
 edits. It establishes useful CPU scaling for this workload, not a 46% reduction
 in complete PR latency. The existing RocksDB `NUM_JOBS=4` annotation was unchanged,
-so it does not evaluate higher native C++ build-script parallelism. The measurement
-series stops at 16 CPUs.
+so it does not evaluate higher native C++ build-script parallelism. The successful measurement
+series stops at 16 CPUs; a subsequent 32-vCPU retry was also rejected before
+allocation, as recorded in the migration path.
 
 The [successful sweep](https://impalasys.buildbuddy.io/invocation/c9ebad51-8c55-4a86-9f1c-36df89d75e30)
 and [CPU-scaling evidence](../../bench/linux-ci-cpu-sweep-2026-11-15.json) include
@@ -152,6 +153,10 @@ pilot remains available for controlled provider comparisons.
 - Docker/Testcontainers, browser E2E, full runtime tests, artifact handoff to
   release jobs, and paid-plan costs are outside this measured workload. The
   current full PR critical path is not proven to improve by the same percentage.
+
+See [the staged migration path](./05-linux-ci-migration.md) for the full-job
+qualification, GitHub status bridge, cache ownership, artifact dependencies,
+32-vCPU retry, and later modularization investigation.
 
 ## Earlier measurements
 
