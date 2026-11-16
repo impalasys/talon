@@ -1,3 +1,4 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@rules_python//python:defs.bzl", "py_binary")
 
 py_binary(
@@ -12,4 +13,16 @@ py_binary(
     main = "benchmark_1000_agents.py",
     visibility = ["//visibility:public"],
     deps = ["//tests:support"],
+)
+
+# Advisory throughput thresholds; missing results are a CI failure. The workload
+# remains confined to one vCPU even on the larger BuildBuddy host.
+sh_test(
+    name = "ci_benchmark",
+    size = "enormous",
+    srcs = ["ci_benchmark.sh"],
+    args = ["$(rootpath //dockerfiles:benchmark_image)", "$(rootpath :benchmark)"],
+    data = [":benchmark", "//dockerfiles:benchmark_image"],
+    tags = ["exclusive", "no-cache", "no-remote-exec", "requires-docker"],
+    target_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
 )

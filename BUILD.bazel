@@ -523,3 +523,9 @@ js_library(
     srcs = [":proto_sources"],
     visibility = ["//visibility:public"],
 )
+
+# Configured CI discovery must filter host-incompatible targets before selection.
+platform(
+    name = "linux_ci",
+    constraint_values = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+)

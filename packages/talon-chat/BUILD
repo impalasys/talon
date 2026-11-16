@@ -189,8 +189,8 @@ js_test(
         "HOME",
     ],
     tags = [
-        "manual",
         "no-cache",
         "no-remote-exec",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
 )

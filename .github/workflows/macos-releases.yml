@@ -1,0 +1,76 @@
+name: Talon macOS Releases
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: macos-releases-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  macos_release:
+    name: macOS Release Archives
+    runs-on: macos-15
+    environment: desktop
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        persist-credentials: false
+    - uses: ./.github/actions/setup-bazel
+      with:
+        # Keep the existing native bucket warm while other jobs consolidate.
+        disk-cache: talon-bazel-Talon OSS CI-binary_artifacts
+        cache-save: true
+        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
+          || '' }}
+    - name: Build release archives
+      run: |
+        options=()
+        if [[ -n "$TALON_GOOGLE_CLIENT_ID" ]]; then options+=(--action_env=TALON_GOOGLE_CLIENT_ID); fi
+        if [[ -n "$TALON_GOOGLE_CLIENT_SECRET" ]]; then options+=(--action_env=TALON_GOOGLE_CLIENT_SECRET); fi
+        bazel build "${options[@]}" //:release-dist
+        bazel test "${options[@]}" //tools/bazel:release_archives_test
+      env:
+        TALON_GOOGLE_CLIENT_ID: ${{ secrets.TALON_GOOGLE_CLIENT_ID }}
+        TALON_GOOGLE_CLIENT_SECRET: ${{ secrets.TALON_GOOGLE_CLIENT_SECRET }}
+    - name: Stage release archives
+      run: |-
+        mkdir -p dist
+        cp -R bazel-bin/release-dist/. dist/
+        mv "dist/talon-darwin-arm64.tar.gz" "dist/talon-darwin-arm64-${GITHUB_SHA}.tar.gz"
+        mv dist/node.sha256 "dist/talon-node-darwin-arm64.tar.gz.sha256"
+    - name: Verify native npm release archive
+      env:
+        SDK_PLATFORM: darwin-arm64
+      run: |
+        package="sdk/js/talon-node-${SDK_PLATFORM}"
+        staging="$(mktemp -d)"
+        tar -xzf "dist/talon-node-${SDK_PLATFORM}.tar.gz" -C "$staging"
+        mkdir -p "${package}/bin"
+        install -m 755 "$staging/talon-node-${SDK_PLATFORM}/talon-node" "${package}/bin/talon-node"
+        bazel build "//${package}:archive"
+        python3 - <<'PY'
+        import os
+        from pathlib import Path
+        import tarfile
+
+        package = Path("sdk/js") / ("talon-node-" + os.environ["SDK_PLATFORM"])
+        with tarfile.open(Path("bazel-bin") / package / "pkg.tgz") as archive:
+            binary = archive.getmember("package/bin/talon-node")
+            assert binary.isfile() and binary.mode & 0o111, "npm binary must be executable"
+            assert archive.extractfile(binary).read() == (package / "bin/talon-node").read_bytes()
+            archive.getmember("package/index.js")
+            archive.getmember("package/package.json")
+        PY
+    - name: Upload binary artifact bundle
+      uses: actions/upload-artifact@v4
+      with:
+        name: talon-darwin-arm64-${{ github.sha }}
+        path: |
+          dist/talon-darwin-arm64-${{ github.sha }}.tar.gz
+          dist/SHA256SUMS
+          dist/talon-node-darwin-arm64.tar.gz
+          dist/talon-node-darwin-arm64.tar.gz.sha256
+        if-no-files-found: error
+        retention-days: 14

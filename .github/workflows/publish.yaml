@@ -1,6 +1,8 @@
 name: Publish Packages
 permissions:
   contents: write
+  statuses: read
+  pull-requests: read
   id-token: write
 jobs:
   detect:
@@ -39,17 +41,17 @@ jobs:
     - uses: actions/checkout@v5
       with:
         fetch-depth: 0
-    - uses: ./.github/actions/setup-bazel
-      with:
-        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
-          || '' }}
     - name: Detect changed SDK versions
       id: detect
       env:
         BASE_SHA: ${{ github.event.before }}
       run: python3 scripts/sdk/detect_version_changes.py
-    - name: Verify coordinated SDK versions
-      run: bazel test //scripts/sdk:versions_test //scripts/sdk:packages_test
+    - name: Require full monorepo CI before publishing
+      if: steps.detect.outputs.needs_node_binaries == 'true' || steps.detect.outputs.go_changed == 'true' || steps.detect.outputs.rust_changed == 'true' || steps.detect.outputs.python_changed == 'true' || steps.detect.outputs.java_changed == 'true' || steps.detect.outputs.js_changed == 'true' || steps.detect.outputs.js_chat_changed == 'true'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
+      run: python3 scripts/ci/fetch_ci_artifacts.py --manifest-only --output "$RUNNER_TEMP/verified-ci"
   build-node-binaries:
     name: Build talon-node SDK Binary
     if: needs.detect.outputs.needs_node_binaries == 'true'
@@ -66,16 +68,28 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - uses: ./.github/actions/setup-bazel
+      if: runner.os == 'macOS'
       with:
         disk-cache: talon-bazel-Talon OSS CI-binary_artifacts
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
           || '' }}
     - name: Build Bazel release distribution
+      if: runner.os == 'macOS'
       run: |-
         bazel build //:release-dist
         mkdir -p dist
         cp bazel-bin/release-dist/talon-node-*.tar.gz dist/
         cp bazel-bin/release-dist/node.sha256 "dist/talon-node-${{ matrix.platform }}.tar.gz.sha256"
+    - name: Retrieve verified Linux SDK binary
+      if: runner.os == 'Linux'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
+      run: |
+        python3 scripts/ci/fetch_ci_artifacts.py --output "$RUNNER_TEMP/verified-ci"
+        mkdir -p dist
+        cp "$RUNNER_TEMP/verified-ci/release/talon-node-linux-x64.tar.gz" dist/
+        cp "$RUNNER_TEMP/verified-ci/release/node.sha256" dist/talon-node-linux-x64.tar.gz.sha256
     - name: Upload talon-node binary
       uses: actions/upload-artifact@v4
       with:
@@ -178,8 +192,6 @@ jobs:
       with:
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
           || '' }}
-    - name: Test Rust SDK packages with Bazel
-      run: bazel test //sdk/rust/...
     - name: Set up Rust toolchain
       uses: dtolnay/rust-toolchain@stable
     - name: Download talon-node binaries
@@ -270,8 +282,6 @@ jobs:
         if [ "${{ needs.detect.outputs.js_node_darwin_changed }}" = "true" ]; then
           test -x sdk/js/talon-node-darwin-arm64/bin/talon-node
         fi
-    - name: Validate SDKs and packed chat artifact
-      run: bazel test //scripts/sdk:packages_test //sdk/js/... //packages/talon-chat:unit_tests //packages/talon-chat:package_test
     - name: Publish changed npm packages
       env:
         SDK_VERSION: ${{ needs.detect.outputs.sdk_version }}
@@ -346,7 +356,6 @@ jobs:
       run: |-
         test -n "$MAVEN_PUBLISH_URL"
         export MAVEN_REPO="$MAVEN_PUBLISH_URL" MAVEN_USER="$MAVEN_PUBLISH_USERNAME" MAVEN_PASSWORD="$MAVEN_PUBLISH_PASSWORD"
-        bazel test //sdk/java/...
         bazel run //sdk/java/talon-client:talon_client.publish
         bazel run //sdk/java/talon-server:talon_server.publish
 'on':

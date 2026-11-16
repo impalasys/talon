@@ -76,6 +76,5 @@ py_test(
         "//:release-dist_node",
         "//:release-dist_runtime",
     ],
-    tags = ["manual"],
     deps = [requirement("pyyaml")],
 )

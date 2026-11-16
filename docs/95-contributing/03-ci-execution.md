@@ -8,16 +8,13 @@ workload is 46% faster than the four-CPU cap on the same VM. macOS releases and
 publishing remain on GitHub Actions. See the results below before generalizing
 to Docker-backed or full-pipeline CI.
 
-The first migration step moves the **Bazel build/test job for same-repository
-PRs** to BuildBuddy at 16 CPUs / 32 GB RAM, behind GitHub's existing `Bazel`
-check. [Full validation](./05-linux-ci-migration.md#first-cutover-configuration)
-passed all 45 uncached test targets, including enabled Docker sandbox tests, and
-the complete production/SDK/UI/docs/chat build. Main and forks keep GitHub
-execution; macOS releases, publishing and the other Linux jobs retain their
-GitHub producers. This is separate from the historical timing experiments below.
-
-The [Linux pilot runbook](./04-linux-ci-pilot.md) describes the checked-in
-side-by-side configuration, activation and measurement procedure.
+The current configuration consolidates Linux CI into one **Talon CI**
+BuildBuddy Workflow at 16 CPUs / 32 GiB RAM: affected targets on PRs, full
+Linux-compatible monorepo build/test on main, including Docker and browser E2E.
+GitHub retains macOS releases, credential-configured main release packaging,
+publishing/deployment and reports. See the [operations guide](./04-linux-ci-pilot.md)
+and [consolidation design](./05-linux-ci-migration.md) for current behavior.
+The measurements below describe the earlier smaller controlled workloads.
 
 ## Controlled Linux results (2026-11-15)
 
@@ -262,35 +259,12 @@ assumed here.
 
 ## Decision and next steps
 
-**Run same-repository PR Bazel builds/tests on BuildBuddy at 16 CPUs / 32 GB.**
-Keep the controlled pilot for measuring further migration. The matched four-CPU experiment
-shows 68% lower unchanged-revision turnaround and 16–23% lower turnaround on the
-two source probes. The later CPU sweep shows an additional 46% reduction in
-source-edit command time at 16 versus four CPUs on the same VM. More available
-compute is a material benefit for this workload; equal-CPU results alone do not
-capture it.
+Use 16 CPUs / 32 GiB RAM for the consolidated BuildBuddy Linux workflow. The
+historical sweep above used 16 GiB and demonstrated within-VM scaling, not a
+full-pipeline speedup. Measure the broader CI workload separately, including
+artifact movement, Docker/browser suites and PR affected-target selection.
 
-The larger allocation strengthens the case for moving Linux compilation to
-BuildBuddy. The complete Bazel job, including Docker sandbox tests, now passes on the
-32-GB full-job configuration. Matched full-PR latency, artifact handoff and costs
-remain unmeasured. Cross-workflow JVM reuse also
-remains unproven. The scaling percentage must not be applied directly to the
-older GitHub end-to-end timings, which include different startup/cache state.
-
-After the first Bazel cutover, evaluate further Linux migration:
-
-1. Refresh GitHub's disk snapshot after source changes, using a bounded cache
-   rotation policy, and compare against that improved baseline.
-2. Resolve BuildBuddy's JVM restart/recycling behavior and the Rust rebuild on
-   the UI-only change; verify retained analysis and output reuse from counters
-   and action diagnostics rather than assuming them.
-3. In a subsequent evaluation, use the selected 16-CPU candidate for representative
-   Rust and UI changes, then run Docker/Testcontainers,
-   runtime and browser suites. Measure complete PR feedback time, failure
-   artifacts, artifact handoff and cost. A fresh-cache comparison remains
-   separate work if cold-run performance matters to the decision.
-
-GitHub baselines remain manual on main; no new API key was created. macOS
-releases, publishing, deployments and existing required checks stay on GitHub
-Actions. Remote execution remains disabled so its performance can be evaluated
-separately from the orchestrator.
+The old GitHub cache-writer dependency no longer determines Linux CI routing:
+its separate validation consumers have moved into the same BuildBuddy runner.
+Publishing and native release jobs retain their own GitHub responsibilities.
+Further work is the measured [modularization investigation](./05-linux-ci-migration.md#later-build-optimization-modularization).

@@ -4,5 +4,4 @@ genrule(
     srcs = ["input.txt"],
     outs = ["output.txt"],
     cmd = "cat $(SRCS) > $@",
-    tags = ["manual"],
 )
