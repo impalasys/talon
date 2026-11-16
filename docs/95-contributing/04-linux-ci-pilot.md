@@ -87,3 +87,5 @@ python3 scripts/ci/linux_build.py --full --output /tmp/talon-ci
 Rollback is a reviewed revert of the consolidation commit, restoring the
 previous workflows together with their artifact producers. Do not leave a
 publisher consuming unverified or mutable latest artifacts during a rollback.
+
+<!-- Temporary documentation-only edit for affected-target CI verification. -->
