@@ -3,7 +3,6 @@
 
 import argparse
 import json
-import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -75,6 +74,12 @@ def run(output):
                 if phase == "test":
                     row["tests"] = summaries(event_file)
                 result["samples"].append(row)
+                if phase == "test" and code == 0:
+                    tests = row["tests"]
+                    if (not any(t["label"] == "//:talon_test" for t in tests) or
+                            any(t.get("overallStatus") != "PASSED" or
+                                int(t.get("totalNumCached", 0)) for t in tests)):
+                        raise RuntimeError("Full validation requires uncached passing tests, including //:talon_test")
                 if code:
                     return code
         result["success"] = True

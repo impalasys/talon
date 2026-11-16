@@ -14,3 +14,13 @@ py_test(
     imports = ["."],
     main = "test_linux_pilot.py",
 )
+
+py_test(
+    name = "buildbuddy_gate_test",
+    srcs = [
+        "test_buildbuddy_gate.py",
+        "wait_buildbuddy.py",
+    ],
+    imports = ["."],
+    main = "test_buildbuddy_gate.py",
+)

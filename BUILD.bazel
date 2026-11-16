@@ -16,6 +16,7 @@ package(default_visibility = ["//visibility:public"])
 exports_files([
     "Cargo.toml",
     "Cargo.lock",
+    "package.json",
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",
     ".bazelignore",
