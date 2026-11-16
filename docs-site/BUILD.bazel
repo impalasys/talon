@@ -51,13 +51,13 @@ js_run_binary(
 
 blume_bin.blume_test(
     name = "check",
+    env = {"ASTRO_TELEMETRY_DISABLED": "1"},
     args = ["check"],
     chdir = package_name(),
     data = [
         ":node_modules",
         ":sources",
     ],
-    tags = ["manual"],
 )
 
 js_binary(

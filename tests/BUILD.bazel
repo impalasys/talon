@@ -30,8 +30,7 @@ py_library(
         ["**/*.py"],
         exclude = [
             "test_*.py",
-            "conftest.py",
-            "run_e2e_stack.py",
+                "run_e2e_stack.py",
         ],
     ),
     data = glob([
@@ -50,19 +49,28 @@ py_library(
     ],
 )
 
+# One owner for shared pytest fixtures: execution tags on different py_test
+# rules otherwise produce conflicting bytecode actions for the same source.
+py_library(
+    name = "conftest",
+    srcs = ["conftest.py"],
+    deps = [":support"],
+)
+
 py_test(
     name = "e2e_tests",
     size = "large",
-    srcs = [
-        "conftest.py",
-    ] + glob(["test_*.py"]),
+    srcs = glob(
+        ["test_*.py"],
+        exclude = ["test_harness.py", "test_durable_sessions_stress.py"],
+    ),
     args = [
         "-q",
         "-o",
         "cache_dir=$$TEST_UNDECLARED_OUTPUTS_DIR/pytest-cache",
     ] + ["tests/" + path for path in glob(
         ["test_*.py"],
-        exclude = ["test_durable_sessions_stress.py"],
+        exclude = ["test_harness.py", "test_durable_sessions_stress.py"],
     )],
     data = [
         "//:e2e_binaries",
@@ -71,18 +79,17 @@ py_test(
     main_module = "pytest",
     tags = [
         "exclusive",
-        "manual",
         "no-cache",
         "no-remote-exec",
         "requires-docker",
     ],
-    deps = [":support"],
+    deps = [":conftest", ":support"],
+    target_compatible_with = ["@platforms//os:linux"],
 )
 
 py_test(
     name = "harness_test",
     srcs = [
-        "conftest.py",
         "test_harness.py",
     ],
     args = [
@@ -92,7 +99,7 @@ py_test(
         "tests/test_harness.py",
     ],
     main_module = "pytest",
-    deps = [":support"],
+    deps = [":conftest", ":support"],
 )
 
 py_binary(
@@ -119,7 +126,6 @@ py_test(
     name = "stress",
     size = "enormous",
     srcs = [
-        "conftest.py",
         "test_durable_sessions_stress.py",
     ],
     args = [
@@ -132,10 +138,10 @@ py_test(
     main_module = "pytest",
     tags = [
         "exclusive",
-        "manual",
         "no-cache",
         "no-remote-exec",
         "requires-docker",
     ],
-    deps = [":support"],
+    deps = [":conftest", ":support"],
+    target_compatible_with = ["@platforms//os:linux"],
 )

@@ -1,53 +1,5 @@
-# Linux PR compilation/tests run here; releases and publishing stay in GitHub Actions.
 actions:
-  - name: BuildBuddy Linux pilot
-    os: linux
-    arch: amd64
-    container_image: ubuntu-24.04
-    # Use the same plain Bazel client as GitHub, including startup rc handling.
-    bazel_use_cli: false
-    resource_requests:
-      cpu: 4
-      memory: 16GB
-      disk: 40GB
-    timeout: 90m
-    allow_concurrent_runs: false
-    allow_concurrent_runs_on_branches: []
-    triggers:
-      push:
-        branches: ["codex/bb-pilot-control-*"]
-    steps:
-      - run: |
-          set -euo pipefail
-          export PILOT_SETUP_STARTED_AT="$(date +%s)"
-          bash scripts/ci/linux-pilot-setup.sh
-          python3 scripts/ci/linux_pilot.py run --provider buildbuddy \
-            --output "$BUILDBUDDY_ARTIFACTS_DIRECTORY"
-
-  # Explicit experiment branch only; does not change the matched four-CPU pilot.
-  - name: BuildBuddy Linux CPU sweep
-    os: linux
-    arch: amd64
-    container_image: ubuntu-24.04
-    bazel_use_cli: false
-    resource_requests:
-      cpu: 16
-      memory: 16GB
-      disk: 40GB
-    timeout: 60m
-    allow_concurrent_runs: false
-    allow_concurrent_runs_on_branches: []
-    triggers:
-      push:
-        branches: ["codex/bb-cpu-sweep"]
-    steps:
-      - run: |
-          set -euo pipefail
-          bash scripts/ci/linux-pilot-setup.sh
-          python3 scripts/ci/linux_cpu_sweep.py \
-            --output "$BUILDBUDDY_ARTIFACTS_DIRECTORY" --cpus 4 8 16
-
-  - name: BuildBuddy Linux build/test
+  - name: Talon CI
     os: linux
     arch: amd64
     container_image: ubuntu-24.04
@@ -56,12 +8,16 @@ actions:
       cpu: 16
       memory: 32GB
       disk: 80GB
-    timeout: 60m
-    allow_concurrent_runs: false
-    allow_concurrent_runs_on_branches: []
+    timeout: 90m
+    # Each main revision can have an independent SDK publication waiting on it.
+    # Superseding PR heads may cancel; main validation must finish per commit.
+    allow_concurrent_runs_on_branches: [main]
     triggers:
       push:
-        branches: ["*"]
+        branches: [main]
+      pull_request:
+        branches: [main]
+        merge_with_base: true
     steps:
       - run: |
           set -euo pipefail

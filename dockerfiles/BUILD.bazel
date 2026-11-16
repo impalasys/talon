@@ -1,3 +1,4 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@bazel_skylib//rules:select_file.bzl", "select_file")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@pypi//:requirements.bzl", "requirement")
@@ -303,3 +304,20 @@ alias(
     actual = "@runtime_os//:flat",
     target_compatible_with = LINUX,
 )
+
+sh_test(
+    name = "runtime_smoke_test",
+    srcs = ["runtime_smoke_test.sh"],
+    args = ["$(rootpath :runtime_image)"],
+    data = [":runtime_image"],
+    tags = ["exclusive", "no-cache", "no-remote-exec", "requires-docker"],
+    target_compatible_with = LINUX,
+)
+
+# Transfer the verified image bytes to GitHub publishers without rebuilding.
+[filegroup(
+    name = name + "_tar",
+    srcs = [":" + name + "_image"],
+    output_group = "tarball",
+    target_compatible_with = LINUX,
+) for name in ["runtime", "ui", "acp"]]

@@ -1,223 +1,188 @@
 name: Talon OSS CI
-concurrency:
-  group: talon-oss-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+# This workflow relays data and publishes; all Linux validation is in BuildBuddy.
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: talon-artifacts-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
-  # Skipped manual-run jobs must not replace the real PR check contexts.
-  bazel:
-    if: github.event_name != 'workflow_dispatch'
-    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Bazel
+  artifacts:
+    name: Collect verified BuildBuddy artifacts
     runs-on: ubuntu-24.04
-    timeout-minutes: 75
+    timeout-minutes: 110
     permissions:
       contents: read
       statuses: read
       pull-requests: read
-    env:
-      USE_BUILDBUDDY: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && vars.BUILDBUDDY_LINUX_PR_BUILDS != 'false' }}
+    outputs:
+      images: ${{ steps.fetch.outputs.images }}
+      storybook: ${{ steps.fetch.outputs.publish_storybook }}
+      sightline: ${{ steps.fetch.outputs.publish_sightline }}
+      head: ${{ steps.fetch.outputs.head }}
     steps:
-    - uses: actions/checkout@v5
-      with:
-        persist-credentials: false
-    - name: Verify BuildBuddy Linux build and tests
-      if: env.USE_BUILDBUDDY == 'true'
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: python3 scripts/ci/wait_buildbuddy.py
-    - uses: ./.github/actions/setup-bazel
-      if: env.USE_BUILDBUDDY != 'true'
-      with:
-        # Main remains the canonical cache writer for the GitHub consumers.
-        cache-save: true
-        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
-          || '' }}
-    - name: Build and test compilation targets
-      if: env.USE_BUILDBUDDY != 'true'
-      # Cache compilation/package-consumer outputs here. The dedicated image
-      # and release jobs validate their archives without duplicating those
-      # large assembly outputs in this shared snapshot.
-      run: |
-        bazel test --build_tests_only //...
-        bazel build //:binaries //:production_binaries //sdk/... \
-          //tools/install-hooks/... //ui:dist //docs-site:dist //packages/talon-chat/...
-  runtime_image:
-    if: github.event_name != 'workflow_dispatch'
-    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Runtime Image
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      packages: write
-    steps:
-    - uses: actions/checkout@v5
-      with:
-        persist-credentials: false
-    - uses: ./.github/actions/setup-bazel
-      with:
-        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
-          || '' }}
-    - name: Log in to GHCR
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: docker/login-action@v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build and publish OCI image
-      run: |
-        bazel build //dockerfiles:runtime
-        bazel run //dockerfiles:runtime_image
-        docker run --rm talon-runtime:dev sh -ec 'talon-cli --help >/dev/null; python3 -c "import pytest, grpc, boto3"; monty --help >/dev/null; docker --version; curl --version'
-        if [[ "$PUBLISH_IMAGE" == "true" ]]; then
-          bazel run //dockerfiles:runtime_push -- --tag latest --tag "sha-${GITHUB_SHA}"
-        fi
-      env:
-        PUBLISH_IMAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-  acp_harness_image:
-    if: github.event_name != 'workflow_dispatch'
-    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}ACP Harness Sandbox Image
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      packages: write
-    steps:
-    - uses: actions/checkout@v5
-      with:
-        persist-credentials: false
-    - uses: ./.github/actions/setup-bazel
-      with:
-        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
-          || '' }}
-    - name: Log in to GHCR
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: docker/login-action@v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build and verify ACP OCI image
-      run: |
-        bazel test //dockerfiles/acp:smoke_test --test_output=streamed
-        if [[ "$PUBLISH_IMAGE" == "true" ]]; then
-          for repository in talon-acp-harness talon-codex-acp talon-claude-code-acp talon-opencode-acp; do
-            bazel run //dockerfiles:acp_push -- --repository "ghcr.io/impalasys/${repository}" \
-              --tag latest --tag "sha-${GITHUB_SHA}"
-          done
-        fi
-      env:
-        PUBLISH_IMAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      # Never check out or execute PR code in this credential-bearing job.
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+      - name: Retrieve exact-revision BuildBuddy outputs
+        id: fetch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
+        run: python3 scripts/ci/fetch_ci_artifacts.py --output "$RUNNER_TEMP/buildbuddy"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: buildbuddy-metadata
+          path: ${{ runner.temp }}/buildbuddy/pr.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: steps.fetch.outputs.images == 'true'
+        with:
+          name: linux-ci-images
+          path: ${{ runner.temp }}/buildbuddy/images/
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        if: steps.fetch.outputs.release == 'true'
+        with:
+          name: linux-ci-release-archives
+          path: ${{ runner.temp }}/buildbuddy/release/
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        if: steps.fetch.outputs.storybook == 'true'
+        with:
+          name: talon-chat-storybook
+          path: ${{ runner.temp }}/buildbuddy/storybook/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: steps.fetch.outputs.sightline_static_export == 'true'
+        with:
+          name: sightline-static-export
+          path: ${{ runner.temp }}/buildbuddy/sightline-static-export/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: steps.fetch.outputs.sightline_e2e_screenshots == 'true'
+        with:
+          name: sightline-e2e-screenshots
+          path: ${{ runner.temp }}/buildbuddy/sightline-e2e-screenshots/
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: steps.fetch.outputs.sightline_e2e_dark_preview == 'true'
+        with:
+          name: sightline-e2e-dark-preview
+          path: ${{ runner.temp }}/buildbuddy/sightline-e2e-dark-preview/
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: steps.fetch.outputs.talon_chat_storybook_screenshots == 'true'
+        with:
+          name: talon-chat-storybook-screenshots
+          path: ${{ runner.temp }}/buildbuddy/talon-chat-storybook-screenshots/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: steps.fetch.outputs.benchmark == 'true'
+        with:
+          name: talon-1vcpu-benchmark-${{ steps.fetch.outputs.head }}
+          path: ${{ runner.temp }}/buildbuddy/benchmark/
+          if-no-files-found: error
 
-  ui:
-    if: github.event_name != 'workflow_dispatch'
-    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}UI
+  images:
+    name: Publish verified OCI images
+    if: github.event_name == 'push' && needs.artifacts.outputs.images == 'true'
+    needs: artifacts
     runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
     steps:
-    - uses: actions/checkout@v5
-      with:
-        persist-credentials: false
-    - uses: ./.github/actions/setup-bazel
-      with:
-        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
-          || '' }}
-    - name: Log in to GHCR
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: docker/login-action@v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build and publish OCI image
-      run: |
-        bazel build //dockerfiles:ui
-        if [[ "$PUBLISH_IMAGE" == "true" ]]; then
-          bazel run //dockerfiles:ui_push -- --tag latest --tag "sha-${GITHUB_SHA}"
-        fi
-      env:
-        PUBLISH_IMAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-  sightline_e2e_screenshots:
-    if: github.event_name != 'workflow_dispatch'
-    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Sightline E2E Screenshots
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-ci-images
+          path: images
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Publish the tested image bytes
+        env:
+          COMMIT: ${{ needs.artifacts.outputs.head }}
+        run: |
+          set -euo pipefail
+          for image in runtime ui acp; do docker load -i "images/$image.tar"; done
+          publish() {
+            for tag in latest "sha-$COMMIT"; do
+              docker tag "$1" "ghcr.io/impalasys/$2:$tag"
+              docker push "ghcr.io/impalasys/$2:$tag"
+            done
+          }
+          publish talon-runtime:dev talon-runtime
+          publish talon-ui:dev talon-ui
+          for repository in talon-acp-harness talon-codex-acp talon-claude-code-acp talon-opencode-acp; do
+            publish talon-acp-harness:local "$repository"
+          done
+
+  sightline:
+    name: Deploy verified Sightline export
+    if: github.event_name == 'push' && needs.artifacts.outputs.sightline == 'true'
+    needs: artifacts
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
-    permissions:
-      actions: read
-      contents: read
-    env:
-      TESTCONTAINERS_RYUK_DISABLED: 'true'
     steps:
-    - uses: actions/checkout@v5
-      with:
-        persist-credentials: false
-    - uses: ./.github/actions/setup-bazel
-      with:
-        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
-          || '' }}
-    - name: Install Playwright Chromium
-      run: bazel run //ui:playwright -- install --with-deps chromium
-    - name: Check Docker daemon
-      run: docker info
-    - name: Run live session reconciliation and screenshot E2E
-      run: bazel test //ui:e2e --test_arg=--grep --test_arg="Live session reconciliation|@screenshots" --test_env=CI=true
-        --test_env=TESTCONTAINERS_RYUK_DISABLED=true
-    - name: Upload Sightline screenshots
-      id: upload
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: sightline-e2e-screenshots
-        path: bazel-testlogs/ui/e2e/test.outputs/*.png
-        if-no-files-found: error
-        retention-days: 14
-    - name: Upload dark preview screenshot
-      id: upload-preview
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: sightline-e2e-dark-preview
-        path: bazel-testlogs/ui/e2e/test.outputs/sightline-chat-dark.png
-        if-no-files-found: error
-        retention-days: 14
-  python_e2e:
-    if: github.event_name != 'workflow_dispatch'
-    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Python E2E
+      - uses: actions/download-artifact@v4
+        with:
+          name: sightline-static-export
+          path: ui/dist
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.17.1
+          standalone: true
+      - name: Deploy to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+          COMMIT: ${{ needs.artifacts.outputs.head }}
+        run: pnpm dlx wrangler@4 pages deploy ui/dist --project-name=talon-sightline --branch=main --commit-hash="$COMMIT" --commit-dirty=true
+
+  chromatic:
+    name: Publish verified Storybook
+    if: needs.artifacts.outputs.storybook == 'true' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
+    needs: artifacts
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
     env:
-      TESTCONTAINERS_RYUK_DISABLED: 'true'
+      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+      CHROMATIC_SHA: ${{ needs.artifacts.outputs.head }}
+      CHROMATIC_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+      CHROMATIC_SLUG: ${{ github.repository }}
     steps:
-    - uses: actions/checkout@v5
-      with:
-        persist-credentials: false
-    - uses: ./.github/actions/setup-bazel
-      with:
-        buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
-          || '' }}
-    - name: Check Docker daemon
-      run: docker info
-    - name: Run Python E2E suite
-      run: bazel test //tests:e2e_tests --test_env=TESTCONTAINERS_RYUK_DISABLED=true
-  binary_artifacts:
-    name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Binary Artifacts (${{ matrix.os }}, ${{ matrix.artifact_name }}, ${{ matrix.sdk_platform }})
-    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
-    needs:
-    - bazel
-    - runtime_image
-    - ui
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        - os: ubuntu-24.04
-          artifact_name: linux-x86_64
-          sdk_platform: linux-x64
-        - os: macos-15
-          artifact_name: darwin-arm64
-          sdk_platform: darwin-arm64
-    runs-on: ${{ matrix.os }}
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: talon-chat-storybook
+          path: packages/talon-chat/storybook-static
+      - uses: chromaui/action@latest
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
+        with:
+          projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: packages/talon-chat
+          storybookBuildDir: storybook-static
+  linux_release:
+    name: Linux Release Archives
+    if: github.event_name == 'push'
+    needs: artifacts
+    runs-on: ubuntu-24.04
     environment: desktop
     steps:
     - uses: actions/checkout@v5
@@ -244,11 +209,11 @@ jobs:
       run: |-
         mkdir -p dist
         cp -R bazel-bin/release-dist/. dist/
-        mv "dist/talon-${{ matrix.artifact_name }}.tar.gz" "dist/talon-${{ matrix.artifact_name }}-${GITHUB_SHA}.tar.gz"
-        mv dist/node.sha256 "dist/talon-node-${{ matrix.sdk_platform }}.tar.gz.sha256"
+        mv "dist/talon-linux-x86_64.tar.gz" "dist/talon-linux-x86_64-${GITHUB_SHA}.tar.gz"
+        mv dist/node.sha256 "dist/talon-node-linux-x64.tar.gz.sha256"
     - name: Verify native npm release archive
       env:
-        SDK_PLATFORM: ${{ matrix.sdk_platform }}
+        SDK_PLATFORM: linux-x64
       run: |
         package="sdk/js/talon-node-${SDK_PLATFORM}"
         staging="$(mktemp -d)"
@@ -272,53 +237,11 @@ jobs:
     - name: Upload binary artifact bundle
       uses: actions/upload-artifact@v4
       with:
-        name: talon-${{ matrix.artifact_name }}-${{ github.sha }}
+        name: talon-linux-x86_64-${{ github.sha }}
         path: |
-          dist/talon-${{ matrix.artifact_name }}-${{ github.sha }}.tar.gz
+          dist/talon-linux-x86_64-${{ github.sha }}.tar.gz
           dist/SHA256SUMS
-          dist/talon-node-${{ matrix.sdk_platform }}.tar.gz
-          dist/talon-node-${{ matrix.sdk_platform }}.tar.gz.sha256
+          dist/talon-node-linux-x64.tar.gz
+          dist/talon-node-linux-x64.tar.gz.sha256
         if-no-files-found: error
         retention-days: 14
-  buildbuddy_cache_probe:
-    name: BuildBuddy Cache Verification
-    # Only repository writers can dispatch this job. PR events never receive
-    # the writer credential, including PRs originating from forks.
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-    - uses: actions/checkout@v5
-      with:
-        persist-credentials: false
-    - uses: ./.github/actions/setup-bazel
-      with:
-        disk-cache: false
-        buildbuddy-api-key: ${{ secrets.BUILDBUDDY_API_KEY }}
-    - name: Verify remote write and independent read
-      shell: bash
-      run: |
-        test -s .bazelrc.local || { echo 'BUILDBUDDY_API_KEY is missing'; exit 1; }
-        printf 'Run %s/%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" >> tools/bazel/cache_probe/input.txt
-        options=(--disk_cache= --color=no --curses=no --remote_download_outputs=all)
-        bazel --output_base="$RUNNER_TEMP/buildbuddy-write" build "${options[@]}" \
-          --noremote_accept_cached --remote_upload_local_results=true \
-          //tools/bazel/cache_probe:action 2>&1 | tee "$RUNNER_TEMP/buildbuddy-write.log"
-        bazel --output_base="$RUNNER_TEMP/buildbuddy-read" build "${options[@]}" \
-          --remote_accept_cached --remote_upload_local_results=false \
-          //tools/bazel/cache_probe:action 2>&1 | tee "$RUNNER_TEMP/buildbuddy-read.log"
-        grep -Eq '[1-9][0-9]* remote cache hit' "$RUNNER_TEMP/buildbuddy-read.log"
-        cmp tools/bazel/cache_probe/input.txt bazel-bin/tools/bazel/cache_probe/output.txt
-    - name: Upload cache verification logs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: buildbuddy-cache-verification
-        path: ${{ runner.temp }}/buildbuddy-*.log
-        if-no-files-found: error
-'on':
-  workflow_dispatch:
-  pull_request: null
-  push:
-    branches:
-    - main

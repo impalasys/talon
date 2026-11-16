@@ -169,9 +169,9 @@ js_test(
     no_copy_to_bin = ["//tests:e2e_stack"],
     tags = [
         "exclusive",
-        "manual",
         "no-cache",
         "no-remote-exec",
         "requires-docker",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
 )

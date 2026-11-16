@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 bash scripts/ci/linux-pilot-setup.sh
-if ! command -v docker >/dev/null; then
+missing=()
+command -v docker >/dev/null || missing+=(docker.io)
+command -v unzip >/dev/null || missing+=(unzip)
+if (( ${#missing[@]} )); then
   sudo apt-get update
-  sudo apt-get install -y --no-install-recommends docker.io
+  sudo apt-get install -y --no-install-recommends "${missing[@]}"
 fi
 if ! sudo docker info >/dev/null 2>&1; then
   sudo sh -c 'nohup dockerd --host=unix:///var/run/docker.sock > /var/log/talon-ci-docker.log 2>&1 < /dev/null &'

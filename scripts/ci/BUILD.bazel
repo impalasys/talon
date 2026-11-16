@@ -1,3 +1,4 @@
+load("@aspect_rules_js//js:defs.bzl", "js_test")
 load("@rules_python//python:defs.bzl", "py_test")
 
 py_test(
@@ -15,19 +16,38 @@ py_test(
     main = "test_linux_pilot.py",
 )
 
-py_test(
-    name = "buildbuddy_gate_test",
-    srcs = [
-        "test_buildbuddy_gate.py",
-        "wait_buildbuddy.py",
-    ],
-    imports = ["."],
-    main = "test_buildbuddy_gate.py",
-)
 
 py_test(
     name = "buildbuddy_api_test",
     srcs = ["buildbuddy_api.py", "test_buildbuddy_api.py"],
     imports = ["."],
     main = "test_buildbuddy_api.py",
+)
+
+py_test(
+    name = "affected_targets_test",
+    srcs = ["affected_targets.py", "test_affected_targets.py"],
+    imports = ["."],
+    main = "test_affected_targets.py",
+)
+
+py_test(
+    name = "ci_artifacts_test",
+    srcs = ["buildbuddy_api.py", "fetch_ci_artifacts.py", "test_ci_artifacts.py"],
+    imports = ["."],
+    main = "test_ci_artifacts.py",
+)
+
+py_test(
+    name = "linux_build_test",
+    srcs = ["affected_targets.py", "linux_build.py", "linux_pilot.py", "test_linux_build.py"],
+    data = ["linux-pilot-packages.txt", "//bench:ci_benchmark.sh"],
+    imports = ["."],
+    main = "test_linux_build.py",
+)
+
+js_test(
+    name = "buildbuddy_report_test",
+    entry_point = "buildbuddy_report_test.cjs",
+    data = ["//.github/scripts:buildbuddy_report"],
 )

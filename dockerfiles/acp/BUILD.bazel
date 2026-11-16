@@ -45,7 +45,6 @@ sh_test(
         "//dockerfiles:acp_image",
     ],
     tags = [
-        "manual",
         "no-cache",
         "no-remote-exec",
         "requires-docker",

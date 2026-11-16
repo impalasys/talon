@@ -6,16 +6,14 @@ name: Talon PR Reports
 on:
   workflow_run:
     workflows:
-      - Talon 1 vCPU Benchmark
       - Talon OSS CI
-      - Talon Chat Screenshots
     types: [completed]
 
 jobs:
   benchmark:
     if: >-
-      github.event.workflow_run.name == 'Talon 1 vCPU Benchmark' &&
-      github.event.workflow_run.event == 'pull_request'
+      github.event.workflow_run.name == 'Talon OSS CI' &&
+      github.event.workflow_run.event == 'pull_request_target'
     name: Report 1 vCPU benchmark
     runs-on: ubuntu-latest
     concurrency:
@@ -23,15 +21,20 @@ jobs:
       cancel-in-progress: false
     permissions:
       actions: read
+      contents: read
       issues: write
       pull-requests: read
     steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - name: Resolve PR and benchmark artifact
         id: meta
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            if (!(await require("./.github/scripts/buildbuddy-report.js")({github, context}))) return;
             const run = context.payload.workflow_run;
             const { owner, repo } = context.repo;
             const outputs = {
@@ -214,7 +217,7 @@ jobs:
   sightline:
     if: >-
       github.event.workflow_run.name == 'Talon OSS CI' &&
-      github.event.workflow_run.event == 'pull_request'
+      github.event.workflow_run.event == 'pull_request_target'
     name: Report Sightline screenshots
     runs-on: ubuntu-latest
     concurrency:
@@ -226,12 +229,16 @@ jobs:
       issues: write
       pull-requests: read
     steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - name: Resolve PR and screenshot artifacts
         id: meta
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            if (!(await require("./.github/scripts/buildbuddy-report.js")({github, context}))) return;
             const run = context.payload.workflow_run;
             const { owner, repo } = context.repo;
             const outputs = {
@@ -284,6 +291,7 @@ jobs:
             );
             const full = artifactByName.get("sightline-e2e-screenshots");
             const preview = artifactByName.get("sightline-e2e-dark-preview");
+            if (!full) return;
 
             core.setOutput("pr_number", String(pullRequest.number));
             core.setOutput("base_ref", pullRequest.base.ref);
@@ -468,8 +476,8 @@ jobs:
 
   chat:
     if: >-
-      github.event.workflow_run.name == 'Talon Chat Screenshots' &&
-      github.event.workflow_run.event == 'pull_request'
+      github.event.workflow_run.name == 'Talon OSS CI' &&
+      github.event.workflow_run.event == 'pull_request_target'
     name: Report Talon Chat screenshots
     runs-on: ubuntu-latest
     concurrency:
@@ -477,15 +485,20 @@ jobs:
       cancel-in-progress: false
     permissions:
       actions: read
+      contents: read
       issues: write
       pull-requests: read
     steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - name: Resolve PR and screenshot artifact
         id: meta
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            if (!(await require("./.github/scripts/buildbuddy-report.js")({github, context}))) return;
             const run = context.payload.workflow_run;
             const { owner, repo } = context.repo;
             core.setOutput("pr_number", "");
