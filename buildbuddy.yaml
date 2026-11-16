@@ -1,4 +1,4 @@
-# Experimental Linux checks only; releases and publishing stay in GitHub Actions.
+# Linux PR compilation/tests run here; releases and publishing stay in GitHub Actions.
 actions:
   - name: BuildBuddy Linux pilot
     os: linux
@@ -15,7 +15,7 @@ actions:
     allow_concurrent_runs_on_branches: []
     triggers:
       push:
-        branches: [main, "codex/bb-pilot-*"]
+        branches: ["codex/bb-pilot-control-*"]
     steps:
       - run: |
           set -euo pipefail
@@ -61,7 +61,7 @@ actions:
     allow_concurrent_runs_on_branches: []
     triggers:
       push:
-        branches: ["codex/bb-linux-validation"]
+        branches: ["*"]
     steps:
       - run: |
           set -euo pipefail

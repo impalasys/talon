@@ -4,7 +4,31 @@ Status: 2026-11-15. This is the implementation sequence for moving Linux
 compilation to BuildBuddy while keeping macOS releases and publishing on GitHub
 Actions. The [assessment](./03-ci-execution.md) contains measured results; the
 [pilot runbook](./04-linux-ci-pilot.md) describes the existing experiment.
-Production checks and branch rules have not been changed by this plan.
+The first cutover routes same-repository PR Bazel compilation/tests through
+BuildBuddy. Main and fork PRs keep GitHub execution; branch rules are unchanged.
+Image/E2E jobs, native archives, macOS releases and publishing retain their GitHub
+producers. Later phases below describe further work, not completed migrations.
+
+## First cutover configuration
+
+The full action requests 16 CPUs, **32 GB RAM** and 80 GB disk, with a 4 GiB JVM
+heap and 20 GiB action-memory budget. The earlier smaller-workload CPU sweep used
+16 GB RAM; its timing is not the full-job timing. The runner starts/verifies
+Docker, enables the opt-in sandbox tests, disables cached test results, runs all
+Bazel tests, then builds the complete existing production/SDK/UI/docs/chat target
+set. Each phase emits profiles, logs and sanitized results.
+
+The GitHub `bazel` job keeps its ID/name and dependent release jobs. It uses a
+read-only GitHub token to validate the BuildBuddy status, exact head/merge trees,
+and current PR revision. No BuildBuddy credential is transferred to GitHub.
+Set repository variable `BUILDBUDDY_LINUX_PR_BUILDS=false` and rerun CI to restore
+GitHub execution for trusted PRs; the unset default enables BuildBuddy. The
+[operations runbook](./04-linux-ci-pilot.md#operate-the-pr-gate) has the command.
+
+Validation evidence is added alongside the assessment after the complete job
+passes. Two compatibility fixes keep actions independent of writable user homes:
+Bazel's pnpm now reads its version from `package.json`, and the documentation
+build explicitly disables Astro telemetry.
 
 ## Runner choice and the 32-vCPU retry
 

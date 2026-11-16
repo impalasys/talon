@@ -49,6 +49,10 @@ def run(output):
               "requested_cpu": 16, "requested_memory_gb": 32,
               "affinity_cpus": affinity, "runner_memory": pilot.memory_metadata(),
               "docker_version": pilot.capture("docker", "version", "--format", "{{.Server.Version}}"),
+              "bazel_version": Path(".bazelversion").read_text().strip(),
+              "os": pilot.platform.freedesktop_os_release()["PRETTY_NAME"],
+              "compiler": pilot.capture("/usr/bin/clang-18", "--version"),
+              "native_packages": pilot.capture("dpkg-query", "-W", "-f=${Package}=${Version}\n", *pilot.PACKAGES),
               "options": options, "workloads": WORKLOADS, "samples": [], "success": False}
     started = time.time()
     try:

@@ -1,8 +1,6 @@
 name: BuildBuddy Linux pilot comparison
 
 'on':
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -32,7 +30,7 @@ jobs:
       - name: Configure pilot cache access
         shell: bash
         env:
-          # Only main pushes and maintainer-triggered manual runs reach here.
+          # Only maintainer-triggered manual runs reach here.
           PILOT_CACHE_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
         run: |
           set -euo pipefail

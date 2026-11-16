@@ -1,37 +1,64 @@
-# Linux CI pilot
+# Linux CI and pilot controls
 
-The repository defines an additional **BuildBuddy Linux pilot** check in
-`buildbuddy.yaml` and a **GitHub Linux pilot** baseline in
-`.github/workflows/buildbuddy-linux-pilot.yml`. Both trigger on pushes to `main`.
-BuildBuddy also runs on `codex/bb-pilot-*` branch pushes; GitHub baselines for
-pilot branches are **manual only**, using maintainer-triggered dispatch. Keep
-existing required checks, macOS releases, image publishing,
-registry uploads and deployments on GitHub during this experiment.
+The production **BuildBuddy Linux build/test** action runs on base-repository
+pushes with 16 CPUs / 32 GB RAM. Same-repository PRs retain GitHub's `Bazel` job
+as a status gate; main and fork PRs execute the existing GitHub job. macOS
+releases, publishing, image jobs and separate E2E/reporting jobs stay on GitHub.
+See [the migration path](./05-linux-ci-migration.md) for the cutover scope.
+
+## Operate the PR gate
+
+The gate verifies BuildBuddy's publisher, context and exact PR head, requires the
+head tree to match GitHub's merge tree, and rechecks the PR head/base before
+passing. Update the PR branch if main has advanced. Missing or failed remote
+results cannot pass the gate. BuildBuddy logs are linked in its GitHub step
+summary; the runner exports `full-job.json`, profiles and individual test logs.
+The full job enables `TALON_DOCKER_SANDBOX_TEST=1` and executes uncached tests.
+
+To route PR compilation back to GitHub without changing publishing or releases:
+
+```sh
+gh variable set BUILDBUDDY_LINUX_PR_BUILDS --repo impalasys/talon --body false
+```
+
+Rerun the affected GitHub CI run after changing the variable. Set it to `true`
+(or delete it) to restore BuildBuddy routing. The unset default enables the
+BuildBuddy path. This switch does not change main/fork execution, credentials,
+branch protection or check names.
+
+## Historical four-CPU control
+
+The additional **BuildBuddy Linux pilot** action now runs only on
+`codex/bb-pilot-control-*` pushes. The **GitHub Linux pilot** baseline in
+`.github/workflows/buildbuddy-linux-pilot.yml` is manual only. These controls keep
+the original matched four-CPU comparison reproducible; they are separate from
+the production 16-CPU full workload.
 
 ## Enable and run
 
 1. In the [BuildBuddy Workflows UI](https://app.buildbuddy.io/workflows/), select
-   the Talon organization and link `impalasys/talon` using the GitHub app. Use the
+   the Impala organization and link `impalasys/talon` using the GitHub app. Use the
    checked-in `buildbuddy.yaml`, rather than enabling the default `//...` config.
    The config is inert until the repository is linked and the config is pushed.
-2. The existing GitHub `BUILDBUDDY_API_KEY` secret enables main/manual baseline
+2. The existing GitHub `BUILDBUDDY_API_KEY` secret enables manual baseline
    runs. No new credential is needed. Pilot branch pushes and PR events do not
    receive this key automatically. A missing key fails the manually dispatched
    baseline with an explicit setup message.
-3. Push a `codex/bb-pilot-*` branch to start BuildBuddy, then manually dispatch
+3. Push a `codex/bb-pilot-control-*` branch to start BuildBuddy, then manually dispatch
    the GitHub baseline against the same branch using `gh`:
 
    ```bash
-   gh workflow run buildbuddy-linux-pilot.yml --repo impalasys/talon --ref codex/bb-pilot-linux
-   gh run list --repo impalasys/talon --workflow buildbuddy-linux-pilot.yml --branch codex/bb-pilot-linux
+   gh workflow run buildbuddy-linux-pilot.yml --repo impalasys/talon --ref codex/bb-pilot-control-linux
+   gh run list --repo impalasys/talon --workflow buildbuddy-linux-pilot.yml --branch codex/bb-pilot-control-linux
    ```
 
    Both providers build the pushed commit without synthetic PR merges. Verify
    matching commit SHAs, especially if the branch advances between dispatches.
    Opening a PR on the pilot branch is fine; PR events do not dispatch extra
-   pilot jobs. Fork pushes do not trigger this repository's pilot. Seed `main`
-   before evaluating branch snapshot reuse, then use a Rust edit and a UI-only
-   edit on pilot branches.
+   pilot jobs. Fork pushes do not trigger this repository's pilot. Exclude an
+   initial seed run before comparing repeated samples. The production main
+   snapshot uses a different resource configuration; it is not a matched
+   four-CPU control snapshot.
 4. Repeat each revision at least five times: rerun the GitHub pilot workflow
    with `gh` and the BuildBuddy action from its UI. Verify the resolved commit on
    each run. Do not dispatch `ci.yml`, whose manual entry point is the cache probe.
@@ -92,10 +119,10 @@ and remote cache reads disabled on both; do not mix those results with this
 default retained-cache experiment. Same-run warm repeats are diagnostic; the
 cross-run `initial` samples are the primary migration evidence.
 
-The pilot covers optimized runtime/UI compilation and UI unit tests.
-Docker/Testcontainers, browser E2E and release-artifact correctness remain
-covered by existing GitHub CI and need separate compatibility trials before
-moving those jobs.
+This control covers optimized runtime/UI compilation and UI unit tests. The
+production BuildBuddy action separately validates the full Bazel job, including
+Docker sandbox tests. Dedicated Python/browser E2E and release-archive jobs keep
+their GitHub producers.
 
 ## Collect and compare
 
