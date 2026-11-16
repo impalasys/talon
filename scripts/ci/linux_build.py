@@ -84,9 +84,14 @@ def bazel(phase, verb, arguments, output, result):
             process.stdout.close()
         sample = {'phase': phase, 'exit_code': code, 'seconds': time.monotonic() - started,
                   'invocation': identifier, 'metrics': pilot.read_metrics(events)}
-        if verb == 'test':
-            sample['tests'] = summaries(events)
         result['samples'].append(sample)
+        if verb == 'test':
+            try:
+                sample['tests'] = summaries(events)
+            except ValueError:
+                if not code:
+                    raise
+                sample['tests'] = []
         if code:
             raise RuntimeError(f'{phase} failed with Bazel exit {code}')
         if verb == 'test':
@@ -145,6 +150,8 @@ def export(output, result):
                 target = handoff / 'benchmark' / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(path, target)
+        if not any((handoff / 'benchmark').rglob('talon-bench-*.json')):
+            raise RuntimeError('Selected benchmark produced no reports')
     if '//ui:dist' in selected:
         bazel('deployment-ui', 'build', ['//ui:dist', '--define=GATEWAY_URL=https://talon.impala.systems'], output, result)
         copy_tree(Path('bazel-bin/ui/dist'), handoff / 'sightline-static-export')
@@ -159,6 +166,10 @@ def export(output, result):
                 archive.add(path, arcname=name, recursive=False)
     result['files'] = files
     result['groups'] = sorted({p.split('/')[0] for p in files})
+    # copytree preserves Bazel's read-only output-directory permissions.
+    for path in [handoff, *handoff.rglob('*')]:
+        if not path.is_symlink() and path.is_dir():
+            path.chmod(0o700)
     shutil.rmtree(handoff)
 
 

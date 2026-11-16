@@ -11,6 +11,34 @@ import linux_build as runner
 
 
 class RunnerTest(unittest.TestCase):
+    def test_read_only_bazel_output_can_be_exported_and_cleaned_up(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / 'bazel-bin/release-dist/nested'
+            source.mkdir(parents=True)
+            (source / 'archive').write_bytes(b'release bytes')
+            source.chmod(0o555)
+            source.parent.chmod(0o555)
+            artifacts = root / 'artifacts'
+            artifacts.mkdir()
+            previous = Path.cwd()
+            manifest = {'targets': ['//:release-dist'], 'tests': []}
+            try:
+                os.chdir(root)
+                runner.export(artifacts, manifest)
+            finally:
+                os.chdir(previous)
+                source.parent.chmod(0o755)
+                source.chmod(0o755)
+            self.assertIn('release/nested/archive', manifest['files'])
+            self.assertTrue((artifacts / 'handoff.tar').exists())
+            self.assertFalse((artifacts / 'handoff').exists())
+
+    def test_missing_selected_benchmark_reports_fail_export(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            with self.assertRaisesRegex(RuntimeError, 'no reports'):
+                runner.export(Path(temporary), {'targets': [], 'tests': ['//bench:ci_benchmark']})
+
     def test_new_discovered_target_is_built_and_tested_without_registration(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -30,6 +58,7 @@ if args[0] == 'cquery' and '--output=jsonproto' in args: print({configured!r})
 if args[0] == 'test':
     output = next(a.split('=', 1)[1] for a in args if a.startswith('--build_event_json_file='))
     Path(output).write_text(json.dumps({{'id': {{'testSummary': {{'label': {target!r}}}}}, 'testSummary': {{'overallStatus': 'PASSED', 'totalRunCount': 1}}}}) + '\\n')
+    if os.environ.get('CI_TRUNCATED_EVENTS'): Path(output).write_text('{{')
 if args[0] == 'test' and os.environ.get('CI_FAIL_TEST'):
     sys.exit(17)
 ''')
@@ -46,6 +75,9 @@ if args[0] == 'test' and os.environ.get('CI_FAIL_TEST'):
                     with patch.dict(os.environ, {'CI_FAIL_TEST': '1'}):
                         with self.assertRaisesRegex(RuntimeError, 'exit 17'):
                             runner.run(root / 'failed', full=True)
+                        with patch.dict(os.environ, {'CI_TRUNCATED_EVENTS': '1'}):
+                            with self.assertRaisesRegex(RuntimeError, 'exit 17'):
+                                runner.run(root / 'truncated', full=True)
             finally:
                 os.chdir(previous)
             calls = [json.loads(line) for line in log.read_text().splitlines()]
@@ -57,6 +89,9 @@ if args[0] == 'test' and os.environ.get('CI_FAIL_TEST'):
             failed = json.loads((root / 'failed/ci-manifest.json').read_text())
             self.assertFalse(failed['success'])
             self.assertEqual(failed['samples'][-1]['exit_code'], 17)
+            truncated = json.loads((root / 'truncated/ci-manifest.json').read_text())
+            self.assertFalse(truncated['success'])
+            self.assertEqual(truncated['samples'][-1]['exit_code'], 17)
 
     def test_benchmark_cleanup_preserves_reports_and_removes_runtime_sockets(self):
         with tempfile.TemporaryDirectory(prefix='talon-ci-', dir='/tmp') as temporary:

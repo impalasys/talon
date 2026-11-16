@@ -10,6 +10,23 @@ import fetch_ci_artifacts as ci
 
 
 class HandoffTest(unittest.TestCase):
+    def test_publishing_uses_complete_push_range(self):
+        before, head = 'a' * 40, 'b' * 40
+        manifest = {'changed_files': ['unrelated-last-commit.txt']}
+        with patch.object(ci.subprocess, 'run') as fetch, \
+                patch.object(ci.subprocess, 'check_output', return_value=b'ui/src/earlier.ts\0packages/talon-chat/earlier.ts\0') as diff:
+            changed = ci.publishing_changes({'before': before}, manifest, head)
+        self.assertEqual(changed, ['ui/src/earlier.ts', 'packages/talon-chat/earlier.ts'])
+        self.assertEqual(fetch.call_args.args[0][-1], before)
+        self.assertEqual(diff.call_args.args[0][-2:], [before, head])
+
+    def test_pr_publishing_keeps_affected_manifest_paths(self):
+        manifest = {'changed_files': ['ui/src/changed.ts']}
+        with patch.object(ci.subprocess, 'run') as fetch:
+            self.assertEqual(ci.publishing_changes({'pull_request': {}}, manifest, 'a' * 40),
+                             manifest['changed_files'])
+        fetch.assert_not_called()
+
     def test_stale_revision_or_affected_main_is_rejected(self):
         manifest = {'schema': 2, 'repository': 'impalasys/talon', 'head': 'h', 'tree': 't',
                     'base': 'b', 'success': True, 'files': {}}

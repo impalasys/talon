@@ -47,7 +47,7 @@ jobs:
         BASE_SHA: ${{ github.event.before }}
       run: python3 scripts/sdk/detect_version_changes.py
     - name: Require full monorepo CI before publishing
-      if: steps.detect.outputs.needs_node_binaries == 'true' || steps.detect.outputs.go_changed == 'true' || steps.detect.outputs.rust_changed == 'true' || steps.detect.outputs.python_changed == 'true' || steps.detect.outputs.java_changed == 'true' || steps.detect.outputs.js_changed == 'true' || steps.detect.outputs.js_chat_changed == 'true'
+      if: steps.detect.outputs.sdk_version_changed == 'true' || steps.detect.outputs.needs_node_binaries == 'true' || steps.detect.outputs.go_changed == 'true' || steps.detect.outputs.rust_changed == 'true' || steps.detect.outputs.python_changed == 'true' || steps.detect.outputs.java_changed == 'true' || steps.detect.outputs.js_changed == 'true' || steps.detect.outputs.js_chat_changed == 'true'
       env:
         GH_TOKEN: ${{ github.token }}
         BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}

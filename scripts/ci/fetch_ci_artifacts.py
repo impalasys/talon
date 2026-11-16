@@ -129,6 +129,23 @@ def unpack(archive, output, files):
         raise RuntimeError('Missing artifacts in handoff bundle')
 
 
+def publishing_changes(event, manifest, head):
+    if 'pull_request' in event:
+        return manifest.get('changed_files', [])
+    before = event.get('before')
+    if not before or before == '0' * 40:
+        # A newly created main branch must publish every present export.
+        return ['ui/', 'packages/talon-chat/']
+    if not re.fullmatch(r'[0-9a-f]{40}', before):
+        raise RuntimeError('Expected immutable push base SHA')
+    # A push may contain several commits; the runner only knows HEAD's parent.
+    # Fetch objects as data, without executing any files from the older revision.
+    subprocess.run(['git', 'fetch', '--no-tags', '--depth=1',
+                    'https://github.com/impalasys/talon.git', before], check=True)
+    return subprocess.check_output(['git', 'diff', '--name-only', '-z', '--no-renames',
+                                    before, head]).decode().rstrip('\0').split('\0')
+
+
 def fetch(output, timeout=6000, manifest_only=False):
     event = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
     repository = os.environ['GITHUB_REPOSITORY']
@@ -153,7 +170,7 @@ def fetch(output, timeout=6000, manifest_only=False):
     if destination:
         with open(destination, 'a') as stream:
             stream.write(f'head={head}\n')
-            changed = manifest.get('changed_files', [])
+            changed = publishing_changes(event, manifest, head)
             for key, prefix, group in [('publish_sightline', 'ui/', 'sightline-static-export'),
                                         ('publish_storybook', 'packages/talon-chat/', 'storybook')]:
                 relevant = any(p.startswith(prefix) or p == '.github/workflows/ci.yml' or
