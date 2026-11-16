@@ -115,6 +115,13 @@ class PilotTest(unittest.TestCase):
             source = root / "src/lib.rs"
             source.write_bytes(b"// Original source.\n")
             original = source.read_bytes()
+            # A Linux runner can retain Bazel threads after the sweep process.
+            process = root / "proc" / "4671"
+            process.mkdir(parents=True)
+            (process / "cmdline").write_bytes(b"bazel(talon)\0-jar\0/tmp/A-server.jar\0")
+            (process / "status").write_text("PPid:\t1\n")
+            for tid in (4671, 4672):
+                (process / "task" / str(tid)).mkdir(parents=True)
             previous = Path.cwd()
             calls = []
             def simulate(args):
@@ -132,6 +139,7 @@ class PilotTest(unittest.TestCase):
             try:
                 os.chdir(root)
                 with patch.object(cpu_sweep.pilot, "capture", return_value=""), \
+                        patch.object(cpu_sweep.pilot, "Path", return_value=root / "proc"), \
                         patch.object(cpu_sweep, "capacity", return_value={}), \
                         patch.object(cpu_sweep.pilot, "run", side_effect=simulate), \
                         patch.object(cpu_sweep.os, "sched_getaffinity", return_value=set(range(16)), create=True), \
@@ -141,7 +149,8 @@ class PilotTest(unittest.TestCase):
                         cpu_sweep.sweep(argparse.Namespace(output=root / "results", cpus=[4, 8]))
                 self.assertEqual(source.read_bytes(), original)
                 self.assertEqual(calls, [8, 4])
-                self.assertEqual(bind.call_args.args, (0, list(range(16))))
+                self.assertEqual({call.args[0] for call in bind.call_args_list}, {0, 4671, 4672})
+                self.assertTrue(all(call.args[1] == list(range(16)) for call in bind.call_args_list))
                 report = json.loads((root / "results/cpu-sweep.json").read_text())
                 self.assertFalse(report["success"])
                 self.assertEqual(report["reservation_cpu"], 16)
