@@ -9,7 +9,9 @@ actions:
       memory: 32GB
       disk: 80GB
     timeout: 90m
-    allow_concurrent_runs_on_branches: []
+    # Each main revision can have an independent SDK publication waiting on it.
+    # Superseding PR heads may cancel; main validation must finish per commit.
+    allow_concurrent_runs_on_branches: [main]
     triggers:
       push:
         branches: [main]

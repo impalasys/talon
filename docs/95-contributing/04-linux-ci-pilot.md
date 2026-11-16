@@ -13,6 +13,8 @@ Linux validation runs in one **Talon CI** BuildBuddy Workflow, configured in
   edit can legitimately affect most runtime targets.
 - BUILD files, `.bzl`, module/lock/toolchain files, CI configuration and deleted
   files select the full compatible universe. Failed queries fail CI.
+- Main revisions complete independently so an SDK publication can wait for its
+  exact commit even if another main push arrives. Superseded PR runs cancel.
 - Main pushes build every ordinary Linux-compatible target and run every
   ordinary compatible test. Test results are forced uncached in both modes.
 - Docker sandbox tests, ACP/runtime image smoke tests, Python E2E, the complete
