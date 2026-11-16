@@ -30,7 +30,7 @@ def revision(event, repository, sha=None):
         raise RuntimeError('Unexpected repository')
     if 'pull_request' in event:
         pr = github(f'repos/{repository}/pulls/{event["number"]}')
-        if pr['head']['sha'] != event['pull_request']['head']['sha'] or pr['base']['sha'] != event['pull_request']['base']['sha']:
+        if pr['head']['sha'] != event['pull_request']['head']['sha']:
             raise RuntimeError('PR revision changed; rerun CI for the updated head/base')
         head = pr['head']['sha']
         merge = pr.get('merge_commit_sha')

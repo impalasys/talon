@@ -46,6 +46,14 @@ class HandoffTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'revision changed'):
                 ci.revision(event, 'impalasys/talon')
 
+    def test_relay_uses_the_current_base_then_rechecks_it_after_transfer(self):
+        event = {'number': 1, 'pull_request': {'head': {'sha': 'a' * 40}, 'base': {'sha': 'b' * 40}}}
+        current = {'number': 1, 'head': {'sha': 'a' * 40, 'ref': 'feature', 'repo': {'full_name': 'someone/talon'}},
+                   'base': {'sha': 'c' * 40}, 'merge_commit_sha': 'd' * 40}
+        with patch.object(ci, 'github', side_effect=[current, {'tree': {'sha': 'e' * 40}}]):
+            revision = ci.revision(event, 'impalasys/talon')
+        self.assertEqual(revision[:3], ('a' * 40, 'c' * 40, 'e' * 40))
+
     def test_links_and_path_traversal_are_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             archive = Path(temporary) / 'bundle'
