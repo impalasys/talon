@@ -51,7 +51,7 @@ def latest_status(repository, sha):
     return status
 
 
-def wait(event, repository, merge_sha, timeout=3600):
+def wait(event, repository, merge_sha, timeout=4200):
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         raise SystemExit("Invalid GitHub repository.")
     sha = revision(event, repository, merge_sha)
@@ -81,7 +81,7 @@ def wait(event, repository, merge_sha, timeout=3600):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--timeout-seconds", type=int, default=3600)
+    parser.add_argument("--timeout-seconds", type=int, default=4200)
     args = parser.parse_args()
     if args.timeout_seconds < 0:
         parser.error("timeout must be nonnegative")
