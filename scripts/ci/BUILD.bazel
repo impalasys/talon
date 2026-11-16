@@ -1,0 +1,26 @@
+load("@rules_python//python:defs.bzl", "py_test")
+
+py_test(
+    name = "linux_pilot_test",
+    srcs = [
+        "linux_cpu_sweep.py",
+        "linux_pilot.py",
+        "test_linux_pilot.py",
+    ],
+    data = [
+        "linux-pilot-packages.txt",
+        "//:.bazelversion",
+    ],
+    imports = ["."],
+    main = "test_linux_pilot.py",
+)
+
+py_test(
+    name = "buildbuddy_gate_test",
+    srcs = [
+        "test_buildbuddy_gate.py",
+        "wait_buildbuddy.py",
+    ],
+    imports = ["."],
+    main = "test_buildbuddy_gate.py",
+)

@@ -37,6 +37,8 @@ js_run_binary(
         ":sources",
     ],
     args = ["build"],
+    # A sandboxed build must not create Astro telemetry state in the user home.
+    env = {"ASTRO_TELEMETRY_DISABLED": "1"},
     chdir = package_name(),
     out_dirs = [
         "dist",

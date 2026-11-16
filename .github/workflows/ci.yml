@@ -10,16 +10,31 @@ jobs:
     if: github.event_name != 'workflow_dispatch'
     name: ${{ github.event_name == 'workflow_dispatch' && 'Cache probe / ' || '' }}Bazel
     runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    permissions:
+      contents: read
+      statuses: read
+      pull-requests: read
+    env:
+      USE_BUILDBUDDY: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && vars.BUILDBUDDY_LINUX_PR_BUILDS != 'false' }}
     steps:
     - uses: actions/checkout@v5
       with:
         persist-credentials: false
+    - name: Verify BuildBuddy Linux build and tests
+      if: env.USE_BUILDBUDDY == 'true'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 scripts/ci/wait_buildbuddy.py
     - uses: ./.github/actions/setup-bazel
+      if: env.USE_BUILDBUDDY != 'true'
       with:
+        # Main remains the canonical cache writer for the GitHub consumers.
         cache-save: true
         buildbuddy-api-key: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BUILDBUDDY_API_KEY
           || '' }}
     - name: Build and test compilation targets
+      if: env.USE_BUILDBUDDY != 'true'
       # Cache compilation/package-consumer outputs here. The dedicated image
       # and release jobs validate their archives without duplicating those
       # large assembly outputs in this shared snapshot.
