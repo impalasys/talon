@@ -21,8 +21,8 @@ jobs:
       pull-requests: read
     outputs:
       images: ${{ steps.fetch.outputs.images }}
-      storybook: ${{ steps.fetch.outputs.storybook }}
-      sightline: ${{ steps.fetch.outputs.sightline_static_export }}
+      storybook: ${{ steps.fetch.outputs.publish_storybook }}
+      sightline: ${{ steps.fetch.outputs.publish_sightline }}
       head: ${{ steps.fetch.outputs.head }}
     steps:
       # Never check out or execute PR code in this credential-bearing job.
@@ -156,6 +156,9 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+      CHROMATIC_SHA: ${{ needs.artifacts.outputs.head }}
+      CHROMATIC_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+      CHROMATIC_SLUG: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v5
         with:

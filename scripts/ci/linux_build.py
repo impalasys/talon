@@ -32,7 +32,13 @@ def plan(full=False):
     source_head = os.environ.get('GIT_COMMIT') or git('rev-parse', 'HEAD')
     base = None
     changed = []
-    if not full:
+    if full:
+        try:
+            changed = git('diff', '--name-only', '-z', '--no-renames', 'HEAD^', 'HEAD').rstrip('\0').split('\0')
+        except subprocess.CalledProcessError:
+            changed = git('ls-files', '-z').rstrip('\0').split('\0')
+        changed = [p for p in changed if p]
+    else:
         # Fetch the base repository, including for fork PRs. The runner already
         # merged the requested base; merge-base pins the base actually tested.
         subprocess.run(['git', 'fetch', '--no-tags', 'https://github.com/impalasys/talon.git',

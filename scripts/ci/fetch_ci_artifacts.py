@@ -150,6 +150,13 @@ def fetch(output, timeout=6000, manifest_only=False):
     if destination:
         with open(destination, 'a') as stream:
             stream.write(f'head={head}\n')
+            changed = manifest.get('changed_files', [])
+            for key, prefix, group in [('publish_sightline', 'ui/', 'sightline-static-export'),
+                                        ('publish_storybook', 'packages/talon-chat/', 'storybook')]:
+                relevant = any(p.startswith(prefix) or p == '.github/workflows/ci.yml' or
+                               (key == 'publish_storybook' and p == 'pnpm-lock.yaml') for p in changed)
+                present = any(n.startswith(group + '/') for n in manifest['files'])
+                stream.write(key + '=' + str(relevant and present).lower() + '\n')
             for group in sorted(GROUPS):
                 stream.write(group.replace('-', '_') + '=' + str(any(n.startswith(group + '/') for n in manifest['files'])).lower() + '\n')
     summary = os.environ.get('GITHUB_STEP_SUMMARY')
