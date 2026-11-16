@@ -133,6 +133,49 @@ least 30%). Keep macOS releases and publishing on GitHub throughout this pilot.
 See [the measured assessment](./03-ci-execution.md) for repeated timings, source
 probes, and the limits of the resulting migration recommendation.
 
+## CPU scaling experiment
+
+The matched-provider pilot remains fixed at four CPUs. A separate
+`BuildBuddy Linux CPU sweep` action runs only on the explicit
+`codex/bb-cpu-sweep` branch. It requests 16 CPUs and 16 GB RAM and invokes:
+
+```sh
+python3 scripts/ci/linux_cpu_sweep.py --output /tmp/cpu-sweep --cpus 4 8 16
+```
+
+The sweep records the VM's available CPU affinity, CPU model, memory, and any
+exposed cgroup limits. It excludes one seed run, then tests ascending and
+descending CPU counts on that same VM. Every sample appends a unique temporary
+comment to `src/lib.rs` to force Rust compilation; the original bytes are
+restored even if the Python runner fails. Each sample includes the production
+binary/frontend build, UI unit tests, and immediate warm repeats. Affinity and
+Bazel `--jobs`/`--local_resources=cpu` change together; the 4 GiB JVM heap and
+12 GiB action-memory budget stay fixed. The existing RocksDB Cargo build-script
+`NUM_JOBS=4` annotation is unchanged, so this sweep does not tune cold C++
+compilation. Counts above the VM's available affinity are recorded as skipped rather than silently running with fewer CPUs.
+
+For this tuning pass, prefer the smallest tested CPU count whose median source-
+edit build/test time is within 10% of the fastest tested count. A 32-CPU request
+was also tested and rejected by BuildBuddy: the Impala organization has a limit
+of **16 requested vCPUs per runner**. The advertised free remote-build core
+allowance is distinct from this per-runner limit.
+Two samples per count detect large changes; they do not establish a stable tail.
+
+`cpu-sweep.json` records per-size medians/ranges and points to each sample's
+JSON, profiles and logs. The per-sample `requested_cpu` records the VM reservation;
+`cpu_limit` and `configuration.cpu_affinity_count` record the tested cap. This is
+a within-VM scaling experiment, not an end-to-end comparison of separately sized
+runners. The source edit is a no-op input-invalidation probe; real PR changes,
+queue latency and RBE scaling remain separate measurements.
+
+The completed sweep selects **16 CPUs / 16 GB** for this workload: median source-
+edit build/test time falls from 267.12 seconds at four CPUs to 183.82 at eight
+and 145.10 at sixteen. The [assessment](./03-ci-execution.md#buildbuddy-cpu-scaling)
+and [evidence](../../bench/linux-ci-cpu-sweep-2026-11-15.json) record the result.
+Use `linux_pilot.py run --cpus 16` with a matching 16-CPU Workflow reservation
+for performance-focused runs. The matched-provider command continues to default
+to four CPUs; its strict comparator rejects unequal CPU configurations.
+
 References: [Workflows setup](https://www.buildbuddy.io/docs/workflows-setup/),
 [runner resources and images](https://www.buildbuddy.io/docs/workflows-config/),
 [artifact collection](https://www.buildbuddy.io/docs/remote-runner-features/).

@@ -3,8 +3,10 @@
 Assessment updated 2026-11-15: the Linux pilot now has repeated, matched
 measurements. The controlled workload finishes sooner on BuildBuddy, primarily
 because it avoids GitHub cache restoration and native prerequisite setup.
-macOS releases and publishing remain on GitHub Actions. See the controlled
-results below before generalizing to Docker-backed or full-pipeline CI.
+A CPU scaling follow-up selects 16 CPUs / 16 GB for BuildBuddy: the source-edit
+workload is 46% faster than the four-CPU cap on the same VM. macOS releases and
+publishing remain on GitHub Actions. See the results below before generalizing
+to Docker-backed or full-pipeline CI.
 
 The [Linux pilot runbook](./04-linux-ci-pilot.md) describes the checked-in
 side-by-side configuration, activation and measurement procedure.
@@ -74,6 +76,58 @@ improved total turnaround.
 The [machine-readable evidence](../../bench/linux-ci-pilot-2026-11-15.json)
 contains the configuration, per-phase metrics, run links, timing boundaries,
 excluded seeds, and source probes. Earlier exploratory runs are not included.
+
+### BuildBuddy CPU scaling
+
+A follow-up allocation test accepted a 16-CPU / 16 GB Workflow on the existing
+free-tier account. A 32-CPU request was rejected before startup with:
+
+> Runner requests 32 vCPUs, exceeding your organization's per-runner CPU limit of 16 vCPUs.
+
+This establishes Impala's current limit of **16 requested vCPUs per runner**.
+The pricing page's remote-build core allowance is a different limit; it does not entitle a
+single Workflow VM to 80 CPUs. The rejected request is recorded in the CPU-sweep
+evidence and the
+[commit status](https://api.github.com/repos/impalasys/talon/commits/db71e0f0/status).
+
+On one 16-CPU VM, the experiment excludes a cold seed and forces Rust source
+invalidation at caps of 4, 8 and 16 CPUs, then repeats in reverse order. It holds
+RAM, heap and the action-memory budget fixed and changes affinity plus Bazel's
+CPU scheduling limits together. This measures within-VM CPU scaling, not total
+turnaround across independently allocated runners. All six samples passed,
+with two samples per count:
+
+| CPU cap | Source-edit build + test median | Range | Reduction vs 4 CPUs |
+| --- | ---: | ---: | ---: |
+| 4 | 267.12 s | 265.98–268.27 s | — |
+| 8 | 183.82 s | 176.89–190.75 s | 31.2% |
+| 16 | 145.10 s | 143.35–146.85 s | 45.7% |
+
+**Select 16 CPUs and 16 GB RAM for a performance-focused BuildBuddy Linux run.**
+It improves the eight-CPU median by another 21.1%; eight CPUs is outside the
+preselected 10% margin from the fastest median. Keep the JVM heap at 4 GiB and
+Bazel's action-memory budget at 12 GiB, with `--jobs=16`,
+`--local_resources=cpu=16`, and a matching 16-CPU affinity cap. This is the fastest
+tested size and the organization's maximum accepted CPU request.
+
+The VM exposed 19 CPUs and approximately 16.4 GiB RAM; the measured workload was
+restricted to at most 16 CPUs. Its CPU model was AMD EPYC. The seed took 631.58 s
+including warm repeats and is excluded from the table. Each source-edit build
+executed six actions; first-build counters progressed from 5 to 25, confirming
+within-workflow JVM reuse. Immediate warm build/test medians were 7.78, 6.18 and
+5.91 seconds at 4, 8 and 16 CPUs, respectively.
+
+This is a small, within-VM experiment with cached UI tests and comment-only Rust
+edits. It establishes useful CPU scaling for this workload, not a 46% reduction
+in complete PR latency. The existing RocksDB `NUM_JOBS=4` annotation was unchanged,
+so it does not evaluate higher native C++ build-script parallelism. The measurement
+series stops at 16 CPUs.
+
+The [successful sweep](https://impalasys.buildbuddy.io/invocation/c9ebad51-8c55-4a86-9f1c-36df89d75e30)
+and [CPU-scaling evidence](../../bench/linux-ci-cpu-sweep-2026-11-15.json) include
+all per-sample measurements, native package/configuration fingerprints, the
+excluded seed and the rejected 32-CPU request. The original four-CPU matched
+pilot remains available for controlled provider comparisons.
 
 ### Limits of this experiment
 
@@ -193,13 +247,19 @@ assumed here.
 
 ## Decision and next steps
 
-**Keep the side-by-side pilot; do not move all Linux CI yet.** The unchanged
-revision improves median turnaround by 68%, but the two source-invalidation
-probes improve by only 16–23%, below the runbook's proposed 30% threshold. The
-actual build/test work is similar or slower, cross-workflow JVM reuse remains
-unproven, and Docker-backed suites and the full PR critical path are unmeasured.
-This establishes a preparation-latency benefit for the measured workload, not a
-blanket migration case or a cost saving.
+**Use 16 CPUs / 16 GB for the BuildBuddy performance candidate; retain the
+side-by-side pilot before moving all Linux CI.** The matched four-CPU experiment
+shows 68% lower unchanged-revision turnaround and 16–23% lower turnaround on the
+two source probes. The later CPU sweep shows an additional 46% reduction in
+source-edit command time at 16 versus four CPUs on the same VM. More available
+compute is a material benefit for this workload; equal-CPU results alone do not
+capture it.
+
+The larger allocation strengthens the case for moving Linux compilation to
+BuildBuddy. Complete PR latency with that allocation, Docker-backed suites,
+artifact handoff and costs remain unmeasured. Cross-workflow JVM reuse also
+remains unproven. The scaling percentage must not be applied directly to the
+older GitHub end-to-end timings, which include different startup/cache state.
 
 Before deciding to move Linux orchestration:
 
@@ -208,7 +268,8 @@ Before deciding to move Linux orchestration:
 2. Resolve BuildBuddy's JVM restart/recycling behavior and the Rust rebuild on
    the UI-only change; verify retained analysis and output reuse from counters
    and action diagnostics rather than assuming them.
-3. Repeat representative Rust and UI changes, then run Docker/Testcontainers,
+3. In a subsequent evaluation, use the selected 16-CPU candidate for representative
+   Rust and UI changes, then run Docker/Testcontainers,
    runtime and browser suites. Measure complete PR feedback time, failure
    artifacts, artifact handoff and cost. A fresh-cache comparison remains
    separate work if cold-run performance matters to the decision.

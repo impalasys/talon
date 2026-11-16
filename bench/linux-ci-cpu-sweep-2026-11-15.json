@@ -1,0 +1,2945 @@
+{
+  "schema": 1,
+  "date": "2026-11-15",
+  "workflow_url": "https://impalasys.buildbuddy.io/invocation/c9ebad51-8c55-4a86-9f1c-36df89d75e30",
+  "successful_commit_status": {
+    "context": "BuildBuddy Linux CPU sweep",
+    "state": "success",
+    "description": "Successful in 31m",
+    "target_url": "https://impalasys.buildbuddy.io/invocation/c9ebad51-8c55-4a86-9f1c-36df89d75e30",
+    "created_at": "2026-11-16T00:29:15Z"
+  },
+  "per_runner_limit": {
+    "verified_vcpus": 16,
+    "rejected_request_vcpus": 32,
+    "startup_error": "Failed to start workflow action \"BuildBuddy Linux CPU sweep 32\": Runner requests 32 vCPUs, exceeding your organization's per-runner CPU limit of 16 vCPUs. Reduce the runner size or contact support@buildbuddy.io to discuss your workload and request a higher limit.",
+    "probe_commit": "db71e0f0",
+    "evidence_url": "https://api.github.com/repos/impalasys/talon/commits/db71e0f0/status",
+    "note": "Organization-specific runner ceiling; distinct from advertised remote-execution core allowance. Failed before allocation."
+  },
+  "selection": {
+    "recommended_cpu_limit": 16,
+    "memory_gb": 16,
+    "jvm_heap_gib": 4,
+    "action_memory_mib": 12288,
+    "criterion": "Smallest tested size within 10% of fastest median source-invalidation build/test time.",
+    "reduction_vs_4_percent": 45.6804543925344,
+    "reduction_vs_8_percent": 21.06437837375762
+  },
+  "limitations": [
+    "Two samples per CPU count, on one AMD EPYC VM; not a stable tail estimate.",
+    "All samples share a warmed Bazel JVM and native dependencies; not cross-workflow startup/queue timings.",
+    "Comment-only Rust invalidation, cached UI tests; no representative PR distribution, cold/RBE scaling, Docker or full-PR benchmark.",
+    "RocksDB native build-script worker limit stays four; RAM reservation stays 16 GB, action budget 12 GiB, JVM heap 4 GiB.",
+    "CPU affinity restricts workload and retained workers; VM exposed 19 CPUs, but no sample used more than 16."
+  ],
+  "report": {
+    "schema": 1,
+    "commit": "aa9124d8a73809cffea639a5f11059e201927554",
+    "capacity": {
+      "available_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "visible_cpus": 19,
+      "memory": {
+        "total_kib": 17167724
+      },
+      "cpuset.cpus.effective": "0-18",
+      "cpu_model": "AMD EPYC"
+    },
+    "reservation_cpu": 16,
+    "requested_sizes": [
+      4,
+      8,
+      16
+    ],
+    "skipped_sizes": [],
+    "method": "One excluded seed; unique comment-only Rust input per sample; ascending then descending CPU order. Same VM, 16 GB reservation, 4 GiB JVM, 12 GiB action-memory budget, local execution, remote uploads disabled.",
+    "samples": [
+      {
+        "name": "sample-1-4cpu",
+        "cpus": 4,
+        "success": true,
+        "result": "sample-1-4cpu/results.json",
+        "measured_seconds": 274.9353630542755,
+        "initial_seconds": 265.98192197700007,
+        "warm_seconds": 8.925920376000022
+      },
+      {
+        "name": "sample-2-8cpu",
+        "cpus": 8,
+        "success": true,
+        "result": "sample-2-8cpu/results.json",
+        "measured_seconds": 182.6329047679901,
+        "initial_seconds": 176.88989894400004,
+        "warm_seconds": 5.716610476000142
+      },
+      {
+        "name": "sample-3-16cpu",
+        "cpus": 16,
+        "success": true,
+        "result": "sample-3-16cpu/results.json",
+        "measured_seconds": 152.93492650985718,
+        "initial_seconds": 146.8461613989998,
+        "warm_seconds": 6.061926186999699
+      },
+      {
+        "name": "sample-4-16cpu",
+        "cpus": 16,
+        "success": true,
+        "result": "sample-4-16cpu/results.json",
+        "measured_seconds": 149.13517689704895,
+        "initial_seconds": 143.3543953179999,
+        "warm_seconds": 5.753802012000278
+      },
+      {
+        "name": "sample-5-8cpu",
+        "cpus": 8,
+        "success": true,
+        "result": "sample-5-8cpu/results.json",
+        "measured_seconds": 197.42960357666016,
+        "initial_seconds": 190.75217536699984,
+        "warm_seconds": 6.648810004000097
+      },
+      {
+        "name": "sample-6-4cpu",
+        "cpus": 4,
+        "success": true,
+        "result": "sample-6-4cpu/results.json",
+        "measured_seconds": 274.92466259002686,
+        "initial_seconds": 268.26510360399993,
+        "warm_seconds": 6.633449823000092
+      }
+    ],
+    "success": true,
+    "excluded_seed": {
+      "name": "seed",
+      "cpus": 16,
+      "success": true,
+      "result": "seed/results.json",
+      "measured_seconds": 631.5828561782837,
+      "initial_seconds": 619.9362822209999,
+      "warm_seconds": 11.610646833999908
+    },
+    "statistics": {
+      "4": {
+        "count": 2,
+        "initial_seconds": {
+          "median": 267.1235127905,
+          "min": 265.98192197700007,
+          "max": 268.26510360399993
+        },
+        "warm_seconds": {
+          "median": 7.779685099500057,
+          "min": 6.633449823000092,
+          "max": 8.925920376000022
+        },
+        "measured_seconds": {
+          "median": 274.9300128221512,
+          "min": 274.92466259002686,
+          "max": 274.9353630542755
+        }
+      },
+      "8": {
+        "count": 2,
+        "initial_seconds": {
+          "median": 183.82103715549994,
+          "min": 176.88989894400004,
+          "max": 190.75217536699984
+        },
+        "warm_seconds": {
+          "median": 6.1827102400001195,
+          "min": 5.716610476000142,
+          "max": 6.648810004000097
+        },
+        "measured_seconds": {
+          "median": 190.03125417232513,
+          "min": 182.6329047679901,
+          "max": 197.42960357666016
+        }
+      },
+      "16": {
+        "count": 2,
+        "initial_seconds": {
+          "median": 145.10027835849985,
+          "min": 143.3543953179999,
+          "max": 146.8461613989998
+        },
+        "warm_seconds": {
+          "median": 5.907864099499989,
+          "min": 5.753802012000278,
+          "max": 6.061926186999699
+        },
+        "measured_seconds": {
+          "median": 151.03505170345306,
+          "min": 149.13517689704895,
+          "max": 152.93492650985718
+        }
+      }
+    }
+  },
+  "measurements": [
+    {
+      "name": "seed",
+      "excluded_seed": true,
+      "schema": 1,
+      "provider": "buildbuddy",
+      "commit": "aa9124d8a73809cffea639a5f11059e201927554",
+      "configuration": {
+        "workloads": [
+          [
+            "build",
+            [
+              "build",
+              "//:production_binaries",
+              "//ui:dist"
+            ]
+          ],
+          [
+            "test",
+            [
+              "test",
+              "//ui:unit_tests"
+            ]
+          ]
+        ],
+        "options": [
+          "--config=buildbuddy",
+          "--remote_executor=",
+          "--remote_upload_local_results=false",
+          "--remote_accept_cached=true",
+          "--remote_download_outputs=all",
+          "--jobs=16",
+          "--local_resources=cpu=16",
+          "--local_resources=memory=12288",
+          "--color=no",
+          "--curses=no",
+          "--repo_env=CC=/usr/bin/clang-18",
+          "--repo_env=CXX=/usr/bin/clang++-18",
+          "--action_env=CC=/usr/bin/clang-18",
+          "--action_env=CXX=/usr/bin/clang++-18",
+          "--action_env=LIBCLANG_PATH=/usr/lib/llvm-18/lib"
+        ],
+        "startup_options": [
+          "--host_jvm_args=-Xmx4g"
+        ],
+        "client": "plain-bazel",
+        "bazel_version": "9.3.2",
+        "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+        "native_packages": "base-files=13ubuntu10.5\nbinutils=2.42-4ubuntu2.10\nbuild-essential=12.10ubuntu1\nclang-18=1:18.1.3-1ubuntu1\ncmake=3.28.3-1build7\ng++-13=13.3.0-6ubuntu2~24.04.1\ngcc-13=13.3.0-6ubuntu2~24.04.1\nlibc6=2.39-0ubuntu8.12\nlibc6-dev=2.39-0ubuntu8.12\nlibclang-18-dev=1:18.1.3-1ubuntu1\nlibgcc-s1=14.2.0-4ubuntu2~24.04.1\nlibssl-dev=3.0.13-0ubuntu3.16\nlibstdc++6=14.2.0-4ubuntu2~24.04.1\nlinux-libc-dev=6.8.0-149.149",
+        "os": "Ubuntu 24.04.5 LTS",
+        "cpu_affinity_count": 16
+      },
+      "configuration_id": "05175dd2c3a3d1d61e953b7187ccffc7cf693ef60fab7206376786342a4cd66d",
+      "requested_cpu": 16,
+      "requested_memory_gb": 16,
+      "visible_cpu": 19,
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "runner_memory": {
+        "total_kib": 17167724
+      },
+      "runner_kernel": "5.15.0",
+      "started_at": 1794787091.2327285,
+      "setup_seconds": 0.007854700088500977,
+      "samples": [
+        {
+          "iteration": "initial",
+          "phase": "build",
+          "seconds": 602.282281831,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/4ad62b1e-0603-4969-848b-4a39bc1de8d4",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "13731",
+              "actionsExecuted": "8970",
+              "actionsCreatedNotIncludingAspects": "13730",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1600445",
+                "saveTimeInMs": "5",
+                "hits": 3,
+                "misses": 8998,
+                "loadTimeInMs": "2"
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "61319",
+              "targetsConfiguredNotIncludingAspects": "61317"
+            },
+            "packageMetrics": {
+              "packagesLoaded": "1869"
+            },
+            "timingMetrics": {
+              "cpuTimeInMs": "363230",
+              "wallTimeInMs": "598562",
+              "analysisPhaseTimeInMs": "28218",
+              "executionPhaseTimeInMs": "576735",
+              "actionsExecutionStartInMs": "21729"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 1,
+              "numBuilds": 1
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {
+                "sizeInBytes": "1650205089",
+                "count": 44984
+              },
+              "outputArtifactsSeen": {
+                "sizeInBytes": "5125800629",
+                "count": 112723
+              },
+              "outputArtifactsFromActionCache": {},
+              "topLevelArtifacts": {
+                "sizeInBytes": "385685122",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 379556,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "40556454",
+                "bytesRecv": "1050565966",
+                "packetsSent": "144823",
+                "packetsRecv": "219706",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "initial",
+          "phase": "test",
+          "seconds": 17.654000389999965,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/2089c763-bc10-4115-889f-4ebaa3e7659c",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "21",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1603979",
+                "saveTimeInMs": "3",
+                "hits": 62,
+                "misses": 21
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "42",
+              "targetsConfiguredNotIncludingAspects": "42"
+            },
+            "packageMetrics": {
+              "packagesLoaded": "3"
+            },
+            "timingMetrics": {
+              "cpuTimeInMs": "23380",
+              "wallTimeInMs": "14176",
+              "analysisPhaseTimeInMs": "233",
+              "executionPhaseTimeInMs": "12085",
+              "actionsExecutionStartInMs": "1963"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 2,
+              "numBuilds": 2
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {
+                "sizeInBytes": "79338",
+                "count": 16
+              },
+              "outputArtifactsSeen": {
+                "sizeInBytes": "40647993",
+                "count": 116
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "38870426",
+                "count": 72
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 382276,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "41187195",
+                "bytesRecv": "1050979179",
+                "packetsSent": "145281",
+                "packetsRecv": "220172",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "build",
+          "seconds": 4.749221374999934,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/9aeafd3f-87fe-40fe-92d9-c4b124acae03",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1603408",
+                "saveTimeInMs": "6",
+                "hits": 5353,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "46495",
+              "targetsConfiguredNotIncludingAspects": "46494"
+            },
+            "packageMetrics": {
+              "packagesLoaded": "790"
+            },
+            "timingMetrics": {
+              "cpuTimeInMs": "47860",
+              "wallTimeInMs": "4214",
+              "analysisPhaseTimeInMs": "1538",
+              "executionPhaseTimeInMs": "2226",
+              "actionsExecutionStartInMs": "1970"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 3,
+              "numBuilds": 3
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {
+                "sizeInBytes": "1275515174",
+                "count": 38493
+              },
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063841517",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "4063841384",
+                "count": 35485
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385685122",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 382968,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "41397111",
+                "bytesRecv": "1050997670",
+                "packetsSent": "145380",
+                "packetsRecv": "220271",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "test",
+          "seconds": 6.861425458999975,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/fc26325c-93ed-4ae6-941a-e384557a575b",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1604289",
+                "saveTimeInMs": "5",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "7960",
+              "wallTimeInMs": "1606",
+              "analysisPhaseTimeInMs": "123",
+              "executionPhaseTimeInMs": "99",
+              "actionsExecutionStartInMs": "1479"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 4,
+              "numBuilds": 4
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 382967,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "41620463",
+                "bytesRecv": "1051010388",
+                "packetsSent": "145446",
+                "packetsRecv": "220328",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        }
+      ],
+      "success": true,
+      "measured_seconds": 631.5828561782837,
+      "cpu_limit": 16
+    },
+    {
+      "name": "sample-1-4cpu",
+      "excluded_seed": false,
+      "schema": 1,
+      "provider": "buildbuddy",
+      "commit": "aa9124d8a73809cffea639a5f11059e201927554",
+      "configuration": {
+        "workloads": [
+          [
+            "build",
+            [
+              "build",
+              "//:production_binaries",
+              "//ui:dist"
+            ]
+          ],
+          [
+            "test",
+            [
+              "test",
+              "//ui:unit_tests"
+            ]
+          ]
+        ],
+        "options": [
+          "--config=buildbuddy",
+          "--remote_executor=",
+          "--remote_upload_local_results=false",
+          "--remote_accept_cached=true",
+          "--remote_download_outputs=all",
+          "--jobs=4",
+          "--local_resources=cpu=4",
+          "--local_resources=memory=12288",
+          "--color=no",
+          "--curses=no",
+          "--repo_env=CC=/usr/bin/clang-18",
+          "--repo_env=CXX=/usr/bin/clang++-18",
+          "--action_env=CC=/usr/bin/clang-18",
+          "--action_env=CXX=/usr/bin/clang++-18",
+          "--action_env=LIBCLANG_PATH=/usr/lib/llvm-18/lib"
+        ],
+        "startup_options": [
+          "--host_jvm_args=-Xmx4g"
+        ],
+        "client": "plain-bazel",
+        "bazel_version": "9.3.2",
+        "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+        "native_packages": "base-files=13ubuntu10.5\nbinutils=2.42-4ubuntu2.10\nbuild-essential=12.10ubuntu1\nclang-18=1:18.1.3-1ubuntu1\ncmake=3.28.3-1build7\ng++-13=13.3.0-6ubuntu2~24.04.1\ngcc-13=13.3.0-6ubuntu2~24.04.1\nlibc6=2.39-0ubuntu8.12\nlibc6-dev=2.39-0ubuntu8.12\nlibclang-18-dev=1:18.1.3-1ubuntu1\nlibgcc-s1=14.2.0-4ubuntu2~24.04.1\nlibssl-dev=3.0.13-0ubuntu3.16\nlibstdc++6=14.2.0-4ubuntu2~24.04.1\nlinux-libc-dev=6.8.0-149.149",
+        "os": "Ubuntu 24.04.5 LTS",
+        "cpu_affinity_count": 4
+      },
+      "configuration_id": "8aa92c8942d0a8921b0b7935842c15f7ebc05a34c9111055e80d6ae75119ff70",
+      "requested_cpu": 16,
+      "requested_memory_gb": 16,
+      "visible_cpu": 19,
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "runner_memory": {
+        "total_kib": 17167724
+      },
+      "runner_kernel": "5.15.0",
+      "started_at": 1794787722.8250647,
+      "setup_seconds": 0.007850170135498047,
+      "samples": [
+        {
+          "iteration": "initial",
+          "phase": "build",
+          "seconds": 264.088172686,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/88011add-1c7b-4f18-95ef-e0362f840e41",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "6",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1603849",
+                "saveTimeInMs": "3",
+                "hits": 5348,
+                "misses": 6,
+                "cacheCheckSemaphoreWaitTimeInMs": "1"
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "16290",
+              "wallTimeInMs": "263510",
+              "analysisPhaseTimeInMs": "1672",
+              "executionPhaseTimeInMs": "260914",
+              "actionsExecutionStartInMs": "2562"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 5,
+              "numBuilds": 5
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {
+                "sizeInBytes": "11104",
+                "count": 1
+              },
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "3561210486",
+                "count": 35480
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 384937,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "41782810",
+                "bytesRecv": "1051043631",
+                "packetsSent": "145618",
+                "packetsRecv": "220495",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "initial",
+          "phase": "test",
+          "seconds": 1.8937492910000628,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/b152cc13-5d0b-4579-88f7-a54ca4455a3c",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1604714",
+                "saveTimeInMs": "3",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "4170",
+              "wallTimeInMs": "1357",
+              "analysisPhaseTimeInMs": "123",
+              "executionPhaseTimeInMs": "64",
+              "actionsExecutionStartInMs": "1270"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 6,
+              "numBuilds": 6
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 384934,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "41983417",
+                "bytesRecv": "1051056689",
+                "packetsSent": "145689",
+                "packetsRecv": "220556",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "build",
+          "seconds": 3.7281757690000177,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/3c671795-e9b5-4c27-a158-89b546bb6c38",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1603973",
+                "saveTimeInMs": "5",
+                "hits": 5353,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "10400",
+              "wallTimeInMs": "3173",
+              "analysisPhaseTimeInMs": "1261",
+              "executionPhaseTimeInMs": "1004",
+              "actionsExecutionStartInMs": "2154"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 7,
+              "numBuilds": 7
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "4063845618",
+                "count": 35485
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 386904,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "42120343",
+                "bytesRecv": "1051070546",
+                "packetsSent": "145765",
+                "packetsRecv": "220629",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "test",
+          "seconds": 5.197744607000004,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/26a111a8-8eea-42c0-bfe1-b7d73f431fe4",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1604854",
+                "saveTimeInMs": "3",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "3140",
+              "wallTimeInMs": "1232",
+              "analysisPhaseTimeInMs": "189",
+              "executionPhaseTimeInMs": "68",
+              "actionsExecutionStartInMs": "1143"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 8,
+              "numBuilds": 8
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 386903,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "42283231",
+                "bytesRecv": "1051083570",
+                "packetsSent": "145829",
+                "packetsRecv": "220691",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        }
+      ],
+      "success": true,
+      "measured_seconds": 274.9353630542755,
+      "cpu_limit": 4
+    },
+    {
+      "name": "sample-2-8cpu",
+      "excluded_seed": false,
+      "schema": 1,
+      "provider": "buildbuddy",
+      "commit": "aa9124d8a73809cffea639a5f11059e201927554",
+      "configuration": {
+        "workloads": [
+          [
+            "build",
+            [
+              "build",
+              "//:production_binaries",
+              "//ui:dist"
+            ]
+          ],
+          [
+            "test",
+            [
+              "test",
+              "//ui:unit_tests"
+            ]
+          ]
+        ],
+        "options": [
+          "--config=buildbuddy",
+          "--remote_executor=",
+          "--remote_upload_local_results=false",
+          "--remote_accept_cached=true",
+          "--remote_download_outputs=all",
+          "--jobs=8",
+          "--local_resources=cpu=8",
+          "--local_resources=memory=12288",
+          "--color=no",
+          "--curses=no",
+          "--repo_env=CC=/usr/bin/clang-18",
+          "--repo_env=CXX=/usr/bin/clang++-18",
+          "--action_env=CC=/usr/bin/clang-18",
+          "--action_env=CXX=/usr/bin/clang++-18",
+          "--action_env=LIBCLANG_PATH=/usr/lib/llvm-18/lib"
+        ],
+        "startup_options": [
+          "--host_jvm_args=-Xmx4g"
+        ],
+        "client": "plain-bazel",
+        "bazel_version": "9.3.2",
+        "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+        "native_packages": "base-files=13ubuntu10.5\nbinutils=2.42-4ubuntu2.10\nbuild-essential=12.10ubuntu1\nclang-18=1:18.1.3-1ubuntu1\ncmake=3.28.3-1build7\ng++-13=13.3.0-6ubuntu2~24.04.1\ngcc-13=13.3.0-6ubuntu2~24.04.1\nlibc6=2.39-0ubuntu8.12\nlibc6-dev=2.39-0ubuntu8.12\nlibclang-18-dev=1:18.1.3-1ubuntu1\nlibgcc-s1=14.2.0-4ubuntu2~24.04.1\nlibssl-dev=3.0.13-0ubuntu3.16\nlibstdc++6=14.2.0-4ubuntu2~24.04.1\nlinux-libc-dev=6.8.0-149.149",
+        "os": "Ubuntu 24.04.5 LTS",
+        "cpu_affinity_count": 8
+      },
+      "configuration_id": "373a44f0c4b2702a14c18a579de3072c75f51b2ea9cdba2aa97d04ee35456774",
+      "requested_cpu": 16,
+      "requested_memory_gb": 16,
+      "visible_cpu": 19,
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "runner_memory": {
+        "total_kib": 17167724
+      },
+      "runner_kernel": "5.15.0",
+      "started_at": 1794787997.7694225,
+      "setup_seconds": 0.007227659225463867,
+      "samples": [
+        {
+          "iteration": "initial",
+          "phase": "build",
+          "seconds": 174.10551021000003,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/93af217e-84ed-4948-8fcd-34b28ef27ed1",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "6",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1604414",
+                "saveTimeInMs": "3",
+                "hits": 5348,
+                "misses": 6
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "16080",
+              "wallTimeInMs": "173466",
+              "analysisPhaseTimeInMs": "1052",
+              "executionPhaseTimeInMs": "172125",
+              "actionsExecutionStartInMs": "1314"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 9,
+              "numBuilds": 9
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {
+                "sizeInBytes": "11104",
+                "count": 1
+              },
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "3561210486",
+                "count": 35480
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 388873,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "42435577",
+                "bytesRecv": "1051113788",
+                "packetsSent": "145968",
+                "packetsRecv": "220828",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "initial",
+          "phase": "test",
+          "seconds": 2.7843887340000038,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/9e7932ed-fd1d-44f2-a4c7-2a900d9ba4cb",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1605279",
+                "saveTimeInMs": "3",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "4650",
+              "wallTimeInMs": "1029",
+              "analysisPhaseTimeInMs": "148",
+              "executionPhaseTimeInMs": "63",
+              "actionsExecutionStartInMs": "944"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 10,
+              "numBuilds": 10
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 388870,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "42635161",
+                "bytesRecv": "1051127572",
+                "packetsSent": "146050",
+                "packetsRecv": "220899",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "build",
+          "seconds": 2.5869595490000847,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/a0fdcfe8-74ad-468a-8fde-1adb30690fb8",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1604538",
+                "saveTimeInMs": "5",
+                "hits": 5353,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "11280",
+              "wallTimeInMs": "2082",
+              "analysisPhaseTimeInMs": "862",
+              "executionPhaseTimeInMs": "989",
+              "actionsExecutionStartInMs": "1078"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 11,
+              "numBuilds": 11
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "4063845618",
+                "count": 35485
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 390840,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "42765816",
+                "bytesRecv": "1051140410",
+                "packetsSent": "146117",
+                "packetsRecv": "220959",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "test",
+          "seconds": 3.129650927000057,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/6aea9049-15d3-4a8b-b8d5-9dab5b9f2f77",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1605403",
+                "saveTimeInMs": "3",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "4800",
+              "wallTimeInMs": "965",
+              "analysisPhaseTimeInMs": "93",
+              "executionPhaseTimeInMs": "57",
+              "actionsExecutionStartInMs": "887"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 12,
+              "numBuilds": 12
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 390839,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "42924382",
+                "bytesRecv": "1051153318",
+                "packetsSent": "146182",
+                "packetsRecv": "221019",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        }
+      ],
+      "success": true,
+      "measured_seconds": 182.6329047679901,
+      "cpu_limit": 8
+    },
+    {
+      "name": "sample-3-16cpu",
+      "excluded_seed": false,
+      "schema": 1,
+      "provider": "buildbuddy",
+      "commit": "aa9124d8a73809cffea639a5f11059e201927554",
+      "configuration": {
+        "workloads": [
+          [
+            "build",
+            [
+              "build",
+              "//:production_binaries",
+              "//ui:dist"
+            ]
+          ],
+          [
+            "test",
+            [
+              "test",
+              "//ui:unit_tests"
+            ]
+          ]
+        ],
+        "options": [
+          "--config=buildbuddy",
+          "--remote_executor=",
+          "--remote_upload_local_results=false",
+          "--remote_accept_cached=true",
+          "--remote_download_outputs=all",
+          "--jobs=16",
+          "--local_resources=cpu=16",
+          "--local_resources=memory=12288",
+          "--color=no",
+          "--curses=no",
+          "--repo_env=CC=/usr/bin/clang-18",
+          "--repo_env=CXX=/usr/bin/clang++-18",
+          "--action_env=CC=/usr/bin/clang-18",
+          "--action_env=CXX=/usr/bin/clang++-18",
+          "--action_env=LIBCLANG_PATH=/usr/lib/llvm-18/lib"
+        ],
+        "startup_options": [
+          "--host_jvm_args=-Xmx4g"
+        ],
+        "client": "plain-bazel",
+        "bazel_version": "9.3.2",
+        "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+        "native_packages": "base-files=13ubuntu10.5\nbinutils=2.42-4ubuntu2.10\nbuild-essential=12.10ubuntu1\nclang-18=1:18.1.3-1ubuntu1\ncmake=3.28.3-1build7\ng++-13=13.3.0-6ubuntu2~24.04.1\ngcc-13=13.3.0-6ubuntu2~24.04.1\nlibc6=2.39-0ubuntu8.12\nlibc6-dev=2.39-0ubuntu8.12\nlibclang-18-dev=1:18.1.3-1ubuntu1\nlibgcc-s1=14.2.0-4ubuntu2~24.04.1\nlibssl-dev=3.0.13-0ubuntu3.16\nlibstdc++6=14.2.0-4ubuntu2~24.04.1\nlinux-libc-dev=6.8.0-149.149",
+        "os": "Ubuntu 24.04.5 LTS",
+        "cpu_affinity_count": 16
+      },
+      "configuration_id": "05175dd2c3a3d1d61e953b7187ccffc7cf693ef60fab7206376786342a4cd66d",
+      "requested_cpu": 16,
+      "requested_memory_gb": 16,
+      "visible_cpu": 19,
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "runner_memory": {
+        "total_kib": 17167724
+      },
+      "runner_kernel": "5.15.0",
+      "started_at": 1794788180.41081,
+      "setup_seconds": 0.006975889205932617,
+      "samples": [
+        {
+          "iteration": "initial",
+          "phase": "build",
+          "seconds": 141.416211685,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/27b37573-38ee-499f-a222-d397a363605e",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "6",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1604973",
+                "saveTimeInMs": "3",
+                "hits": 5348,
+                "misses": 6
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "17740",
+              "wallTimeInMs": "140802",
+              "analysisPhaseTimeInMs": "674",
+              "executionPhaseTimeInMs": "139503",
+              "actionsExecutionStartInMs": "1274"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 13,
+              "numBuilds": 13
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {
+                "sizeInBytes": "11104",
+                "count": 1
+              },
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "3561210486",
+                "count": 35480
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 392809,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "43081276",
+                "bytesRecv": "1051177865",
+                "packetsSent": "146317",
+                "packetsRecv": "221151",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "initial",
+          "phase": "test",
+          "seconds": 5.429949713999804,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/9fcd595a-80d5-43d1-b451-888e0a2d0313",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1605838",
+                "saveTimeInMs": "3",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "5130",
+              "wallTimeInMs": "1196",
+              "analysisPhaseTimeInMs": "89",
+              "executionPhaseTimeInMs": "59",
+              "actionsExecutionStartInMs": "1114"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 14,
+              "numBuilds": 14
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 392806,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "43269932",
+                "bytesRecv": "1051190946",
+                "packetsSent": "146390",
+                "packetsRecv": "221213",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "build",
+          "seconds": 2.1764479249998203,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/acb9c2bd-f887-4d8b-9545-73efb4e1a195",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1605097",
+                "saveTimeInMs": "5",
+                "hits": 5353,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "13920",
+              "wallTimeInMs": "1606",
+              "analysisPhaseTimeInMs": "620",
+              "executionPhaseTimeInMs": "798",
+              "actionsExecutionStartInMs": "792"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 15,
+              "numBuilds": 15
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "4063845618",
+                "count": 35485
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 394776,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "43407354",
+                "bytesRecv": "1051204820",
+                "packetsSent": "146468",
+                "packetsRecv": "221287",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "test",
+          "seconds": 3.8854782619998787,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/39d666ec-c4fa-4e70-a2af-6a508ff3298a",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1605962",
+                "saveTimeInMs": "3",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "5630",
+              "wallTimeInMs": "1428",
+              "analysisPhaseTimeInMs": "101",
+              "executionPhaseTimeInMs": "58",
+              "actionsExecutionStartInMs": "1347"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 16,
+              "numBuilds": 16
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 394775,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "43579768",
+                "bytesRecv": "1051217951",
+                "packetsSent": "146538",
+                "packetsRecv": "221347",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        }
+      ],
+      "success": true,
+      "measured_seconds": 152.93492650985718,
+      "cpu_limit": 16
+    },
+    {
+      "name": "sample-4-16cpu",
+      "excluded_seed": false,
+      "schema": 1,
+      "provider": "buildbuddy",
+      "commit": "aa9124d8a73809cffea639a5f11059e201927554",
+      "configuration": {
+        "workloads": [
+          [
+            "build",
+            [
+              "build",
+              "//:production_binaries",
+              "//ui:dist"
+            ]
+          ],
+          [
+            "test",
+            [
+              "test",
+              "//ui:unit_tests"
+            ]
+          ]
+        ],
+        "options": [
+          "--config=buildbuddy",
+          "--remote_executor=",
+          "--remote_upload_local_results=false",
+          "--remote_accept_cached=true",
+          "--remote_download_outputs=all",
+          "--jobs=16",
+          "--local_resources=cpu=16",
+          "--local_resources=memory=12288",
+          "--color=no",
+          "--curses=no",
+          "--repo_env=CC=/usr/bin/clang-18",
+          "--repo_env=CXX=/usr/bin/clang++-18",
+          "--action_env=CC=/usr/bin/clang-18",
+          "--action_env=CXX=/usr/bin/clang++-18",
+          "--action_env=LIBCLANG_PATH=/usr/lib/llvm-18/lib"
+        ],
+        "startup_options": [
+          "--host_jvm_args=-Xmx4g"
+        ],
+        "client": "plain-bazel",
+        "bazel_version": "9.3.2",
+        "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+        "native_packages": "base-files=13ubuntu10.5\nbinutils=2.42-4ubuntu2.10\nbuild-essential=12.10ubuntu1\nclang-18=1:18.1.3-1ubuntu1\ncmake=3.28.3-1build7\ng++-13=13.3.0-6ubuntu2~24.04.1\ngcc-13=13.3.0-6ubuntu2~24.04.1\nlibc6=2.39-0ubuntu8.12\nlibc6-dev=2.39-0ubuntu8.12\nlibclang-18-dev=1:18.1.3-1ubuntu1\nlibgcc-s1=14.2.0-4ubuntu2~24.04.1\nlibssl-dev=3.0.13-0ubuntu3.16\nlibstdc++6=14.2.0-4ubuntu2~24.04.1\nlinux-libc-dev=6.8.0-149.149",
+        "os": "Ubuntu 24.04.5 LTS",
+        "cpu_affinity_count": 16
+      },
+      "configuration_id": "05175dd2c3a3d1d61e953b7187ccffc7cf693ef60fab7206376786342a4cd66d",
+      "requested_cpu": 16,
+      "requested_memory_gb": 16,
+      "visible_cpu": 19,
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "runner_memory": {
+        "total_kib": 17167724
+      },
+      "runner_kernel": "5.15.0",
+      "started_at": 1794788333.3548164,
+      "setup_seconds": 0.007348299026489258,
+      "samples": [
+        {
+          "iteration": "initial",
+          "phase": "build",
+          "seconds": 136.25834405699993,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/acf734c4-2b82-4f06-a9c5-884324875937",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "6",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1605532",
+                "saveTimeInMs": "3",
+                "hits": 5348,
+                "misses": 6
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "17370",
+              "wallTimeInMs": "135625",
+              "analysisPhaseTimeInMs": "686",
+              "executionPhaseTimeInMs": "134339",
+              "actionsExecutionStartInMs": "1264"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 17,
+              "numBuilds": 17
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {
+                "sizeInBytes": "11104",
+                "count": 1
+              },
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "3561210486",
+                "count": 35480
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 396745,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "43723236",
+                "bytesRecv": "1051240911",
+                "packetsSent": "146653",
+                "packetsRecv": "221458",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "initial",
+          "phase": "test",
+          "seconds": 7.096051260999957,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/6d9d3d39-64ed-48de-bf51-3a6ebd6c45e4",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1606397",
+                "saveTimeInMs": "2",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "6090",
+              "wallTimeInMs": "1568",
+              "analysisPhaseTimeInMs": "95",
+              "executionPhaseTimeInMs": "57",
+              "actionsExecutionStartInMs": "1492"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 18,
+              "numBuilds": 18
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 396742,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "43912684",
+                "bytesRecv": "1051254388",
+                "packetsSent": "146725",
+                "packetsRecv": "221525",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "build",
+          "seconds": 2.6007696920000853,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/09576601-adb8-4271-9ba6-01781175f0c9",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1605656",
+                "saveTimeInMs": "5",
+                "hits": 5353,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "14150",
+              "wallTimeInMs": "2041",
+              "analysisPhaseTimeInMs": "604",
+              "executionPhaseTimeInMs": "560",
+              "actionsExecutionStartInMs": "1466"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 19,
+              "numBuilds": 19
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "4063845618",
+                "count": 35485
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 398712,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "44052203",
+                "bytesRecv": "1051268191",
+                "packetsSent": "146801",
+                "packetsRecv": "221598",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "test",
+          "seconds": 3.153032320000193,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/088efe29-852b-4774-986f-d2fd1d28ae73",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1606521",
+                "saveTimeInMs": "3",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "5300",
+              "wallTimeInMs": "1354",
+              "analysisPhaseTimeInMs": "101",
+              "executionPhaseTimeInMs": "56",
+              "actionsExecutionStartInMs": "1278"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 20,
+              "numBuilds": 20
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 398711,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "44205574",
+                "bytesRecv": "1051280840",
+                "packetsSent": "146862",
+                "packetsRecv": "221654",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        }
+      ],
+      "success": true,
+      "measured_seconds": 149.13517689704895,
+      "cpu_limit": 16
+    },
+    {
+      "name": "sample-5-8cpu",
+      "excluded_seed": false,
+      "schema": 1,
+      "provider": "buildbuddy",
+      "commit": "aa9124d8a73809cffea639a5f11059e201927554",
+      "configuration": {
+        "workloads": [
+          [
+            "build",
+            [
+              "build",
+              "//:production_binaries",
+              "//ui:dist"
+            ]
+          ],
+          [
+            "test",
+            [
+              "test",
+              "//ui:unit_tests"
+            ]
+          ]
+        ],
+        "options": [
+          "--config=buildbuddy",
+          "--remote_executor=",
+          "--remote_upload_local_results=false",
+          "--remote_accept_cached=true",
+          "--remote_download_outputs=all",
+          "--jobs=8",
+          "--local_resources=cpu=8",
+          "--local_resources=memory=12288",
+          "--color=no",
+          "--curses=no",
+          "--repo_env=CC=/usr/bin/clang-18",
+          "--repo_env=CXX=/usr/bin/clang++-18",
+          "--action_env=CC=/usr/bin/clang-18",
+          "--action_env=CXX=/usr/bin/clang++-18",
+          "--action_env=LIBCLANG_PATH=/usr/lib/llvm-18/lib"
+        ],
+        "startup_options": [
+          "--host_jvm_args=-Xmx4g"
+        ],
+        "client": "plain-bazel",
+        "bazel_version": "9.3.2",
+        "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+        "native_packages": "base-files=13ubuntu10.5\nbinutils=2.42-4ubuntu2.10\nbuild-essential=12.10ubuntu1\nclang-18=1:18.1.3-1ubuntu1\ncmake=3.28.3-1build7\ng++-13=13.3.0-6ubuntu2~24.04.1\ngcc-13=13.3.0-6ubuntu2~24.04.1\nlibc6=2.39-0ubuntu8.12\nlibc6-dev=2.39-0ubuntu8.12\nlibclang-18-dev=1:18.1.3-1ubuntu1\nlibgcc-s1=14.2.0-4ubuntu2~24.04.1\nlibssl-dev=3.0.13-0ubuntu3.16\nlibstdc++6=14.2.0-4ubuntu2~24.04.1\nlinux-libc-dev=6.8.0-149.149",
+        "os": "Ubuntu 24.04.5 LTS",
+        "cpu_affinity_count": 8
+      },
+      "configuration_id": "373a44f0c4b2702a14c18a579de3072c75f51b2ea9cdba2aa97d04ee35456774",
+      "requested_cpu": 16,
+      "requested_memory_gb": 16,
+      "visible_cpu": 19,
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "runner_memory": {
+        "total_kib": 17167724
+      },
+      "runner_kernel": "5.15.0",
+      "started_at": 1794788482.501752,
+      "setup_seconds": 0.009633302688598633,
+      "samples": [
+        {
+          "iteration": "initial",
+          "phase": "build",
+          "seconds": 184.84761561799996,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/ae21ded7-a357-4678-b1f8-1ee2df640109",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "6",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1606091",
+                "saveTimeInMs": "3",
+                "hits": 5348,
+                "misses": 6
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "13030",
+              "wallTimeInMs": "184164",
+              "analysisPhaseTimeInMs": "867",
+              "executionPhaseTimeInMs": "183083",
+              "actionsExecutionStartInMs": "1056"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 21,
+              "numBuilds": 21
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {
+                "sizeInBytes": "11104",
+                "count": 1
+              },
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "3561210486",
+                "count": 35480
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 400681,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "44364120",
+                "bytesRecv": "1051311141",
+                "packetsSent": "147007",
+                "packetsRecv": "221793",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "initial",
+          "phase": "test",
+          "seconds": 5.904559748999873,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/2cd82234-fc06-4fed-9009-87274beaa545",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1606956",
+                "saveTimeInMs": "3",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "3880",
+              "wallTimeInMs": "1015",
+              "analysisPhaseTimeInMs": "90",
+              "executionPhaseTimeInMs": "57",
+              "actionsExecutionStartInMs": "938"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 22,
+              "numBuilds": 22
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 400678,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "44563598",
+                "bytesRecv": "1051324771",
+                "packetsSent": "147085",
+                "packetsRecv": "221862",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "build",
+          "seconds": 2.2084760200000346,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/0b37609e-00ef-4f8a-a7f0-8631387634bf",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1606215",
+                "saveTimeInMs": "5",
+                "hits": 5353,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "10210",
+              "wallTimeInMs": "1695",
+              "analysisPhaseTimeInMs": "737",
+              "executionPhaseTimeInMs": "357",
+              "actionsExecutionStartInMs": "1322"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 23,
+              "numBuilds": 23
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "4063845618",
+                "count": 35485
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 402648,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "44693179",
+                "bytesRecv": "1051337873",
+                "packetsSent": "147149",
+                "packetsRecv": "221925",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "test",
+          "seconds": 4.440333984000063,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/aec6bd76-4b44-4ac3-a537-69a85a3c5ad6",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1607080",
+                "saveTimeInMs": "3",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "3820",
+              "wallTimeInMs": "983",
+              "analysisPhaseTimeInMs": "103",
+              "executionPhaseTimeInMs": "58",
+              "actionsExecutionStartInMs": "903"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 24,
+              "numBuilds": 24
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 402647,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "44844495",
+                "bytesRecv": "1051350213",
+                "packetsSent": "147207",
+                "packetsRecv": "221977",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        }
+      ],
+      "success": true,
+      "measured_seconds": 197.42960357666016,
+      "cpu_limit": 8
+    },
+    {
+      "name": "sample-6-4cpu",
+      "excluded_seed": false,
+      "schema": 1,
+      "provider": "buildbuddy",
+      "commit": "aa9124d8a73809cffea639a5f11059e201927554",
+      "configuration": {
+        "workloads": [
+          [
+            "build",
+            [
+              "build",
+              "//:production_binaries",
+              "//ui:dist"
+            ]
+          ],
+          [
+            "test",
+            [
+              "test",
+              "//ui:unit_tests"
+            ]
+          ]
+        ],
+        "options": [
+          "--config=buildbuddy",
+          "--remote_executor=",
+          "--remote_upload_local_results=false",
+          "--remote_accept_cached=true",
+          "--remote_download_outputs=all",
+          "--jobs=4",
+          "--local_resources=cpu=4",
+          "--local_resources=memory=12288",
+          "--color=no",
+          "--curses=no",
+          "--repo_env=CC=/usr/bin/clang-18",
+          "--repo_env=CXX=/usr/bin/clang++-18",
+          "--action_env=CC=/usr/bin/clang-18",
+          "--action_env=CXX=/usr/bin/clang++-18",
+          "--action_env=LIBCLANG_PATH=/usr/lib/llvm-18/lib"
+        ],
+        "startup_options": [
+          "--host_jvm_args=-Xmx4g"
+        ],
+        "client": "plain-bazel",
+        "bazel_version": "9.3.2",
+        "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+        "native_packages": "base-files=13ubuntu10.5\nbinutils=2.42-4ubuntu2.10\nbuild-essential=12.10ubuntu1\nclang-18=1:18.1.3-1ubuntu1\ncmake=3.28.3-1build7\ng++-13=13.3.0-6ubuntu2~24.04.1\ngcc-13=13.3.0-6ubuntu2~24.04.1\nlibc6=2.39-0ubuntu8.12\nlibc6-dev=2.39-0ubuntu8.12\nlibclang-18-dev=1:18.1.3-1ubuntu1\nlibgcc-s1=14.2.0-4ubuntu2~24.04.1\nlibssl-dev=3.0.13-0ubuntu3.16\nlibstdc++6=14.2.0-4ubuntu2~24.04.1\nlinux-libc-dev=6.8.0-149.149",
+        "os": "Ubuntu 24.04.5 LTS",
+        "cpu_affinity_count": 4
+      },
+      "configuration_id": "8aa92c8942d0a8921b0b7935842c15f7ebc05a34c9111055e80d6ae75119ff70",
+      "requested_cpu": 16,
+      "requested_memory_gb": 16,
+      "visible_cpu": 19,
+      "affinity_cpus": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "runner_memory": {
+        "total_kib": 17167724
+      },
+      "runner_kernel": "5.15.0",
+      "started_at": 1794788679.9400265,
+      "setup_seconds": 0.0071353912353515625,
+      "samples": [
+        {
+          "iteration": "initial",
+          "phase": "build",
+          "seconds": 263.8757286759999,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/7182990b-8ccf-4d22-a39c-8a0c2b01b5cf",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "6",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1603254",
+                "saveTimeInMs": "4",
+                "hits": 5348,
+                "misses": 6
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "12220",
+              "wallTimeInMs": "263172",
+              "analysisPhaseTimeInMs": "927",
+              "executionPhaseTimeInMs": "261299",
+              "actionsExecutionStartInMs": "1845"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 25,
+              "numBuilds": 25
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {
+                "sizeInBytes": "11104",
+                "count": 1
+              },
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "3561210486",
+                "count": 35480
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 404617,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "45005673",
+                "bytesRecv": "1051382914",
+                "packetsSent": "147371",
+                "packetsRecv": "222136",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "initial",
+          "phase": "test",
+          "seconds": 4.389374928000052,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/d1bb658f-73ae-482b-9357-25efb766c1a7",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1604135",
+                "saveTimeInMs": "2",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "2960",
+              "wallTimeInMs": "1167",
+              "analysisPhaseTimeInMs": "100",
+              "executionPhaseTimeInMs": "56",
+              "actionsExecutionStartInMs": "1092"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 26,
+              "numBuilds": 26
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 404614,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "45201893",
+                "bytesRecv": "1051395982",
+                "packetsSent": "147441",
+                "packetsRecv": "222197",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "build",
+          "seconds": 3.203127059000053,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/94a8d605-efde-451e-82ff-dbd448abef57",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "6818",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "6818",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1603394",
+                "saveTimeInMs": "5",
+                "hits": 5353,
+                "misses": 1,
+                "cacheCheckSemaphoreWaitTimeInMs": "1"
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "7695",
+              "targetsConfiguredNotIncludingAspects": "7694"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "8940",
+              "wallTimeInMs": "2637",
+              "analysisPhaseTimeInMs": "1063",
+              "executionPhaseTimeInMs": "628",
+              "actionsExecutionStartInMs": "1994"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 27,
+              "numBuilds": 27
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "4063845751",
+                "count": 35487
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "4063845618",
+                "count": 35485
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "385686890",
+                "count": 8
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 53028,
+              "actionCount": 13729,
+              "outputArtifactCount": 11272,
+              "postInvocationSkyframeNodeCount": 406584,
+              "actionLookupValueCountNotIncludingAspects": 53026,
+              "actionCountNotIncludingAspects": 13728,
+              "inputFileConfiguredTargetCount": 45008,
+              "otherConfiguredTargetCount": 238
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "45338549",
+                "bytesRecv": "1051409424",
+                "packetsSent": "147511",
+                "packetsRecv": "222264",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        },
+        {
+          "iteration": "warm",
+          "phase": "test",
+          "seconds": 3.4303227640000387,
+          "exit_code": 0,
+          "invocation_url": "https://app.buildbuddy.io/invocation/6a6b40f8-0b1d-4218-ab1d-49c7aef7b7cf",
+          "metrics": {
+            "actionSummary": {
+              "actionsCreated": "89",
+              "actionsExecuted": "1",
+              "actionsCreatedNotIncludingAspects": "89",
+              "actionCacheStatistics": {
+                "sizeInBytes": "1604275",
+                "saveTimeInMs": "3",
+                "hits": 78,
+                "misses": 1
+              }
+            },
+            "memoryMetrics": {},
+            "targetMetrics": {
+              "targetsConfigured": "21",
+              "targetsConfiguredNotIncludingAspects": "21"
+            },
+            "packageMetrics": {},
+            "timingMetrics": {
+              "cpuTimeInMs": "3060",
+              "wallTimeInMs": "1192",
+              "analysisPhaseTimeInMs": "103",
+              "executionPhaseTimeInMs": "73",
+              "actionsExecutionStartInMs": "1099"
+            },
+            "cumulativeMetrics": {
+              "numAnalyses": 28,
+              "numBuilds": 28
+            },
+            "artifactMetrics": {
+              "sourceArtifactsRead": {},
+              "outputArtifactsSeen": {
+                "sizeInBytes": "2118442",
+                "count": 102
+              },
+              "outputArtifactsFromActionCache": {
+                "sizeInBytes": "2118309",
+                "count": 100
+              },
+              "topLevelArtifacts": {
+                "sizeInBytes": "975245916",
+                "count": 58780
+              }
+            },
+            "buildGraphMetrics": {
+              "actionLookupValueCount": 10667,
+              "actionCount": 7000,
+              "outputArtifactCount": 4948,
+              "postInvocationSkyframeNodeCount": 406583,
+              "actionLookupValueCountNotIncludingAspects": 10666,
+              "actionCountNotIncludingAspects": 6999,
+              "inputFileConfiguredTargetCount": 6221,
+              "otherConfiguredTargetCount": 31
+            },
+            "networkMetrics": {
+              "systemNetworkStats": {
+                "bytesSent": "45490998",
+                "bytesRecv": "1051421764",
+                "packetsSent": "147572",
+                "packetsRecv": "222316",
+                "peakBytesSentPerSec": "5828273",
+                "peakBytesRecvPerSec": "243063921",
+                "peakPacketsSentPerSec": "19737",
+                "peakPacketsRecvPerSec": "31907"
+              }
+            },
+            "workerPoolMetrics": {},
+            "dynamicExecutionMetrics": {},
+            "remoteAnalysisCacheStatistics": {}
+          }
+        }
+      ],
+      "success": true,
+      "measured_seconds": 274.92466259002686,
+      "cpu_limit": 4
+    }
+  ]
+}

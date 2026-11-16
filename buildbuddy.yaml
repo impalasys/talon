@@ -46,25 +46,3 @@ actions:
           bash scripts/ci/linux-pilot-setup.sh
           python3 scripts/ci/linux_cpu_sweep.py \
             --output "$BUILDBUDDY_ARTIFACTS_DIRECTORY" --cpus 4 8 16
-
-  - name: BuildBuddy Linux CPU sweep 32
-    os: linux
-    arch: amd64
-    container_image: ubuntu-24.04
-    bazel_use_cli: false
-    resource_requests:
-      cpu: 32
-      memory: 16GB
-      disk: 40GB
-    timeout: 60m
-    allow_concurrent_runs: false
-    allow_concurrent_runs_on_branches: []
-    triggers:
-      push:
-        branches: ["codex/bb-cpu-sweep-32"]
-    steps:
-      - run: |
-          set -euo pipefail
-          bash scripts/ci/linux-pilot-setup.sh
-          python3 scripts/ci/linux_cpu_sweep.py \
-            --output "$BUILDBUDDY_ARTIFACTS_DIRECTORY" --cpus 16 32
