@@ -48,12 +48,14 @@ jobs:
           name: linux-ci-images
           path: ${{ runner.temp }}/buildbuddy/images/
           if-no-files-found: error
+          retention-days: 1
       - uses: actions/upload-artifact@v4
         if: steps.fetch.outputs.release == 'true'
         with:
           name: linux-ci-release-archives
           path: ${{ runner.temp }}/buildbuddy/release/
           if-no-files-found: error
+          retention-days: 1
       - uses: actions/upload-artifact@v4
         if: steps.fetch.outputs.storybook == 'true'
         with:

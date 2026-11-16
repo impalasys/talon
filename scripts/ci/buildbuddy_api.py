@@ -1,6 +1,5 @@
 """Read BuildBuddy artifacts without exposing the API credential to build scripts."""
 import argparse
-import base64
 import hashlib
 import json
 import os
@@ -12,13 +11,17 @@ from urllib.parse import urlparse
 ENDPOINT = 'https://impalasys.buildbuddy.io/api/v1/'
 
 
-def request(method, payload):
+def open_request(method, payload):
     key = os.environ.get('BUILDBUDDY_API_KEY')
     if not key:
         raise RuntimeError('BUILDBUDDY_API_KEY is required for artifact retrieval')
     req = urllib.request.Request(ENDPOINT + method, data=json.dumps(payload).encode(), headers={
         'Content-Type': 'application/json', 'x-buildbuddy-api-key': key})
-    with urllib.request.urlopen(req, timeout=120) as response:
+    return urllib.request.urlopen(req, timeout=120)
+
+
+def request(method, payload):
+    with open_request(method, payload) as response:
         return json.load(response)
 
 
@@ -54,16 +57,18 @@ def download(file, destination):
     destination.parent.mkdir(parents=True, exist_ok=True)
     hasher = hashlib.sha256()
     try:
-        with destination.open('wb') as out:
-            # The bounded API keeps base64 JSON responses from exhausting runner RAM.
-            for start in range(0, size, 8 * 1024**2):
-                end = min(size, start + 8 * 1024**2)
-                response = request('GetFileRange', {'uri': uri, 'start': start, 'end': end})
-                data = base64.b64decode(response.get('data', ''), validate=True)
-                if len(data) != end - start:
-                    raise RuntimeError('Truncated BuildBuddy artifact')
+        # GetFile streams raw bytes over HTTP. GetFileRange returned NotFound
+        # for our multi-GB handoff even though this endpoint verified it.
+        with open_request('GetFile', {'uri': uri}) as response, destination.open('wb') as out:
+            received = 0
+            while data := response.read(1024**2):
+                received += len(data)
+                if received > size:
+                    raise RuntimeError('Oversized BuildBuddy artifact')
                 out.write(data)
                 hasher.update(data)
+        if received != size:
+            raise RuntimeError('Truncated BuildBuddy artifact')
         if hasher.hexdigest() != digest:
             raise RuntimeError('BuildBuddy artifact checksum mismatch')
     except BaseException:
