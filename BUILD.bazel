@@ -93,30 +93,9 @@ cargo_toml_env_vars(
     src = "Cargo.toml",
 )
 
-cargo_build_script(
-    name = "build_script",
-    srcs = ["build.rs"],
-    aliases = aliases(
-        build = True,
-        build_proc_macro = True,
-    ),
-    build_script_env = {"PROTOC": "$(execpath //tools/bazel:protoc)"},
-    build_script_env_files = [":cargo_env"],
-    crate_name = "talon_build_script",
-    data = glob([
-        "proto/**/*.proto",
-        "third_party/googleapis/**/*.proto",
-    ]),
-    edition = "2021",
-    pkg_name = "talon",
-    proc_macro_deps = all_crate_deps(
-        build_proc_macro = True,
-    ),
-    rustc_env_files = [":cargo_env"],
-    tools = ["//tools/bazel:protoc"],
-    deps = all_crate_deps(
-        build = True,
-    ),
+filegroup(
+    name = "internal_proto_sources",
+    srcs = glob(["proto/**/*.proto", "third_party/googleapis/**/*.proto"]),
 )
 
 filegroup(
@@ -148,7 +127,7 @@ rust_library(
     ),
     rustc_env_files = [":cargo_env"],
     deps = _RUNTIME_DEPS + [
-        ":build_script",
+        "//crates/talon-protocol:talon_protocol",
         "//crates/talon-identifiers:talon_identifiers",
         "//sdk/rust/talon-client:talon_client",
     ],
@@ -501,6 +480,7 @@ rustfmt_test(
         ":postgres_tls_startup_test",
         ":identifiers_compat_test",
         "//crates/talon-identifiers:talon_identifiers",
+        "//crates/talon-protocol:talon_protocol",
         "//sdk/rust/talon-client:talon_client",
         "//sdk/rust/talon-client:generated_test",
         "//sdk/rust/talon-server:talon_server",

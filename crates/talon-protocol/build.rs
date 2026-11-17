@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 fn main() -> std::io::Result<()> {
+    let workspace =
+        std::path::PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap()).join("../..");
+    std::env::set_current_dir(workspace)?;
     // All user-facing resource/data protobufs get serde support so they can
     // be deserialized directly from YAML/JSON without shadow structs.
     // The rename_all = "camelCase" matches the YAML convention (systemPrompt, apiVersion, etc.)
@@ -230,24 +233,24 @@ fn main() -> std::io::Result<()> {
         );
     builder = builder.field_attribute(
         ".talon.resources.AgentSpec.capabilities",
-        "#[serde(with = \"crate::control::manifest::capabilities_policy_serde\", default)]",
+        "#[serde(with = \"crate::serialization::capabilities_policy_serde\", default)]",
     );
     builder = builder
         .field_attribute(
             ".talon.resources.FileSpec.purpose",
-            "#[serde(with = \"crate::control::manifest::enum_serde::file_purpose\")]",
+            "#[serde(with = \"crate::serialization::enum_serde::file_purpose\")]",
         )
         .field_attribute(
             ".talon.resources.FileSpec.index_policy",
-            "#[serde(with = \"crate::control::manifest::enum_serde::file_index_policy\")]",
+            "#[serde(with = \"crate::serialization::enum_serde::file_index_policy\")]",
         )
         .field_attribute(
             ".talon.resources.FileSpec.retention",
-            "#[serde(with = \"crate::control::manifest::enum_serde::file_retention\")]",
+            "#[serde(with = \"crate::serialization::enum_serde::file_retention\")]",
         )
         .field_attribute(
             ".talon.resources.TaskStatus.phase",
-            "#[serde(with = \"crate::control::manifest::enum_serde::task_phase\")]",
+            "#[serde(with = \"crate::serialization::enum_serde::task_phase\")]",
         )
         .field_attribute(
             ".talon.external.RegisterClusterResponse.registration_id",
