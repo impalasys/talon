@@ -127,6 +127,9 @@ rust_library(
     ),
     rustc_env_files = [":cargo_env"],
     deps = _RUNTIME_DEPS + [
+        "//crates/talon-security:talon_security",
+        "//crates/talon-config:talon_config",
+        "//crates/talon-test-support:talon_test_support",
         "//crates/talon-contracts:talon_contracts",
         "//crates/talon-protocol:talon_protocol",
         "//crates/talon-identifiers:talon_identifiers",
@@ -470,6 +473,9 @@ rust_doc_test(
 rustfmt_test(
     name = "format_test",
     targets = [
+        "//crates/talon-security:talon_security",
+        "//crates/talon-config:talon_config",
+        "//crates/talon-test-support:talon_test_support",
         "//crates/talon-contracts:talon_contracts",
         ":talon",
         ":talon-server",

@@ -1890,6 +1890,7 @@ mod tests {
     use crate::control::ControlPlane;
     use crate::gateway::auth::AuthConfig;
     use crate::gateway::Gateway;
+    use crate::test_support::TEST_RSA_PRIVATE_KEY;
     use crate::test_support::{MockKvStore, RecordingPubSub};
     use async_trait::async_trait;
     use sha2::{Digest, Sha256};
@@ -2367,7 +2368,7 @@ mod tests {
         let artifact_uri = format!("artifact://{namespace}/writer/{session_id}/{artifact_id}");
 
         let sign = |grants: Vec<TalonGrantClaim>| {
-            platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+            platform_jwt::PlatformJwtKey::from_pem(TEST_RSA_PRIVATE_KEY)
                 .unwrap()
                 .sign(&Claims {
                     iss: Some(TEST_PLATFORM_JWT_ISSUER.to_string()),

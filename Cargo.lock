@@ -6873,9 +6873,12 @@ dependencies = [
  "sqlx",
  "sse-stream",
  "talon-client",
+ "talon-config",
  "talon-contracts",
  "talon-identifiers",
  "talon-protocol",
+ "talon-security",
+ "talon-test-support",
  "tempfile",
  "tikv-jemalloc-ctl",
  "tikv-jemallocator",
@@ -6929,6 +6932,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "talon-config"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-secretsmanager",
+ "azure_core",
+ "azure_identity",
+ "azure_security_keyvault_secrets",
+ "google-cloud-secretmanager-v1",
+ "prost 0.13.5",
+ "reqwest 0.13.2",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "talon-identifiers",
+ "talon-protocol",
+ "talon-test-support",
+ "tempfile",
+ "tokio",
+ "toml 0.8.23",
+]
+
+[[package]]
 name = "talon-contracts"
 version = "0.1.0"
 dependencies = [
@@ -6942,6 +6970,7 @@ dependencies = [
  "sha2 0.10.9",
  "talon-identifiers",
  "talon-protocol",
+ "uuid",
 ]
 
 [[package]]
@@ -6973,6 +7002,35 @@ dependencies = [
  "toml 0.8.23",
  "tonic 0.12.3",
  "tonic-build",
+]
+
+[[package]]
+name = "talon-security"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.21.7",
+ "bollard",
+ "jsonwebtoken 11.0.0",
+ "rustls 0.23.37",
+ "serde",
+ "serde_json",
+ "talon-contracts",
+ "talon-test-support",
+ "url",
+]
+
+[[package]]
+name = "talon-test-support"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "futures",
+ "talon-contracts",
+ "talon-identifiers",
+ "tokio",
 ]
 
 [[package]]

@@ -1,11 +1,52 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::config::proto;
+use crate::config::proto;
 use anyhow::{anyhow, Result};
 use std::process::Command;
 
 pub use proto::Secret;
+
+#[cfg(test)]
+mod tests {
+    use azure_core::http::{new_http_client, Method, Request, StatusCode};
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    #[tokio::test]
+    async fn azure_default_transport_can_send_requests() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut buffer = [0; 1024];
+            let mut request = Vec::new();
+            while !request.windows(4).any(|bytes| bytes == b"\r\n\r\n") {
+                let read = socket.read(&mut buffer).await.unwrap();
+                assert_ne!(read, 0, "client closed before sending request headers");
+                request.extend_from_slice(&buffer[..read]);
+            }
+            assert!(request.starts_with(b"GET /secret HTTP/1.1\r\n"));
+            socket
+                .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+                .await
+                .unwrap();
+        });
+
+        let request = Request::new(
+            format!("http://{address}/secret").parse().unwrap(),
+            Method::Get,
+        );
+        let response = tokio::time::timeout(
+            std::time::Duration::from_secs(10),
+            new_http_client().execute_request(&request),
+        )
+        .await
+        .expect("Azure HTTP request timed out")
+        .expect("Azure SDK must have a working default HTTP transport");
+        assert_eq!(response.status(), StatusCode::Ok);
+        server.await.unwrap();
+    }
+}
 
 #[async_trait::async_trait]
 pub trait SecretExt {

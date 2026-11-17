@@ -743,6 +743,7 @@ mod tests {
     use crate::cli::commands::Cli;
     use crate::control::security::platform_jwt;
     use crate::gateway::auth::Claims;
+    use crate::test_support::TEST_RSA_PRIVATE_KEY;
     use clap::Parser;
     use std::ffi::OsString;
     use talon_client::data::ApiKeyGrant;
@@ -878,7 +879,7 @@ mod tests {
         let issuer = "https://talon.example.com";
         let _issuer_guard = EnvVarGuard::set(platform_jwt::TALON_JWT_ISSUER_ENV, issuer);
         let token = mint_local_platform_access_jwt(
-            platform_jwt::TEST_RSA_PRIVATE_KEY,
+            TEST_RSA_PRIVATE_KEY,
             "tenant-client",
             60,
             LocalPlatformTokenScope {
@@ -891,7 +892,7 @@ mod tests {
             &[],
         )
         .unwrap();
-        let claims = platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+        let claims = platform_jwt::PlatformJwtKey::from_pem(TEST_RSA_PRIVATE_KEY)
             .unwrap()
             .verify::<Claims>(&token, issuer, platform_jwt::TALON_GATEWAY_AUDIENCE)
             .unwrap();
@@ -910,7 +911,7 @@ mod tests {
         let _env_lock = crate::test_support::env_lock();
         let mint = |scope| {
             mint_local_platform_access_jwt(
-                platform_jwt::TEST_RSA_PRIVATE_KEY,
+                TEST_RSA_PRIVATE_KEY,
                 "tenant-client",
                 60,
                 scope,
@@ -961,7 +962,7 @@ mod tests {
         };
 
         let err = mint_local_platform_access_jwt(
-            platform_jwt::TEST_RSA_PRIVATE_KEY,
+            TEST_RSA_PRIVATE_KEY,
             "tenant-client",
             60,
             LocalPlatformTokenScope {

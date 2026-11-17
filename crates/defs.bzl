@@ -3,7 +3,7 @@
 load("@crates//:defs.bzl", "aliases", "all_crate_deps")
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
-def talon_crate(name, deps = [], test_deps = [], unit_tests = True, compile_data = [], **kwargs):
+def talon_crate(name, deps = [], test_deps = [], unit_tests = True, compile_data = [], test_data = [], **kwargs):
     native.exports_files(["Cargo.toml"])
     rust_library(
         name = name,
@@ -21,6 +21,7 @@ def talon_crate(name, deps = [], test_deps = [], unit_tests = True, compile_data
         rust_test(
             name = "unit_tests",
             crate = ":" + name,
+            data = test_data,
             edition = "2021",
             aliases = aliases(normal_dev = True),
             proc_macro_deps = all_crate_deps(proc_macro_dev = True),

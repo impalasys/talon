@@ -1546,6 +1546,7 @@ mod tests {
     use crate::control::config::Config;
     use crate::control::{keys, ControlPlane, MessagePublisher, ProtoKeyValueStoreExt};
     use crate::gateway::rpc::{data_proto, manifests, resources_proto};
+    use crate::test_support::TEST_RSA_PRIVATE_KEY;
     use crate::test_support::{MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
     use crate::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
@@ -1595,12 +1596,10 @@ mod tests {
     }
 
     fn sign_test_claims<T: serde::Serialize>(claims: &T) -> String {
-        crate::control::security::platform_jwt::PlatformJwtKey::from_pem(
-            crate::control::security::platform_jwt::TEST_RSA_PRIVATE_KEY,
-        )
-        .unwrap()
-        .sign(claims)
-        .unwrap()
+        crate::control::security::platform_jwt::PlatformJwtKey::from_pem(TEST_RSA_PRIVATE_KEY)
+            .unwrap()
+            .sign(claims)
+            .unwrap()
     }
 
     async fn seed_talon_ops_server(kv: &MockKvStore, namespace: &str, mcp_server_name: &str) {
