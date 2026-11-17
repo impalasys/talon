@@ -6880,7 +6880,9 @@ dependencies = [
  "talon-contracts",
  "talon-control",
  "talon-fanout",
+ "talon-harness",
  "talon-identifiers",
+ "talon-monty",
  "talon-protocol",
  "talon-sandbox",
  "talon-security",
@@ -7118,6 +7120,50 @@ dependencies = [
 ]
 
 [[package]]
+name = "talon-harness"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-sts",
+ "axum 0.7.9",
+ "base64 0.21.7",
+ "chrono",
+ "futures",
+ "mime_guess",
+ "monty-pool",
+ "monty-types",
+ "opentelemetry 0.32.0",
+ "prost 0.13.5",
+ "redb",
+ "reqwest 0.11.27",
+ "rmcp",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2 0.10.9",
+ "sse-stream",
+ "talon-config",
+ "talon-connectors",
+ "talon-contracts",
+ "talon-control",
+ "talon-identifiers",
+ "talon-monty",
+ "talon-protocol",
+ "talon-sandbox",
+ "talon-security",
+ "talon-test-support",
+ "tempfile",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-opentelemetry 0.33.0",
+ "url",
+ "urlencoding",
+]
+
+[[package]]
 name = "talon-identifiers"
 version = "0.1.0"
 dependencies = [
@@ -7129,6 +7175,14 @@ dependencies = [
 [[package]]
 name = "talon-install-hooks"
 version = "0.0.0"
+
+[[package]]
+name = "talon-monty"
+version = "0.1.0"
+dependencies = [
+ "monty-proto",
+ "talon-test-support",
+]
 
 [[package]]
 name = "talon-protocol"
