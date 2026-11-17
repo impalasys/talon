@@ -215,3 +215,6 @@ pub trait MessagePublisher: Send + Sync {
         topic: &str,
     ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>>;
 }
+
+pub mod auth;
+pub mod uuid;

@@ -1,0 +1,10 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "talon_config",
+    deps = ["//crates/talon-protocol:talon_protocol", "//crates/talon-identifiers:talon_identifiers"],
+    test_data = ["//:runtime_data"],
+    test_deps = ["//crates/talon-test-support:talon_test_support"],
+    compile_data = ["//:runtime_data", "//:src/control/security/test_rsa_private_key.pem"],
+    unit_tests = True,
+)

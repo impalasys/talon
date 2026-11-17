@@ -90,7 +90,7 @@ pub(super) fn validate_config(config: &proto::TalonConfig) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::config::{Config, ConfigExt};
+    use crate::config::{Config, ConfigExt};
     use prost::Message;
 
     fn yaml(provider: &str, identity: &str) -> String {

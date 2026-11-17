@@ -12,6 +12,7 @@ mod tests {
         resolve_http_headers, AuthenticatedReqwestClient, McpAuthBrokerConfig, McpClient,
         McpConnectionConfig,
     };
+    use crate::test_support::TEST_RSA_PRIVATE_KEY;
     use crate::test_support::{EnvVarGuard, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
     use axum::{
         extract::State,
@@ -76,7 +77,7 @@ mod tests {
             .strip_prefix("Bearer ")
             .expect("broker authorization should be bearer");
         let claims: serde_json::Value =
-            platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+            platform_jwt::PlatformJwtKey::from_pem(TEST_RSA_PRIVATE_KEY)
                 .unwrap()
                 .verify(
                     token,

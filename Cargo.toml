@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["crates/talon-identifiers", "crates/talon-protocol", "tools/bazel", "tools/install-hooks", "crates/talon-contracts"]
+members = ["crates/talon-identifiers", "crates/talon-protocol", "tools/bazel", "tools/install-hooks", "crates/talon-contracts", "crates/talon-test-support", "crates/talon-config", "crates/talon-security"]
 default-members = ["."]
 resolver = "2"
 
@@ -107,6 +107,12 @@ talon-identifiers = { path = "crates/talon-identifiers" }
 talon-protocol = { path = "crates/talon-protocol" }
 
 talon-contracts = { path = "crates/talon-contracts" }
+
+talon-test-support = { path = "crates/talon-test-support" }
+
+talon-config = { path = "crates/talon-config" }
+
+talon-security = { path = "crates/talon-security" }
 
 [build-dependencies]
 prost-build = "0.13"

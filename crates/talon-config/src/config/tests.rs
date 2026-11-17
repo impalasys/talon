@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::control::config::{
+    use crate::config::{
         expand_env_placeholders, normalize_path, proto, Config, ConfigExt, Secret, SecretExt,
     };
     use prost::Message;
@@ -14,7 +14,11 @@ mod tests {
     use tempfile::NamedTempFile;
 
     fn copy_checked_in_model_catalog(destination: &Path) {
-        let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("models");
+        let repository = match (env::var_os("TEST_SRCDIR"), env::var_os("TEST_WORKSPACE")) {
+            (Some(runfiles), Some(workspace)) => Path::new(&runfiles).join(workspace),
+            _ => Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../..")).to_path_buf(),
+        };
+        let source = repository.join("models");
         let destination = destination.join("models");
         std::fs::create_dir_all(&destination).unwrap();
 
@@ -138,10 +142,10 @@ server:
             model.long_context_output_cost_per_million_tokens,
             Some(1.80)
         );
-        assert!(!crate::control::config::global_capability_allowed(
+        assert!(!crate::config::global_capability_allowed(
             &config, "code", "run"
         ));
-        assert!(crate::control::config::global_capability_allowed(
+        assert!(crate::config::global_capability_allowed(
             &config, "files", "read"
         ));
     }
@@ -282,10 +286,10 @@ trust:
         );
         let dir = tempdir().unwrap();
         let path = dir.path().join("talon.docker-compose.yaml");
-        std::fs::write(&path, include_str!("../../../talon.docker-compose.yaml")).unwrap();
+        std::fs::write(&path, include_str!("../../../../talon.docker-compose.yaml")).unwrap();
         std::fs::write(
             dir.path().join("models.yaml"),
-            include_str!("../../../models.yaml"),
+            include_str!("../../../../models.yaml"),
         )
         .unwrap();
         copy_checked_in_model_catalog(dir.path());
@@ -382,10 +386,10 @@ trust:
     fn test_checked_in_talon_config_loads_shared_model_catalog() {
         let dir = tempdir().unwrap();
         let path = dir.path().join("talon.yaml");
-        std::fs::write(&path, include_str!("../../../talon.yaml")).unwrap();
+        std::fs::write(&path, include_str!("../../../../talon.yaml")).unwrap();
         std::fs::write(
             dir.path().join("models.yaml"),
-            include_str!("../../../models.yaml"),
+            include_str!("../../../../models.yaml"),
         )
         .unwrap();
         copy_checked_in_model_catalog(dir.path());
@@ -520,7 +524,7 @@ trust:
         let mut config = Config::default();
         config.providers.insert(
             "test".to_string(),
-            crate::control::config::ProviderConfig {
+            crate::config::ProviderConfig {
                 config: Some(proto::llm_provider_config::Config::Openai(
                     proto::OpenAiConfig {
                         workload_identity: None,
@@ -1234,15 +1238,15 @@ control_plane:
 
     #[test]
     fn test_serde_config_into_proto_preserves_scheduler_and_secret_variants() {
-        let serde = crate::control::config::SerdeConfig {
+        let serde = crate::config::SerdeConfig {
             providers: std::collections::HashMap::from([
                 (
                     "primary".to_string(),
-                    crate::control::config::SerdeProviderConfig::OpenaiCompatible {
+                    crate::config::SerdeProviderConfig::OpenaiCompatible {
                         base_url: "https://llm.example.com".to_string(),
                         model: "model-x".to_string(),
-                        api_key: Some(crate::control::config::SerdeSecret::Ref(
-                            crate::control::config::SerdeSecretRef {
+                        api_key: Some(crate::config::SerdeSecret::Ref(
+                            crate::config::SerdeSecretRef {
                                 source: "azure".to_string(),
                                 key: "azure-key".to_string(),
                             },
@@ -1251,59 +1255,57 @@ control_plane:
                 ),
                 (
                     "backup".to_string(),
-                    crate::control::config::SerdeProviderConfig::Google {
+                    crate::config::SerdeProviderConfig::Google {
                         model: "gemini".to_string(),
-                        api_key: Some(crate::control::config::SerdeSecret::Plain(
-                            "plain".to_string(),
-                        )),
+                        api_key: Some(crate::config::SerdeSecret::Plain("plain".to_string())),
                     },
                 ),
             ]),
             llm_providers: std::collections::HashMap::new(),
             capabilities: std::collections::HashMap::new(),
-            database: Some(crate::control::config::DatabaseConfigWrapper {
+            database: Some(crate::config::DatabaseConfigWrapper {
                 data_dir: Some("./data".to_string()),
                 driver: Some("sqlite".to_string()),
-                url: Some(crate::control::config::SerdeSecret::Plain(
+                url: Some(crate::config::SerdeSecret::Plain(
                     "postgres://db".to_string(),
                 )),
                 auth_mode: None,
             }),
-            server: Some(crate::control::config::ServerConfigWrapper {
+            server: Some(crate::config::ServerConfigWrapper {
                 host: "0.0.0.0".to_string(),
                 port: 7000,
             }),
             default_provider: Some("primary".to_string()),
             workspace_dir: None,
-            control_plane: Some(crate::control::config::ControlPlaneConfigWrapper {
-                database: crate::control::config::DatabaseConfigWrapper {
+            control_plane: Some(crate::config::ControlPlaneConfigWrapper {
+                database: crate::config::DatabaseConfigWrapper {
                     data_dir: None,
                     driver: Some("postgres".to_string()),
-                    url: Some(crate::control::config::SerdeSecret::Ref(
-                        crate::control::config::SerdeSecretRef {
+                    url: Some(crate::config::SerdeSecret::Ref(
+                        crate::config::SerdeSecretRef {
                             source: "keychain".to_string(),
                             key: "db-url".to_string(),
                         },
                     )),
                     auth_mode: None,
                 },
-                message_broker: crate::control::config::MessageBrokerConfigWrapper {
+                message_broker: crate::config::MessageBrokerConfigWrapper {
                     driver: "pubsub".to_string(),
                     extra: Default::default(),
                 },
-                scheduler: Some(crate::control::config::SchedulerConfigWrapper::CloudTasks {
+                scheduler: Some(crate::config::SchedulerConfigWrapper::CloudTasks {
                     project_id: Some("project".to_string()),
                     location: Some("us-central1".to_string()),
                     queue: Some("talon".to_string()),
                     target_url: Some("https://worker.example.com".to_string()),
                     callback_auth: Some(
-                        crate::control::config::SchedulerCallbackAuthConfigWrapper::GoogleOidc {
+                        crate::config::SchedulerCallbackAuthConfigWrapper::GoogleOidc {
                             audience: "https://worker.example.com".to_string(),
                             service_account_email: Some("svc@example.com".to_string()),
                         },
                     ),
                 }),
-                object_store: Some(crate::control::config::ObjectStoreConfigWrapper::S3 {
+                object_store: Some(crate::config::ObjectStoreConfigWrapper::S3 {
                     bucket: "talon-objects".to_string(),
                     prefix: Some("dev".to_string()),
                     region: Some("us-west-2".to_string()),
@@ -1380,18 +1382,17 @@ control_plane:
 
     #[test]
     fn test_secret_from_serde_secret_maps_known_and_unknown_sources() {
-        let plain: Secret = crate::control::config::SerdeSecret::Plain("value".to_string()).into();
+        let plain: Secret = crate::config::SerdeSecret::Plain("value".to_string()).into();
         let Some(proto::secret::Source::Plain(value)) = plain.source else {
             panic!("expected plain secret");
         };
         assert_eq!(value, "value");
 
-        let env_ref: Secret =
-            crate::control::config::SerdeSecret::Ref(crate::control::config::SerdeSecretRef {
-                source: "unknown".to_string(),
-                key: "NAME".to_string(),
-            })
-            .into();
+        let env_ref: Secret = crate::config::SerdeSecret::Ref(crate::config::SerdeSecretRef {
+            source: "unknown".to_string(),
+            key: "NAME".to_string(),
+        })
+        .into();
         let Some(proto::secret::Source::Ref(secret_ref)) = env_ref.source else {
             panic!("expected secret ref");
         };
@@ -1401,7 +1402,7 @@ control_plane:
 
     #[test]
     fn test_serde_config_into_proto_preserves_aws_eventbridge_scheduler() {
-        let scheduler = crate::control::config::SchedulerConfigWrapper::AwsEventBridgeScheduler {
+        let scheduler = crate::config::SchedulerConfigWrapper::AwsEventBridgeScheduler {
             group_name: Some("talon-group".to_string()),
             queue_url: Some("https://sqs.us-east-1.amazonaws.com/123/talon".to_string()),
             execution_role_arn: Some("arn:aws:iam::123:role/talon-scheduler".to_string()),
@@ -1435,7 +1436,7 @@ control_plane:
 
     #[test]
     fn test_serde_config_into_proto_preserves_zero_aws_retry_attempts() {
-        let scheduler = crate::control::config::SchedulerConfigWrapper::AwsEventBridgeScheduler {
+        let scheduler = crate::config::SchedulerConfigWrapper::AwsEventBridgeScheduler {
             group_name: None,
             queue_url: None,
             execution_role_arn: None,

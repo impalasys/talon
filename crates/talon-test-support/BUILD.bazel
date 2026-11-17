@@ -1,0 +1,9 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "talon_test_support",
+    deps = ["//crates/talon-contracts:talon_contracts", "//crates/talon-identifiers:talon_identifiers"],
+    test_deps = [],
+    compile_data = ["//:src/control/security/test_rsa_private_key.pem"],
+    unit_tests = True,
+)
