@@ -6900,6 +6900,7 @@ dependencies = [
  "talon-storage-sqlite",
  "talon-storage-sqs",
  "talon-test-support",
+ "talon-worker",
  "talon-workflows",
  "tempfile",
  "tikv-jemalloc-ctl",
@@ -7513,6 +7514,47 @@ dependencies = [
  "talon-identifiers",
  "talon-protocol",
  "tokio",
+]
+
+[[package]]
+name = "talon-worker"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum 0.7.9",
+ "chrono",
+ "futures",
+ "jsonwebtoken 11.0.0",
+ "mime_guess",
+ "prost 0.13.5",
+ "rand 0.10.1",
+ "reqwest 0.11.27",
+ "rmcp",
+ "serde",
+ "serde_json",
+ "talon-auth",
+ "talon-config",
+ "talon-connectors",
+ "talon-contracts",
+ "talon-control",
+ "talon-fanout",
+ "talon-harness",
+ "talon-identifiers",
+ "talon-protocol",
+ "talon-sandbox",
+ "talon-security",
+ "talon-session-control",
+ "talon-storage-common",
+ "talon-storage-sqlite",
+ "talon-test-support",
+ "talon-workflows",
+ "tempfile",
+ "tokio",
+ "tokio-util",
+ "tonic 0.12.3",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]

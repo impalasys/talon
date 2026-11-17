@@ -1,14 +1,18 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::resource_model::{NamespaceResourceExt, TypedResource};
-use crate::control::resources::ResourceStore;
-use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
-use crate::gateway::rpc::resources_proto;
+use talon_control::control::resource_model::NamespaceResourceExt;
+
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
+use talon_control::control::keys;
+use talon_control::control::resource_model::TypedResource;
+use talon_control::control::resources::ResourceStore;
+use talon_control::control::ControlPlane;
+use talon_control::control::ProtoKeyValueStoreExt;
+use talon_protocol::resources_proto;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
@@ -146,7 +150,8 @@ impl DeploymentController {
                     .as_ref()
                     .ok_or_else(|| anyhow!("rendered resource metadata is required"))?;
                 let rendered_key = format!("{}/{}", rendered.kind, rendered_meta.name);
-                let rendered_json = crate::control::manifest::render_resource_yaml(&rendered)?;
+                let rendered_json =
+                    talon_control::control::manifest::render_resource_yaml(&rendered)?;
                 rendered_hashes.insert(rendered_key.clone(), stable_hash(&rendered_json));
                 last_rendered_json.insert(rendered_key.clone(), rendered_json);
                 rendered_refs.push(format!(
@@ -428,7 +433,7 @@ impl DeploymentController {
             rendered_meta.name.clone()
         };
         let (rendered_spec, rendered_status) =
-            crate::control::manifest::resource_spec_status_from_json(
+            talon_control::control::manifest::resource_spec_status_from_json(
                 &spec.kind,
                 &spec.spec_json,
                 "{}",
@@ -492,7 +497,7 @@ impl DeploymentController {
             .get("vibiz.io/customer-name")
             .map(String::as_str)
             .unwrap_or_else(|| namespace.name());
-        let rendered_spec = crate::control::manifest::templating::render_resource_template(
+        let rendered_spec = talon_control::control::manifest::templating::render_resource_template(
             &spec.spec_json,
             serde_json::json!({
                 "namespace": {
@@ -592,8 +597,10 @@ impl DeploymentController {
                     .unwrap_or_else(resources_proto::ScheduleStatus::default),
             ),
         };
-        let next_run_at =
-            crate::control::scheduling::initialize_schedule(&mut schedule, chrono::Utc::now())?;
+        let next_run_at = talon_control::control::scheduling::initialize_schedule(
+            &mut schedule,
+            chrono::Utc::now(),
+        )?;
         let stored = self
             .store
             .upsert(namespace, schedule_resource(&api_version, &schedule))
@@ -602,8 +609,12 @@ impl DeploymentController {
             .metadata
             .as_ref()
             .map(|meta| meta.resource_version.clone());
-        crate::control::scheduling::arm_schedule(cp.scheduler.as_ref(), &mut schedule, next_run_at)
-            .await?;
+        talon_control::control::scheduling::arm_schedule(
+            cp.scheduler.as_ref(),
+            &mut schedule,
+            next_run_at,
+        )
+        .await?;
 
         let status = resources_proto::ResourceStatus {
             kind: Some(resources_proto::resource_status::Kind::Schedule(
@@ -677,7 +688,7 @@ fn schedule_resource(
     }
 }
 
-pub(crate) fn replica_name(deployment_name: &str, target_namespace: &str) -> String {
+pub fn replica_name(deployment_name: &str, target_namespace: &str) -> String {
     format!(
         "{}--{}",
         deployment_name,
@@ -704,9 +715,10 @@ fn parse_rendered_ref(rendered_ref: &str) -> Option<(&str, &str, &str)> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::ProtoKeyValueStoreExt;
-    use crate::test_support::{MockKvStore, RecordingPubSub};
+    use crate::test_support::MockKvStore;
+    use crate::test_support::RecordingPubSub;
     use std::sync::Arc;
+    use talon_control::control::ProtoKeyValueStoreExt;
 
     fn controller() -> DeploymentController {
         DeploymentController::new(ResourceStore::new(

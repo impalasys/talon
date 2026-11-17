@@ -5,12 +5,15 @@ use std::sync::Arc;
 
 use anyhow::Result;
 
-use crate::control::config::Config;
-use crate::control::events::ResourceChangedEvent;
-use crate::control::resource_model::{NamespaceResourceExt, TypedResource};
-use crate::control::resources::ResourceStore;
-use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
-use crate::gateway::rpc::resources_proto;
+use talon_control::control::config::Config;
+use talon_control::control::events::ResourceChangedEvent;
+use talon_control::control::keys;
+use talon_control::control::resource_model::NamespaceResourceExt;
+use talon_control::control::resource_model::TypedResource;
+use talon_control::control::resources::ResourceStore;
+use talon_control::control::ControlPlane;
+use talon_control::control::ProtoKeyValueStoreExt;
+use talon_protocol::resources_proto;
 
 #[derive(Clone)]
 pub struct ControllerHost {
@@ -101,7 +104,7 @@ impl ControllerHost {
                                     .await?;
                             }
                         } else if event.change_type
-                            == crate::control::events::ResourceChangeType::Deleted as i32
+                            == talon_control::control::events::ResourceChangeType::Deleted as i32
                         {
                             crate::worker::controllers::connectors::delete_connector_class_entries(
                                 self.cp.kv.as_ref(),
@@ -135,12 +138,15 @@ impl ControllerHost {
                                     .await?;
                             }
                         } else if event.change_type
-                            == crate::control::events::ResourceChangeType::Deleted as i32
+                            == talon_control::control::events::ResourceChangeType::Deleted as i32
                         {
                             for namespace_key in self
                                 .cp
                                 .kv
-                                .list_keys(&crate::control::keys::namespace_metadata_prefix(), None)
+                                .list_keys(
+                                    &talon_control::control::keys::namespace_metadata_prefix(),
+                                    None,
+                                )
                                 .await?
                             {
                                 for class in store
@@ -224,7 +230,7 @@ impl ControllerHost {
 }
 
 fn is_status_only_update(event: &ResourceChangedEvent) -> bool {
-    event.change_type == crate::control::events::ResourceChangeType::Updated as i32
+    event.change_type == talon_control::control::events::ResourceChangeType::Updated as i32
         && !event.changed_sections.is_empty()
         && event
             .changed_sections

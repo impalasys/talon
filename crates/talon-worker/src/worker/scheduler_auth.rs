@@ -27,17 +27,17 @@ pub enum SchedulerRequestAuthenticator {
 }
 
 impl SchedulerRequestAuthenticator {
-    pub async fn from_config(config: &crate::control::config::Config) -> Result<Self> {
+    pub async fn from_config(config: &talon_control::control::config::Config) -> Result<Self> {
         if let Some(cfg) = config
             .control_plane
             .as_ref()
             .and_then(|cp| cp.scheduler.as_ref())
             .and_then(|scheduler| match scheduler.backend.as_ref() {
-                Some(crate::control::config::proto::scheduler_config::Backend::CloudTasks(
+                Some(talon_control::control::config::proto::scheduler_config::Backend::CloudTasks(
                     cloud_tasks,
                 )) => cloud_tasks.callback_auth.as_ref(),
                 Some(
-                    crate::control::config::proto::scheduler_config::Backend::AwsEventbridgeScheduler(
+                    talon_control::control::config::proto::scheduler_config::Backend::AwsEventbridgeScheduler(
                         _,
                     ),
                 ) => None,
@@ -45,12 +45,12 @@ impl SchedulerRequestAuthenticator {
             })
         {
             return match cfg.auth.as_ref() {
-                Some(crate::control::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
+                Some(talon_control::control::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
                     secret,
                 )) => Ok(Self::shared_secret(
-                    crate::control::config::SecretExt::resolve(secret).await?,
+                    talon_control::control::config::SecretExt::resolve(secret).await?,
                 )),
-                Some(crate::control::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
+                Some(talon_control::control::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
                     oidc,
                 )) => Ok(Self::google_oidc(
                     oidc.audience.clone(),
@@ -126,7 +126,7 @@ fn authorize_shared_secret(headers: &HeaderMap, expected_token: &str) -> Result<
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "));
     let scheduler_header = headers
-        .get(crate::control::scheduler::SCHEDULER_AUTH_HEADER)
+        .get(talon_control::control::scheduler::SCHEDULER_AUTH_HEADER)
         .and_then(|v| v.to_str().ok());
 
     if auth_header == Some(expected_token) || scheduler_header == Some(expected_token) {
@@ -238,7 +238,7 @@ async fn verify_google_oidc_token(
     audience: &str,
     expected_email: Option<&str>,
 ) -> Result<()> {
-    crate::control::security::install_jwt_crypto_provider();
+    talon_control::control::security::install_jwt_crypto_provider();
     let header = decode_header(token)?;
     let kid = header
         .kid
@@ -312,7 +312,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
     }
 
     async fn seed_google_oidc_cache(kid: &str) {
-        crate::control::security::install_jwt_crypto_provider();
+        talon_control::control::security::install_jwt_crypto_provider();
         let mut keys = HashMap::new();
         keys.insert(
             kid.to_string(),
@@ -334,7 +334,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
         email: Option<&str>,
         email_verified: Option<bool>,
     ) -> String {
-        crate::control::security::install_jwt_crypto_provider();
+        talon_control::control::security::install_jwt_crypto_provider();
         let mut header = Header::new(Algorithm::RS256);
         header.kid = Some(kid.to_string());
         encode(
@@ -390,7 +390,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
     fn authorize_shared_secret_accepts_scheduler_header() {
         let mut headers = HeaderMap::new();
         headers.insert(
-            crate::control::scheduler::SCHEDULER_AUTH_HEADER,
+            talon_control::control::scheduler::SCHEDULER_AUTH_HEADER,
             HeaderValue::from_static("test-token"),
         );
 
@@ -418,10 +418,11 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
             std::env::remove_var("TALON_SCHEDULER_SERVICE_ACCOUNT_EMAIL");
         }
 
-        let authenticator =
-            SchedulerRequestAuthenticator::from_config(&crate::control::config::Config::default())
-                .await
-                .expect("authenticator should resolve");
+        let authenticator = SchedulerRequestAuthenticator::from_config(
+            &talon_control::control::config::Config::default(),
+        )
+        .await
+        .expect("authenticator should resolve");
 
         match authenticator {
             SchedulerRequestAuthenticator::SharedSecret { token } => {
@@ -450,10 +451,11 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
             );
         }
 
-        let authenticator =
-            SchedulerRequestAuthenticator::from_config(&crate::control::config::Config::default())
-                .await
-                .expect("authenticator should resolve");
+        let authenticator = SchedulerRequestAuthenticator::from_config(
+            &talon_control::control::config::Config::default(),
+        )
+        .await
+        .expect("authenticator should resolve");
 
         match authenticator {
             SchedulerRequestAuthenticator::GoogleOidc {

@@ -1,11 +1,18 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::events::{IndexEvent, IndexOperation};
-use crate::control::search::{mapper, DeleteScope, DocumentStore, KIND_SESSION_MESSAGE};
-use crate::control::{keys, ns, ControlPlane};
+use talon_control::control::events::IndexEvent;
+
 use anyhow::Result;
 use std::sync::Arc;
+use talon_control::control::events::IndexOperation;
+use talon_control::control::keys;
+use talon_control::control::ns;
+use talon_control::control::search::mapper;
+use talon_control::control::search::DeleteScope;
+use talon_control::control::search::DocumentStore;
+use talon_control::control::search::KIND_SESSION_MESSAGE;
+use talon_control::control::ControlPlane;
 
 #[derive(Clone)]
 pub struct IndexController {
@@ -109,11 +116,13 @@ fn parent_segment(key: &keys::ResourceKey, kind: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::resources::ResourceStore;
-    use crate::control::search::{self, Document};
-    use crate::control::ProtoKeyValueStoreExt;
-    use crate::gateway::rpc::data_proto;
-    use crate::test_support::{EmptyPubSub, MockKvStore};
+    use crate::test_support::EmptyPubSub;
+    use crate::test_support::MockKvStore;
+    use talon_control::control::resources::ResourceStore;
+    use talon_control::control::search;
+    use talon_control::control::search::Document;
+    use talon_control::control::ProtoKeyValueStoreExt;
+    use talon_protocol::data_proto;
 
     fn control_plane(
         kv: Arc<MockKvStore>,
@@ -259,10 +268,10 @@ mod tests {
         let documents = search::ephemeral_document_store();
         let cp = control_plane(kv.clone(), documents.clone());
         let store = ResourceStore::new(kv.clone(), cp.pubsub.clone());
-        let resource = crate::control::resource_model::agent_resource(
+        let resource = talon_control::control::resource_model::agent_resource(
             "acme",
             "support",
-            crate::gateway::rpc::resources_proto::AgentSpec::default(),
+            talon_protocol::resources_proto::AgentSpec::default(),
             [("team".to_string(), "care".to_string())]
                 .into_iter()
                 .collect(),
@@ -304,10 +313,10 @@ mod tests {
         store
             .upsert(
                 "acme",
-                crate::control::resource_model::agent_resource(
+                talon_control::control::resource_model::agent_resource(
                     "acme",
                     "support",
-                    crate::gateway::rpc::resources_proto::AgentSpec::default(),
+                    talon_protocol::resources_proto::AgentSpec::default(),
                     Default::default(),
                 ),
             )
@@ -319,12 +328,10 @@ mod tests {
                 "Agent",
                 "support",
                 None,
-                crate::gateway::rpc::resources_proto::ResourceSpec {
-                    kind: Some(
-                        crate::gateway::rpc::resources_proto::resource_spec::Kind::Agent(
-                            crate::gateway::rpc::resources_proto::AgentSpec::default(),
-                        ),
-                    ),
+                talon_protocol::resources_proto::ResourceSpec {
+                    kind: Some(talon_protocol::resources_proto::resource_spec::Kind::Agent(
+                        talon_protocol::resources_proto::AgentSpec::default(),
+                    )),
                 },
             )
             .await
@@ -389,10 +396,10 @@ mod tests {
         let resource = store
             .upsert(
                 "acme",
-                crate::control::resource_model::agent_resource(
+                talon_control::control::resource_model::agent_resource(
                     "acme",
                     "support",
-                    crate::gateway::rpc::resources_proto::AgentSpec::default(),
+                    talon_protocol::resources_proto::AgentSpec::default(),
                     Default::default(),
                 ),
             )

@@ -1,14 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::config::Config;
-use crate::control::resource_model::TypedResource;
-use crate::control::topics;
-use crate::control::ControlPlane;
-use crate::harness::mcp::invalidate_all_broker_auth_cache;
 use anyhow::{anyhow, Result};
 use prost::Message;
 use std::sync::Arc;
+use talon_control::control::config::Config;
+use talon_control::control::resource_model::TypedResource;
+use talon_control::control::topics;
+use talon_control::control::ControlPlane;
+use talon_harness::mcp::invalidate_all_broker_auth_cache;
 
 pub mod connector;
 pub mod controllers;
@@ -40,48 +40,56 @@ impl WorkerEventHandler {
     pub async fn dispatch(&self, event_type: Option<&str>, payload: &[u8]) -> Result<()> {
         match event_type {
             Some("session_dispatch") => {
-                let event = crate::control::events::SessionDispatchEvent::decode(payload)?;
+                let event = talon_control::control::events::SessionDispatchEvent::decode(payload)?;
                 self.handle_session_message(event).await
             }
             Some("workflow_dispatch") => {
-                let event = crate::control::events::WorkflowDispatchEvent::decode(payload)?;
+                let event = talon_control::control::events::WorkflowDispatchEvent::decode(payload)?;
                 self.handle_workflow_dispatch(event).await
             }
             Some("index") => {
-                let event = crate::control::events::IndexEvent::decode(payload)?;
+                let event = talon_control::control::events::IndexEvent::decode(payload)?;
                 let controller =
                     crate::worker::controllers::index::IndexController::new(self.cp.clone());
                 controller.handle_event(event).await
             }
             Some("schedule_fire") => self.handle_scheduler_fire_payload(payload).await,
             Some("resource_lifecycle") => {
-                if let Ok(event) = crate::control::events::ResourceChangedEvent::decode(payload) {
+                if let Ok(event) =
+                    talon_control::control::events::ResourceChangedEvent::decode(payload)
+                {
                     return self.handle_resource_changed_event(event).await;
                 }
-                let event = crate::control::events::LifecycleEvent::decode(payload)?;
+                let event = talon_control::control::events::LifecycleEvent::decode(payload)?;
                 self.handle_lifecycle_event(event).await
             }
             Some(other) => Err(anyhow!("Unknown worker event type '{}'", other)),
             None => {
-                if let Ok(event) = crate::control::events::SessionDispatchEvent::decode(payload) {
+                if let Ok(event) =
+                    talon_control::control::events::SessionDispatchEvent::decode(payload)
+                {
                     return self.handle_session_message(event).await;
                 }
 
-                if let Ok(event) = crate::control::events::WorkflowDispatchEvent::decode(payload) {
+                if let Ok(event) =
+                    talon_control::control::events::WorkflowDispatchEvent::decode(payload)
+                {
                     return self.handle_workflow_dispatch(event).await;
                 }
 
-                if let Ok(event) = crate::control::events::IndexEvent::decode(payload) {
+                if let Ok(event) = talon_control::control::events::IndexEvent::decode(payload) {
                     let controller =
                         crate::worker::controllers::index::IndexController::new(self.cp.clone());
                     return controller.handle_event(event).await;
                 }
 
-                if let Ok(event) = crate::control::events::ResourceChangedEvent::decode(payload) {
+                if let Ok(event) =
+                    talon_control::control::events::ResourceChangedEvent::decode(payload)
+                {
                     return self.handle_resource_changed_event(event).await;
                 }
 
-                if let Ok(event) = crate::control::events::LifecycleEvent::decode(payload) {
+                if let Ok(event) = talon_control::control::events::LifecycleEvent::decode(payload) {
                     return self.handle_lifecycle_event(event).await;
                 }
 
@@ -99,7 +107,7 @@ impl WorkerEventHandler {
 
     async fn handle_lifecycle_event(
         &self,
-        event: crate::control::events::LifecycleEvent,
+        event: talon_control::control::events::LifecycleEvent,
     ) -> Result<()> {
         if event.resource_type == "McpServer" {
             self.mcp_registry.invalidate_all().await;
@@ -110,7 +118,7 @@ impl WorkerEventHandler {
 
     async fn handle_resource_changed_event(
         &self,
-        event: crate::control::events::ResourceChangedEvent,
+        event: talon_control::control::events::ResourceChangedEvent,
     ) -> Result<()> {
         if event.resource_kind == "McpServer" {
             self.mcp_registry.invalidate_all().await;
@@ -127,7 +135,7 @@ impl WorkerEventHandler {
 
     pub async fn handle_schedule_wakeup(
         &self,
-        payload: crate::control::scheduling::ScheduleWakeupPayload,
+        payload: talon_control::control::scheduling::ScheduleWakeupPayload,
     ) -> Result<()> {
         let now = chrono::Utc::now();
         tracing::info!(
@@ -137,7 +145,7 @@ impl WorkerEventHandler {
             intended_run_at = payload.intended_run_at,
             "Received schedule wakeup"
         );
-        let Some(mut schedule) = crate::control::scheduling::claim_schedule_wakeup(
+        let Some(mut schedule) = talon_control::control::scheduling::claim_schedule_wakeup(
             self.cp.kv.as_ref(),
             &payload.namespace,
             &payload.schedule_id,
@@ -164,7 +172,7 @@ impl WorkerEventHandler {
         if schedule.status.is_none() {
             return Ok(());
         }
-        crate::control::scheduling::append_schedule_event(
+        talon_control::control::scheduling::append_schedule_event(
             &mut schedule,
             now,
             "wakeup",
@@ -182,25 +190,26 @@ impl WorkerEventHandler {
                 now = %now,
                 "Deferring early schedule wakeup"
             );
-            crate::control::scheduling::append_schedule_event(
+            talon_control::control::scheduling::append_schedule_event(
                 &mut schedule,
                 now,
                 "wakeup",
                 "deferred",
                 format!("wakeup arrived early for {}", intended_fire.to_rfc3339()),
             );
-            crate::control::scheduling::release_schedule_claim(&mut schedule);
-            crate::control::scheduling::arm_schedule(
+            talon_control::control::scheduling::release_schedule_claim(&mut schedule);
+            talon_control::control::scheduling::arm_schedule(
                 self.cp.scheduler.as_ref(),
                 &mut schedule,
                 Some(intended_fire),
             )
             .await?;
-            crate::control::scheduling::persist_schedule(self.cp.kv.as_ref(), &schedule).await?;
+            talon_control::control::scheduling::persist_schedule(self.cp.kv.as_ref(), &schedule)
+                .await?;
             return Ok(());
         }
         let dispatch_result =
-            crate::control::scheduling::dispatch_schedule(&self.cp, &schedule, now).await;
+            talon_control::control::scheduling::dispatch_schedule(&self.cp, &schedule, now).await;
         let dispatch_timestamp = now.timestamp_micros();
         let schedule_namespace = schedule.namespace().to_string();
         let schedule_name = schedule.name().to_string();
@@ -220,7 +229,7 @@ impl WorkerEventHandler {
                 status.last_run_at = Some(dispatch_timestamp);
                 status.last_session_id = Some(session_id.clone());
                 status.last_error = None;
-                crate::control::scheduling::append_schedule_event(
+                talon_control::control::scheduling::append_schedule_event(
                     &mut schedule,
                     now,
                     "dispatch",
@@ -233,7 +242,7 @@ impl WorkerEventHandler {
                         .as_mut()
                         .ok_or_else(|| anyhow!("schedule missing spec after dispatch"))?;
                     spec.enabled = false;
-                    crate::control::scheduling::append_schedule_event(
+                    talon_control::control::scheduling::append_schedule_event(
                         &mut schedule,
                         now,
                         "dispatch",
@@ -244,7 +253,7 @@ impl WorkerEventHandler {
             }
             Err(err)
                 if err
-                    .downcast_ref::<crate::control::scheduling::SessionCurrentlyProcessingError>()
+                    .downcast_ref::<talon_control::control::scheduling::SessionCurrentlyProcessingError>()
                     .is_some() =>
             {
                 tracing::warn!(
@@ -255,7 +264,7 @@ impl WorkerEventHandler {
                 );
                 status.last_error =
                     Some("skipped: target session is currently processing".to_string());
-                crate::control::scheduling::append_schedule_event(
+                talon_control::control::scheduling::append_schedule_event(
                     &mut schedule,
                     now,
                     "dispatch",
@@ -271,7 +280,7 @@ impl WorkerEventHandler {
                     "Schedule dispatch failed"
                 );
                 status.last_error = Some(err.to_string());
-                crate::control::scheduling::append_schedule_event(
+                talon_control::control::scheduling::append_schedule_event(
                     &mut schedule,
                     now,
                     "dispatch",
@@ -281,22 +290,27 @@ impl WorkerEventHandler {
             }
         }
 
-        crate::control::scheduling::release_schedule_claim(&mut schedule);
+        talon_control::control::scheduling::release_schedule_claim(&mut schedule);
         let now = chrono::Utc::now();
-        let next = crate::control::scheduling::compute_aligned_every_successor(
+        let next = talon_control::control::scheduling::compute_aligned_every_successor(
             &schedule,
             intended_fire,
             now,
         )?;
-        crate::control::scheduling::arm_schedule(self.cp.scheduler.as_ref(), &mut schedule, next)
+        talon_control::control::scheduling::arm_schedule(
+            self.cp.scheduler.as_ref(),
+            &mut schedule,
+            next,
+        )
+        .await?;
+        talon_control::control::scheduling::persist_schedule(self.cp.kv.as_ref(), &schedule)
             .await?;
-        crate::control::scheduling::persist_schedule(self.cp.kv.as_ref(), &schedule).await?;
 
         match dispatch_result {
             Ok(_) => Ok(()),
             Err(err)
                 if err
-                    .downcast_ref::<crate::control::scheduling::SessionCurrentlyProcessingError>()
+                    .downcast_ref::<talon_control::control::scheduling::SessionCurrentlyProcessingError>()
                     .is_some() =>
             {
                 Ok(())
@@ -319,13 +333,13 @@ impl WorkerEventHandler {
 
     pub async fn handle_scheduler_fire_payload_value(
         &self,
-        payload: crate::control::scheduling::SchedulerFirePayload,
+        payload: talon_control::control::scheduling::SchedulerFirePayload,
     ) -> Result<()> {
         match payload {
-            crate::control::scheduling::SchedulerFirePayload::Schedule(payload) => {
+            talon_control::control::scheduling::SchedulerFirePayload::Schedule(payload) => {
                 self.handle_schedule_wakeup(payload).await
             }
-            crate::control::scheduling::SchedulerFirePayload::Workflow(payload) => {
+            talon_control::control::scheduling::SchedulerFirePayload::Workflow(payload) => {
                 self.handle_workflow_wakeup(payload).await
             }
         }
@@ -350,7 +364,7 @@ impl WorkerEventHandler {
 
 pub fn decode_scheduler_fire_payload(
     body: &[u8],
-) -> Result<crate::control::scheduling::SchedulerFirePayload> {
+) -> Result<talon_control::control::scheduling::SchedulerFirePayload> {
     let value: serde_json::Value = serde_json::from_slice(body)?;
     if value.get("kind").is_some() {
         return serde_json::from_value(value).map_err(Into::into);
@@ -359,11 +373,10 @@ pub fn decode_scheduler_fire_payload(
         && value.get("revision").is_some()
         && value.get("intended_run_at").is_some()
     {
-        let payload =
-            serde_json::from_value::<crate::control::scheduling::ScheduleWakeupPayload>(value)?;
-        return Ok(crate::control::scheduling::SchedulerFirePayload::Schedule(
-            payload,
-        ));
+        let payload = serde_json::from_value::<
+            talon_control::control::scheduling::ScheduleWakeupPayload,
+        >(value)?;
+        return Ok(talon_control::control::scheduling::SchedulerFirePayload::Schedule(payload));
     }
     anyhow::bail!("scheduler wakeup payload requires kind discriminator")
 }
@@ -371,7 +384,7 @@ pub fn decode_scheduler_fire_payload(
 impl WorkerEventHandler {
     pub async fn handle_workflow_dispatch(
         &self,
-        event: crate::control::events::WorkflowDispatchEvent,
+        event: talon_control::control::events::WorkflowDispatchEvent,
     ) -> Result<()> {
         tracing::info!(
             namespace = %event.ns,
@@ -407,21 +420,28 @@ impl WorkerEventHandler {
 #[cfg(test)]
 mod tests {
     use super::WorkerEventHandler;
-    use crate::control::config::Config;
-    use crate::control::{
-        events::{LifecycleEvent, MessageDirection, SessionDispatchEvent},
-        topics, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
-        SharedSchedulerBackend,
-    };
-    use crate::gateway::rpc::{data_proto, manifests, resources_proto};
     use crate::test_support::MockKvStore;
-    use crate::worker::{mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator};
+    use crate::worker::mcp_registry::McpRegistry;
+    use crate::worker::scheduler_auth::SchedulerRequestAuthenticator;
     use async_trait::async_trait;
     use axum::{body::Bytes, extract::State, http::StatusCode, routing::post, Router};
     use chrono::{Duration, Utc};
     use futures::stream;
     use prost::Message;
     use std::{collections::HashMap, pin::Pin, sync::Arc};
+    use talon_control::control::config::Config;
+    use talon_control::control::events::LifecycleEvent;
+    use talon_control::control::events::MessageDirection;
+    use talon_control::control::events::SessionDispatchEvent;
+    use talon_control::control::topics;
+    use talon_control::control::ControlPlane;
+    use talon_control::control::KeyValueStore;
+    use talon_control::control::MessagePublisher;
+    use talon_control::control::ProtoKeyValueStoreExt;
+    use talon_control::control::SharedSchedulerBackend;
+    use talon_protocol::data_proto;
+    use talon_protocol::manifests;
+    use talon_protocol::resources_proto;
     use tempfile::tempdir;
     use tokio::net::TcpListener;
     use tokio::sync::Mutex;
@@ -453,7 +473,7 @@ mod tests {
         handler_with_scheduler(
             kv,
             pubsub,
-            Arc::new(crate::control::scheduler::NoopSchedulerBackend),
+            Arc::new(talon_control::control::scheduler::NoopSchedulerBackend),
         )
     }
 
@@ -480,7 +500,7 @@ mod tests {
     }
 
     fn schedule(revision: u64, next_run_at: i64, session_mode: &str) -> resources_proto::Schedule {
-        crate::control::resource_model::schedule(
+        talon_control::control::resource_model::schedule(
             "acme:test",
             "nightly",
             resources_proto::ScheduleSpec {
@@ -547,8 +567,8 @@ mod tests {
 
     async fn seed_agent_and_session(kv: &MockKvStore) {
         kv.set_msg(
-            &crate::control::keys::agent("acme:test", "assistant"),
-            &crate::control::resource_model::agent(
+            &talon_control::control::keys::agent("acme:test", "assistant"),
+            &talon_control::control::resource_model::agent(
                 "acme:test",
                 "assistant",
                 manifests::AgentSpec::default(),
@@ -558,7 +578,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
@@ -649,9 +669,10 @@ mod tests {
             Arc::new(MockKvStore::default()),
             Arc::new(MockPubSub::default()),
         );
-        let event = crate::control::events::IndexEvent {
+        let event = talon_control::control::events::IndexEvent {
             id: "event-1".to_string(),
-            key: crate::control::keys::session_message("acme", "support", "s1", "m1").canonical(),
+            key: talon_control::control::keys::session_message("acme", "support", "s1", "m1")
+                .canonical(),
             ..Default::default()
         };
 
@@ -688,7 +709,7 @@ mod tests {
         );
 
         handler
-            .handle_schedule_wakeup(crate::control::scheduling::ScheduleWakeupPayload {
+            .handle_schedule_wakeup(talon_control::control::scheduling::ScheduleWakeupPayload {
                 namespace: "acme:test".to_string(),
                 schedule_id: "missing".to_string(),
                 revision: 1,
@@ -705,14 +726,14 @@ mod tests {
         let handler = handler(kv.clone(), pubsub);
         let intended = (Utc::now() + Duration::seconds(30)).timestamp_micros();
         kv.set_msg(
-            &crate::control::keys::schedule("acme:test", "nightly"),
+            &talon_control::control::keys::schedule("acme:test", "nightly"),
             &schedule(3, intended, "reuse"),
         )
         .await
         .unwrap();
 
         handler
-            .handle_schedule_wakeup(crate::control::scheduling::ScheduleWakeupPayload {
+            .handle_schedule_wakeup(talon_control::control::scheduling::ScheduleWakeupPayload {
                 namespace: "acme:test".to_string(),
                 schedule_id: "nightly".to_string(),
                 revision: 3,
@@ -722,7 +743,7 @@ mod tests {
             .expect("early wakeup should defer");
 
         let updated = kv
-            .get_msg::<resources_proto::Schedule>(&crate::control::keys::schedule(
+            .get_msg::<resources_proto::Schedule>(&talon_control::control::keys::schedule(
                 "acme:test",
                 "nightly",
             ))
@@ -746,14 +767,14 @@ mod tests {
         seed_agent_and_session(kv.as_ref()).await;
         let intended = (Utc::now() - Duration::seconds(2)).timestamp_micros();
         kv.set_msg(
-            &crate::control::keys::schedule("acme:test", "nightly"),
+            &talon_control::control::keys::schedule("acme:test", "nightly"),
             &schedule(7, intended, "reuse"),
         )
         .await
         .unwrap();
 
         handler
-            .handle_schedule_wakeup(crate::control::scheduling::ScheduleWakeupPayload {
+            .handle_schedule_wakeup(talon_control::control::scheduling::ScheduleWakeupPayload {
                 namespace: "acme:test".to_string(),
                 schedule_id: "nightly".to_string(),
                 revision: 7,
@@ -763,7 +784,7 @@ mod tests {
             .expect("schedule dispatch should succeed");
 
         let updated = kv
-            .get_msg::<resources_proto::Schedule>(&crate::control::keys::schedule(
+            .get_msg::<resources_proto::Schedule>(&talon_control::control::keys::schedule(
                 "acme:test",
                 "nightly",
             ))
@@ -777,7 +798,7 @@ mod tests {
         assert!(status.next_run_at.is_some());
 
         let session = kv
-            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&talon_control::control::keys::session(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -789,7 +810,7 @@ mod tests {
 
         let message_keys = kv
             .list_keys(
-                &crate::control::keys::session_message_prefix(
+                &talon_control::control::keys::session_message_prefix(
                     "acme:test",
                     "assistant",
                     "session-1",
@@ -805,13 +826,15 @@ mod tests {
             .iter()
             .find_map(|(topic, payload)| {
                 (topic == topics::INDEX_EVENTS_TOPIC)
-                    .then(|| crate::control::events::IndexEvent::decode(payload.as_slice()).ok())
+                    .then(|| {
+                        talon_control::control::events::IndexEvent::decode(payload.as_slice()).ok()
+                    })
                     .flatten()
             })
             .expect("scheduled message should publish a search index event");
         assert_eq!(
             index_event.operation,
-            crate::control::events::IndexOperation::Upsert as i32
+            talon_control::control::events::IndexOperation::Upsert as i32
         );
         assert_eq!(index_event.key, message_keys[0].canonical());
 
@@ -839,8 +862,8 @@ mod tests {
         let (target_url, server) = start_schedule_fire_endpoint(endpoint_handler).await;
         let dir = tempdir().unwrap();
         let scheduler = Arc::new(
-            crate::control::scheduler::LocalSqliteSchedulerBackend::new(
-                &crate::control::kv::sqlite_url_for_path(&dir.path().join("scheduler.db")),
+            talon_storage_sqlite::LocalSqliteSchedulerBackend::new(
+                &talon_storage_common::sqlite_url_for_path(&dir.path().join("scheduler.db")),
                 Some("talon_scheduler_worker_integration_test".to_string()),
                 Some(target_url),
                 None,
@@ -852,24 +875,27 @@ mod tests {
 
         let mut scheduled = schedule(11, 0, "reuse");
         let fire_at = Utc::now() + Duration::milliseconds(1_200);
-        crate::control::scheduling::arm_schedule(scheduler.as_ref(), &mut scheduled, Some(fire_at))
-            .await
-            .expect("schedule should arm on local sqlite scheduler");
+        talon_control::control::scheduling::arm_schedule(
+            scheduler.as_ref(),
+            &mut scheduled,
+            Some(fire_at),
+        )
+        .await
+        .expect("schedule should arm on local sqlite scheduler");
         let armed_status = scheduled.status.as_ref().unwrap();
         assert!(armed_status.backend_armed);
         assert!(armed_status.backend_handle.is_some());
         assert_eq!(armed_status.next_run_at, Some(fire_at.timestamp_micros()));
-        crate::control::scheduling::persist_schedule(kv.as_ref(), &scheduled)
+        talon_control::control::scheduling::persist_schedule(kv.as_ref(), &scheduled)
             .await
             .unwrap();
 
         let updated = tokio::time::timeout(Duration::seconds(6).to_std().unwrap(), async {
             loop {
-                let Some(updated) = kv
-                    .get_msg::<resources_proto::Schedule>(&crate::control::keys::schedule(
-                        "acme:test",
-                        "nightly",
-                    ))
+                let Some(updated) =
+                    kv.get_msg::<resources_proto::Schedule>(
+                        &talon_control::control::keys::schedule("acme:test", "nightly"),
+                    )
                     .await
                     .unwrap()
                 else {
@@ -903,7 +929,7 @@ mod tests {
 
         let message_keys = kv
             .list_keys(
-                &crate::control::keys::session_message_prefix(
+                &talon_control::control::keys::session_message_prefix(
                     "acme:test",
                     "assistant",
                     "session-1",
