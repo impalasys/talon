@@ -10,15 +10,18 @@ use std::panic::AssertUnwindSafe;
 use super::runtime::AgentRuntime;
 use super::sink::PubSubSessionSink;
 use super::WorkerEventHandler;
-use crate::control::tool_output;
-use crate::control::{events::SessionDispatchEvent, ProtoKeyValueStoreExt};
-use crate::gateway::rpc::connectors as connector_rpc;
-use crate::gateway::rpc::data_proto::{
-    self, session_journal_entry_payload, SessionExecutionPhase, SessionSubmissionKind,
-    SessionSubmissionStatus,
-};
-use crate::harness::executor::ExecutionSink;
-use crate::harness::sessions::{self, ClaimOutcome};
+use talon_connectors::rpc as connector_rpc;
+use talon_control::control::events::SessionDispatchEvent;
+use talon_control::control::tool_output;
+use talon_control::control::ProtoKeyValueStoreExt;
+use talon_harness::executor::ExecutionSink;
+use talon_harness::sessions;
+use talon_harness::sessions::ClaimOutcome;
+use talon_protocol::data_proto;
+use talon_protocol::data_proto::session_journal_entry_payload;
+use talon_protocol::data_proto::SessionExecutionPhase;
+use talon_protocol::data_proto::SessionSubmissionKind;
+use talon_protocol::data_proto::SessionSubmissionStatus;
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
 
@@ -99,7 +102,7 @@ fn is_wait_for_message_reply(reply: &str) -> bool {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum SessionCompletionStatus {
+pub enum SessionCompletionStatus {
     Completed,
     Waiting,
     Errored,
@@ -144,7 +147,7 @@ impl WorkerEventHandler {
             &event.message_id,
             &self.worker_id,
             now_micros,
-            crate::control::scheduling::session_processing_timeout_micros(),
+            talon_control::control::scheduling::session_processing_timeout_micros(),
         )
         .instrument(tracing::info_span!(
             "WorkerEventHandler.claim_session_submission"
@@ -214,7 +217,7 @@ impl WorkerEventHandler {
                 session_id: event.session_id.clone(),
                 submission_id: submission.submission_id.clone(),
                 attempt_id: submission.attempt_id.clone(),
-                ttl_micros: crate::control::scheduling::session_processing_timeout_micros(),
+                ttl_micros: talon_control::control::scheduling::session_processing_timeout_micros(),
             },
             event.timestamp,
         );
@@ -229,8 +232,8 @@ impl WorkerEventHandler {
         self.session_cancellations
             .insert(cancellation_key.clone(), cancellation_token.clone())
             .await;
-        let reply_msg_id = crate::control::uuid::session_message_id();
-        let reply_msg_key = crate::control::keys::session_message(
+        let reply_msg_id = talon_control::control::uuid::session_message_id();
+        let reply_msg_key = talon_control::control::keys::session_message(
             ns,
             &event.agent,
             &event.session_id,
@@ -314,7 +317,7 @@ impl WorkerEventHandler {
             let committed_message_id = committed_message_id
                 .filter(|id| !id.is_empty())
                 .ok_or_else(|| anyhow!("COMMITTED journal entry is missing message id"))?;
-            let committed_message_key = crate::control::keys::session_message(
+            let committed_message_key = talon_control::control::keys::session_message(
                 ns,
                 &event.agent,
                 &event.session_id,
@@ -394,7 +397,7 @@ impl WorkerEventHandler {
         let execution = Box::pin(async {
             // Load the agent resource before deciding which runtime owns the
             // rest of the session execution.
-            let store = crate::control::resources::ResourceStore::new(
+            let store = talon_control::control::resources::ResourceStore::new(
                 self.cp.kv.clone(),
                 self.cp.pubsub.clone(),
             );
@@ -432,7 +435,7 @@ impl WorkerEventHandler {
             if is_acp {
                 // ACP runtimes are not journal-hydrated by this durable LLM
                 // loop; they keep their existing execution path.
-                let runtime = match crate::harness::acp::AcpAgentRuntime::build_from_agent(
+                let runtime = match talon_harness::acp::AcpAgentRuntime::build_from_agent(
                     ns,
                     &event.agent,
                     &event.session_id,
@@ -599,7 +602,7 @@ impl WorkerEventHandler {
             let is_delegated_task = self
                 .cp
                 .kv
-                .get_msg::<data_proto::Session>(&crate::control::keys::session(
+                .get_msg::<data_proto::Session>(&talon_control::control::keys::session(
                     ns,
                     &event.agent,
                     &event.session_id,
@@ -608,7 +611,7 @@ impl WorkerEventHandler {
                 .is_some_and(|session| {
                     session
                         .labels
-                        .get(crate::control::delegation::LABEL_TASK_ROLE)
+                        .get(talon_control::control::delegation::LABEL_TASK_ROLE)
                         .map(String::as_str)
                         == Some("delegate")
                 });
@@ -665,7 +668,7 @@ impl WorkerEventHandler {
                 SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked
             )
         {
-            match crate::control::ProtoKeyValueStoreExt::get_msg::<data_proto::SessionMessage>(
+            match talon_control::control::ProtoKeyValueStoreExt::get_msg::<data_proto::SessionMessage>(
                 self.cp.kv.as_ref(),
                 &sink.current_reply_msg_key(),
             )
@@ -755,7 +758,7 @@ impl WorkerEventHandler {
         ns: &str,
         agent: &str,
         session_id: &str,
-        reply_msg_key: &crate::control::keys::ResourceKey,
+        reply_msg_key: &talon_control::control::keys::ResourceKey,
     ) -> Result<()> {
         let Some(message) = self
             .cp
@@ -782,7 +785,7 @@ impl WorkerEventHandler {
         } else {
             final_text.trim().to_string()
         };
-        let forwarded = crate::harness::native_tools::auto_forward_a2a_final_message(
+        let forwarded = talon_harness::native_tools::auto_forward_a2a_final_message(
             &self.cp,
             ns,
             agent,
@@ -811,7 +814,7 @@ impl WorkerEventHandler {
         expected_last_active: i64,
         completion_status: SessionCompletionStatus,
     ) {
-        let key = crate::control::keys::session(ns, agent_id, session_id);
+        let key = talon_control::control::keys::session(ns, agent_id, session_id);
         let mut released_session = None;
         let mut last_error = None;
         for _ in 0..MAX_SESSION_RELEASE_CAS_RETRIES {
@@ -886,7 +889,7 @@ impl WorkerEventHandler {
             );
         }
         if session.status == "ERROR" {
-            if let Err(err) = crate::control::session_queue::reclassify_steer_queue_to_next(
+            if let Err(err) = talon_control::control::session_queue::reclassify_steer_queue_to_next(
                 self.cp.kv.as_ref(),
                 ns,
                 agent_id,
@@ -906,19 +909,20 @@ impl WorkerEventHandler {
         if completion_status != SessionCompletionStatus::Waiting {
             let delegated_completion = match completion_status {
                 SessionCompletionStatus::Completed => {
-                    crate::control::delegation::DelegatedSessionCompletion::Completed
+                    talon_control::control::delegation::DelegatedSessionCompletion::Completed
                 }
                 SessionCompletionStatus::Waiting => unreachable!(),
                 SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked => {
-                    crate::control::delegation::DelegatedSessionCompletion::Failed
+                    talon_control::control::delegation::DelegatedSessionCompletion::Failed
                 }
             };
-            if let Err(err) = crate::control::delegation::complete_delegated_task_from_session(
-                &self.cp,
-                &session,
-                delegated_completion,
-            )
-            .await
+            if let Err(err) =
+                talon_control::control::delegation::complete_delegated_task_from_session(
+                    &self.cp,
+                    &session,
+                    delegated_completion,
+                )
+                .await
             {
                 tracing::warn!(
                     namespace = %ns,
@@ -929,29 +933,30 @@ impl WorkerEventHandler {
                 );
             }
         }
-        let dispatched_steer = crate::control::session_queue::dispatch_next_queued_message(
+        let dispatched_steer = talon_control::control::session_queue::dispatch_next_queued_message(
             self.cp.kv.as_ref(),
             self.cp.pubsub.as_ref(),
             ns,
             agent_id,
             session_id,
-            crate::control::session_queue::STEER_QUEUE,
+            talon_control::control::session_queue::STEER_QUEUE,
             chrono::Utc::now(),
         )
         .await;
         match dispatched_steer {
             Ok(Some(_)) => {}
             Ok(None) => {
-                if let Err(err) = crate::control::session_queue::dispatch_next_queued_message(
-                    self.cp.kv.as_ref(),
-                    self.cp.pubsub.as_ref(),
-                    ns,
-                    agent_id,
-                    session_id,
-                    crate::control::session_queue::NEXT_QUEUE,
-                    chrono::Utc::now(),
-                )
-                .await
+                if let Err(err) =
+                    talon_control::control::session_queue::dispatch_next_queued_message(
+                        self.cp.kv.as_ref(),
+                        self.cp.pubsub.as_ref(),
+                        ns,
+                        agent_id,
+                        session_id,
+                        talon_control::control::session_queue::NEXT_QUEUE,
+                        chrono::Utc::now(),
+                    )
+                    .await
                 {
                     tracing::warn!(
                         namespace = %ns,
@@ -976,7 +981,7 @@ impl WorkerEventHandler {
 fn session_message_sent_to_owner(message: &data_proto::SessionMessage) -> bool {
     message.parts.iter().any(|part| {
         part.part_type == data_proto::SessionMessagePartType::ToolCall as i32
-            && part.name == crate::harness::native_tools::AGENT_SEND_TOOL
+            && part.name == talon_harness::native_tools::AGENT_SEND_TOOL
             && tool_call_target(&part.payload_json).is_some_and(|target| target == "owner")
     })
 }
@@ -994,16 +999,16 @@ fn session_message_artifact_uris(
     message: &data_proto::SessionMessage,
     final_text: &str,
 ) -> Vec<String> {
-    let mut uris = crate::harness::native_tools::artifact_uris_from_message_text(final_text);
+    let mut uris = talon_harness::native_tools::artifact_uris_from_message_text(final_text);
     for part in &message.parts {
         if part.part_type != data_proto::SessionMessagePartType::ToolResult as i32 {
             continue;
         }
-        if part.name != crate::harness::native_tools::CREATE_ARTIFACT_TOOL {
+        if part.name != talon_harness::native_tools::CREATE_ARTIFACT_TOOL {
             continue;
         }
         if let Some(output) = tool_result_output(&part.payload_json) {
-            uris.extend(crate::harness::native_tools::artifact_uris_from_message_text(&output));
+            uris.extend(talon_harness::native_tools::artifact_uris_from_message_text(&output));
             if let Ok(value) = serde_json::from_str::<Value>(&output) {
                 if let Some(uri) = value.get("artifactUri").and_then(Value::as_str) {
                     uris.push(uri.to_string());
@@ -1025,24 +1030,14 @@ mod tests {
     use super::{
         execute_with_panic_boundary, session_message_artifact_uris, SessionCompletionStatus,
     };
-    use crate::control::config::{proto, Config, ProviderConfig, Secret};
-    use crate::control::{
-        events::{MessageDirection, SessionDispatchEvent},
-        ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
-    };
-    use crate::gateway::rpc::connectors::session_message_final_response;
-    use crate::gateway::rpc::{data_proto, manifests, resources_proto};
-    use crate::harness::executor::ExecutionSink;
-    use crate::harness::sessions;
     use crate::test_support::MockKvStore;
-    use crate::worker::connector::{
-        with_connector_typing_keepalive, ConnectorTypingActivity, ConnectorTypingDelivery,
-        ConnectorTypingLogContext,
-    };
-    use crate::worker::{
-        mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
-        WorkerEventHandler,
-    };
+    use crate::worker::connector::with_connector_typing_keepalive;
+    use crate::worker::connector::ConnectorTypingActivity;
+    use crate::worker::connector::ConnectorTypingDelivery;
+    use crate::worker::connector::ConnectorTypingLogContext;
+    use crate::worker::mcp_registry::McpRegistry;
+    use crate::worker::scheduler_auth::SchedulerRequestAuthenticator;
+    use crate::worker::WorkerEventHandler;
     use async_trait::async_trait;
     use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
     use futures::{stream, FutureExt};
@@ -1056,6 +1051,22 @@ mod tests {
     use std::sync::Arc;
     use std::sync::Mutex;
     use std::time::Duration;
+    use talon_connectors::rpc::session_message_final_response;
+    use talon_control::control::config::proto;
+    use talon_control::control::config::Config;
+    use talon_control::control::config::ProviderConfig;
+    use talon_control::control::config::Secret;
+    use talon_control::control::events::MessageDirection;
+    use talon_control::control::events::SessionDispatchEvent;
+    use talon_control::control::ControlPlane;
+    use talon_control::control::KeyValueStore;
+    use talon_control::control::MessagePublisher;
+    use talon_control::control::ProtoKeyValueStoreExt;
+    use talon_harness::executor::ExecutionSink;
+    use talon_harness::sessions;
+    use talon_protocol::data_proto;
+    use talon_protocol::manifests;
+    use talon_protocol::resources_proto;
     use tokio::net::TcpListener;
     use tokio::sync::oneshot;
     use tokio_util::sync::CancellationToken;
@@ -1110,8 +1121,8 @@ mod tests {
         async fn on_token(&self, _: &str) {}
         async fn on_reasoning(&self, _: &str) {}
         async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
-        async fn on_tool_result(&self, _: &str, _: &str, _: &crate::harness::llm::ToolOutput) {}
-        async fn on_usage(&self, _: &crate::harness::llm::TokenCounter) {}
+        async fn on_tool_result(&self, _: &str, _: &str, _: &talon_harness::llm::ToolOutput) {}
+        async fn on_usage(&self, _: &talon_harness::llm::TokenCounter) {}
         async fn on_done(&self) {}
         async fn on_error(&self, err: &str) {
             self.errors.lock().unwrap().push(err.to_string());
@@ -1168,7 +1179,7 @@ mod tests {
         metadata: HashMap<String, String>,
     ) {
         kv.set_msg(
-            &crate::control::keys::session(namespace, agent, session_id),
+            &talon_control::control::keys::session(namespace, agent, session_id),
             &data_proto::Session {
                 id: session_id.to_string(),
                 agent: agent.to_string(),
@@ -1194,7 +1205,7 @@ mod tests {
     ) -> Vec<String> {
         let entries = kv
             .list_entries(
-                &crate::control::keys::session_message_prefix(namespace, agent, session_id),
+                &talon_control::control::keys::session_message_prefix(namespace, agent, session_id),
                 None,
             )
             .await
@@ -1282,7 +1293,7 @@ mod tests {
         name: &str,
         spec: resources_proto::AgentSpec,
     ) {
-        let store = crate::control::resources::ResourceStore::new(
+        let store = talon_control::control::resources::ResourceStore::new(
             kv,
             Arc::new(crate::test_support::RecordingPubSub::default()),
         );
@@ -1324,7 +1335,7 @@ mod tests {
     }
 
     async fn put_connector_class_resource(kv: Arc<MockKvStore>, endpoint: String) {
-        let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
+        let store = talon_control::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
         store
             .upsert(
                 "acme:test",
@@ -1375,7 +1386,7 @@ mod tests {
         reply_mode: &str,
         match_fields: impl IntoIterator<Item = (&'static str, &'static str)>,
     ) {
-        let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
+        let store = talon_control::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
         store
             .upsert(
                 "acme:test",
@@ -1474,7 +1485,7 @@ mod tests {
         text: &str,
     ) {
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
@@ -1491,7 +1502,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_message(
+            &talon_control::control::keys::session_message(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -1523,7 +1534,7 @@ mod tests {
         name: &str,
         hard: Vec<resources_proto::UsageLimit>,
     ) {
-        let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
+        let store = talon_control::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
         store
             .upsert(
                 namespace,
@@ -1555,7 +1566,7 @@ mod tests {
         namespace: &str,
         name: &str,
     ) -> resources_proto::UsagePolicyStatus {
-        let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
+        let store = talon_control::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
         let resource = store
             .get(namespace, "UsagePolicy", name)
             .await
@@ -2156,7 +2167,7 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -2173,7 +2184,7 @@ mod tests {
             .await;
 
         let updated = kv
-            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&talon_control::control::keys::session(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -2201,7 +2212,7 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -2218,7 +2229,7 @@ mod tests {
             .await;
 
         let updated = kv
-            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&talon_control::control::keys::session(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -2246,17 +2257,17 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
         .expect("session should persist");
-        crate::control::session_queue::queue_text_message(
+        talon_control::control::session_queue::queue_text_message(
             kv.as_ref(),
             "acme:test",
             "assistant",
             "session-1",
-            crate::control::session_queue::NEXT_QUEUE,
+            talon_control::control::session_queue::NEXT_QUEUE,
             "queued follow-up",
             HashMap::new(),
             chrono::Utc::now(),
@@ -2275,7 +2286,7 @@ mod tests {
             .await;
 
         let updated = kv
-            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&talon_control::control::keys::session(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -2286,7 +2297,7 @@ mod tests {
         assert_eq!(updated.status, "PROCESSING");
         let submissions = kv
             .list_entries(
-                &crate::control::keys::session_submission_prefix(
+                &talon_control::control::keys::session_submission_prefix(
                     "acme:test",
                     "assistant",
                     "session-1",
@@ -2324,7 +2335,7 @@ mod tests {
             )]),
         )
         .await;
-        let reply_key = crate::control::keys::session_message(
+        let reply_key = talon_control::control::keys::session_message(
             "Tenant:acme:Copywriter",
             "writer",
             "child-session",
@@ -2381,7 +2392,7 @@ mod tests {
             )]),
         )
         .await;
-        let reply_key = crate::control::keys::session_message(
+        let reply_key = talon_control::control::keys::session_message(
             "Tenant:acme:Copywriter",
             "writer",
             "child-session",
@@ -2392,7 +2403,7 @@ mod tests {
             &assistant_message(vec![
                 message_part_with_payload(
                     data_proto::SessionMessagePartType::ToolCall,
-                    crate::harness::native_tools::AGENT_SEND_TOOL,
+                    talon_harness::native_tools::AGENT_SEND_TOOL,
                     "Tool call",
                     r#"{"tool_call_id":"call-1","input":{"target":"owner","message":"Done."}}"#,
                 ),
@@ -2422,7 +2433,7 @@ mod tests {
         let message = assistant_message(vec![
             message_part_with_payload(
                 data_proto::SessionMessagePartType::ToolResult,
-                crate::harness::native_tools::CREATE_ARTIFACT_TOOL,
+                talon_harness::native_tools::CREATE_ARTIFACT_TOOL,
                 "",
                 r#"{"tool_call_id":"call-1","output":"{\"artifactUri\":\"artifact://Tenant:acme:Copywriter/writer/child-session/draft\"}"}"#,
             ),
@@ -2458,7 +2469,7 @@ mod tests {
             context_tokens: None,
         };
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -2475,7 +2486,7 @@ mod tests {
             .await;
 
         let updated = kv
-            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&talon_control::control::keys::session(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -2524,7 +2535,7 @@ mod tests {
 
         put_agent_resource(kv.clone(), "acme:test", "assistant", spec).await;
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
@@ -2541,7 +2552,12 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_message("acme:test", "assistant", "session-1", "user-1"),
+            &talon_control::control::keys::session_message(
+                "acme:test",
+                "assistant",
+                "session-1",
+                "user-1",
+            ),
             &data_proto::SessionMessage {
                 id: "user-1".to_string(),
                 role: data_proto::MessageRole::RoleUser as i32,
@@ -2576,7 +2592,7 @@ mod tests {
             .expect("runtime build errors should be persisted and acked");
 
         let session = kv
-            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&talon_control::control::keys::session(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -2588,7 +2604,7 @@ mod tests {
 
         let message_keys = kv
             .list_keys(
-                &crate::control::keys::session_message_prefix(
+                &talon_control::control::keys::session_message_prefix(
                     "acme:test",
                     "assistant",
                     "session-1",
@@ -2708,7 +2724,7 @@ mod tests {
         .await;
         put_connector_class_resource(kv.clone(), endpoint).await;
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
@@ -2762,7 +2778,12 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_message("acme:test", "assistant", "session-1", "user-1"),
+            &talon_control::control::keys::session_message(
+                "acme:test",
+                "assistant",
+                "session-1",
+                "user-1",
+            ),
             &data_proto::SessionMessage {
                 id: "user-1".to_string(),
                 role: data_proto::MessageRole::RoleUser as i32,
@@ -2845,7 +2866,7 @@ mod tests {
         put_connector_class_resource(kv.clone(), endpoint).await;
 
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
@@ -2887,7 +2908,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_message(
+            &talon_control::control::keys::session_message(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -2916,7 +2937,7 @@ mod tests {
         .unwrap();
 
         let cp = ControlPlane::builder(kv, Arc::new(MockPubSub)).build();
-        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+        talon_connectors::rpc::maybe_deliver_connector_session_message(
             &cp,
             "acme:test",
             "assistant",
@@ -2984,7 +3005,7 @@ mod tests {
         .await;
 
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
-        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+        talon_connectors::rpc::maybe_deliver_connector_session_message(
             &cp,
             "acme:test",
             "assistant",
@@ -3103,7 +3124,7 @@ mod tests {
         };
 
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
-        crate::gateway::rpc::connectors::send_connector_session_activity(
+        talon_connectors::rpc::send_connector_session_activity(
             &cp,
             &session,
             "activity-1",
@@ -3140,7 +3161,7 @@ mod tests {
         .await;
 
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
-        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+        talon_connectors::rpc::maybe_deliver_connector_session_message(
             &cp,
             "acme:test",
             "assistant",
@@ -3151,7 +3172,7 @@ mod tests {
         .expect("hold_for_review should only mark pending");
 
         let message = kv
-            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+            .get_msg::<data_proto::SessionMessage>(&talon_control::control::keys::session_message(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -3194,7 +3215,7 @@ mod tests {
         .await;
 
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
-        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+        talon_connectors::rpc::maybe_deliver_connector_session_message(
             &cp,
             "acme:test",
             "assistant",
@@ -3205,7 +3226,7 @@ mod tests {
         .expect("current Connector replyMode should require review");
 
         let message = kv
-            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+            .get_msg::<data_proto::SessionMessage>(&talon_control::control::keys::session_message(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -3263,7 +3284,7 @@ mod tests {
         .await;
 
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
-        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+        talon_connectors::rpc::maybe_deliver_connector_session_message(
             &cp,
             "acme:test",
             "assistant",
@@ -3277,7 +3298,7 @@ mod tests {
         assert_eq!(deliveries.len(), 1);
         assert_eq!(deliveries[0]["text"], "send now");
         let message = kv
-            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+            .get_msg::<data_proto::SessionMessage>(&talon_control::control::keys::session_message(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -3311,7 +3332,7 @@ mod tests {
                     )>,
                      Json(payload): Json<Value>| async move {
                         deliveries.lock().unwrap().push(payload);
-                        let message_key = crate::control::keys::session_message(
+                        let message_key = talon_control::control::keys::session_message(
                             "acme:test",
                             "assistant",
                             "session-1",
@@ -3356,7 +3377,7 @@ mod tests {
         .await;
 
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
-        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+        talon_connectors::rpc::maybe_deliver_connector_session_message(
             &cp,
             "acme:test",
             "assistant",
@@ -3370,7 +3391,7 @@ mod tests {
         assert_eq!(deliveries.len(), 1);
         assert_eq!(deliveries[0]["text"], "edited reply");
         let message = kv
-            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+            .get_msg::<data_proto::SessionMessage>(&talon_control::control::keys::session_message(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -3412,7 +3433,7 @@ mod tests {
         .await;
 
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
-        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+        talon_connectors::rpc::maybe_deliver_connector_session_message(
             &cp,
             "acme:test",
             "assistant",
@@ -3422,7 +3443,7 @@ mod tests {
         .await
         .expect("skipped review delivery should be a no-op");
         let message = kv
-            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+            .get_msg::<data_proto::SessionMessage>(&talon_control::control::keys::session_message(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -3477,7 +3498,7 @@ mod tests {
         .await;
 
         let cp = ControlPlane::builder(kv.clone(), Arc::new(MockPubSub)).build();
-        crate::gateway::rpc::connectors::maybe_deliver_connector_session_message(
+        talon_connectors::rpc::maybe_deliver_connector_session_message(
             &cp,
             "acme:test",
             "assistant",
@@ -3488,7 +3509,7 @@ mod tests {
         .expect("requested delivery failure should be recorded on the message");
 
         let message = kv
-            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+            .get_msg::<data_proto::SessionMessage>(&talon_control::control::keys::session_message(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -3533,7 +3554,7 @@ mod tests {
         )
         .await;
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
@@ -3550,7 +3571,12 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_message("acme:test", "assistant", "session-1", "user-1"),
+            &talon_control::control::keys::session_message(
+                "acme:test",
+                "assistant",
+                "session-1",
+                "user-1",
+            ),
             &data_proto::SessionMessage {
                 id: "user-1".to_string(),
                 role: data_proto::MessageRole::RoleUser as i32,
@@ -3570,7 +3596,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_journal_entry(
+            &talon_control::control::keys::session_journal_entry(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -3608,7 +3634,7 @@ mod tests {
         assert!(result.is_err());
 
         let session = kv
-            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&talon_control::control::keys::session(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -3619,7 +3645,7 @@ mod tests {
         assert_eq!(session.status, "ERROR");
         let message_keys = kv
             .list_keys(
-                &crate::control::keys::session_message_prefix(
+                &talon_control::control::keys::session_message_prefix(
                     "acme:test",
                     "assistant",
                     "session-1",
@@ -3640,7 +3666,7 @@ mod tests {
             7
         );
         let error_message = kv
-            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+            .get_msg::<data_proto::SessionMessage>(&talon_control::control::keys::session_message(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -3694,7 +3720,7 @@ mod tests {
 
         put_agent_resource(kv.clone(), "acme:test", "assistant", spec).await;
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
@@ -3727,7 +3753,7 @@ mod tests {
             .unwrap();
 
         let session = kv
-            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&talon_control::control::keys::session(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -3740,7 +3766,7 @@ mod tests {
 
         let message_keys = kv
             .list_keys(
-                &crate::control::keys::session_message_prefix(
+                &talon_control::control::keys::session_message_prefix(
                     "acme:test",
                     "assistant",
                     "session-1",
@@ -3749,8 +3775,11 @@ mod tests {
             )
             .await
             .unwrap();
-        let prefix =
-            crate::control::keys::session_message_prefix("acme:test", "assistant", "session-1");
+        let prefix = talon_control::control::keys::session_message_prefix(
+            "acme:test",
+            "assistant",
+            "session-1",
+        );
         let mut reply = None;
         for key in message_keys {
             if !prefix.matches(&key) {
@@ -3769,8 +3798,8 @@ mod tests {
         assert_eq!(reply.role, 2);
 
         let submission = kv
-            .get_msg::<crate::harness::sessions::SessionSubmission>(
-                &crate::control::keys::session_submission(
+            .get_msg::<talon_harness::sessions::SessionSubmission>(
+                &talon_control::control::keys::session_submission(
                     "acme:test",
                     "assistant",
                     "session-1",
@@ -3784,7 +3813,7 @@ mod tests {
         assert_eq!(submission.user_message_id, "user-1");
         assert_eq!(
             submission.status,
-            crate::gateway::rpc::data_proto::SessionSubmissionStatus::Committed as i32
+            talon_protocol::data_proto::SessionSubmissionStatus::Committed as i32
         );
         assert_eq!(submission.completed_at.is_some(), true);
         assert_eq!(
@@ -3794,13 +3823,13 @@ mod tests {
 
         assert_eq!(
             submission.current_phase,
-            crate::gateway::rpc::data_proto::SessionExecutionPhase::Committed as i32
+            talon_protocol::data_proto::SessionExecutionPhase::Committed as i32
         );
         let journal_entry_id = submission
             .current_journal_entry_id
             .as_deref()
             .expect("submission should point at committed journal entry");
-        let journal_entry_key = crate::control::keys::session_journal_entry(
+        let journal_entry_key = talon_control::control::keys::session_journal_entry(
             "acme:test",
             "assistant",
             "session-1",
@@ -3812,7 +3841,7 @@ mod tests {
             .await
             .unwrap()
             .map(|bytes| {
-                crate::harness::sessions::SessionJournalEntry::decode(bytes.as_slice())
+                talon_harness::sessions::SessionJournalEntry::decode(bytes.as_slice())
                     .map_err(anyhow::Error::from)
             })
             .transpose()
@@ -3820,7 +3849,7 @@ mod tests {
             .expect("committed journal entry should exist");
         assert_eq!(
             journal_entry.phase,
-            crate::gateway::rpc::data_proto::SessionExecutionPhase::Committed as i32
+            talon_protocol::data_proto::SessionExecutionPhase::Committed as i32
         );
         assert_eq!(journal_entry.committed_at.is_some(), true);
         assert_eq!(
@@ -3830,7 +3859,7 @@ mod tests {
 
         let before_duplicate_keys = kv
             .list_keys(
-                &crate::control::keys::session_message_prefix(
+                &talon_control::control::keys::session_message_prefix(
                     "acme:test",
                     "assistant",
                     "session-1",
@@ -3855,7 +3884,7 @@ mod tests {
             .unwrap();
         let after_duplicate_keys = kv
             .list_keys(
-                &crate::control::keys::session_message_prefix(
+                &talon_control::control::keys::session_message_prefix(
                     "acme:test",
                     "assistant",
                     "session-1",
@@ -3912,15 +3941,18 @@ mod tests {
             "acme:test",
             "llm-token-limit",
             vec![
-                usage_limit(crate::control::usage::METRIC_LLM_INPUT_TOKENS, 100),
-                usage_limit(crate::control::usage::METRIC_LLM_OUTPUT_TOKENS, 100),
-                usage_limit(crate::control::usage::METRIC_LLM_REASONING_TOKENS, 100),
-                usage_limit(crate::control::usage::METRIC_LLM_TOTAL_TOKENS, 10),
+                usage_limit(talon_control::control::usage::METRIC_LLM_INPUT_TOKENS, 100),
+                usage_limit(talon_control::control::usage::METRIC_LLM_OUTPUT_TOKENS, 100),
+                usage_limit(
+                    talon_control::control::usage::METRIC_LLM_REASONING_TOKENS,
+                    100,
+                ),
+                usage_limit(talon_control::control::usage::METRIC_LLM_TOTAL_TOKENS, 10),
             ],
         )
         .await;
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
@@ -3961,19 +3993,19 @@ mod tests {
                 .expect("metric should be present")
         };
         assert_eq!(
-            used_for(crate::control::usage::METRIC_LLM_INPUT_TOKENS),
+            used_for(talon_control::control::usage::METRIC_LLM_INPUT_TOKENS),
             (7, 93, false)
         );
         assert_eq!(
-            used_for(crate::control::usage::METRIC_LLM_OUTPUT_TOKENS),
+            used_for(talon_control::control::usage::METRIC_LLM_OUTPUT_TOKENS),
             (3, 97, false)
         );
         assert_eq!(
-            used_for(crate::control::usage::METRIC_LLM_REASONING_TOKENS),
+            used_for(talon_control::control::usage::METRIC_LLM_REASONING_TOKENS),
             (2, 98, false)
         );
         assert_eq!(
-            used_for(crate::control::usage::METRIC_LLM_TOTAL_TOKENS),
+            used_for(talon_control::control::usage::METRIC_LLM_TOTAL_TOKENS),
             (12, 0, true)
         );
 
@@ -3984,7 +4016,7 @@ mod tests {
             status
                 .hard
                 .iter()
-                .find(|limit| limit.metric == crate::control::usage::METRIC_LLM_TOTAL_TOKENS)
+                .find(|limit| limit.metric == talon_control::control::usage::METRIC_LLM_TOTAL_TOKENS)
                 .map(|limit| limit.used),
             Some(12)
         );
@@ -3997,7 +4029,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let handler = handler_with_kv(kv.clone());
         kv.set_msg(
-            &crate::control::keys::session("acme:test", "assistant", "session-1"),
+            &talon_control::control::keys::session("acme:test", "assistant", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
@@ -4014,7 +4046,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_message(
+            &talon_control::control::keys::session_message(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -4042,7 +4074,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &crate::control::keys::session_journal_entry(
+            &talon_control::control::keys::session_journal_entry(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -4087,7 +4119,7 @@ mod tests {
 
         let messages = kv
             .list_keys(
-                &crate::control::keys::session_message_prefix(
+                &talon_control::control::keys::session_message_prefix(
                     "acme:test",
                     "assistant",
                     "session-1",
@@ -4098,7 +4130,7 @@ mod tests {
             .unwrap();
         assert_eq!(messages.len(), 1);
         let assistant_message = kv
-            .get_msg::<data_proto::SessionMessage>(&crate::control::keys::session_message(
+            .get_msg::<data_proto::SessionMessage>(&talon_control::control::keys::session_message(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -4115,8 +4147,8 @@ mod tests {
             Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
         );
         let submission = kv
-            .get_msg::<crate::harness::sessions::SessionSubmission>(
-                &crate::control::keys::session_submission(
+            .get_msg::<talon_harness::sessions::SessionSubmission>(
+                &talon_control::control::keys::session_submission(
                     "acme:test",
                     "assistant",
                     "session-1",
@@ -4128,14 +4160,14 @@ mod tests {
             .expect("submission should be tombstoned");
         assert_eq!(
             submission.status,
-            crate::gateway::rpc::data_proto::SessionSubmissionStatus::Committed as i32
+            talon_protocol::data_proto::SessionSubmissionStatus::Committed as i32
         );
         assert_eq!(
             submission.committed_message_id.as_deref(),
             Some("user-1-assistant")
         );
         let session = kv
-            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&talon_control::control::keys::session(
                 "acme:test",
                 "assistant",
                 "session-1",

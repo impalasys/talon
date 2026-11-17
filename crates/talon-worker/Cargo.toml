@@ -1,0 +1,46 @@
+[package]
+name = "talon-worker"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[dependencies]
+anyhow =  "1.0"
+async-trait =  "0.1"
+axum =  { version = "0.7", features = ["ws"] }
+chrono =  { version = "0.4", features = ["serde"] }
+futures =  "0.3"
+jsonwebtoken =  { version = "11.0", features = ["rust_crypto"] }
+mime_guess =  "2"
+prost =  "0.13"
+rand =  "0.10"
+reqwest =  { version = "0.11", default-features = false, features = ["json", "rustls-tls", "stream"] }
+rmcp =  { version = "1.8", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
+serde =  { version = "1.0", features = ["derive"] }
+serde_json =  "1.0"
+tempfile =  "3.0"
+tokio =  { version = "1.0", features = ["full"] }
+tokio-util =  { version = "0.7.18", features = ["rt"] }
+tonic =  { version = "0.12.3", features = ["tls-webpki-roots"] }
+tracing =  "0.1"
+uuid =  { version = "1.23.0", features = ["v7"] }
+talon-auth = { path = "../talon-auth" }
+talon-config = { path = "../talon-config" }
+talon-connectors = { path = "../talon-connectors" }
+talon-contracts = { path = "../talon-contracts" }
+talon-control = { path = "../talon-control" }
+talon-fanout = { path = "../talon-fanout" }
+talon-harness = { path = "../talon-harness" }
+talon-identifiers = { path = "../talon-identifiers" }
+talon-protocol = { path = "../talon-protocol" }
+talon-sandbox = { path = "../talon-sandbox" }
+talon-security = { path = "../talon-security" }
+talon-session-control = { path = "../talon-session-control" }
+talon-workflows = { path = "../talon-workflows" }
+
+[dev-dependencies]
+talon-storage-sqlite = { path = "../talon-storage-sqlite" }
+talon-storage-common = { path = "../talon-storage-common" }
+talon-test-support = { path = "../talon-test-support" }
+tokio =  { version = "1.0", features = ["test-util"] }

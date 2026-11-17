@@ -30,16 +30,31 @@ use std::{
     time::Duration,
 };
 
-use crate::{
-    control::{
-        keys::{self, ResourceKey},
-        resource_model::{self, ChannelResourceExt, NamespaceResourceExt, TypedResource},
-        scheduling,
-        security::platform_jwt,
-        ListOptions, ProtoKeyValueStoreExt,
-    },
-    gateway::rpc::{data_proto, manifests, resources_proto},
-};
+use talon_control::control::keys;
+
+use talon_control::control::keys::ResourceKey;
+
+use talon_control::control::resource_model;
+
+use talon_control::control::resource_model::ChannelResourceExt;
+
+use talon_control::control::resource_model::NamespaceResourceExt;
+
+use talon_control::control::resource_model::TypedResource;
+
+use talon_control::control::scheduling;
+
+use talon_control::control::security::platform_jwt;
+
+use talon_control::control::ListOptions;
+
+use talon_control::control::ProtoKeyValueStoreExt;
+
+use talon_protocol::data_proto;
+
+use talon_protocol::manifests;
+
+use talon_protocol::resources_proto;
 
 use super::WorkerEventHandler;
 
@@ -157,7 +172,7 @@ impl TalonOpsServer {
         }
     }
 
-    fn kv(&self) -> &Arc<dyn crate::control::KeyValueStore + Send + Sync> {
+    fn kv(&self) -> &Arc<dyn talon_control::control::KeyValueStore + Send + Sync> {
         &self.handler.cp.kv
     }
 
@@ -206,7 +221,7 @@ impl TalonOpsServer {
     }
 
     async fn list_agent_names(&self, namespace: &str) -> Result<Vec<String>> {
-        let store = crate::control::resources::ResourceStore::new(
+        let store = talon_control::control::resources::ResourceStore::new(
             self.handler.cp.kv.clone(),
             self.handler.cp.pubsub.clone(),
         );
@@ -221,7 +236,7 @@ impl TalonOpsServer {
     }
 
     async fn get_agent_model(&self, namespace: &str, name: &str) -> Result<resources_proto::Agent> {
-        let store = crate::control::resources::ResourceStore::new(
+        let store = talon_control::control::resources::ResourceStore::new(
             self.handler.cp.kv.clone(),
             self.handler.cp.pubsub.clone(),
         );
@@ -367,7 +382,7 @@ impl TalonOpsServer {
                         .map(|spec| spec.kind.clone())
                         .unwrap_or_default()
                 } else {
-                    crate::control::scheduling::normalize_schedule_kind(&args.kind)
+                    talon_control::control::scheduling::normalize_schedule_kind(&args.kind)
                 },
                 cron: args
                     .cron
@@ -406,7 +421,7 @@ impl TalonOpsServer {
                             .or_else(|| existing_target.map(|target| target.workflow.clone()))
                             .unwrap_or_default()
                     },
-                    session_mode: crate::control::scheduling::normalize_session_mode(
+                    session_mode: talon_control::control::scheduling::normalize_session_mode(
                         &args
                             .session_mode
                             .clone()
@@ -458,10 +473,8 @@ fn talon_ops_access_from_parts(
         .cloned()
         .ok_or_else(|| {
             McpError::invalid_params(
-                format!(
-                    "missing extension {}",
-                    std::any::type_name::<TalonOpsAccess>()
-                ),
+                // Keep this wire error stable across internal crate moves.
+                "missing extension talon::worker::talon_ops::TalonOpsAccess",
                 None,
             )
         })
@@ -673,7 +686,8 @@ impl TalonOpsServer {
                 .await
                 .map_err(internal_mcp_error)?;
             agents.push(
-                crate::control::manifest::render_agent_json(&agent).map_err(internal_mcp_error)?,
+                talon_control::control::manifest::render_agent_json(&agent)
+                    .map_err(internal_mcp_error)?,
             );
         }
         to_json_string(&json!({ "agents": agents }))
@@ -694,7 +708,7 @@ impl TalonOpsServer {
             .await
             .map_err(internal_mcp_error)?;
         to_json_string(
-            &json!({ "agent": crate::control::manifest::render_agent_json(&agent).map_err(internal_mcp_error)? }),
+            &json!({ "agent": talon_control::control::manifest::render_agent_json(&agent).map_err(internal_mcp_error)? }),
         )
     }
 
@@ -1229,7 +1243,7 @@ async fn talon_ops_access_from_request(
 }
 
 async fn load_talon_ops_server_access(
-    kv: &dyn crate::control::KeyValueStore,
+    kv: &dyn talon_control::control::KeyValueStore,
     namespace: &str,
     mcp_server_name: &str,
     agent_name: Option<&str>,
@@ -1423,7 +1437,7 @@ fn mint_talon_ops_access_token(
     session_id: Option<&str>,
     expires_at_unix: i64,
 ) -> Result<String> {
-    crate::control::security::install_jwt_crypto_provider();
+    talon_control::control::security::install_jwt_crypto_provider();
     let key = platform_jwt::load_key()?;
     let now = Utc::now().timestamp() as usize;
     let claims = TalonOpsAccessClaims {
@@ -1440,7 +1454,7 @@ fn mint_talon_ops_access_token(
     key.sign(&claims)
 }
 
-fn platform_issuer_from_config(_config: &crate::control::config::Config) -> Result<String> {
+fn platform_issuer_from_config(_config: &talon_control::control::config::Config) -> Result<String> {
     platform_jwt::issuer()
 }
 
@@ -1543,15 +1557,13 @@ mod tests {
         TalonOpsPolicy, TalonOpsServer, DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS,
         DEFAULT_MAX_LIST_LIMIT,
     };
-    use crate::control::config::Config;
-    use crate::control::{keys, ControlPlane, MessagePublisher, ProtoKeyValueStoreExt};
-    use crate::gateway::rpc::{data_proto, manifests, resources_proto};
+    use crate::test_support::MockKvStore;
+    use crate::test_support::PlatformJwtEnvGuard;
+    use crate::test_support::TEST_PLATFORM_JWT_ISSUER;
     use crate::test_support::TEST_RSA_PRIVATE_KEY;
-    use crate::test_support::{MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
-    use crate::worker::{
-        mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
-        WorkerEventHandler,
-    };
+    use crate::worker::mcp_registry::McpRegistry;
+    use crate::worker::scheduler_auth::SchedulerRequestAuthenticator;
+    use crate::worker::WorkerEventHandler;
     use async_trait::async_trait;
     use axum::{
         extract::State,
@@ -1563,6 +1575,14 @@ mod tests {
     use rmcp::handler::server::wrapper::Parameters;
     use serde_json::json;
     use std::{collections::HashMap, pin::Pin, sync::Arc};
+    use talon_control::control::config::Config;
+    use talon_control::control::keys;
+    use talon_control::control::ControlPlane;
+    use talon_control::control::MessagePublisher;
+    use talon_control::control::ProtoKeyValueStoreExt;
+    use talon_protocol::data_proto;
+    use talon_protocol::manifests;
+    use talon_protocol::resources_proto;
 
     #[derive(Default)]
     struct MockPubSub;
@@ -1596,10 +1616,12 @@ mod tests {
     }
 
     fn sign_test_claims<T: serde::Serialize>(claims: &T) -> String {
-        crate::control::security::platform_jwt::PlatformJwtKey::from_pem(TEST_RSA_PRIVATE_KEY)
-            .unwrap()
-            .sign(claims)
-            .unwrap()
+        talon_control::control::security::platform_jwt::PlatformJwtKey::from_pem(
+            TEST_RSA_PRIVATE_KEY,
+        )
+        .unwrap()
+        .sign(claims)
+        .unwrap()
     }
 
     async fn seed_talon_ops_server(kv: &MockKvStore, namespace: &str, mcp_server_name: &str) {
@@ -1624,7 +1646,9 @@ mod tests {
                     auth_broker: None,
                     policy: None,
                 }),
-                status: Some(crate::control::resource_model::common_status(String::new())),
+                status: Some(talon_control::control::resource_model::common_status(
+                    String::new(),
+                )),
             },
         )
         .await
@@ -1659,7 +1683,7 @@ mod tests {
     async fn seed_namespace(kv: &MockKvStore, name: &str, parent: &str) {
         kv.set_msg(
             &keys::namespace_metadata(name),
-            &crate::control::resource_model::namespace(name, parent, HashMap::new()),
+            &talon_control::control::resource_model::namespace(name, parent, HashMap::new()),
         )
         .await
         .unwrap();
@@ -1668,7 +1692,7 @@ mod tests {
     async fn seed_agent(kv: &MockKvStore, namespace: &str, name: &str) {
         kv.set_msg(
             &keys::agent(namespace, name),
-            &crate::control::resource_model::agent(
+            &talon_control::control::resource_model::agent(
                 namespace,
                 name,
                 manifests::AgentSpec {
@@ -1702,7 +1726,7 @@ mod tests {
     async fn seed_channel(kv: &MockKvStore, namespace: &str, name: &str, status: &str) {
         kv.set_msg(
             &keys::channel(namespace, name),
-            &crate::control::resource_model::channel(
+            &talon_control::control::resource_model::channel(
                 namespace,
                 name,
                 resources_proto::ChannelSpec {
@@ -1849,15 +1873,15 @@ mod tests {
     #[test]
     fn normalize_schedule_kind_maps_interval_to_every() {
         assert_eq!(
-            crate::control::scheduling::normalize_schedule_kind("interval"),
+            talon_control::control::scheduling::normalize_schedule_kind("interval"),
             "every"
         );
         assert_eq!(
-            crate::control::scheduling::normalize_schedule_kind(" every "),
+            talon_control::control::scheduling::normalize_schedule_kind(" every "),
             "every"
         );
         assert_eq!(
-            crate::control::scheduling::normalize_schedule_kind("cron"),
+            talon_control::control::scheduling::normalize_schedule_kind("cron"),
             "cron"
         );
     }
@@ -1937,7 +1961,8 @@ mod tests {
         let broker_claims_token = sign_test_claims(&super::McpAuthBrokerClaims {
             iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
             sub: "talon-mcp-client".to_string(),
-            aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
+            aud: talon_control::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE
+                .to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
             namespace: "acme".to_string(),
@@ -1967,7 +1992,7 @@ mod tests {
         let access_token = sign_test_claims(&TalonOpsAccessClaims {
             iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
             sub: "talon-ops".to_string(),
-            aud: crate::control::security::platform_jwt::TALON_OPS_AUDIENCE.to_string(),
+            aud: talon_control::control::security::platform_jwt::TALON_OPS_AUDIENCE.to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
             namespace: " ".to_string(),
@@ -1985,7 +2010,8 @@ mod tests {
         let broker_token = sign_test_claims(&McpAuthBrokerClaims {
             iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
             sub: "talon-mcp-client".to_string(),
-            aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
+            aud: talon_control::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE
+                .to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
             namespace: "acme".to_string(),
@@ -2006,7 +2032,10 @@ mod tests {
         let request = Request::builder().uri("/").body(()).unwrap();
         let (parts, _) = request.into_parts();
         let error = talon_ops_access_from_parts(&parts).expect_err("missing extension should fail");
-        assert!(format!("{error:?}").contains("missing extension"));
+        assert_eq!(
+            error.message,
+            "missing extension talon::worker::talon_ops::TalonOpsAccess"
+        );
 
         let mut request = Request::builder().uri("/").body(()).unwrap();
         request.extensions_mut().insert(access(&["acme"]));
@@ -2034,7 +2063,7 @@ mod tests {
 
     #[test]
     fn schedule_json_includes_target_and_status_details() {
-        let schedule = crate::control::resource_model::schedule(
+        let schedule = talon_control::control::resource_model::schedule(
             "acme",
             "nightly",
             resources_proto::ScheduleSpec {
@@ -2105,7 +2134,7 @@ mod tests {
                 auth_broker: None,
                 policy: None,
             }),
-            status: Some(crate::control::resource_model::common_status(String::new())),
+            status: Some(talon_control::control::resource_model::common_status(String::new())),
         };
         kv.set_msg(&keys::mcp_server("Acme", "talon-ops"), &server)
             .await
@@ -2151,7 +2180,9 @@ mod tests {
                     auth_broker: None,
                     policy: None,
                 }),
-                status: Some(crate::control::resource_model::common_status(String::new())),
+                status: Some(talon_control::control::resource_model::common_status(
+                    String::new(),
+                )),
             },
         )
         .await
@@ -2209,7 +2240,8 @@ mod tests {
         let broker_claims_token = sign_test_claims(&McpAuthBrokerClaims {
             iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
             sub: "talon-mcp-client".to_string(),
-            aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
+            aud: talon_control::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE
+                .to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
             namespace: "acme".to_string(),
@@ -2256,7 +2288,8 @@ mod tests {
         let unsupported_server_claims_token = sign_test_claims(&McpAuthBrokerClaims {
             iss: TEST_PLATFORM_JWT_ISSUER.to_string(),
             sub: "talon-mcp-client".to_string(),
-            aud: crate::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE.to_string(),
+            aud: talon_control::control::security::platform_jwt::MCP_AUTH_BROKER_AUDIENCE
+                .to_string(),
             iat: 1usize,
             exp: 4_102_444_800usize,
             namespace: "acme".to_string(),

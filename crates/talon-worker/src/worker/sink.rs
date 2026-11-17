@@ -9,23 +9,34 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex as AsyncMutex;
 
-use crate::control::cas::CasStore;
-use crate::control::delegation;
-use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
-use crate::control::object_store::{default_object_store, ObjectStore};
-use crate::control::resources::ResourceStore;
-use crate::control::session_queue;
-use crate::control::tool_output::{self, ToolOutputExt, ToolOutputStorageContext};
-use crate::control::{
-    keys::{self, ResourceKey},
-    KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
-};
-use crate::gateway::rpc::data_proto::{self, SessionSubmissionStatus};
-use crate::gateway::rpc::resources_proto;
-use crate::harness::executor::{AgentEvent, ExecutionSink};
-use crate::harness::llm::{ChatResponse, TokenCounter, ToolOutput};
-use crate::harness::sessions::{self, SessionSubmission};
-use crate::worker::fanout::{FanoutHub, SessionFanoutKey};
+use crate::worker::fanout::FanoutHub;
+use crate::worker::fanout::SessionFanoutKey;
+use talon_control::control::cas::CasStore;
+use talon_control::control::delegation;
+use talon_control::control::events::SessionMessagePartEvent;
+use talon_control::control::events::SessionMessagePartEventKind;
+use talon_control::control::keys;
+use talon_control::control::keys::ResourceKey;
+use talon_control::control::object_store::default_object_store;
+use talon_control::control::object_store::ObjectStore;
+use talon_control::control::resources::ResourceStore;
+use talon_control::control::session_queue;
+use talon_control::control::tool_output;
+use talon_control::control::tool_output::ToolOutputExt;
+use talon_control::control::tool_output::ToolOutputStorageContext;
+use talon_control::control::KeyValueStore;
+use talon_control::control::MessagePublisher;
+use talon_control::control::ProtoKeyValueStoreExt;
+use talon_harness::executor::AgentEvent;
+use talon_harness::executor::ExecutionSink;
+use talon_harness::llm::ChatResponse;
+use talon_harness::llm::TokenCounter;
+use talon_harness::llm::ToolOutput;
+use talon_harness::sessions;
+use talon_harness::sessions::SessionSubmission;
+use talon_protocol::data_proto;
+use talon_protocol::data_proto::SessionSubmissionStatus;
+use talon_protocol::resources_proto;
 use tracing::Instrument;
 
 fn chat_usage_payload_json(usage: &TokenCounter) -> String {
@@ -347,7 +358,7 @@ pub struct PubSubSessionSink {
 
     // Durable work identity. Journal writes are fenced by `attempt_id` so a
     // worker whose lease expired cannot keep appending state after reclaim.
-    pub(crate) claim: sessions::SubmissionLease,
+    pub claim: sessions::SubmissionLease,
     pub submission_id: String,
     pub attempt_id: String,
 
@@ -560,8 +571,8 @@ impl PubSubSessionSink {
         self.reply_msg_key.lock().unwrap().clone()
     }
 
-    pub(crate) fn rotate_reply_message(&self, message_id: String) {
-        let key = crate::control::keys::session_message(
+    pub fn rotate_reply_message(&self, message_id: String) {
+        let key = talon_control::control::keys::session_message(
             &self.ns,
             &self.agent_id,
             &self.session_id,
@@ -575,14 +586,14 @@ impl PubSubSessionSink {
         *self.next_part_index.lock().unwrap() = 0;
     }
 
-    pub(crate) fn advance_next_part_id_past(&self, part_id: &str) {
+    pub fn advance_next_part_id_past(&self, part_id: &str) {
         if let Ok(index) = part_id.parse::<u64>() {
             let mut next = self.next_part_index.lock().unwrap();
             *next = (*next).max(index);
         }
     }
 
-    pub(crate) fn seed_latest_journal_entry_id(&self, entry_id: Option<&str>) {
+    pub fn seed_latest_journal_entry_id(&self, entry_id: Option<&str>) {
         *self.latest_journal_entry_id.lock().unwrap() = entry_id.map(str::to_string);
     }
 
@@ -644,7 +655,7 @@ impl PubSubSessionSink {
         self.durable_parts.lock().unwrap().push(part);
     }
 
-    pub(crate) fn seed_recovered_text_part(&self, part_id: &str, content: &str) {
+    pub fn seed_recovered_text_part(&self, part_id: &str, content: &str) {
         if content.is_empty() {
             return;
         }
@@ -657,7 +668,7 @@ impl PubSubSessionSink {
         );
     }
 
-    pub(crate) fn seed_recovered_final_text_part(&self, content: &str) {
+    pub fn seed_recovered_final_text_part(&self, content: &str) {
         if content.is_empty() {
             return;
         }
@@ -669,7 +680,7 @@ impl PubSubSessionSink {
         );
     }
 
-    pub(crate) fn seed_recovered_encrypted_reasoning_part(
+    pub fn seed_recovered_encrypted_reasoning_part(
         &self,
         part_id: &str,
         object: data_proto::ObjectRef,
@@ -684,14 +695,11 @@ impl PubSubSessionSink {
         );
     }
 
-    pub(crate) fn seed_recovered_final_encrypted_reasoning_part(
-        &self,
-        object: data_proto::ObjectRef,
-    ) {
+    pub fn seed_recovered_final_encrypted_reasoning_part(&self, object: data_proto::ObjectRef) {
         self.seed_recovered_encrypted_reasoning_part(&self.next_part_id(), object);
     }
 
-    pub(crate) fn seed_recovered_tool_call_part(
+    pub fn seed_recovered_tool_call_part(
         &self,
         part_id: &str,
         id: &str,
@@ -711,7 +719,7 @@ impl PubSubSessionSink {
         );
     }
 
-    pub(crate) async fn seed_recovered_tool_result_part(
+    pub async fn seed_recovered_tool_result_part(
         &self,
         part_id: &str,
         id: &str,
@@ -1150,8 +1158,11 @@ impl PubSubSessionSink {
         submission_id: &str,
         attempt_id: &str,
     ) -> bool {
-        let key = crate::control::keys::session_submission(ns, agent, session_id, submission_id);
-        match crate::control::ProtoKeyValueStoreExt::get_msg::<SessionSubmission>(kv, &key).await {
+        let key =
+            talon_control::control::keys::session_submission(ns, agent, session_id, submission_id);
+        match talon_control::control::ProtoKeyValueStoreExt::get_msg::<SessionSubmission>(kv, &key)
+            .await
+        {
             Ok(Some(submission)) => {
                 submission.attempt_id == attempt_id
                     && !sessions::submission_is_terminal(&submission)
@@ -1196,7 +1207,7 @@ impl PubSubSessionSink {
                 {
                     return;
                 }
-                if let Err(e) = crate::control::ProtoKeyValueStoreExt::set_msg(
+                if let Err(e) = talon_control::control::ProtoKeyValueStoreExt::set_msg(
                     self.kv.as_ref(),
                     &self.current_reply_msg_key(),
                     &msg,
@@ -1221,7 +1232,7 @@ impl PubSubSessionSink {
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            crate::control::ProtoKeyValueStoreExt::set_msg(
+            talon_control::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
                 &self.current_reply_msg_key(),
                 &msg,
@@ -1260,17 +1271,18 @@ impl PubSubSessionSink {
         };
         let key = self.current_reply_msg_key();
         let _guard = self.persist_lock.lock().await;
-        crate::control::ProtoKeyValueStoreExt::set_msg(self.kv.as_ref(), &key, &message).await?;
+        talon_control::control::ProtoKeyValueStoreExt::set_msg(self.kv.as_ref(), &key, &message)
+            .await?;
         drop(_guard);
         self.publish_reply_index_event().await;
         Ok(message_id)
     }
 
     async fn publish_reply_index_event(&self) {
-        if let Err(error) = crate::control::search::publish_index_event(
+        if let Err(error) = talon_control::control::search::publish_index_event(
             self.pubsub.as_ref(),
-            crate::control::events::IndexEvent {
-                operation: crate::control::events::IndexOperation::Upsert as i32,
+            talon_control::control::events::IndexEvent {
+                operation: talon_control::control::events::IndexOperation::Upsert as i32,
                 key: self.current_reply_msg_key().canonical(),
                 ..Default::default()
             },
@@ -1531,7 +1543,7 @@ impl ExecutionSink for PubSubSessionSink {
         Ok(())
     }
 
-    async fn take_steering_messages(&self) -> Result<Vec<crate::harness::executor::LoopMessage>> {
+    async fn take_steering_messages(&self) -> Result<Vec<talon_harness::executor::LoopMessage>> {
         const MAX_STEER_DRAINS: u8 = 4;
         let drain_attempt = {
             let mut drains = self.steer_drains.lock().unwrap();
@@ -1626,7 +1638,7 @@ impl ExecutionSink for PubSubSessionSink {
         // The steer messages were assigned their UUID7 ids while preparing the
         // batch. Allocate the continuation only after them so session-key
         // ordering matches conversational ordering.
-        let next_assistant_message_id = crate::control::uuid::session_message_id();
+        let next_assistant_message_id = talon_control::control::uuid::session_message_id();
         sessions::append_steer_input(
             self.kv.as_ref(),
             &self.ns,
@@ -1652,9 +1664,11 @@ impl ExecutionSink for PubSubSessionSink {
         Ok(batch
             .into_iter()
             .map(|message| {
-                crate::harness::executor::LoopMessage::text(
+                talon_harness::executor::LoopMessage::text(
                     "user",
-                    crate::control::scheduling::session_message_text_projection(&message.message),
+                    talon_control::control::scheduling::session_message_text_projection(
+                        &message.message,
+                    ),
                 )
             })
             .collect())
@@ -1831,7 +1845,7 @@ impl ExecutionSink for PubSubSessionSink {
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            crate::control::ProtoKeyValueStoreExt::set_msg(
+            talon_control::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
                 &self.current_reply_msg_key(),
                 &msg,
@@ -1858,7 +1872,7 @@ impl ExecutionSink for PubSubSessionSink {
                     };
                     let commit_result = async {
                         let _guard = self.persist_lock.lock().await;
-                        crate::control::ProtoKeyValueStoreExt::set_msg(
+                        talon_control::control::ProtoKeyValueStoreExt::set_msg(
                             self.kv.as_ref(),
                             &self.current_reply_msg_key(),
                             &committed_msg,
@@ -1912,7 +1926,7 @@ impl ExecutionSink for PubSubSessionSink {
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            crate::control::ProtoKeyValueStoreExt::set_msg(
+            talon_control::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
                 &self.current_reply_msg_key(),
                 &msg,
@@ -1959,24 +1973,28 @@ mod tests {
         extract_inline_artifact_tags, token_publish_interval, PubSubSessionSink,
         StreamingPartBuffer,
     };
-    use crate::control::events::{
-        IndexEvent, SessionMessagePartEvent, SessionMessagePartEventKind,
-    };
-    use crate::control::keys::{self, ResourceKey, ResourceList};
-    use crate::control::object_store::{InMemoryObjectStore, ObjectStore};
-    use crate::control::tool_output::ToolOutputExt;
-    use crate::control::{KeyValueStore, MessagePublisher};
-    use crate::gateway::rpc::data_proto;
-    use crate::harness::executor::ExecutionSink;
-    use crate::harness::llm::TokenCounter;
-    use crate::harness::llm::ToolOutput;
-    use crate::harness::sessions;
     use async_trait::async_trait;
     use futures::StreamExt;
     use prost::Message;
     use serde_json::json;
     use std::sync::Arc;
     use std::time::{Duration, Instant};
+    use talon_control::control::events::IndexEvent;
+    use talon_control::control::events::SessionMessagePartEvent;
+    use talon_control::control::events::SessionMessagePartEventKind;
+    use talon_control::control::keys;
+    use talon_control::control::keys::ResourceKey;
+    use talon_control::control::keys::ResourceList;
+    use talon_control::control::object_store::InMemoryObjectStore;
+    use talon_control::control::object_store::ObjectStore;
+    use talon_control::control::tool_output::ToolOutputExt;
+    use talon_control::control::KeyValueStore;
+    use talon_control::control::MessagePublisher;
+    use talon_harness::executor::ExecutionSink;
+    use talon_harness::llm::TokenCounter;
+    use talon_harness::llm::ToolOutput;
+    use talon_harness::sessions;
+    use talon_protocol::data_proto;
     use tokio::sync::Mutex;
 
     #[derive(Default)]
@@ -2033,7 +2051,7 @@ mod tests {
         async fn list_keys(
             &self,
             _list: &ResourceList,
-            _options: Option<crate::control::ListOptions<'_>>,
+            _options: Option<talon_control::control::ListOptions<'_>>,
         ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(vec![])
         }
@@ -2078,7 +2096,7 @@ mod tests {
         Box<
             dyn futures::Stream<
                     Item = std::result::Result<
-                        crate::gateway::rpc::worker_proto::StreamSessionPartsResponse,
+                        talon_protocol::worker_proto::StreamSessionPartsResponse,
                         tonic::Status,
                     >,
                 > + Send,
@@ -2125,7 +2143,7 @@ mod tests {
     #[async_trait]
     impl MessagePublisher for MockPubSub {
         async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
-            if topic == crate::control::topics::INDEX_EVENTS_TOPIC {
+            if topic == talon_control::control::topics::INDEX_EVENTS_TOPIC {
                 return Ok(());
             }
             let event = SessionMessagePartEvent::decode(message)?;
@@ -2255,7 +2273,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        crate::control::ProtoKeyValueStoreExt::set_msg(
+        talon_control::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -2392,7 +2410,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        crate::control::ProtoKeyValueStoreExt::set_msg(
+        talon_control::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -2419,7 +2437,7 @@ mod tests {
         let index_event = published
             .iter()
             .find_map(|(topic, payload)| {
-                (topic == crate::control::topics::INDEX_EVENTS_TOPIC)
+                (topic == talon_control::control::topics::INDEX_EVENTS_TOPIC)
                     .then(|| IndexEvent::decode(payload.as_slice()).ok())
                     .flatten()
             })
@@ -2792,7 +2810,7 @@ mod tests {
         let object = persisted.object.as_ref().unwrap();
         let stored = sink.objects.get(&object.key).await.unwrap().unwrap();
         let hydrated = String::from_utf8(
-            crate::control::cas::decode_stored_object_bytes(&stored, &object.key).unwrap(),
+            talon_control::control::cas::decode_stored_object_bytes(&stored, &object.key).unwrap(),
         )
         .unwrap();
         assert_eq!(hydrated, raw_output);
@@ -2806,7 +2824,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        crate::control::ProtoKeyValueStoreExt::set_msg(
+        talon_control::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -2882,7 +2900,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        crate::control::ProtoKeyValueStoreExt::set_msg(
+        talon_control::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -3019,8 +3037,9 @@ mod tests {
 
     #[tokio::test]
     async fn journal_boundaries_record_stable_llm_responses_and_tool_results() {
-        use crate::control::ProtoKeyValueStoreExt;
-        use crate::harness::llm::{ChatResponse, ToolCall};
+        use talon_control::control::ProtoKeyValueStoreExt;
+        use talon_harness::llm::ChatResponse;
+        use talon_harness::llm::ToolCall;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3135,7 +3154,7 @@ mod tests {
             result
                 .tool_output
                 .as_ref()
-                .and_then(crate::control::tool_output::plain_text)
+                .and_then(talon_control::control::tool_output::plain_text)
                 .as_deref(),
             Some("result-a")
         );
@@ -3162,8 +3181,9 @@ mod tests {
 
     #[tokio::test]
     async fn steering_before_first_response_does_not_persist_empty_assistant() {
-        use crate::control::session_queue::{self, STEER_QUEUE};
-        use crate::control::ProtoKeyValueStoreExt;
+        use talon_control::control::session_queue;
+        use talon_control::control::session_queue::STEER_QUEUE;
+        use talon_control::control::ProtoKeyValueStoreExt;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3180,7 +3200,7 @@ mod tests {
         )
         .await
         .unwrap();
-        let initial_reply_id = crate::control::uuid::session_message_id();
+        let initial_reply_id = talon_control::control::uuid::session_message_id();
         let initial_reply_key =
             keys::session_message("acme", "infra", "session-1", &initial_reply_id);
         for message in ["first follow-up", "second follow-up"] {
@@ -3245,7 +3265,7 @@ mod tests {
 
     #[tokio::test]
     async fn empty_steering_queue_does_not_persist_projection_or_journal() {
-        use crate::control::ProtoKeyValueStoreExt;
+        use talon_control::control::ProtoKeyValueStoreExt;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3283,8 +3303,9 @@ mod tests {
 
     #[tokio::test]
     async fn recovered_tool_only_segment_is_finalized_before_steering() {
-        use crate::control::session_queue::{self, STEER_QUEUE};
-        use crate::control::ProtoKeyValueStoreExt;
+        use talon_control::control::session_queue;
+        use talon_control::control::session_queue::STEER_QUEUE;
+        use talon_control::control::ProtoKeyValueStoreExt;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3371,8 +3392,9 @@ mod tests {
 
     #[tokio::test]
     async fn recovery_steer_preserves_an_already_finalized_assistant_segment() {
-        use crate::control::session_queue::{self, STEER_QUEUE};
-        use crate::control::ProtoKeyValueStoreExt;
+        use talon_control::control::session_queue;
+        use talon_control::control::session_queue::STEER_QUEUE;
+        use talon_control::control::ProtoKeyValueStoreExt;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3569,8 +3591,8 @@ mod tests {
 
     #[tokio::test]
     async fn latest_llm_response_replaces_session_context_tokens() {
-        use crate::control::ProtoKeyValueStoreExt;
-        use crate::harness::llm::ChatResponse;
+        use talon_control::control::ProtoKeyValueStoreExt;
+        use talon_harness::llm::ChatResponse;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3668,8 +3690,9 @@ mod tests {
 
     #[tokio::test]
     async fn tool_call_response_does_not_persist_provider_continuation_id() {
-        use crate::control::ProtoKeyValueStoreExt;
-        use crate::harness::llm::{ChatResponse, ToolCall};
+        use talon_control::control::ProtoKeyValueStoreExt;
+        use talon_harness::llm::ChatResponse;
+        use talon_harness::llm::ToolCall;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3777,7 +3800,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        crate::control::ProtoKeyValueStoreExt::set_msg(
+        talon_control::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -3819,7 +3842,7 @@ mod tests {
         let persisted_messages = entries
             .iter()
             .filter_map(|(_, value)| {
-                crate::gateway::rpc::data_proto::SessionMessage::decode(value.as_slice()).ok()
+                talon_protocol::data_proto::SessionMessage::decode(value.as_slice()).ok()
             })
             .collect::<Vec<_>>();
         assert!(persisted_messages.iter().any(|msg| msg.id == "reply-1"));
@@ -3895,7 +3918,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        crate::control::ProtoKeyValueStoreExt::set_msg(
+        talon_control::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -3989,7 +4012,7 @@ mod tests {
 
     #[tokio::test]
     async fn llm_response_projects_encrypted_reasoning_as_object_only_part() {
-        use crate::harness::llm::ChatResponse;
+        use talon_harness::llm::ChatResponse;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
@@ -3997,7 +4020,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        crate::control::ProtoKeyValueStoreExt::set_msg(
+        talon_control::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("conic", "infra", "session-1", "submission-1"),
             &submission,

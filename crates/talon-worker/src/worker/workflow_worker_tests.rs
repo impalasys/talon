@@ -2,23 +2,30 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::workflows::*;
-use crate::control::config::{proto, Config, ProviderConfig, Secret};
-use crate::control::{
-    events::{MessageDirection, SessionDispatchEvent, WorkflowDispatchEvent},
-    scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend},
-    ProtoKeyValueStoreExt,
-};
-use crate::gateway::rpc::manifests;
-use crate::harness::knowledge::{KnowledgeBook, KvKnowledgeBook};
-use crate::test_support::{MockKvStore, RecordingPubSub};
-use crate::worker::{
-    mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHandler,
-};
+use crate::test_support::MockKvStore;
+use crate::test_support::RecordingPubSub;
+use crate::worker::mcp_registry::McpRegistry;
+use crate::worker::scheduler_auth::SchedulerRequestAuthenticator;
+use crate::worker::WorkerEventHandler;
 use async_trait::async_trait;
 use axum::{routing::post, Json, Router};
 use prost::Message;
 use serde_json::json;
 use std::sync::Arc;
+use talon_control::control::config::proto;
+use talon_control::control::config::Config;
+use talon_control::control::config::ProviderConfig;
+use talon_control::control::config::Secret;
+use talon_control::control::events::MessageDirection;
+use talon_control::control::events::SessionDispatchEvent;
+use talon_control::control::events::WorkflowDispatchEvent;
+use talon_control::control::scheduler::ScheduleWakeupRequest;
+use talon_control::control::scheduler::ScheduledWakeup;
+use talon_control::control::scheduler::SchedulerBackend;
+use talon_control::control::ProtoKeyValueStoreExt;
+use talon_harness::knowledge::KnowledgeBook;
+use talon_harness::knowledge::KvKnowledgeBook;
+use talon_protocol::manifests;
 use tokio::net::TcpListener;
 
 use talon_test_support::workflows::*;
@@ -127,7 +134,7 @@ async fn workflow_filter_agent_gates_lorem_generator_reply() {
     let pubsub = Arc::new(RecordingPubSub::default());
     let handler =
         workflow_handler_with_base_url(kv.clone(), pubsub.clone(), format!("http://{addr}"));
-    let workflow = crate::control::manifest::parse_workflow(
+    let workflow = talon_control::control::manifest::parse_workflow(
         r#"
 apiVersion: talon.impalasys.com/v1
 kind: Workflow
@@ -602,7 +609,7 @@ async fn complex_workflow_yaml_runs_end_to_end_with_mock_llm_agent_and_resume() 
     let handler =
         workflow_handler_with_base_url(kv.clone(), pubsub.clone(), format!("http://{addr}"));
 
-    let workflow = crate::control::manifest::parse_workflow(
+    let workflow = talon_control::control::manifest::parse_workflow(
             r#"
 apiVersion: talon.impalasys.com/v1
 kind: Workflow
@@ -979,9 +986,12 @@ async fn failed_child_agent_session_fails_step_without_using_stale_output() {
     assert_eq!(failed.status, STATUS_FAILED);
 }
 
-use crate::control::resource_model::TypedResource;
-use crate::control::{keys, ControlPlane, KeyValueStore};
-use crate::gateway::rpc::{data_proto, resources_proto};
 use chrono::Utc;
 use serde_json::Value;
 use std::collections::HashMap;
+use talon_control::control::keys;
+use talon_control::control::resource_model::TypedResource;
+use talon_control::control::ControlPlane;
+use talon_control::control::KeyValueStore;
+use talon_protocol::data_proto;
+use talon_protocol::resources_proto;
