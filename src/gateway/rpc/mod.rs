@@ -18,71 +18,10 @@ pub mod search;
 pub mod sessions;
 pub mod workflows;
 
-pub mod generated {
-    pub mod config {
-        tonic::include_proto!("talon.config");
-    }
-    pub mod data {
-        tonic::include_proto!("talon.data");
-    }
-    pub mod harness {
-        tonic::include_proto!("talon.harness");
-    }
-    pub mod external {
-        tonic::include_proto!("talon.external");
-    }
-    pub mod events {
-        pub use crate::control::events::*;
-    }
-    pub mod resources {
-        tonic::include_proto!("talon.resources");
-    }
-    pub mod proto {
-        tonic::include_proto!("talon.v1");
-    }
-    pub mod worker_proto {
-        tonic::include_proto!("talon.worker.v1");
-    }
-}
-
-pub mod proto {
-    pub use super::generated::proto::*;
-}
-
-pub mod data {
-    pub use super::generated::data::*;
-}
-
-pub mod data_proto {
-    pub use super::generated::data::*;
-}
-
-pub mod harness_proto {
-    pub use super::generated::harness::*;
-}
-
-pub mod external_proto {
-    pub use super::generated::external::*;
-}
-
-pub mod resources_proto {
-    pub use super::generated::resources::*;
-}
-
-pub mod worker_proto {
-    pub use super::generated::worker_proto::*;
-}
-
-pub mod manifests {
-    pub use super::resources_proto::*;
-    pub type ObjectMeta = super::resources_proto::ResourceMeta;
-}
-
-pub mod protobuf_value {
-    pub use prost_types::{value, ListValue, Value};
-}
-
-pub use crate::control::events;
+pub use talon_protocol::{
+    data, data_proto, events, external_proto, generated, harness_proto, manifests, proto,
+    protobuf_value, resources_proto, worker_proto,
+};
 
 #[macro_export]
 macro_rules! require_auth {

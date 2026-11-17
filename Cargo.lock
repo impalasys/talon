@@ -6874,6 +6874,7 @@ dependencies = [
  "sse-stream",
  "talon-client",
  "talon-identifiers",
+ "talon-protocol",
  "tempfile",
  "tikv-jemalloc-ctl",
  "tikv-jemallocator",
@@ -6938,6 +6939,18 @@ dependencies = [
 [[package]]
 name = "talon-install-hooks"
 version = "0.0.0"
+
+[[package]]
+name = "talon-protocol"
+version = "0.1.0"
+dependencies = [
+ "prost 0.13.5",
+ "prost-build",
+ "prost-types 0.13.5",
+ "serde",
+ "tonic 0.12.3",
+ "tonic-build",
+]
 
 [[package]]
 name = "tap"
