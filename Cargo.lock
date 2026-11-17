@@ -6880,12 +6880,14 @@ dependencies = [
  "talon-contracts",
  "talon-control",
  "talon-fanout",
+ "talon-gateway",
  "talon-harness",
  "talon-identifiers",
  "talon-monty",
  "talon-protocol",
  "talon-sandbox",
  "talon-security",
+ "talon-session-control",
  "talon-storage-cloud-tasks",
  "talon-storage-common",
  "talon-storage-dynamodb",
@@ -7123,6 +7125,50 @@ dependencies = [
 ]
 
 [[package]]
+name = "talon-gateway"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-stream",
+ "async-trait",
+ "axum 0.7.9",
+ "base64 0.21.7",
+ "chrono",
+ "futures",
+ "hyper-util",
+ "jsonwebtoken 11.0.0",
+ "prost 0.13.5",
+ "rand 0.10.1",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "talon-auth",
+ "talon-config",
+ "talon-connectors",
+ "talon-contracts",
+ "talon-control",
+ "talon-fanout",
+ "talon-identifiers",
+ "talon-protocol",
+ "talon-security",
+ "talon-session-control",
+ "talon-test-support",
+ "tempfile",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "tonic 0.12.3",
+ "tonic-web",
+ "tower 0.5.3",
+ "tower-http 0.5.2",
+ "tracing",
+ "url",
+ "urlencoding",
+ "uuid",
+]
+
+[[package]]
 name = "talon-harness"
 version = "0.1.0"
 dependencies = [
@@ -7243,6 +7289,17 @@ dependencies = [
  "talon-contracts",
  "talon-test-support",
  "url",
+]
+
+[[package]]
+name = "talon-session-control"
+version = "0.1.0"
+dependencies = [
+ "talon-protocol",
+ "talon-test-support",
+ "tokio",
+ "tokio-util",
+ "tonic 0.12.3",
 ]
 
 [[package]]

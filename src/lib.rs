@@ -3,7 +3,8 @@
 
 pub mod cli;
 pub mod control;
-pub mod gateway;
+pub use talon_gateway::gateway;
+pub use talon_gateway::require_auth;
 pub use talon_harness::harness;
 #[doc(hidden)]
 pub use talon_monty as monty_subprocess;

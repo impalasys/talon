@@ -17,7 +17,7 @@ pub mod mcp_registry;
 pub use talon_control::registration;
 pub mod runtime;
 pub mod scheduler_auth;
-pub mod session_control;
+pub use talon_session_control as session_control;
 pub mod sessions;
 pub mod sink;
 pub mod talon_ops;
