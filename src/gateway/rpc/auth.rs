@@ -1133,6 +1133,7 @@ mod tests {
     use super::*;
     use crate::control::{ControlPlane, KeyValueStore};
     use crate::gateway::auth::check_auth;
+    use crate::test_support::TEST_RSA_PRIVATE_KEY;
     use crate::test_support::{
         EmptyPubSub, MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER,
     };
@@ -1188,7 +1189,7 @@ mod tests {
         claims.iss = Some(TEST_PLATFORM_JWT_ISSUER.to_string());
         claims.aud = platform_jwt::TALON_GATEWAY_AUDIENCE.to_string();
         claims.iat = Some(unix_seconds().unwrap() as usize);
-        platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+        platform_jwt::PlatformJwtKey::from_pem(TEST_RSA_PRIVATE_KEY)
             .unwrap()
             .sign(&claims)
             .unwrap()
@@ -1215,8 +1216,7 @@ mod tests {
     }
 
     fn verify_platform_access_token(token: &str) -> Claims {
-        let key =
-            platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY).unwrap();
+        let key = platform_jwt::PlatformJwtKey::from_pem(TEST_RSA_PRIVATE_KEY).unwrap();
         let claims: Claims = key
             .verify(
                 token,

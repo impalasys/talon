@@ -403,6 +403,7 @@ mod tests {
     use crate::control::{ControlPlane, MessagePublisher};
     use crate::gateway::auth::{AuthConfig, Claims};
     use crate::gateway::server::Gateway;
+    use crate::test_support::TEST_RSA_PRIVATE_KEY;
     use crate::test_support::{MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER};
     use std::collections::HashMap;
     use std::sync::Arc;
@@ -451,7 +452,7 @@ mod tests {
             origins: Vec::new(),
             grants: Vec::new(),
         };
-        platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+        platform_jwt::PlatformJwtKey::from_pem(TEST_RSA_PRIVATE_KEY)
             .unwrap()
             .sign(&claims)
             .unwrap()

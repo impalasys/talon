@@ -664,6 +664,7 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
 mod tests {
     use super::*;
     use crate::gateway::server::Gateway;
+    use crate::test_support::TEST_RSA_PRIVATE_KEY;
     use crate::test_support::{
         EmptyPubSub, MockKvStore, PlatformJwtEnvGuard, TEST_PLATFORM_JWT_ISSUER,
     };
@@ -750,7 +751,7 @@ mod tests {
     }
 
     fn sign_platform_claims(claims: &Claims) -> String {
-        platform_jwt::PlatformJwtKey::from_pem(platform_jwt::TEST_RSA_PRIVATE_KEY)
+        platform_jwt::PlatformJwtKey::from_pem(TEST_RSA_PRIVATE_KEY)
             .unwrap()
             .sign(claims)
             .unwrap()

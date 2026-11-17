@@ -11,8 +11,6 @@ use jsonwebtoken::{
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::OnceLock;
 
-pub const TALON_JWT_PRIVATE_KEY_PEM_ENV: &str = "TALON_JWT_PRIVATE_KEY_PEM";
-pub const TALON_JWT_ISSUER_ENV: &str = "TALON_JWT_ISSUER";
 pub const DEFAULT_JWT_ISSUER: &str = "https://talon.impala.systems";
 pub const TALON_GATEWAY_AUDIENCE: &str = "talon.impala.systems";
 pub const MCP_AUTH_BROKER_AUDIENCE: &str = "mcps.talon.impala.systems";
@@ -20,7 +18,10 @@ pub const TALON_OPS_AUDIENCE: &str = "talon-ops";
 const MIN_RSA_MODULUS_BITS: usize = 2048;
 
 #[cfg(test)]
-pub(crate) const TEST_RSA_PRIVATE_KEY: &str = include_str!("test_rsa_private_key.pem");
+pub(crate) const TEST_RSA_PRIVATE_KEY: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../src/control/security/test_rsa_private_key.pem"
+));
 
 #[derive(Debug, Clone)]
 pub struct PlatformJwtKey {
@@ -35,7 +36,7 @@ impl PlatformJwtKey {
     }
 
     pub fn from_pem(pem: &str) -> Result<Self> {
-        crate::control::security::install_jwt_crypto_provider();
+        crate::security::install_jwt_crypto_provider();
         let normalized = normalize_pem(pem);
         let encoding_key = EncodingKey::from_rsa_pem(normalized.as_bytes())
             .map_err(|err| anyhow!("failed to parse RSA private key PEM: {err}"))?;
@@ -324,3 +325,5 @@ GstIYNA4dYolNw==
         assert!(err.to_string().contains("must use https"));
     }
 }
+
+pub use talon_contracts::auth::*;
