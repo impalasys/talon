@@ -6898,6 +6898,7 @@ dependencies = [
  "talon-storage-sqlite",
  "talon-storage-sqs",
  "talon-test-support",
+ "talon-workflows",
  "tempfile",
  "tikv-jemalloc-ctl",
  "tikv-jemallocator",
@@ -7447,10 +7448,39 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "chrono",
  "futures",
+ "prost 0.13.5",
+ "serde_json",
  "talon-contracts",
  "talon-identifiers",
+ "talon-protocol",
  "tokio",
+]
+
+[[package]]
+name = "talon-workflows"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum 0.7.9",
+ "chrono",
+ "futures",
+ "prost 0.13.5",
+ "serde",
+ "serde_json",
+ "talon-config",
+ "talon-connectors",
+ "talon-contracts",
+ "talon-control",
+ "talon-fanout",
+ "talon-harness",
+ "talon-identifiers",
+ "talon-protocol",
+ "talon-test-support",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
