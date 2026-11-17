@@ -22,7 +22,7 @@ pub fn shell_escape(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\\''"))
 }
 
-pub(super) fn provider_for_prefix(provider: &str) -> &str {
+pub fn provider_for_prefix(provider: &str) -> &str {
     match provider {
         "" | "mock" => "mock",
         "local-docker" => "docker",
@@ -37,7 +37,7 @@ pub fn split_backend_id(backend_id: &str) -> (&str, &str) {
     }
 }
 
-pub(super) fn docker_parent_dir(path: &str) -> String {
+pub fn docker_parent_dir(path: &str) -> String {
     match path.rfind('/') {
         Some(0) => "/".to_string(),
         Some(index) => path[..index].to_string(),
@@ -45,7 +45,7 @@ pub(super) fn docker_parent_dir(path: &str) -> String {
     }
 }
 
-pub(super) fn json_string_at(value: &Value, pointer: &str) -> Option<String> {
+pub fn json_string_at(value: &Value, pointer: &str) -> Option<String> {
     value
         .pointer(pointer)
         .and_then(|value| value.as_str())
@@ -54,7 +54,7 @@ pub(super) fn json_string_at(value: &Value, pointer: &str) -> Option<String> {
         .map(str::to_string)
 }
 
-pub(super) fn json_string_array_at(value: &Value, pointer: &str) -> Vec<String> {
+pub fn json_string_array_at(value: &Value, pointer: &str) -> Vec<String> {
     value
         .pointer(pointer)
         .and_then(|value| serde_json::from_value(value.clone()).ok())
@@ -68,15 +68,15 @@ pub(super) fn json_string_array_at(value: &Value, pointer: &str) -> Vec<String> 
         .unwrap_or_default()
 }
 
-pub(super) fn json_bool_at(value: &Value, pointer: &str) -> Option<bool> {
+pub fn json_bool_at(value: &Value, pointer: &str) -> Option<bool> {
     value.pointer(pointer).and_then(|value| value.as_bool())
 }
 
-pub(super) fn json_u64_at(value: &Value, pointer: &str) -> Option<u64> {
+pub fn json_u64_at(value: &Value, pointer: &str) -> Option<u64> {
     value.pointer(pointer).and_then(|value| value.as_u64())
 }
 
-pub(super) fn connect_json_values(bytes: &[u8]) -> Vec<Value> {
+pub fn connect_json_values(bytes: &[u8]) -> Vec<Value> {
     let mut values = Vec::new();
     let mut cursor = 0;
     while cursor + 5 <= bytes.len() {

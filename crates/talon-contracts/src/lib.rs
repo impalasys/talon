@@ -222,3 +222,5 @@ pub mod uuid;
 pub use talon_identifiers::{keys, ns};
 pub mod pubsub;
 pub mod topics;
+
+pub mod knowledge;
