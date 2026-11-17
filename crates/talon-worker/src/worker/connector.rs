@@ -8,24 +8,24 @@ use std::panic::{resume_unwind, AssertUnwindSafe};
 use std::time::Duration;
 
 use super::WorkerEventHandler;
-use crate::control::ProtoKeyValueStoreExt;
-use crate::gateway::rpc::connectors as connector_rpc;
-use crate::gateway::rpc::data_proto;
+use talon_connectors::rpc as connector_rpc;
+use talon_control::control::ProtoKeyValueStoreExt;
+use talon_protocol::data_proto;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-pub(super) const CONNECTOR_TYPING_KEEPALIVE_INTERVAL: Duration = Duration::from_secs(20);
+pub const CONNECTOR_TYPING_KEEPALIVE_INTERVAL: Duration = Duration::from_secs(20);
 
 const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
 const LABEL_CONNECTOR_REGISTRATION: &str = "talon.impalasys.com/connector-registration";
 const LABEL_CHANNEL_TRIGGER: &str = "talon.impalasys.com/channel-trigger";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(super) struct ConnectorTypingActivity {
-    pub(super) activity_id: String,
-    pub(super) phase: &'static str,
-    pub(super) status_text: &'static str,
+pub struct ConnectorTypingActivity {
+    pub activity_id: String,
+    pub phase: &'static str,
+    pub status_text: &'static str,
 }
 
 impl ConnectorTypingActivity {
@@ -54,7 +54,7 @@ impl ConnectorTypingActivity {
     }
 }
 
-pub(super) enum ConnectorTypingDelivery {
+pub enum ConnectorTypingDelivery {
     Ineligible,
     Eligible(Result<()>),
 }
@@ -66,13 +66,13 @@ enum ConnectorTypingActivityOutcome {
 }
 
 #[derive(Clone)]
-pub(super) struct ConnectorTypingLogContext {
-    pub(super) agent: String,
-    pub(super) session_id: String,
-    pub(super) submission_id: String,
+pub struct ConnectorTypingLogContext {
+    pub agent: String,
+    pub session_id: String,
+    pub submission_id: String,
 }
 
-pub(super) struct ConnectorTypingKeepalive {
+pub struct ConnectorTypingKeepalive {
     context: ConnectorTypingLogContext,
     heartbeat_cancellation: CancellationToken,
     heartbeat_task: Option<JoinHandle<()>>,
@@ -256,7 +256,7 @@ impl ConnectorTypingKeepalive {
         }
     }
 
-    pub(super) async fn stop_after_release(mut self) {
+    pub async fn stop_after_release(mut self) {
         self.cancel_and_join_heartbeat().await;
 
         let Some(stop_signal) = self.stop_signal.take() else {
@@ -289,7 +289,7 @@ impl Drop for ConnectorTypingKeepalive {
     }
 }
 
-pub(super) async fn with_connector_typing_keepalive<S, SFut, F, T>(
+pub async fn with_connector_typing_keepalive<S, SFut, F, T>(
     context: ConnectorTypingLogContext,
     interval: Duration,
     sender: S,
@@ -318,7 +318,7 @@ where
 }
 
 impl WorkerEventHandler {
-    pub(super) async fn maybe_send_connector_session_activity(
+    pub async fn maybe_send_connector_session_activity(
         &self,
         ns: &str,
         agent: &str,
@@ -330,7 +330,9 @@ impl WorkerEventHandler {
         let session = self
             .cp
             .kv
-            .get_msg::<data_proto::Session>(&crate::control::keys::session(ns, agent, session_id))
+            .get_msg::<data_proto::Session>(&talon_control::control::keys::session(
+                ns, agent, session_id,
+            ))
             .await?
             .ok_or_else(|| anyhow!("session not found"))?;
         if !session.labels.contains_key(LABEL_CONNECTOR_REGISTRATION) {
@@ -358,7 +360,7 @@ impl WorkerEventHandler {
         ))
     }
 
-    pub(super) async fn maybe_deliver_connector_session_reply(
+    pub async fn maybe_deliver_connector_session_reply(
         &self,
         ns: &str,
         agent: &str,
