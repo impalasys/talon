@@ -11,13 +11,17 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 use crate::control::events;
+use crate::control::keys;
+use crate::control::keys::ResourceKey;
 use crate::control::resource_model::TypedResource;
-use crate::control::{
-    keys::{self, ResourceKey},
-    scheduler::{ScheduleWakeupRequest, SchedulerBackend},
-    ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
-};
-use crate::gateway::rpc::{data_proto, resources_proto};
+use crate::control::scheduler::ScheduleWakeupRequest;
+use crate::control::scheduler::SchedulerBackend;
+use crate::control::ControlPlane;
+use crate::control::KeyValueStore;
+use crate::control::MessagePublisher;
+use crate::control::ProtoKeyValueStoreExt;
+use talon_protocol::data_proto;
+use talon_protocol::resources_proto;
 
 pub const MIN_RECURRING_INTERVAL_SECONDS: u32 = 300;
 const DEFAULT_SESSION_PROCESSING_TIMEOUT_SECONDS: i64 = 10;
@@ -81,7 +85,7 @@ pub struct ScheduleWakeupPayload {
 #[serde(tag = "kind", content = "payload", rename_all = "snake_case")]
 pub enum SchedulerFirePayload {
     Schedule(ScheduleWakeupPayload),
-    Workflow(crate::worker::workflows::WorkflowWakeupPayload),
+    Workflow(crate::workflow_state::WorkflowWakeupPayload),
 }
 
 pub fn validate_schedule(schedule: &resources_proto::Schedule) -> Result<()> {
@@ -463,9 +467,8 @@ pub async fn dispatch_schedule(
             "talon.impalasys.com/schedule-name".to_string(),
             schedule.name().to_string(),
         );
-        let run =
-            crate::worker::workflows::create_run(cp, &workflow, spec.input_json.clone(), labels)
-                .await?;
+        let run = crate::workflow_state::create_run(cp, &workflow, spec.input_json.clone(), labels)
+            .await?;
         return Ok(run.id);
     }
 
@@ -769,14 +772,13 @@ pub async fn enqueue_session_message_without_dispatch(
     }
 
     let submission_id = crate::control::uuid::session_submission_id();
-    let submission = crate::harness::sessions::pending_submission(
+    let submission = crate::sessions::pending_submission(
         submission_id.clone(),
         session_id.to_string(),
         message_id.clone(),
         now_micros,
     );
-    crate::harness::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission)
-        .await?;
+    crate::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission).await?;
 
     Ok(events::SessionDispatchEvent {
         session_id: session_id.to_string(),
@@ -888,20 +890,14 @@ pub async fn send_session_message(
     }
 
     let submission_id = crate::control::uuid::session_submission_id();
-    let submission = crate::harness::sessions::pending_submission(
+    let submission = crate::sessions::pending_submission(
         submission_id.clone(),
         session_id.to_string(),
         message_id.clone(),
         now_micros,
     );
-    if let Err(err) = crate::harness::sessions::create_submission_if_absent(
-        kv,
-        ns,
-        agent,
-        session_id,
-        &submission,
-    )
-    .await
+    if let Err(err) =
+        crate::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission).await
     {
         log_session_release_failure(
             try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
@@ -1036,19 +1032,13 @@ pub async fn compact_session(
     }
 
     let submission_id = crate::control::uuid::session_submission_id();
-    let submission = crate::harness::sessions::pending_compaction_submission(
+    let submission = crate::sessions::pending_compaction_submission(
         submission_id.clone(),
         session_id.to_string(),
         now_micros,
     );
-    if let Err(err) = crate::harness::sessions::create_submission_if_absent(
-        kv,
-        ns,
-        agent,
-        session_id,
-        &submission,
-    )
-    .await
+    if let Err(err) =
+        crate::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission).await
     {
         log_session_release_failure(
             try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
@@ -1085,7 +1075,7 @@ pub async fn compact_session(
     Ok(submission_id)
 }
 
-pub(crate) fn session_message_text_projection(message: &data_proto::SessionMessage) -> String {
+pub fn session_message_text_projection(message: &data_proto::SessionMessage) -> String {
     let text = message
         .parts
         .iter()
@@ -1270,14 +1260,14 @@ pub fn append_schedule_event(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::{
-        scheduler::NoopSchedulerBackend, MessagePublisher, ProtoKeyValueStoreExt,
-    };
-    use crate::gateway::rpc::manifests;
+    use crate::control::scheduler::NoopSchedulerBackend;
+    use crate::control::MessagePublisher;
+    use crate::control::ProtoKeyValueStoreExt;
     use crate::test_support::MockKvStore;
     use futures::stream;
     use std::pin::Pin;
     use std::sync::Arc;
+    use talon_protocol::manifests;
     use tokio::sync::Mutex;
 
     #[derive(Default)]
@@ -1639,7 +1629,7 @@ mod tests {
             .is_empty());
         let submission = cp
             .kv
-            .get_msg::<crate::harness::sessions::SessionSubmission>(&keys::session_submission(
+            .get_msg::<crate::sessions::SessionSubmission>(&keys::session_submission(
                 "acme:test",
                 "assistant",
                 "session-1",
@@ -1652,7 +1642,7 @@ mod tests {
         assert_eq!(submission.user_message_id, dispatch.message_id);
         assert_eq!(
             submission.status,
-            crate::gateway::rpc::data_proto::SessionSubmissionStatus::Pending as i32
+            talon_protocol::data_proto::SessionSubmissionStatus::Pending as i32
         );
         assert_eq!(submission.completed_at, None);
         assert_eq!(submission.committed_message_id, None);
@@ -2152,7 +2142,7 @@ mod tests {
         assert!(event.message_id.is_empty());
         assert!(event.message.is_empty());
         let submission = kv
-            .get_msg::<crate::harness::sessions::SessionSubmission>(&keys::session_submission(
+            .get_msg::<crate::sessions::SessionSubmission>(&keys::session_submission(
                 "acme:test",
                 "assistant",
                 "session-1",

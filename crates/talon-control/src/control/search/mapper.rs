@@ -6,14 +6,16 @@ use super::{
     ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_SESSION_ID, DOCUMENT_KIND_CONTENT,
     DOCUMENT_KIND_MESSAGE_PART, DOCUMENT_KIND_METADATA, KIND_SESSION_MESSAGE,
 };
+use crate::control::keys;
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, ControlPlane};
-use crate::gateway::rpc::{data_proto, resources_proto};
+use crate::control::ControlPlane;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use prost::Message;
 use serde_json::json;
 use std::{collections::HashMap, sync::Arc};
+use talon_protocol::data_proto;
+use talon_protocol::resources_proto;
 
 const MAX_INDEXED_FILE_BYTES: u64 = 2 * 1024 * 1024;
 

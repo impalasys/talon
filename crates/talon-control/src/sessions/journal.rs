@@ -7,20 +7,25 @@ use prost::Message;
 use super::submission::{ensure_submission_attempt_current, update_submission_from_entry};
 use super::SessionJournalEntry;
 use crate::control::cas::CasStore;
-use crate::control::tool_output::{self, ToolOutputStorageContext};
-use crate::control::{keys, KeyValueStore, ListOptions};
-use crate::gateway::rpc::data_proto::{
-    session_journal_entry_payload, SessionExecutionPhase, SessionJournalEntryPayload,
-    SessionJournalEntryPayloadCommit, SessionJournalEntryPayloadCompaction,
-    SessionJournalEntryPayloadLlmResponse, SessionJournalEntryPayloadSteerInput,
-    SessionJournalEntryPayloadToolResult,
-};
-use crate::harness::llm::ChatResponse;
-use crate::harness::llm::ToolOutput;
+use crate::control::keys;
+use crate::control::tool_output;
+use crate::control::tool_output::ToolOutputStorageContext;
+use crate::control::KeyValueStore;
+use crate::control::ListOptions;
+use talon_contracts::llm::ChatResponse;
+use talon_contracts::llm::ToolOutput;
+use talon_protocol::data_proto::session_journal_entry_payload;
+use talon_protocol::data_proto::SessionExecutionPhase;
+use talon_protocol::data_proto::SessionJournalEntryPayload;
+use talon_protocol::data_proto::SessionJournalEntryPayloadCommit;
+use talon_protocol::data_proto::SessionJournalEntryPayloadCompaction;
+use talon_protocol::data_proto::SessionJournalEntryPayloadLlmResponse;
+use talon_protocol::data_proto::SessionJournalEntryPayloadSteerInput;
+use talon_protocol::data_proto::SessionJournalEntryPayloadToolResult;
 
 // Typed payload accessors
 
-pub(crate) trait SessionJournalEntryExt {
+pub trait SessionJournalEntryExt {
     fn as_steer_input(&self) -> Option<&SessionJournalEntryPayloadSteerInput>;
 
     fn as_llm_response(&self) -> Option<&SessionJournalEntryPayloadLlmResponse>;
@@ -68,10 +73,7 @@ pub async fn append_compaction(
     attempt_id: &str,
     summary: &str,
     now_micros: i64,
-) -> Result<(
-    SessionJournalEntry,
-    crate::gateway::rpc::data_proto::ObjectRef,
-)> {
+) -> Result<(SessionJournalEntry, talon_protocol::data_proto::ObjectRef)> {
     // Allocate the entry id before writing CAS so the immutable object key is
     // shared by the journal and the canonical internal message marker. A
     // contested append may leave an unreachable object, which session GC can
@@ -142,7 +144,7 @@ pub async fn append_compaction(
 }
 
 fn compaction_payload(
-    summary_object: crate::gateway::rpc::data_proto::ObjectRef,
+    summary_object: talon_protocol::data_proto::ObjectRef,
 ) -> SessionJournalEntryPayloadCompaction {
     SessionJournalEntryPayloadCompaction {
         summary: Some(summary_object),
@@ -550,11 +552,13 @@ mod tests {
     use super::*;
     use crate::control::tool_output::ToolOutputExt;
     use crate::control::ProtoKeyValueStoreExt;
-    use crate::gateway::rpc::data_proto::{SessionExecutionPhase, SessionSubmissionStatus};
-    use crate::harness::llm::{ChatResponse, ToolCall};
-    use crate::harness::sessions::{
-        create_submission_if_absent, pending_submission, SessionSubmission,
-    };
+    use crate::sessions::create_submission_if_absent;
+    use crate::sessions::pending_submission;
+    use crate::sessions::SessionSubmission;
+    use talon_contracts::llm::ChatResponse;
+    use talon_contracts::llm::ToolCall;
+    use talon_protocol::data_proto::SessionExecutionPhase;
+    use talon_protocol::data_proto::SessionSubmissionStatus;
 
     async fn load_submission(kv: &crate::test_support::MockKvStore) -> Option<SessionSubmission> {
         kv.get_msg::<SessionSubmission>(&keys::session_submission(
@@ -851,9 +855,8 @@ mod tests {
             .payload
             .as_ref()
             .unwrap();
-        let crate::gateway::rpc::data_proto::session_journal_entry_payload::Payload::Compaction(
-            payload,
-        ) = payload
+        let talon_protocol::data_proto::session_journal_entry_payload::Payload::Compaction(payload) =
+            payload
         else {
             panic!("expected compaction payload")
         };

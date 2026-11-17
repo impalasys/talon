@@ -3,8 +3,8 @@
 
 //! Shared invariants for namespace Skill resources and their File packages.
 
-use crate::gateway::rpc::resources_proto;
 use anyhow::{bail, Result};
+use talon_protocol::resources_proto;
 
 pub const SKILLS_ROOT: &str = "/skills";
 pub const SKILL_ENTRYPOINT: &str = "SKILL.md";

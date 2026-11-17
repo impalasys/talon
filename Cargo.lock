@@ -6872,9 +6872,12 @@ dependencies = [
  "sha2 0.10.9",
  "sqlx",
  "sse-stream",
+ "talon-bootstrap",
  "talon-client",
  "talon-config",
  "talon-contracts",
+ "talon-control",
+ "talon-fanout",
  "talon-identifiers",
  "talon-protocol",
  "talon-security",
@@ -6939,6 +6942,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "talon-bootstrap"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "talon-config",
+ "talon-contracts",
+ "talon-control",
+ "talon-identifiers",
+ "talon-protocol",
+ "talon-storage-cloud-tasks",
+ "talon-storage-common",
+ "talon-storage-dynamodb",
+ "talon-storage-eventbridge",
+ "talon-storage-memory",
+ "talon-storage-objects",
+ "talon-storage-postgres",
+ "talon-storage-pubsub",
+ "talon-storage-rocksdb",
+ "talon-storage-sqlite",
+ "talon-storage-sqs",
+ "talon-test-support",
+ "tempfile",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "talon-client"
 version = "0.2.11"
 dependencies = [
@@ -6991,6 +7021,54 @@ dependencies = [
  "talon-identifiers",
  "talon-protocol",
  "uuid",
+]
+
+[[package]]
+name = "talon-control"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.21.7",
+ "chrono",
+ "chrono-tz",
+ "cron",
+ "flate2",
+ "futures",
+ "prost 0.13.5",
+ "rand 0.10.1",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "talon-config",
+ "talon-contracts",
+ "talon-fanout",
+ "talon-identifiers",
+ "talon-protocol",
+ "talon-security",
+ "talon-storage-memory",
+ "talon-test-support",
+ "tokio",
+ "tokio-util",
+ "tonic 0.12.3",
+ "tracing",
+ "url",
+ "urlencoding",
+ "uuid",
+ "zstd 0.13.3",
+]
+
+[[package]]
+name = "talon-fanout"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "futures",
+ "talon-protocol",
+ "talon-test-support",
+ "tokio",
+ "tonic 0.12.3",
 ]
 
 [[package]]

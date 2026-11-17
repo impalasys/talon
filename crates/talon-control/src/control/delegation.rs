@@ -5,10 +5,17 @@ use anyhow::{Context, Result};
 use prost::Message;
 use std::collections::{HashMap, HashSet};
 
-use crate::control::resource_model::{self, TypedResource};
+use crate::control::resource_model;
+
+use crate::control::keys;
+use crate::control::resource_model::TypedResource;
 use crate::control::resources::ResourceStore;
-use crate::control::{keys, session_queue, ControlPlane, ListOptions, ProtoKeyValueStoreExt};
-use crate::gateway::rpc::{data_proto, resources_proto};
+use crate::control::session_queue;
+use crate::control::ControlPlane;
+use crate::control::ListOptions;
+use crate::control::ProtoKeyValueStoreExt;
+use talon_protocol::data_proto;
+use talon_protocol::resources_proto;
 
 // Task resource label: marks a Task as created through agent delegation.
 pub const LABEL_DELEGATION: &str = "talon.impalasys.com/delegation";
@@ -595,7 +602,7 @@ async fn grant_output_artifacts_to_task_owner(
     Ok(())
 }
 
-pub(crate) async fn notify_task_owner(
+pub async fn notify_task_owner(
     cp: &ControlPlane,
     task: &resources_proto::Task,
     completion_status: DelegatedSessionCompletion,

@@ -2,14 +2,16 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::cas::CasStore;
-use crate::gateway::rpc::data_proto;
-use crate::harness::llm::{
-    chat_content_part, object_ref_part, text_part, ChatContentPart, ToolOutput,
-};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use talon_contracts::llm::chat_content_part;
+use talon_contracts::llm::object_ref_part;
+use talon_contracts::llm::text_part;
+use talon_contracts::llm::ChatContentPart;
+use talon_contracts::llm::ToolOutput;
+use talon_protocol::data_proto;
 
 pub const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
 
@@ -406,7 +408,7 @@ fn parse_object_ref_json(value: &Value) -> Result<data_proto::ObjectRef> {
     })
 }
 
-pub(crate) fn object_ref_summary(media_type: &str, filename: &str, size_bytes: u64) -> String {
+pub fn object_ref_summary(media_type: &str, filename: &str, size_bytes: u64) -> String {
     let normalized_media_type = media_type.trim().to_ascii_lowercase();
     let label = if normalized_media_type.starts_with("image/") {
         "Image"
@@ -429,7 +431,8 @@ pub(crate) fn object_ref_summary(media_type: &str, filename: &str, size_bytes: u
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::object_store::{InMemoryObjectStore, ObjectStore};
+    use crate::control::object_store::InMemoryObjectStore;
+    use crate::control::object_store::ObjectStore;
     use std::sync::Arc;
 
     fn object_ref(key: &str, media_type: &str) -> data_proto::ObjectRef {

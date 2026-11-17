@@ -7,11 +7,22 @@ use prost::Message;
 use std::collections::HashSet;
 use std::time::Duration;
 
-use crate::control::{
-    events, keys, scheduling, topics, KeyValueStore, ListOptions, MessagePublisher,
-    ProtoKeyValueStoreExt,
-};
-use crate::gateway::rpc::data_proto;
+use crate::control::events;
+
+use crate::control::keys;
+
+use crate::control::scheduling;
+
+use crate::control::topics;
+
+use crate::control::KeyValueStore;
+
+use crate::control::ListOptions;
+
+use crate::control::MessagePublisher;
+
+use crate::control::ProtoKeyValueStoreExt;
+use talon_protocol::data_proto;
 
 pub const A2A_QUEUE: &str = "a2a";
 pub const NEXT_QUEUE: &str = "next";
@@ -463,14 +474,13 @@ async fn publish_queued_message(
     }
 
     let submission_id = crate::control::uuid::session_submission_id();
-    let submission = crate::harness::sessions::pending_submission(
+    let submission = crate::sessions::pending_submission(
         submission_id.clone(),
         session_id.to_string(),
         message.id.clone(),
         now_micros,
     );
-    crate::harness::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission)
-        .await?;
+    crate::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission).await?;
 
     let event = events::SessionDispatchEvent {
         session_id: session_id.to_string(),
@@ -536,9 +546,10 @@ async fn release_session_lock_after_queue_dispatch_failure(
 mod tests {
     use super::*;
     use crate::control::topics;
-    use crate::gateway::rpc::data_proto::SessionSubmission;
-    use crate::test_support::{MockKvStore, RecordingPubSub};
+    use crate::test_support::MockKvStore;
+    use crate::test_support::RecordingPubSub;
     use std::sync::Arc;
+    use talon_protocol::data_proto::SessionSubmission;
 
     async fn put_session(kv: &MockKvStore, status: &str) {
         kv.set_msg(
