@@ -1,14 +1,16 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::ns;
-use crate::control::resources::ResourceStore;
-use crate::gateway::rpc::resources_proto;
-use crate::harness::sandbox::{
-    ResourceRefJson, SandboxBackend, SandboxClassSpecJson, SandboxPolicySpecJson,
-    SandboxPolicyTemplateJson, SandboxQuotaJson,
-};
+use crate::sandbox::ResourceRefJson;
+use crate::sandbox::SandboxBackend;
+use crate::sandbox::SandboxClassSpecJson;
+use crate::sandbox::SandboxPolicySpecJson;
+use crate::sandbox::SandboxPolicyTemplateJson;
+use crate::sandbox::SandboxQuotaJson;
 use anyhow::{anyhow, Result};
+use talon_control::control::ns;
+use talon_control::control::resources::ResourceStore;
+use talon_protocol::resources_proto;
 
 pub struct SandboxController<B> {
     store: ResourceStore,
@@ -120,7 +122,7 @@ impl<B: SandboxBackend> SandboxLeaseService<B> {
         namespace: &str,
         policy_name: &str,
     ) -> Result<resources_proto::Resource> {
-        for candidate in crate::control::ns::ancestry(namespace) {
+        for candidate in talon_control::control::ns::ancestry(namespace) {
             if let Some(policy) = self
                 .store
                 .get(&candidate, "SandboxPolicy", policy_name)
@@ -187,7 +189,7 @@ impl<B: SandboxBackend> SandboxLeaseService<B> {
         agent: &str,
         session_id: &str,
     ) -> Result<LeasedSandbox> {
-        let token = crate::control::uuid::v7();
+        let token = talon_control::control::uuid::v7();
         let leased = self
             .update_sandbox_status(&sandbox, |status| {
                 let now = chrono::Utc::now().timestamp_micros();
@@ -350,7 +352,7 @@ impl<B: SandboxBackend> SandboxController<B> {
             .metadata
             .as_ref()
             .ok_or_else(|| anyhow!("SandboxPolicy metadata is required"))?;
-        let name = crate::control::uuid::unique_name(&policy_meta.name);
+        let name = talon_control::control::uuid::unique_name(&policy_meta.name);
         let sandbox = resources_proto::Resource {
             api_version: policy.api_version.clone(),
             kind: "Sandbox".to_string(),
@@ -509,12 +511,16 @@ fn sandbox_runtime_template_value(
 #[cfg(test)]
 mod tests {
     use super::{SandboxController, SandboxLeaseService};
-    use crate::control::resources::ResourceStore;
-    use crate::gateway::rpc::resources_proto;
-    use crate::harness::sandbox::{DockerSandboxBackend, MockSandboxBackend, SandboxBackend};
-    use crate::test_support::{docker_test_guard, MockKvStore, RecordingPubSub};
+    use crate::sandbox::DockerSandboxBackend;
+    use crate::sandbox::MockSandboxBackend;
+    use crate::sandbox::SandboxBackend;
+    use crate::test_support::docker_test_guard;
+    use crate::test_support::MockKvStore;
+    use crate::test_support::RecordingPubSub;
     use anyhow::Result;
     use std::sync::Arc;
+    use talon_control::control::resources::ResourceStore;
+    use talon_protocol::resources_proto;
 
     fn resource(
         kind: &str,
@@ -538,7 +544,7 @@ mod tests {
                 deletion_timestamp: None,
             }),
             spec: Some(
-                crate::control::manifest::resource_spec_status_from_json(
+                talon_control::control::manifest::resource_spec_status_from_json(
                     kind,
                     &spec.to_string(),
                     "{}",
@@ -547,7 +553,7 @@ mod tests {
                 .0,
             ),
             status: Some(
-                crate::control::manifest::resource_spec_status_from_json(
+                talon_control::control::manifest::resource_spec_status_from_json(
                     kind,
                     &spec.to_string(),
                     "{}",
@@ -680,7 +686,7 @@ mod tests {
             let process = backend
                 .exec(
                     &backend_id,
-                    crate::harness::sandbox::ExecSpec {
+                    crate::sandbox::ExecSpec {
                         command: "sh".to_string(),
                         args: vec!["-lc".to_string(), "printf talon-sandbox".to_string()],
                         cwd: "/workspace".to_string(),

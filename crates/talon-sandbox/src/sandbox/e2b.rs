@@ -110,7 +110,7 @@ impl SandboxBackend for E2bSandboxBackend {
 
     async fn exec(&self, backend_id: &str, spec: ExecSpec) -> Result<ProcessHandle> {
         let output = e2b_run_command(backend_id, spec).await?;
-        let process_id = crate::control::uuid::process_id();
+        let process_id = talon_control::control::uuid::process_id();
         e2b_process_outputs()
             .lock()
             .await

@@ -6872,14 +6872,17 @@ dependencies = [
  "sha2 0.10.9",
  "sqlx",
  "sse-stream",
+ "talon-auth",
  "talon-bootstrap",
  "talon-client",
  "talon-config",
+ "talon-connectors",
  "talon-contracts",
  "talon-control",
  "talon-fanout",
  "talon-identifiers",
  "talon-protocol",
+ "talon-sandbox",
  "talon-security",
  "talon-storage-cloud-tasks",
  "talon-storage-common",
@@ -6915,6 +6918,23 @@ dependencies = [
  "urlencoding",
  "uuid",
  "zstd 0.13.3",
+]
+
+[[package]]
+name = "talon-auth"
+version = "0.1.0"
+dependencies = [
+ "axum 0.7.9",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "talon-protocol",
+ "talon-security",
+ "talon-test-support",
+ "tokio",
+ "tonic 0.12.3",
+ "tower 0.5.3",
+ "url",
 ]
 
 [[package]]
@@ -7004,6 +7024,32 @@ dependencies = [
  "tempfile",
  "tokio",
  "toml 0.8.23",
+]
+
+[[package]]
+name = "talon-connectors"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "futures",
+ "prost 0.13.5",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "talon-auth",
+ "talon-config",
+ "talon-contracts",
+ "talon-control",
+ "talon-identifiers",
+ "talon-protocol",
+ "talon-security",
+ "talon-test-support",
+ "tokio",
+ "tonic 0.12.3",
+ "tracing",
+ "urlencoding",
 ]
 
 [[package]]
@@ -7100,6 +7146,29 @@ dependencies = [
  "toml 0.8.23",
  "tonic 0.12.3",
  "tonic-build",
+]
+
+[[package]]
+name = "talon-sandbox"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.21.7",
+ "chrono",
+ "futures",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "talon-config",
+ "talon-contracts",
+ "talon-control",
+ "talon-identifiers",
+ "talon-protocol",
+ "talon-security",
+ "talon-test-support",
+ "tokio",
+ "urlencoding",
 ]
 
 [[package]]

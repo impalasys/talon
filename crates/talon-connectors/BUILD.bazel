@@ -1,0 +1,8 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "talon_connectors",
+    deps = ["//crates/talon-control:talon_control", "//crates/talon-contracts:talon_contracts", "//crates/talon-config:talon_config", "//crates/talon-protocol:talon_protocol", "//crates/talon-security:talon_security", "//crates/talon-identifiers:talon_identifiers", "//crates/talon-auth:talon_auth"],
+    test_deps = ["//crates/talon-test-support:talon_test_support"],
+    unit_tests = True,
+)
