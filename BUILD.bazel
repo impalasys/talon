@@ -122,7 +122,7 @@ rust_library(
         exclude = ["src/bin/*.rs"],
     ),
     aliases = aliases(),
-    compile_data = glob(["src/**/testdata/**"]) + [
+    compile_data = glob(["src/**/testdata/**"], allow_empty = True) + [
         "proto/resources.toml",
         "src/control/security/test_rsa_private_key.pem",
         ":runtime_data",
@@ -135,6 +135,8 @@ rust_library(
     ),
     rustc_env_files = [":cargo_env"],
     deps = _RUNTIME_DEPS + [
+        "//crates/talon-harness:talon_harness",
+        "//crates/talon-monty:talon_monty",
         "//crates/talon-connectors:talon_connectors",
         "//crates/talon-sandbox:talon_sandbox",
         "//crates/talon-auth:talon_auth",
@@ -494,6 +496,8 @@ rust_doc_test(
 rustfmt_test(
     name = "format_test",
     targets = [
+        "//crates/talon-harness:talon_harness",
+        "//crates/talon-monty:talon_monty",
         "//crates/talon-connectors:talon_connectors",
         "//crates/talon-sandbox:talon_sandbox",
         "//crates/talon-auth:talon_auth",
@@ -567,5 +571,5 @@ platform(
 
 filegroup(
     name = "internal_cargo_manifests",
-    srcs = ["//crates/talon-auth:Cargo.toml", "//crates/talon-bootstrap:Cargo.toml", "//crates/talon-config:Cargo.toml", "//crates/talon-connectors:Cargo.toml", "//crates/talon-contracts:Cargo.toml", "//crates/talon-control:Cargo.toml", "//crates/talon-fanout:Cargo.toml", "//crates/talon-identifiers:Cargo.toml", "//crates/talon-protocol:Cargo.toml", "//crates/talon-sandbox:Cargo.toml", "//crates/talon-security:Cargo.toml", "//crates/talon-storage-cloud-tasks:Cargo.toml", "//crates/talon-storage-common:Cargo.toml", "//crates/talon-storage-dynamodb:Cargo.toml", "//crates/talon-storage-eventbridge:Cargo.toml", "//crates/talon-storage-memory:Cargo.toml", "//crates/talon-storage-objects:Cargo.toml", "//crates/talon-storage-postgres:Cargo.toml", "//crates/talon-storage-pubsub:Cargo.toml", "//crates/talon-storage-rocksdb:Cargo.toml", "//crates/talon-storage-sqlite:Cargo.toml", "//crates/talon-storage-sqs:Cargo.toml", "//crates/talon-test-support:Cargo.toml"],
+    srcs = ["//crates/talon-auth:Cargo.toml", "//crates/talon-bootstrap:Cargo.toml", "//crates/talon-config:Cargo.toml", "//crates/talon-connectors:Cargo.toml", "//crates/talon-contracts:Cargo.toml", "//crates/talon-control:Cargo.toml", "//crates/talon-fanout:Cargo.toml", "//crates/talon-harness:Cargo.toml", "//crates/talon-identifiers:Cargo.toml", "//crates/talon-monty:Cargo.toml", "//crates/talon-protocol:Cargo.toml", "//crates/talon-sandbox:Cargo.toml", "//crates/talon-security:Cargo.toml", "//crates/talon-storage-cloud-tasks:Cargo.toml", "//crates/talon-storage-common:Cargo.toml", "//crates/talon-storage-dynamodb:Cargo.toml", "//crates/talon-storage-eventbridge:Cargo.toml", "//crates/talon-storage-memory:Cargo.toml", "//crates/talon-storage-objects:Cargo.toml", "//crates/talon-storage-postgres:Cargo.toml", "//crates/talon-storage-pubsub:Cargo.toml", "//crates/talon-storage-rocksdb:Cargo.toml", "//crates/talon-storage-sqlite:Cargo.toml", "//crates/talon-storage-sqs:Cargo.toml", "//crates/talon-test-support:Cargo.toml"],
 )

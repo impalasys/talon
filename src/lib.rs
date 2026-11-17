@@ -4,10 +4,9 @@
 pub mod cli;
 pub mod control;
 pub mod gateway;
-pub mod harness;
+pub use talon_harness::harness;
 #[doc(hidden)]
-#[path = "bin/monty_subprocess/mod.rs"]
-pub mod monty_subprocess;
+pub use talon_monty as monty_subprocess;
 pub mod worker;
 pub use crate::control::security::encryption::SecurityProvider;
 pub use crate::harness::executor::{
