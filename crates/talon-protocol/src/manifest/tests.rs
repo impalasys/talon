@@ -3,7 +3,7 @@
 
 mod tests {
     use super::*;
-    use crate::gateway::rpc::resources_proto::{resource_spec, resource_status};
+    use crate::resources_proto::{resource_spec, resource_status};
 
     #[test]
     fn mcp_server_manifest_requires_namespace_and_parses_policy() {

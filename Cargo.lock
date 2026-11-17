@@ -6961,10 +6961,16 @@ version = "0.0.0"
 name = "talon-protocol"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "chrono",
+ "minijinja",
  "prost 0.13.5",
  "prost-build",
  "prost-types 0.13.5",
  "serde",
+ "serde_json",
+ "serde_yaml",
+ "toml 0.8.23",
  "tonic 0.12.3",
  "tonic-build",
 ]

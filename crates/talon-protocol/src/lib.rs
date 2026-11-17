@@ -70,3 +70,7 @@ pub mod protobuf_value {
 }
 
 pub use generated::events;
+
+pub mod manifest;
+pub mod resource_model;
+pub mod workflow_validation;
