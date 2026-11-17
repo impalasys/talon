@@ -6,7 +6,7 @@ use redb::{Database, ReadableTable, TableDefinition};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-pub type Embedding = Vec<f32>;
+pub use talon_contracts::llm::Embedding;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VectorEntry {
