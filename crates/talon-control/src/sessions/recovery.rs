@@ -11,13 +11,16 @@ use super::{
     SESSION_PROJECTION_STATE_COMMITTED, SESSION_PROJECTION_STATE_COMPLETE_UNCOMMITTED,
     SESSION_PROJECTION_STATE_IN_PROGRESS,
 };
-use crate::control::{ControlPlane, ListOptions, ProtoKeyValueStoreExt};
-use crate::gateway::rpc::data_proto::{self, SessionExecutionPhase};
+use crate::control::ControlPlane;
+use crate::control::ListOptions;
+use crate::control::ProtoKeyValueStoreExt;
+use talon_protocol::data_proto;
+use talon_protocol::data_proto::SessionExecutionPhase;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct JournalRecoveryPlan {
-    pub(crate) replay_start_index: usize,
-    pub(crate) excluded_history_message_ids: HashSet<String>,
+pub struct JournalRecoveryPlan {
+    pub replay_start_index: usize,
+    pub excluded_history_message_ids: HashSet<String>,
 }
 
 /// Returns the last journal entry already represented by a committed assistant
@@ -68,7 +71,7 @@ async fn committed_assistant_journal_watermark(
 /// A worker can crash after writing its projection but before its first journal
 /// entry. Reusing that message ID prevents recovery from creating a duplicate
 /// assistant projection.
-pub(crate) async fn latest_submission_projection_message_id(
+pub async fn latest_submission_projection_message_id(
     cp: &ControlPlane,
     ns: &str,
     agent: &str,
@@ -112,7 +115,7 @@ pub(crate) async fn latest_submission_projection_message_id(
 /// or not an assistant segment preceded it. Legacy steer entries without a
 /// continuation ID remain on the full-replay path, while committed assistant
 /// watermarks cover the finalization-before-checkpoint crash window.
-pub(crate) async fn plan_journal_recovery(
+pub async fn plan_journal_recovery(
     cp: &ControlPlane,
     ns: &str,
     agent: &str,
@@ -216,11 +219,13 @@ mod tests {
     use super::*;
     use crate::control::cas::CasStore;
     use crate::control::tool_output::ToolOutputExt;
-    use crate::gateway::rpc::data_proto::SessionSubmissionStatus;
-    use crate::harness::llm::{ChatResponse, ToolCall, ToolOutput};
-    use crate::harness::sessions;
+    use crate::sessions;
     use crate::test_support::MockKvStore;
     use std::sync::Arc;
+    use talon_contracts::llm::ChatResponse;
+    use talon_contracts::llm::ToolCall;
+    use talon_contracts::llm::ToolOutput;
+    use talon_protocol::data_proto::SessionSubmissionStatus;
 
     fn control_plane(kv: Arc<MockKvStore>) -> ControlPlane {
         ControlPlane::builder(

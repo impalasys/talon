@@ -12,6 +12,6 @@ pub mod mcp;
 pub mod memory;
 pub mod native_tools;
 pub mod sandbox;
-pub mod sessions;
+pub use talon_control::sessions;
 pub mod skills;
 pub mod telemetry;

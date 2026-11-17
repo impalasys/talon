@@ -1,13 +1,16 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::{keys, KeyValueStore};
-use crate::gateway::rpc::{data_proto, resources_proto};
+use crate::control::keys;
+
+use crate::control::KeyValueStore;
 use anyhow::{anyhow, bail, Context, Result};
 use prost::Message;
 use std::error::Error;
 use std::fmt;
 use std::time::Duration;
+use talon_protocol::data_proto;
+use talon_protocol::resources_proto;
 
 const MAX_CAS_RETRIES: usize = 16;
 

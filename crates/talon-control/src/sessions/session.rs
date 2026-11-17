@@ -5,8 +5,10 @@ use anyhow::{anyhow, Result};
 use prost::Message;
 
 use super::{submission, SubmissionLease};
-use crate::control::{keys, KeyValueStore};
-use crate::gateway::rpc::data_proto::{self, TokenCounter};
+use crate::control::keys;
+use crate::control::KeyValueStore;
+use talon_protocol::data_proto;
+use talon_protocol::data_proto::TokenCounter;
 
 pub async fn persist_context_tokens(
     kv: &dyn KeyValueStore,

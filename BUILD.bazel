@@ -135,6 +135,9 @@ rust_library(
     ),
     rustc_env_files = [":cargo_env"],
     deps = _RUNTIME_DEPS + [
+        "//crates/talon-bootstrap:talon_bootstrap",
+        "//crates/talon-control:talon_control",
+        "//crates/talon-fanout:talon_fanout",
         "//crates/talon-storage-objects:talon_storage_objects",
         "//crates/talon-storage-cloud-tasks:talon_storage_cloud_tasks",
         "//crates/talon-storage-pubsub:talon_storage_pubsub",
@@ -488,6 +491,9 @@ rust_doc_test(
 rustfmt_test(
     name = "format_test",
     targets = [
+        "//crates/talon-bootstrap:talon_bootstrap",
+        "//crates/talon-control:talon_control",
+        "//crates/talon-fanout:talon_fanout",
         "//crates/talon-storage-objects:talon_storage_objects",
         "//crates/talon-storage-cloud-tasks:talon_storage_cloud_tasks",
         "//crates/talon-storage-pubsub:talon_storage_pubsub",
@@ -555,5 +561,5 @@ platform(
 
 filegroup(
     name = "internal_cargo_manifests",
-    srcs = ["//crates/talon-config:Cargo.toml", "//crates/talon-contracts:Cargo.toml", "//crates/talon-identifiers:Cargo.toml", "//crates/talon-protocol:Cargo.toml", "//crates/talon-security:Cargo.toml", "//crates/talon-storage-cloud-tasks:Cargo.toml", "//crates/talon-storage-common:Cargo.toml", "//crates/talon-storage-dynamodb:Cargo.toml", "//crates/talon-storage-eventbridge:Cargo.toml", "//crates/talon-storage-memory:Cargo.toml", "//crates/talon-storage-objects:Cargo.toml", "//crates/talon-storage-postgres:Cargo.toml", "//crates/talon-storage-pubsub:Cargo.toml", "//crates/talon-storage-rocksdb:Cargo.toml", "//crates/talon-storage-sqlite:Cargo.toml", "//crates/talon-storage-sqs:Cargo.toml", "//crates/talon-test-support:Cargo.toml"],
+    srcs = ["//crates/talon-bootstrap:Cargo.toml", "//crates/talon-config:Cargo.toml", "//crates/talon-contracts:Cargo.toml", "//crates/talon-control:Cargo.toml", "//crates/talon-fanout:Cargo.toml", "//crates/talon-identifiers:Cargo.toml", "//crates/talon-protocol:Cargo.toml", "//crates/talon-security:Cargo.toml", "//crates/talon-storage-cloud-tasks:Cargo.toml", "//crates/talon-storage-common:Cargo.toml", "//crates/talon-storage-dynamodb:Cargo.toml", "//crates/talon-storage-eventbridge:Cargo.toml", "//crates/talon-storage-memory:Cargo.toml", "//crates/talon-storage-objects:Cargo.toml", "//crates/talon-storage-postgres:Cargo.toml", "//crates/talon-storage-pubsub:Cargo.toml", "//crates/talon-storage-rocksdb:Cargo.toml", "//crates/talon-storage-sqlite:Cargo.toml", "//crates/talon-storage-sqs:Cargo.toml", "//crates/talon-test-support:Cargo.toml"],
 )

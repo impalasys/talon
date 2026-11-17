@@ -1,12 +1,15 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::events::{IndexEvent, IndexOperation};
-use crate::control::{topics, MessagePublisher};
+use crate::control::events::IndexEvent;
+
+use crate::control::events::IndexOperation;
+use crate::control::topics;
+use crate::control::MessagePublisher;
 use anyhow::Result;
 use prost::Message;
 
-pub(crate) async fn publish_index_event(
+pub async fn publish_index_event(
     pubsub: &(dyn MessagePublisher + Send + Sync),
     mut event: IndexEvent,
 ) -> Result<()> {

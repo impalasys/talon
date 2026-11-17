@@ -12,9 +12,9 @@ use std::sync::Arc;
 
 pub mod connector;
 pub mod controllers;
-pub mod fanout;
+pub use talon_fanout as fanout;
 pub mod mcp_registry;
-pub mod registration;
+pub use talon_control::registration;
 pub mod runtime;
 pub mod scheduler_auth;
 pub mod session_control;
