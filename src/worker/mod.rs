@@ -21,7 +21,7 @@ pub mod session_control;
 pub mod sessions;
 pub mod sink;
 pub mod talon_ops;
-pub mod workflows;
+pub use talon_workflows as workflows;
 
 const SCHEDULE_WAKEUP_SKEW_TOLERANCE_SECONDS: i64 = 1;
 
@@ -932,3 +932,6 @@ mod tests {
         server.abort();
     }
 }
+
+#[cfg(test)]
+mod workflow_worker_tests;
