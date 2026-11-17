@@ -1,0 +1,8 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "talon_storage_eventbridge",
+    deps = ["//crates/talon-contracts:talon_contracts", "//crates/talon-config:talon_config"],
+    test_deps = ["//crates/talon-test-support:talon_test_support"],
+    unit_tests = True,
+)
