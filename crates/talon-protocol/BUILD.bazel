@@ -31,6 +31,7 @@ rust_library(
     name = "talon_protocol",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/lib.rs",
+    compile_data = ["//:runtime_data", "//:proto/resources.toml"],
     edition = "2021",
     visibility = ["//visibility:public"],
     aliases = aliases(),

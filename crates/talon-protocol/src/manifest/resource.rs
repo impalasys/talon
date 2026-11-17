@@ -158,7 +158,7 @@ pub fn parse_workflow(yaml: &str) -> Result<resources_proto::Workflow> {
         workflow.spec.into_proto()?,
         workflow.metadata.labels,
     );
-    crate::worker::workflows::validate_workflow(&workflow)?;
+    crate::workflow_validation::validate_workflow(&workflow)?;
     Ok(workflow)
 }
 
@@ -634,11 +634,11 @@ fn json_string_to_json_value(value: &str) -> Result<serde_json::Value> {
 struct FileSpecManifest {
     path: String,
     media_type: String,
-    #[serde(with = "crate::control::manifest::enum_serde::file_purpose")]
+    #[serde(with = "crate::manifest::enum_serde::file_purpose")]
     purpose: i32,
-    #[serde(with = "crate::control::manifest::enum_serde::file_index_policy")]
+    #[serde(with = "crate::manifest::enum_serde::file_index_policy")]
     index_policy: i32,
-    #[serde(with = "crate::control::manifest::enum_serde::file_retention")]
+    #[serde(with = "crate::manifest::enum_serde::file_retention")]
     retention: i32,
 }
 
@@ -695,7 +695,7 @@ fn secret_spec_from_value(mut value: serde_json::Value) -> Result<resources_prot
 #[serde(rename_all = "camelCase", default)]
 struct TaskStatusManifest {
     observed_generation: u64,
-    #[serde(with = "crate::control::manifest::enum_serde::task_phase")]
+    #[serde(with = "crate::manifest::enum_serde::task_phase")]
     phase: i32,
     conditions: Vec<resources_proto::ResourceCondition>,
     progress_summary: String,
