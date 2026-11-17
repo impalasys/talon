@@ -149,6 +149,7 @@ rust_library(
     rustc_env_files = [":cargo_env"],
     deps = _RUNTIME_DEPS + [
         ":build_script",
+        "//crates/talon-identifiers:talon_identifiers",
         "//sdk/rust/talon-client:talon_client",
     ],
 )
@@ -198,6 +199,16 @@ filegroup(
         ":talon-node",
         ":talon-server",
         ":talon-worker",
+    ],
+)
+
+rust_test(
+    name = "identifiers_compat_test",
+    srcs = ["//tests:identifiers_compat.rs"],
+    edition = "2021",
+    deps = [
+        ":talon",
+        "//crates/talon-identifiers:talon_identifiers",
     ],
 )
 
@@ -488,6 +499,8 @@ rustfmt_test(
         ":mock_acp_cli_test",
         ":monty_embedded_test",
         ":postgres_tls_startup_test",
+        ":identifiers_compat_test",
+        "//crates/talon-identifiers:talon_identifiers",
         "//sdk/rust/talon-client:talon_client",
         "//sdk/rust/talon-client:generated_test",
         "//sdk/rust/talon-server:talon_server",

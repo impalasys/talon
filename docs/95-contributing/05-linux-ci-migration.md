@@ -58,7 +58,8 @@ changes and report selection, queue time, build/test time and artifact transfer.
 
 ## Rust crate decomposition plan
 
-This is an implementation plan, not a completed refactor. Keep the four binary
+The identifiers milestone below is implemented; the remaining extractions are
+planned. Keep the four binary
 names, public Rust paths, protobuf wire formats, manifest behavior and release
 outputs stable while introducing independently compiled crates. Each new crate
 gets its own `Cargo.toml`, `BUILD.bazel`, `src/lib.rs` and tests under `crates/`.
@@ -96,6 +97,26 @@ should preserve cached compilation of unrelated components and allow independent
 work to run concurrently; downstream crates and binaries may still rebuild or
 relink. A crate split does not remove cold RocksDB C++ work or the integration
 test stage. No speedup factor is established yet.
+
+### Identifiers milestone
+
+`crates/talon-identifiers` now owns resource keys and namespace helpers, with its
+own Cargo manifest, Bazel library and unit-test target. Its only direct external
+dependencies are `anyhow`, `sha2` and `urlencoding`; it has no runtime, RPC or
+storage dependency. The existing `talon::control::keys` and
+`talon::control::ns` paths re-export the same modules and types.
+
+The eight existing helper tests moved with the implementation. A separate
+integration test verifies type identity through the old/new imports and exact
+storage-key encoding and parsing. Cargo workspace/all-target checks and the
+root package's `aws,rocksdb` all-target check exercise both manifest paths.
+
+A native Bazel cache-isolation probe first built `//:talon`, made a temporary
+comment-only edit in `src/worker/runtime.rs`, and built it again. The second
+profile recorded Talon's Rustc action (197 source files), no identifiers Rustc
+action, and unchanged identifiers artifact hashes. The worker edit was restored.
+This proves that a worker input change does not recompile the new leaf; it is
+not a measured end-to-end speedup or a claim that downstream binaries stay cached.
 
 ### Dependency constraints found in the code
 

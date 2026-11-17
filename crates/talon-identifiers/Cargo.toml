@@ -1,0 +1,12 @@
+[package]
+name = "talon-identifiers"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+description = "Resource identifiers and namespace helpers for Talon"
+
+[dependencies]
+anyhow = "1.0"
+sha2 = "0.10"
+urlencoding = "2.1"
