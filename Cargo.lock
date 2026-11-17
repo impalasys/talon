@@ -6878,6 +6878,17 @@ dependencies = [
  "talon-identifiers",
  "talon-protocol",
  "talon-security",
+ "talon-storage-cloud-tasks",
+ "talon-storage-common",
+ "talon-storage-dynamodb",
+ "talon-storage-eventbridge",
+ "talon-storage-memory",
+ "talon-storage-objects",
+ "talon-storage-postgres",
+ "talon-storage-pubsub",
+ "talon-storage-rocksdb",
+ "talon-storage-sqlite",
+ "talon-storage-sqs",
  "talon-test-support",
  "tempfile",
  "tikv-jemalloc-ctl",
@@ -6907,13 +6918,24 @@ dependencies = [
 name = "talon-bazel-features"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
  "aws-sdk-dynamodb",
  "aws-sdk-scheduler",
  "aws-sdk-sqs",
+ "base64 0.21.7",
+ "futures",
  "pprof",
  "rocksdb",
+ "serde",
+ "serde_json",
  "tikv-jemalloc-ctl",
  "tikv-jemallocator",
+ "time",
+ "tokio",
+ "tracing",
+ "urlencoding",
 ]
 
 [[package]]
@@ -7017,6 +7039,205 @@ dependencies = [
  "talon-contracts",
  "talon-test-support",
  "url",
+]
+
+[[package]]
+name = "talon-storage-cloud-tasks"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum 0.7.9",
+ "base64 0.21.7",
+ "chrono",
+ "google-cloud-auth 1.8.0",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "talon-config",
+ "talon-contracts",
+ "talon-test-support",
+ "time",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "talon-storage-common"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "talon-contracts",
+ "talon-identifiers",
+ "talon-test-support",
+]
+
+[[package]]
+name = "talon-storage-dynamodb"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-dynamodb",
+ "talon-contracts",
+ "talon-storage-common",
+ "talon-test-support",
+ "urlencoding",
+]
+
+[[package]]
+name = "talon-storage-eventbridge"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-scheduler",
+ "base64 0.21.7",
+ "serde",
+ "serde_json",
+ "talon-config",
+ "talon-contracts",
+ "talon-test-support",
+]
+
+[[package]]
+name = "talon-storage-memory"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "talon-contracts",
+ "talon-protocol",
+ "talon-test-support",
+ "tokio",
+]
+
+[[package]]
+name = "talon-storage-objects"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-s3",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "google-cloud-auth 1.8.0",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "talon-contracts",
+ "talon-protocol",
+ "talon-storage-memory",
+ "talon-test-support",
+ "tempfile",
+ "time",
+ "tokio",
+ "urlencoding",
+]
+
+[[package]]
+name = "talon-storage-postgres"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "futures",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "talon-config",
+ "talon-contracts",
+ "talon-protocol",
+ "talon-storage-common",
+ "talon-test-support",
+ "time",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "talon-storage-pubsub"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-stream",
+ "async-trait",
+ "base64 0.21.7",
+ "futures",
+ "google-cloud-googleapis",
+ "google-cloud-pubsub",
+ "serde",
+ "serde_json",
+ "talon-contracts",
+ "talon-test-support",
+ "tempfile",
+ "time",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "talon-storage-rocksdb"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "rocksdb",
+ "talon-contracts",
+ "talon-storage-common",
+ "talon-test-support",
+ "tempfile",
+ "time",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "talon-storage-sqlite"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "futures",
+ "reqwest 0.11.27",
+ "serde_json",
+ "sqlx",
+ "talon-contracts",
+ "talon-protocol",
+ "talon-storage-common",
+ "talon-test-support",
+ "tempfile",
+ "time",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "talon-storage-sqs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-sqs",
+ "base64 0.21.7",
+ "futures",
+ "talon-contracts",
+ "talon-test-support",
+ "tokio",
 ]
 
 [[package]]

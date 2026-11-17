@@ -88,6 +88,14 @@ _RUNTIME_DEPS += select({
     "//conditions:default": [],
 })
 
+_RUNTIME_DEPS += select({"//:aws": ["//crates/talon-storage-dynamodb:talon_storage_dynamodb"], "//conditions:default": []})
+
+_RUNTIME_DEPS += select({"//:rocksdb": ["//crates/talon-storage-rocksdb:talon_storage_rocksdb"], "//conditions:default": []})
+
+_RUNTIME_DEPS += select({"//:aws": ["//crates/talon-storage-sqs:talon_storage_sqs"], "//conditions:default": []})
+
+_RUNTIME_DEPS += select({"//:aws": ["//crates/talon-storage-eventbridge:talon_storage_eventbridge"], "//conditions:default": []})
+
 cargo_toml_env_vars(
     name = "cargo_env",
     src = "Cargo.toml",
@@ -127,6 +135,13 @@ rust_library(
     ),
     rustc_env_files = [":cargo_env"],
     deps = _RUNTIME_DEPS + [
+        "//crates/talon-storage-objects:talon_storage_objects",
+        "//crates/talon-storage-cloud-tasks:talon_storage_cloud_tasks",
+        "//crates/talon-storage-pubsub:talon_storage_pubsub",
+        "//crates/talon-storage-postgres:talon_storage_postgres",
+        "//crates/talon-storage-sqlite:talon_storage_sqlite",
+        "//crates/talon-storage-memory:talon_storage_memory",
+        "//crates/talon-storage-common:talon_storage_common",
         "//crates/talon-security:talon_security",
         "//crates/talon-config:talon_config",
         "//crates/talon-test-support:talon_test_support",
@@ -473,6 +488,13 @@ rust_doc_test(
 rustfmt_test(
     name = "format_test",
     targets = [
+        "//crates/talon-storage-objects:talon_storage_objects",
+        "//crates/talon-storage-cloud-tasks:talon_storage_cloud_tasks",
+        "//crates/talon-storage-pubsub:talon_storage_pubsub",
+        "//crates/talon-storage-postgres:talon_storage_postgres",
+        "//crates/talon-storage-sqlite:talon_storage_sqlite",
+        "//crates/talon-storage-memory:talon_storage_memory",
+        "//crates/talon-storage-common:talon_storage_common",
         "//crates/talon-security:talon_security",
         "//crates/talon-config:talon_config",
         "//crates/talon-test-support:talon_test_support",
@@ -529,4 +551,9 @@ js_library(
 platform(
     name = "linux_ci",
     constraint_values = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+)
+
+filegroup(
+    name = "internal_cargo_manifests",
+    srcs = ["//crates/talon-config:Cargo.toml", "//crates/talon-contracts:Cargo.toml", "//crates/talon-identifiers:Cargo.toml", "//crates/talon-protocol:Cargo.toml", "//crates/talon-security:Cargo.toml", "//crates/talon-storage-cloud-tasks:Cargo.toml", "//crates/talon-storage-common:Cargo.toml", "//crates/talon-storage-dynamodb:Cargo.toml", "//crates/talon-storage-eventbridge:Cargo.toml", "//crates/talon-storage-memory:Cargo.toml", "//crates/talon-storage-objects:Cargo.toml", "//crates/talon-storage-postgres:Cargo.toml", "//crates/talon-storage-pubsub:Cargo.toml", "//crates/talon-storage-rocksdb:Cargo.toml", "//crates/talon-storage-sqlite:Cargo.toml", "//crates/talon-storage-sqs:Cargo.toml", "//crates/talon-test-support:Cargo.toml"],
 )
