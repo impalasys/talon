@@ -84,3 +84,7 @@ mod compatibility_tests {
         let _: super::generated::events::proto::SessionMessagePartEvent = Default::default();
     }
 }
+
+pub mod manifest;
+pub mod resource_model;
+pub mod workflow_validation;

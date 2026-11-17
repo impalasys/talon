@@ -6,8 +6,8 @@ use std::collections::HashMap;
 use anyhow::{anyhow, bail, Context, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::control::resource_model::{self, ChannelResourceExt, TypedResource};
-use crate::gateway::rpc::{
+use crate::resource_model::{self, ChannelResourceExt, TypedResource};
+use crate::{
     manifests,
     protobuf_value::{value, ListValue, Value},
     resources_proto,

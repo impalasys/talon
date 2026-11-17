@@ -43,7 +43,7 @@ fn capabilities_policy_from_proto(
         .collect()
 }
 
-pub(crate) use talon_protocol::serialization::capabilities_policy_serde;
+pub(crate) use crate::serialization::capabilities_policy_serde;
 
 impl AgentSpecManifest {
     fn into_proto(self) -> Result<manifests::AgentSpec> {
