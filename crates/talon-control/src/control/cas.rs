@@ -1,8 +1,11 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::object_store::{ObjectMetadata, ObjectStore, StoredObject};
-use crate::gateway::rpc::data_proto;
+use crate::control::object_store::ObjectMetadata;
+
+use crate::control::object_store::ObjectStore;
+
+use crate::control::object_store::StoredObject;
 use anyhow::{anyhow, Result};
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use sha2::{Digest, Sha256};
@@ -11,6 +14,7 @@ use std::collections::HashMap;
 use std::io::{Cursor, Read, Write};
 use std::sync::Arc;
 use std::time::Duration;
+use talon_protocol::data_proto;
 
 pub const TOOL_RESULT_MEDIA_TYPE: &str = "text/plain; charset=utf-8";
 
@@ -873,7 +877,9 @@ mod tests {
         METADATA_KIND_ENCRYPTED_REASONING, METADATA_KIND_FILE, METADATA_UNCOMPRESSED_SIZE_BYTES,
         TOOL_RESULT_TRUNCATION_MARKER,
     };
-    use crate::control::object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore};
+    use crate::control::object_store::InMemoryObjectStore;
+    use crate::control::object_store::ObjectMetadata;
+    use crate::control::object_store::ObjectStore;
     use flate2::{write::GzEncoder, Compression};
     use rand::{RngExt, SeedableRng};
     use std::io::Write;

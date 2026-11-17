@@ -8,8 +8,10 @@ use std::time::Duration;
 use anyhow::Result;
 use prost::Message;
 
-use crate::control::{keys, KeyValueStore};
-use crate::gateway::rpc::data_proto;
+use crate::control::keys;
+
+use crate::control::KeyValueStore;
+use talon_protocol::data_proto;
 
 use super::{renew_submission_claim, RenewOutcome};
 

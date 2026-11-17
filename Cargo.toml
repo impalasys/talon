@@ -4,12 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["crates/talon-identifiers", "crates/talon-protocol", "tools/bazel", "tools/install-hooks", "crates/talon-contracts", "crates/talon-test-support", "crates/talon-config", "crates/talon-security", "crates/talon-storage-common", "crates/talon-storage-memory", "crates/talon-storage-sqlite", "crates/talon-storage-postgres", "crates/talon-storage-dynamodb", "crates/talon-storage-rocksdb", "crates/talon-storage-sqs", "crates/talon-storage-pubsub", "crates/talon-storage-cloud-tasks", "crates/talon-storage-eventbridge", "crates/talon-storage-objects"]
+members = ["crates/talon-identifiers", "crates/talon-protocol", "tools/bazel", "tools/install-hooks", "crates/talon-contracts", "crates/talon-test-support", "crates/talon-config", "crates/talon-security", "crates/talon-storage-common", "crates/talon-storage-memory", "crates/talon-storage-sqlite", "crates/talon-storage-postgres", "crates/talon-storage-dynamodb", "crates/talon-storage-rocksdb", "crates/talon-storage-sqs", "crates/talon-storage-pubsub", "crates/talon-storage-cloud-tasks", "crates/talon-storage-eventbridge", "crates/talon-storage-objects", "crates/talon-fanout", "crates/talon-control", "crates/talon-bootstrap"]
 default-members = ["."]
 resolver = "2"
 
 [features]
-aws = ["dep:talon-storage-eventbridge", "dep:talon-storage-sqs", "dep:talon-storage-dynamodb", "dep:aws-sdk-dynamodb", "dep:aws-sdk-scheduler", "dep:aws-sdk-sqs"]
+aws = ["talon-bootstrap/aws", "dep:talon-storage-eventbridge", "dep:talon-storage-sqs", "dep:talon-storage-dynamodb", "dep:aws-sdk-dynamodb", "dep:aws-sdk-scheduler", "dep:aws-sdk-sqs"]
 cpu-profile = ["dep:pprof"]
 heap-profile = [
     "dep:tikv-jemallocator",
@@ -18,7 +18,7 @@ heap-profile = [
     "tikv-jemalloc-ctl/profiling",
     "tikv-jemalloc-ctl/stats",
 ]
-rocksdb = ["dep:talon-storage-rocksdb", "dep:rocksdb"]
+rocksdb = ["talon-bootstrap/rocksdb", "dep:talon-storage-rocksdb", "dep:rocksdb"]
 
 [dependencies]
 aead = "0.5"
@@ -135,6 +135,12 @@ talon-storage-cloud-tasks = { path = "crates/talon-storage-cloud-tasks" }
 talon-storage-eventbridge = { path = "crates/talon-storage-eventbridge", optional = true }
 
 talon-storage-objects = { path = "crates/talon-storage-objects" }
+
+talon-fanout = { path = "crates/talon-fanout" }
+
+talon-control = { path = "crates/talon-control" }
+
+talon-bootstrap = { path = "crates/talon-bootstrap" }
 
 [build-dependencies]
 prost-build = "0.13"

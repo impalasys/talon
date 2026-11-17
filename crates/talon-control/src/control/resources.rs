@@ -2,12 +2,15 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::events;
-use crate::control::{keys, topics, KeyValueStore, MessagePublisher};
-use crate::gateway::rpc::resources_proto;
+use crate::control::keys;
+use crate::control::topics;
+use crate::control::KeyValueStore;
+use crate::control::MessagePublisher;
 use anyhow::{anyhow, Context, Result};
 use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
 use prost::Message;
 use std::sync::Arc;
+use talon_protocol::resources_proto;
 
 const API_VERSION: &str = "talon.impalasys.com/v1";
 
@@ -1482,10 +1485,11 @@ mod tests {
     use crate::control::keys;
     use crate::control::topics;
     use crate::control::KeyValueStore;
-    use crate::gateway::rpc::resources_proto;
-    use crate::test_support::{MockKvStore, RecordingPubSub};
+    use crate::test_support::MockKvStore;
+    use crate::test_support::RecordingPubSub;
     use prost::Message;
     use std::sync::Arc;
+    use talon_protocol::resources_proto;
 
     #[tokio::test]
     async fn resource_store_upserts_lists_and_publishes_change_events() {

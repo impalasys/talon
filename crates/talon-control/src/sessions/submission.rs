@@ -5,10 +5,11 @@ use anyhow::{anyhow, Result};
 use prost::Message;
 
 use super::{SessionJournalEntry, SessionSubmission};
-use crate::control::{keys, KeyValueStore};
-use crate::gateway::rpc::data_proto::{
-    SessionExecutionPhase, SessionSubmissionKind, SessionSubmissionStatus,
-};
+use crate::control::keys;
+use crate::control::KeyValueStore;
+use talon_protocol::data_proto::SessionExecutionPhase;
+use talon_protocol::data_proto::SessionSubmissionKind;
+use talon_protocol::data_proto::SessionSubmissionStatus;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ClaimOutcome {
@@ -178,7 +179,7 @@ pub async fn renew_submission_claim(
     ))
 }
 
-pub(super) async fn ensure_submission_attempt_current(
+pub async fn ensure_submission_attempt_current(
     kv: &dyn KeyValueStore,
     ns: &str,
     agent: &str,
@@ -214,7 +215,7 @@ pub(super) async fn ensure_submission_attempt_current(
     Ok(())
 }
 
-pub(super) async fn update_submission_from_entry(
+pub async fn update_submission_from_entry(
     kv: &dyn KeyValueStore,
     ns: &str,
     agent: &str,

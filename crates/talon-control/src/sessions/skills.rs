@@ -18,7 +18,7 @@ pub async fn active_skill_names(
     let Some(bytes) = kv.get(&key).await? else {
         return Ok(Vec::new());
     };
-    let session = crate::gateway::rpc::data_proto::Session::decode(bytes.as_slice())?;
+    let session = talon_protocol::data_proto::Session::decode(bytes.as_slice())?;
     Ok(session
         .skill_state
         .map(|state| state.active_names)
@@ -73,7 +73,7 @@ pub async fn persist_active_skill_context_digest(
         let Some(bytes) = kv.get(&key).await? else {
             return Ok(false);
         };
-        let mut session = crate::gateway::rpc::data_proto::Session::decode(bytes.as_slice())?;
+        let mut session = talon_protocol::data_proto::Session::decode(bytes.as_slice())?;
         if session
             .skill_state
             .as_ref()
@@ -115,7 +115,7 @@ where
             .get(&key)
             .await?
             .ok_or_else(|| anyhow!("session not found"))?;
-        let mut session = crate::gateway::rpc::data_proto::Session::decode(bytes.as_slice())?;
+        let mut session = talon_protocol::data_proto::Session::decode(bytes.as_slice())?;
         let mut active_skills = session
             .skill_state
             .as_ref()
@@ -144,10 +144,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::{keys, ProtoKeyValueStoreExt};
-    use crate::gateway::rpc::data_proto::{self, SessionSkillState, TokenCounter};
+    use crate::control::keys;
+    use crate::control::ProtoKeyValueStoreExt;
     use crate::test_support::MockKvStore;
     use std::sync::Arc;
+    use talon_protocol::data_proto;
+    use talon_protocol::data_proto::SessionSkillState;
+    use talon_protocol::data_proto::TokenCounter;
 
     async fn seed_session(kv: &MockKvStore) {
         kv.set_msg(
