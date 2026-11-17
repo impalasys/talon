@@ -13,15 +13,16 @@ use talon_client::v1::{ExchangeApiKeyRequest, ExchangeOidcTokenRequest};
 use talon_client::{GatewayClientOptions, GatewayTransport, TalonClient};
 use url::Url;
 
-use crate::control::security::platform_jwt;
-use crate::gateway::auth::{Claims, TalonGrantClaim};
+use talon_auth::Claims;
+use talon_auth::TalonGrantClaim;
+use talon_security::platform_jwt;
 
 use super::commands::Cli;
 
-pub(crate) const DEFAULT_TOKEN_TTL: &str = "5min";
+pub const DEFAULT_TOKEN_TTL: &str = "5min";
 
 #[derive(Debug, Serialize, Deserialize)]
-pub(crate) struct StoredGatewayAuth {
+pub struct StoredGatewayAuth {
     pub gateway: String,
     pub access_token: String,
     pub token_type: String,
@@ -52,7 +53,7 @@ const DEFAULT_GOOGLE_CLI_CLIENT_ID: Option<&str> = option_env!("TALON_GOOGLE_CLI
 // https://stackoverflow.com/questions/78438540/is-google-oauth-for-native-desktop-applications-mean-to-expose-the-client-secret
 const DEFAULT_GOOGLE_CLI_CLIENT_SECRET: Option<&str> = option_env!("TALON_GOOGLE_CLIENT_SECRET");
 
-pub(crate) fn resolve_gateway_api_key(cli: &Cli) -> Option<String> {
+pub fn resolve_gateway_api_key(cli: &Cli) -> Option<String> {
     cli.api_key
         .clone()
         .or_else(|| std::env::var("TALON_API_KEY").ok())
@@ -60,7 +61,7 @@ pub(crate) fn resolve_gateway_api_key(cli: &Cli) -> Option<String> {
         .filter(|value| !value.is_empty())
 }
 
-pub(crate) fn parse_api_key_grant(value: &str) -> Result<ApiKeyGrant> {
+pub fn parse_api_key_grant(value: &str) -> Result<ApiKeyGrant> {
     let mut parts = value
         .split(',')
         .map(str::trim)
@@ -105,7 +106,7 @@ impl StoredGatewayAuth {
     }
 }
 
-pub(crate) fn gateway_http_base(cli: &Cli) -> String {
+pub fn gateway_http_base(cli: &Cli) -> String {
     if let Ok(url) = std::env::var("TALON_GATEWAY_URL") {
         let trimmed = url.trim();
         if !trimmed.is_empty() {
@@ -130,7 +131,7 @@ fn gateway_http_base_from_endpoint(endpoint: &str) -> String {
     }
 }
 
-pub(crate) fn stored_auth_path() -> Result<PathBuf> {
+pub fn stored_auth_path() -> Result<PathBuf> {
     if let Ok(path) = std::env::var("TALON_AUTH_FILE") {
         if !path.trim().is_empty() {
             return Ok(PathBuf::from(path));
@@ -140,7 +141,7 @@ pub(crate) fn stored_auth_path() -> Result<PathBuf> {
     Ok(PathBuf::from(home).join(".talon").join("auth.json"))
 }
 
-pub(crate) fn load_stored_gateway_auth(cli: &Cli) -> Result<Option<StoredGatewayAuth>> {
+pub fn load_stored_gateway_auth(cli: &Cli) -> Result<Option<StoredGatewayAuth>> {
     let path = stored_auth_path()?;
     if !path.exists() {
         return Ok(None);
@@ -161,7 +162,7 @@ pub(crate) fn load_stored_gateway_auth(cli: &Cli) -> Result<Option<StoredGateway
     Ok(Some(auth))
 }
 
-pub(crate) fn save_stored_gateway_auth(auth: &StoredGatewayAuth) -> Result<()> {
+pub fn save_stored_gateway_auth(auth: &StoredGatewayAuth) -> Result<()> {
     let path = stored_auth_path()?;
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)
@@ -190,7 +191,7 @@ pub(crate) fn save_stored_gateway_auth(auth: &StoredGatewayAuth) -> Result<()> {
     Ok(())
 }
 
-pub(crate) fn clear_stored_gateway_auth() -> Result<bool> {
+pub fn clear_stored_gateway_auth() -> Result<bool> {
     let path = stored_auth_path()?;
     if !path.exists() {
         return Ok(false);
@@ -200,7 +201,7 @@ pub(crate) fn clear_stored_gateway_auth() -> Result<bool> {
     Ok(true)
 }
 
-pub(crate) async fn exchange_oidc_id_token(
+pub async fn exchange_oidc_id_token(
     cli: &Cli,
     id_token: &str,
     trust: Option<&str>,
@@ -248,7 +249,7 @@ pub(crate) async fn exchange_oidc_id_token(
     })
 }
 
-pub(crate) async fn exchange_api_key(cli: &Cli, api_key: &str) -> Result<StoredGatewayAuth> {
+pub async fn exchange_api_key(cli: &Cli, api_key: &str) -> Result<StoredGatewayAuth> {
     let base = gateway_http_base(cli);
     let requested_grant = cli
         .api_key_grant
@@ -293,7 +294,7 @@ pub(crate) async fn exchange_api_key(cli: &Cli, api_key: &str) -> Result<StoredG
     })
 }
 
-pub(crate) async fn login_with_google_loopback(
+pub async fn login_with_google_loopback(
     cli: &Cli,
     google_client_id: Option<&str>,
     google_client_secret: Option<&str>,
@@ -481,7 +482,7 @@ fn google_token_request_form<'a>(
     form
 }
 
-pub(crate) fn describe_stored_auth(cli: &Cli) -> Result<Option<String>> {
+pub fn describe_stored_auth(cli: &Cli) -> Result<Option<String>> {
     let Some(auth) = load_stored_gateway_auth(cli)? else {
         return Ok(None);
     };
@@ -511,14 +512,14 @@ fn decode_jwt_payload<T: for<'de> Deserialize<'de>>(token: &str) -> Result<T> {
     serde_json::from_slice(&bytes).context("stored token payload is not JSON")
 }
 
-pub(crate) struct LocalPlatformTokenScope<'a> {
-    pub(crate) namespace: Option<&'a str>,
-    pub(crate) agent: Option<&'a str>,
-    pub(crate) session: Option<&'a str>,
-    pub(crate) channel: Option<&'a str>,
+pub struct LocalPlatformTokenScope<'a> {
+    pub namespace: Option<&'a str>,
+    pub agent: Option<&'a str>,
+    pub session: Option<&'a str>,
+    pub channel: Option<&'a str>,
 }
 
-pub(crate) fn mint_local_platform_access_jwt(
+pub fn mint_local_platform_access_jwt(
     private_key_pem: &str,
     subject: &str,
     ttl_seconds: u64,
@@ -596,7 +597,7 @@ fn validate_local_platform_grant(grant: &ApiKeyGrant) -> Result<TalonGrantClaim>
     })
 }
 
-pub(crate) fn parse_ttl_seconds(value: &str) -> Result<u64> {
+pub fn parse_ttl_seconds(value: &str) -> Result<u64> {
     let value = value.trim();
     if value.is_empty() {
         anyhow::bail!("ttl cannot be empty");
@@ -632,7 +633,7 @@ pub(crate) fn parse_ttl_seconds(value: &str) -> Result<u64> {
     amount.checked_mul(multiplier).context("ttl is too large")
 }
 
-pub(crate) fn resolve_token_ttl_seconds(ttl: &str, ttl_seconds: Option<u64>) -> Result<u64> {
+pub fn resolve_token_ttl_seconds(ttl: &str, ttl_seconds: Option<u64>) -> Result<u64> {
     if let Some(ttl_seconds) = ttl_seconds {
         if ttl_seconds == 0 {
             anyhow::bail!("ttl-seconds must be greater than zero");
@@ -645,7 +646,7 @@ pub(crate) fn resolve_token_ttl_seconds(ttl: &str, ttl_seconds: Option<u64>) -> 
     parse_ttl_seconds(ttl)
 }
 
-pub(crate) fn validate_token_part<'a>(value: &'a str, name: &str) -> Result<&'a str> {
+pub fn validate_token_part<'a>(value: &'a str, name: &str) -> Result<&'a str> {
     let value = value.trim();
     if value.is_empty() {
         anyhow::bail!("{name} cannot be empty");
@@ -717,7 +718,7 @@ fn api_key_cache_hash(api_key: &str, grant: Option<&str>) -> String {
     general_purpose::URL_SAFE_NO_PAD.encode(hasher.finalize())
 }
 
-pub(crate) async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
+pub async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
     let gateway = cli.gateway_url();
     let mut options = GatewayClientOptions::new(gateway.clone());
     options.transport = if cli.grpc_web_enabled() {
@@ -741,12 +742,12 @@ mod tests {
         DEFAULT_GOOGLE_CLI_CLIENT_SECRET, DEFAULT_TOKEN_TTL,
     };
     use crate::cli::commands::Cli;
-    use crate::control::security::platform_jwt;
-    use crate::gateway::auth::Claims;
     use crate::test_support::TEST_RSA_PRIVATE_KEY;
     use clap::Parser;
     use std::ffi::OsString;
+    use talon_auth::Claims;
     use talon_client::data::ApiKeyGrant;
+    use talon_security::platform_jwt;
 
     struct EnvVarGuard {
         key: &'static str,

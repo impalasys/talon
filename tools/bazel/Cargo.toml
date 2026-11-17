@@ -18,6 +18,9 @@ aws-sdk-scheduler = { version = "=1.102.0" }
 aws-sdk-sqs = { version = "1.102" }
 base64 = { version = "0.21" }
 futures = { version = "0.3" }
+opentelemetry = { version = "0.32" }
+opentelemetry-otlp = { version = "0.32", default-features = false, features = ["grpc-tonic", "trace"] }
+opentelemetry_sdk = { version = "0.32" }
 pprof = { version = "0.15", features = ["flamegraph"] }
 rocksdb = { version = "0.24", default-features = false, features = ["bindgen-runtime", "lz4"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -27,4 +30,6 @@ tikv-jemallocator = { version = "0.7", features = ["profiling"] }
 time = { version = "0.3" }
 tokio = { version = "1.0", features = ["full"] }
 tracing = { version = "0.1" }
+tracing-opentelemetry = { version = "0.33" }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 urlencoding = { version = "2.1" }

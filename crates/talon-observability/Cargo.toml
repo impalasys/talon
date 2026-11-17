@@ -1,0 +1,26 @@
+[package]
+name = "talon-observability"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[features]
+cpu-profile = ["dep:pprof"]
+heap-profile = ["dep:tikv-jemallocator", "tikv-jemallocator/profiling", "dep:tikv-jemalloc-ctl", "tikv-jemalloc-ctl/profiling", "tikv-jemalloc-ctl/stats"]
+
+[dependencies]
+tikv-jemalloc-ctl =  { version = "0.7", optional = true }
+tikv-jemallocator =  { version = "0.7", optional = true }
+pprof =  { version = "0.15", features = ["flamegraph"], optional = true }
+anyhow =  "1.0"
+opentelemetry =  "0.32"
+opentelemetry-otlp =  { version = "0.32", default-features = false, features = ["grpc-tonic", "trace"] }
+opentelemetry_sdk =  "0.32"
+serde_json =  "1.0"
+tracing =  "0.1"
+tracing-opentelemetry =  "0.33"
+tracing-subscriber =  { version = "0.3", features = ["env-filter", "json"] }
+
+[dev-dependencies]
+talon-test-support = { path = "../talon-test-support" }

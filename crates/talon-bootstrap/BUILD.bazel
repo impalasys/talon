@@ -2,9 +2,38 @@ load("//crates:defs.bzl", "talon_crate")
 
 talon_crate(
     name = "talon_bootstrap",
-    deps = ["//crates/talon-storage-common:talon_storage_common", "//crates/talon-control:talon_control", "//crates/talon-contracts:talon_contracts", "//crates/talon-config:talon_config", "//crates/talon-identifiers:talon_identifiers", "//crates/talon-protocol:talon_protocol", "//crates/talon-storage-memory:talon_storage_memory", "//crates/talon-storage-sqlite:talon_storage_sqlite", "//crates/talon-storage-postgres:talon_storage_postgres", "//crates/talon-storage-objects:talon_storage_objects", "//crates/talon-storage-pubsub:talon_storage_pubsub", "//crates/talon-storage-cloud-tasks:talon_storage_cloud_tasks"] + select({"//:aws": ["//crates/talon-storage-dynamodb:talon_storage_dynamodb", "//crates/talon-storage-eventbridge:talon_storage_eventbridge", "//crates/talon-storage-sqs:talon_storage_sqs"], "//conditions:default": []}) + select({"//:rocksdb": ["//crates/talon-storage-rocksdb:talon_storage_rocksdb"], "//conditions:default": []}),
-    test_deps = ["//crates/talon-test-support:talon_test_support"],
     compile_data = ["//:runtime_data"],
-    crate_features = select({"//:aws": ["aws"], "//conditions:default": []}) + select({"//:rocksdb": ["rocksdb"], "//conditions:default": []}),
+    crate_features = select({
+        "//:aws": ["aws"],
+        "//conditions:default": [],
+    }) + select({
+        "//:rocksdb": ["rocksdb"],
+        "//conditions:default": [],
+    }),
+    test_deps = ["//crates/talon-test-support:talon_test_support"],
     unit_tests = True,
+    deps = [
+        "//crates/talon-config:talon_config",
+        "//crates/talon-contracts:talon_contracts",
+        "//crates/talon-control:talon_control",
+        "//crates/talon-identifiers:talon_identifiers",
+        "//crates/talon-protocol:talon_protocol",
+        "//crates/talon-storage-cloud-tasks:talon_storage_cloud_tasks",
+        "//crates/talon-storage-common:talon_storage_common",
+        "//crates/talon-storage-memory:talon_storage_memory",
+        "//crates/talon-storage-objects:talon_storage_objects",
+        "//crates/talon-storage-postgres:talon_storage_postgres",
+        "//crates/talon-storage-pubsub:talon_storage_pubsub",
+        "//crates/talon-storage-sqlite:talon_storage_sqlite",
+    ] + select({
+        "//:aws": [
+            "//crates/talon-storage-dynamodb:talon_storage_dynamodb",
+            "//crates/talon-storage-eventbridge:talon_storage_eventbridge",
+            "//crates/talon-storage-sqs:talon_storage_sqs",
+        ],
+        "//conditions:default": [],
+    }) + select({
+        "//:rocksdb": ["//crates/talon-storage-rocksdb:talon_storage_rocksdb"],
+        "//conditions:default": [],
+    }),
 )

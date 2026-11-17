@@ -3,7 +3,7 @@
 
 use prost::Message;
 
-pub(crate) fn transcode_proto<From, To>(value: &From) -> Result<To>
+pub fn transcode_proto<From, To>(value: &From) -> Result<To>
 where
     From: Message,
     To: Message + Default,
@@ -15,14 +15,14 @@ where
     To::decode(bytes.as_slice()).context("Failed to decode protobuf message")
 }
 
-pub(crate) fn to_sdk_resource_manifest(
-    manifest: &crate::gateway::rpc::resources_proto::ResourceManifest,
+pub fn to_sdk_resource_manifest(
+    manifest: &talon_protocol::resources_proto::ResourceManifest,
 ) -> Result<talon_client::resources::ResourceManifest> {
     transcode_proto(manifest)
 }
 
-pub(crate) fn to_internal_resource(
+pub fn to_internal_resource(
     resource: &talon_client::resources::Resource,
-) -> Result<crate::gateway::rpc::resources_proto::Resource> {
+) -> Result<talon_protocol::resources_proto::Resource> {
     transcode_proto(resource)
 }

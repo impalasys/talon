@@ -2,7 +2,12 @@ load("//crates:defs.bzl", "talon_crate")
 
 talon_crate(
     name = "talon_storage_postgres",
-    deps = ["//crates/talon-storage-common:talon_storage_common", "//crates/talon-contracts:talon_contracts", "//crates/talon-protocol:talon_protocol", "//crates/talon-config:talon_config"],
     test_deps = ["//crates/talon-test-support:talon_test_support"],
     unit_tests = True,
+    deps = [
+        "//crates/talon-config:talon_config",
+        "//crates/talon-contracts:talon_contracts",
+        "//crates/talon-protocol:talon_protocol",
+        "//crates/talon-storage-common:talon_storage_common",
+    ],
 )

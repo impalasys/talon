@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-pub(super) fn agent_lookup_target(name: &str, namespace: Option<&String>) -> (String, String) {
+pub fn agent_lookup_target(name: &str, namespace: Option<&String>) -> (String, String) {
     let mut parts = name.splitn(2, '/');
     let ns_part = parts.next().unwrap_or("default");
     let agent_name = parts.next().unwrap_or(ns_part);
@@ -16,7 +16,7 @@ pub(super) fn agent_lookup_target(name: &str, namespace: Option<&String>) -> (St
     (final_ns, final_name)
 }
 
-pub(super) fn resource_lookup_target(
+pub fn resource_lookup_target(
     kind: &str,
     name: &str,
     namespace: Option<&String>,
@@ -35,8 +35,8 @@ pub(super) fn resource_lookup_target(
             .with_context(|| format!("{} requires --namespace", resource.kind))?,
         "system" => namespace
             .cloned()
-            .unwrap_or_else(|| crate::control::ns::TALON_SYSTEM.to_string()),
-        "system_fixed" => crate::control::ns::TALON_SYSTEM.to_string(),
+            .unwrap_or_else(|| talon_identifiers::ns::TALON_SYSTEM.to_string()),
+        "system_fixed" => talon_identifiers::ns::TALON_SYSTEM.to_string(),
         policy => anyhow::bail!(
             "Unsupported lookup namespace policy '{}'; check resource registry",
             policy

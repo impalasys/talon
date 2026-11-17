@@ -2,7 +2,14 @@ load("//crates:defs.bzl", "talon_crate")
 
 talon_crate(
     name = "talon_sandbox",
-    deps = ["//crates/talon-control:talon_control", "//crates/talon-config:talon_config", "//crates/talon-contracts:talon_contracts", "//crates/talon-protocol:talon_protocol", "//crates/talon-security:talon_security", "//crates/talon-identifiers:talon_identifiers"],
     test_deps = ["//crates/talon-test-support:talon_test_support"],
     unit_tests = True,
+    deps = [
+        "//crates/talon-config:talon_config",
+        "//crates/talon-contracts:talon_contracts",
+        "//crates/talon-control:talon_control",
+        "//crates/talon-identifiers:talon_identifiers",
+        "//crates/talon-protocol:talon_protocol",
+        "//crates/talon-security:talon_security",
+    ],
 )

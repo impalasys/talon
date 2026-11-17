@@ -9,23 +9,26 @@ struct ResourceKindRegistry {
 }
 
 #[derive(Debug, Deserialize)]
-pub(super) struct ResourceKindSpec {
-    pub(super) kind: String,
-    pub(super) aliases: Vec<String>,
-    pub(super) apply_route: String,
-    pub(super) lookup_namespace: String,
-    pub(super) list_namespace: String,
-    pub(super) name_policy: String,
-    pub(super) user_authorable: bool,
-    pub(super) cli_lookup: bool,
-    pub(super) cli_list: bool,
+pub struct ResourceKindSpec {
+    pub kind: String,
+    pub aliases: Vec<String>,
+    pub apply_route: String,
+    pub lookup_namespace: String,
+    pub list_namespace: String,
+    pub name_policy: String,
+    pub user_authorable: bool,
+    pub cli_lookup: bool,
+    pub cli_list: bool,
 }
 
 fn resource_registry() -> &'static [ResourceKindSpec] {
     static REGISTRY: OnceLock<Vec<ResourceKindSpec>> = OnceLock::new();
     REGISTRY
         .get_or_init(|| {
-            let config = include_str!("../../proto/resources.toml");
+            let config = include_str!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../../proto/resources.toml"
+            ));
             toml::from_str::<ResourceKindRegistry>(config)
                 .expect("proto/resources.toml must be valid")
                 .resource
@@ -33,7 +36,7 @@ fn resource_registry() -> &'static [ResourceKindSpec] {
         .as_slice()
 }
 
-pub(super) fn resource_kind(input: &str) -> Option<&'static ResourceKindSpec> {
+pub fn resource_kind(input: &str) -> Option<&'static ResourceKindSpec> {
     let input = input.to_ascii_lowercase();
     resource_registry().iter().find(|resource| {
         resource.kind.to_ascii_lowercase() == input
@@ -44,7 +47,7 @@ pub(super) fn resource_kind(input: &str) -> Option<&'static ResourceKindSpec> {
     })
 }
 
-pub(super) fn canonical_resource_kind(input: &str) -> Option<&'static str> {
+pub fn canonical_resource_kind(input: &str) -> Option<&'static str> {
     resource_kind(input).map(|resource| resource.kind.as_str())
 }
 

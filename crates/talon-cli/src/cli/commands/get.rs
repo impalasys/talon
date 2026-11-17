@@ -5,36 +5,38 @@ use anyhow::{Context, Result};
 use serde_json::json;
 
 use super::Cli;
-use crate::cli::{connect_gateway, resource_lookup_target, to_internal_resource};
-use crate::gateway::rpc::resources_proto;
+use crate::cli::connect_gateway;
+use crate::cli::resource_lookup_target;
+use crate::cli::to_internal_resource;
 use talon_client::v1::{GetResourceRequest, ListNamespacesRequest, ListResourcesRequest};
+use talon_protocol::resources_proto;
 
 #[derive(clap::Args)]
-pub(crate) struct GetCommand {
+pub struct GetCommand {
     /// Type of resource to get, such as agent, skill, template, or workflow.
     #[arg(value_name = "KIND")]
-    pub(crate) kind: String,
+    pub kind: String,
     /// Name of the resource. Omit to list resources of this kind.
     ///
     /// Channel subscriptions use '<channel>/<subscription>'.
     #[arg(value_name = "NAME")]
-    pub(crate) name: Option<String>,
+    pub name: Option<String>,
     /// Namespace of the resource
     #[arg(short, long)]
-    pub(crate) namespace: Option<String>,
+    pub namespace: Option<String>,
     /// Output format. Defaults to table for lists and yaml for single resources.
     #[arg(short, long, value_enum)]
-    pub(crate) output: Option<GetOutput>,
+    pub output: Option<GetOutput>,
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
-pub(crate) enum GetOutput {
+pub enum GetOutput {
     Table,
     Yaml,
     Json,
 }
 
-pub(super) async fn run(cli: &Cli, command: &GetCommand) -> Result<()> {
+pub async fn run(cli: &Cli, command: &GetCommand) -> Result<()> {
     let Some(name) = command.name.as_ref() else {
         let output = match command.output.unwrap_or(GetOutput::Table) {
             GetOutput::Table => {
@@ -78,7 +80,7 @@ enum ResourceListTarget {
 
 fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<ResourceListTarget> {
     let ns_or_default = || namespace.cloned().unwrap_or_else(|| "default".to_string());
-    let system_ns = || crate::control::ns::TALON_SYSTEM.to_string();
+    let system_ns = || talon_identifiers::ns::TALON_SYSTEM.to_string();
     match kind.to_lowercase().as_str() {
         "resource" | "resources" | "all" => Ok(ResourceListTarget::Resources {
             ns: ns_or_default(),
@@ -133,7 +135,7 @@ async fn get_yaml(cli: &Cli, kind: &str, name: &str, namespace: Option<&String>)
         })?;
     let resource = resp.into_inner().resource.context("Resource not found.")?;
     let resource = to_internal_resource(&resource)?;
-    crate::control::manifest::render_resource_yaml(&resource)
+    talon_protocol::manifest::render_resource_yaml(&resource)
 }
 
 async fn get_json(
@@ -378,7 +380,7 @@ fn resources_list_json(resources: Vec<resources_proto::Resource>) -> Result<serd
 }
 
 fn resource_manifest_json(resource: &resources_proto::Resource) -> Result<serde_json::Value> {
-    let yaml = crate::control::manifest::render_resource_yaml(resource)?;
+    let yaml = talon_protocol::manifest::render_resource_yaml(resource)?;
     let yaml_value: serde_yaml::Value =
         serde_yaml::from_str(&yaml).context("Failed to parse rendered resource YAML")?;
     serde_json::to_value(yaml_value).context("Failed to convert rendered resource YAML to JSON")

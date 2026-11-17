@@ -4,11 +4,12 @@
 use anyhow::{Context, Result};
 
 use super::{Cli, RunOutcome};
-use crate::cli::{connect_gateway, resource_lookup_target};
+use crate::cli::connect_gateway;
+use crate::cli::resource_lookup_target;
 use talon_client::v1::DeleteResourceRequest;
 
 #[derive(clap::Args)]
-pub(crate) struct DeleteCommand {
+pub struct DeleteCommand {
     /// Type of resource to delete, such as agent, skill, template, or workflow.
     #[arg(value_name = "KIND")]
     kind: String,
@@ -22,7 +23,7 @@ pub(crate) struct DeleteCommand {
     namespace: Option<String>,
 }
 
-pub(super) async fn run(cli: &Cli, command: &DeleteCommand) -> Result<RunOutcome> {
+pub async fn run(cli: &Cli, command: &DeleteCommand) -> Result<RunOutcome> {
     let mut client = connect_gateway(cli).await?;
 
     let (ns, kind, name) =

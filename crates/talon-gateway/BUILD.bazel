@@ -2,8 +2,24 @@ load("//crates:defs.bzl", "talon_crate")
 
 talon_crate(
     name = "talon_gateway",
-    deps = ["//crates/talon-control:talon_control", "//crates/talon-contracts:talon_contracts", "//crates/talon-config:talon_config", "//crates/talon-protocol:talon_protocol", "//crates/talon-auth:talon_auth", "//crates/talon-connectors:talon_connectors", "//crates/talon-identifiers:talon_identifiers", "//crates/talon-security:talon_security"],
-    test_deps = ["//crates/talon-test-support:talon_test_support", "//crates/talon-session-control:talon_session_control", "//crates/talon-fanout:talon_fanout"],
-    compile_data = ["//:runtime_data", "//:src/control/security/test_rsa_private_key.pem"],
+    compile_data = [
+        "//:runtime_data",
+        "//:src/control/security/test_rsa_private_key.pem",
+    ],
+    test_deps = [
+        "//crates/talon-fanout:talon_fanout",
+        "//crates/talon-session-control:talon_session_control",
+        "//crates/talon-test-support:talon_test_support",
+    ],
     unit_tests = True,
+    deps = [
+        "//crates/talon-auth:talon_auth",
+        "//crates/talon-config:talon_config",
+        "//crates/talon-connectors:talon_connectors",
+        "//crates/talon-contracts:talon_contracts",
+        "//crates/talon-control:talon_control",
+        "//crates/talon-identifiers:talon_identifiers",
+        "//crates/talon-protocol:talon_protocol",
+        "//crates/talon-security:talon_security",
+    ],
 )

@@ -2,8 +2,17 @@ load("//crates:defs.bzl", "talon_crate")
 
 talon_crate(
     name = "talon_workflows",
-    deps = ["//crates/talon-control:talon_control", "//crates/talon-contracts:talon_contracts", "//crates/talon-config:talon_config", "//crates/talon-protocol:talon_protocol", "//crates/talon-harness:talon_harness", "//crates/talon-connectors:talon_connectors", "//crates/talon-fanout:talon_fanout", "//crates/talon-identifiers:talon_identifiers"],
-    test_deps = ["//crates/talon-test-support:talon_test_support"],
     compile_data = ["//:runtime_data"],
+    test_deps = ["//crates/talon-test-support:talon_test_support"],
     unit_tests = True,
+    deps = [
+        "//crates/talon-config:talon_config",
+        "//crates/talon-connectors:talon_connectors",
+        "//crates/talon-contracts:talon_contracts",
+        "//crates/talon-control:talon_control",
+        "//crates/talon-fanout:talon_fanout",
+        "//crates/talon-harness:talon_harness",
+        "//crates/talon-identifiers:talon_identifiers",
+        "//crates/talon-protocol:talon_protocol",
+    ],
 )

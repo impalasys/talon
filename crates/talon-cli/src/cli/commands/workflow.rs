@@ -16,7 +16,7 @@ use talon_client::v1::{
 };
 
 #[derive(Args)]
-pub(crate) struct WorkflowCommand {
+pub struct WorkflowCommand {
     #[command(subcommand)]
     command: WorkflowCommands,
 }
@@ -78,7 +78,7 @@ enum WorkflowCommands {
     },
 }
 
-pub(super) async fn run(cli: &Cli, command: &WorkflowCommand) -> Result<RunOutcome> {
+pub async fn run(cli: &Cli, command: &WorkflowCommand) -> Result<RunOutcome> {
     match &command.command {
         WorkflowCommands::RunCreate {
             namespace,

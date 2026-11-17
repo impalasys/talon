@@ -20,7 +20,7 @@ const MAX_SIGNED_URL_DOWNLOAD_BYTES: u64 = 512 * 1024 * 1024;
 const MAX_UNARY_FILE_UPLOAD_BYTES: u64 = 3 * 1024 * 1024;
 
 #[derive(Args)]
-pub(crate) struct FileCommand {
+pub struct FileCommand {
     #[command(subcommand)]
     command: FileCommands,
 }
@@ -96,7 +96,7 @@ enum FileCommands {
     },
 }
 
-pub(super) async fn run(cli: &Cli, command: &FileCommand) -> Result<RunOutcome> {
+pub async fn run(cli: &Cli, command: &FileCommand) -> Result<RunOutcome> {
     match &command.command {
         FileCommands::Put {
             namespace,

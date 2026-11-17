@@ -2,7 +2,11 @@ load("//crates:defs.bzl", "talon_crate")
 
 talon_crate(
     name = "talon_storage_sqlite",
-    deps = ["//crates/talon-storage-common:talon_storage_common", "//crates/talon-contracts:talon_contracts", "//crates/talon-protocol:talon_protocol"],
     test_deps = ["//crates/talon-test-support:talon_test_support"],
     unit_tests = True,
+    deps = [
+        "//crates/talon-contracts:talon_contracts",
+        "//crates/talon-protocol:talon_protocol",
+        "//crates/talon-storage-common:talon_storage_common",
+    ],
 )

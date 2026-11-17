@@ -40,7 +40,7 @@ py_test(
 
 py_test(
     name = "linux_build_test",
-    srcs = ["affected_targets.py", "linux_build.py", "linux_pilot.py", "test_linux_build.py"],
+    srcs = ["affected_targets.py", "buildbuddy_api.py", "fetch_ci_artifacts.py", "linux_build.py", "linux_pilot.py", "test_linux_build.py"],
     data = ["linux-pilot-packages.txt", "//bench:ci_benchmark.sh"],
     imports = ["."],
     main = "test_linux_build.py",

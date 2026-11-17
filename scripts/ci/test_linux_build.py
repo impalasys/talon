@@ -1,4 +1,5 @@
 import contextlib
+import gzip
 import io
 import json
 import os
@@ -8,9 +9,32 @@ import tempfile
 import unittest
 from unittest.mock import patch
 import linux_build as runner
+import fetch_ci_artifacts as collector
 
 
 class RunnerTest(unittest.TestCase):
+    def test_image_handoff_is_lossless_and_compatible_with_plain_tar_collector(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / 'bazel-bin/dockerfiles/runtime_image/tarball.tar'
+            source.parent.mkdir(parents=True)
+            image = b'image payload' * 100_000
+            source.write_bytes(image)
+            artifacts = root / 'artifacts'
+            artifacts.mkdir()
+            previous = Path.cwd()
+            manifest = {'targets': ['//dockerfiles:runtime_tar'], 'tests': []}
+            try:
+                os.chdir(root)
+                runner.export(artifacts, manifest)
+            finally:
+                os.chdir(previous)
+            extracted = root / 'collected'
+            collector.unpack(artifacts / 'handoff.tar', extracted, manifest['files'])
+            exported = extracted / 'images/runtime.tar'
+            self.assertEqual(gzip.decompress(exported.read_bytes()), image)
+            self.assertLess(exported.stat().st_size, len(image))
+
     def test_read_only_bazel_output_can_be_exported_and_cleaned_up(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

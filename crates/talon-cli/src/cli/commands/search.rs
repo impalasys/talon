@@ -11,7 +11,7 @@ use talon_client::v1::{
 };
 
 #[derive(Args)]
-pub(crate) struct SearchCommand {
+pub struct SearchCommand {
     #[command(subcommand)]
     command: SearchCommands,
 }
@@ -58,7 +58,7 @@ enum SearchCommands {
     },
 }
 
-pub(super) async fn run(cli: &Cli, command: &SearchCommand) -> Result<RunOutcome> {
+pub async fn run(cli: &Cli, command: &SearchCommand) -> Result<RunOutcome> {
     let mut client = connect_gateway(cli).await?;
     match &command.command {
         SearchCommands::Workspace {

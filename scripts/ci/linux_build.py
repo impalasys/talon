@@ -2,6 +2,7 @@
 """One Linux CI runner: affected PR targets, full compatible monorepo on main."""
 import argparse
 import hashlib
+import gzip
 import json
 import os
 from pathlib import Path
@@ -116,7 +117,13 @@ def export(output, result):
             source = Path('bazel-bin/dockerfiles') / (name + '_image') / 'tarball.tar'
             target = handoff / 'images' / (name + '.tar')
             target.parent.mkdir(exist_ok=True)
-            shutil.copyfile(source, target)
+            # The trusted collector expects these names inside a plain outer tar.
+            # docker load detects gzip by content; image bytes are preserved exactly.
+            with source.open('rb') as raw, target.open('wb') as compressed:
+                with gzip.GzipFile(filename='', mode='wb', fileobj=compressed,
+                                   compresslevel=1, mtime=0) as stream:
+                    shutil.copyfileobj(raw, stream, length=1024**2)
+            print(f'Image handoff {name}: {source.stat().st_size} -> {target.stat().st_size} bytes', flush=True)
     if '//:release-dist' in selected:
         copy_tree(Path('bazel-bin/release-dist'), handoff / 'release')
     if '//packages/talon-chat:storybook' in selected:

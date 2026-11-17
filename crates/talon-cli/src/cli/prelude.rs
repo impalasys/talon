@@ -13,7 +13,7 @@ mod commands;
 
 use commands::Cli;
 
-pub(super) use auth::{
+pub use auth::{
     clear_stored_gateway_auth, connect_gateway, describe_stored_auth, exchange_oidc_id_token,
     login_with_google_loopback, mint_local_platform_access_jwt, parse_api_key_grant,
     resolve_token_ttl_seconds, save_stored_gateway_auth, LocalPlatformTokenScope,

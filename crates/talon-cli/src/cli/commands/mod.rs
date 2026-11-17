@@ -13,53 +13,53 @@ mod search;
 mod session;
 mod workflow;
 
-pub(crate) use apply::ApplyCommand;
-pub(crate) use auth::AuthCommand;
-pub(crate) use delete::DeleteCommand;
-pub(crate) use file::FileCommand;
-pub(crate) use gen::GenCommand;
-pub(crate) use get::GetCommand;
-pub(crate) use knowledge::KnowledgeCommand;
-pub(crate) use render::RenderCommand;
-pub(crate) use search::SearchCommand;
-pub(crate) use session::SessionCommand;
-pub(crate) use workflow::WorkflowCommand;
+pub use apply::ApplyCommand;
+pub use auth::AuthCommand;
+pub use delete::DeleteCommand;
+pub use file::FileCommand;
+pub use gen::GenCommand;
+pub use get::GetCommand;
+pub use knowledge::KnowledgeCommand;
+pub use render::RenderCommand;
+pub use search::SearchCommand;
+pub use session::SessionCommand;
+pub use workflow::WorkflowCommand;
 
 use clap::{Parser, Subcommand};
 
-pub(crate) const DEFAULT_GRPC_GATEWAY: &str = "grpc.talon.impala.systems";
-pub(crate) const DEFAULT_GRPC_WEB_GATEWAY: &str = "talon.impala.systems";
+pub const DEFAULT_GRPC_GATEWAY: &str = "grpc.talon.impala.systems";
+pub const DEFAULT_GRPC_WEB_GATEWAY: &str = "talon.impala.systems";
 
 #[derive(Parser)]
 #[command(name = "talon-cli")]
 #[command(about = "Administration CLI for the Talon system", long_about = None)]
-pub(crate) struct Cli {
+pub struct Cli {
     /// gRPC gateway address (defaults to grpc.talon.impala.systems, or talon.impala.systems with --grpc-web)
     #[arg(long)]
-    pub(crate) gateway: Option<String>,
+    pub gateway: Option<String>,
 
     /// Gateway bearer token.
     #[arg(long)]
-    pub(crate) token: Option<String>,
+    pub token: Option<String>,
 
     /// Talon API key to exchange for a short-lived bearer token.
     #[arg(long)]
-    pub(crate) api_key: Option<String>,
+    pub api_key: Option<String>,
 
     /// Grant to request when exchanging a multi-grant API key.
     #[arg(long)]
-    pub(crate) api_key_grant: Option<String>,
+    pub api_key_grant: Option<String>,
 
     /// Use gRPC-Web over HTTP/1.1 instead of native gRPC.
     #[arg(long, default_value_t = false)]
-    pub(crate) grpc_web: bool,
+    pub grpc_web: bool,
 
     #[command(subcommand)]
-    pub(crate) command: Commands,
+    pub command: Commands,
 }
 
 impl Cli {
-    pub(crate) fn gateway_url(&self) -> String {
+    pub fn gateway_url(&self) -> String {
         if let Some(gateway) = self.gateway.as_ref() {
             return gateway.clone();
         }
@@ -76,7 +76,7 @@ impl Cli {
         }
     }
 
-    pub(crate) fn grpc_web_enabled(&self) -> bool {
+    pub fn grpc_web_enabled(&self) -> bool {
         self.grpc_web
             || std::env::var("TALON_GRPC_WEB")
                 .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
@@ -85,7 +85,7 @@ impl Cli {
 }
 
 #[derive(Subcommand)]
-pub(crate) enum Commands {
+pub enum Commands {
     /// Mint scoped auth tokens for clients.
     Auth(AuthCommand),
     /// Manage namespace knowledge artifacts directly by path.
@@ -118,11 +118,11 @@ pub(crate) enum Commands {
 
 use anyhow::Result;
 
-pub(super) struct RunOutcome {
-    pub(super) exit_code: Option<i32>,
+pub struct RunOutcome {
+    pub exit_code: Option<i32>,
 }
 
-pub(super) async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
+pub async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
     match &cli.command {
         Commands::Auth(command) => return auth::run(cli, command).await,
         Commands::Knowledge(command) => return knowledge::run(cli, command).await,

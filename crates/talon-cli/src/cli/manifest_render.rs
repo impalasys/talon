@@ -1,9 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::manifest::templating::render_cli_manifest_template;
+use talon_protocol::manifest::templating::render_cli_manifest_template;
 
-pub(super) fn parse_raw_manifest(content: &str) -> Result<crate::control::manifest::RawManifest> {
+pub fn parse_raw_manifest(content: &str) -> Result<talon_protocol::manifest::RawManifest> {
     serde_yaml::from_str(content).context("Failed to parse manifest YAML")
 }
 
@@ -20,7 +20,7 @@ struct KnowledgeSpecFile {
     content_from_file: Option<String>,
 }
 
-pub(super) fn render_manifest_file(file: &str, vars: &[String]) -> Result<String> {
+pub fn render_manifest_file(file: &str, vars: &[String]) -> Result<String> {
     let content = fs::read_to_string(file)
         .with_context(|| format!("Failed to read manifest file: {}", file))?;
     let vars = parse_vars(vars)?;
@@ -43,7 +43,7 @@ fn resolve_manifest_sources(file: &str, rendered: &str) -> Result<String> {
         }
 
         if manifest.is_mapping() {
-            let raw: crate::control::manifest::RawManifest =
+            let raw: talon_protocol::manifest::RawManifest =
                 serde_yaml::from_value(manifest.clone())
                     .context("Failed to parse manifest YAML")?;
             if raw.kind == "Knowledge" {

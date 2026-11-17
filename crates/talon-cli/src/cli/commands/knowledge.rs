@@ -8,16 +8,20 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use super::{Cli, RunOutcome};
-use crate::cli::{connect_gateway, to_internal_resource, to_sdk_resource_manifest};
-use crate::control::resource_model;
-use crate::gateway::rpc::manifests::{Knowledge, KnowledgeSpec, ObjectMeta};
-use crate::gateway::rpc::resources_proto;
+use crate::cli::connect_gateway;
+use crate::cli::to_internal_resource;
+use crate::cli::to_sdk_resource_manifest;
 use talon_client::v1::{
     CreateResourceRequest, DeleteResourceRequest, GetResourceRequest, ListResourcesRequest,
 };
+use talon_protocol::manifests::Knowledge;
+use talon_protocol::manifests::KnowledgeSpec;
+use talon_protocol::manifests::ObjectMeta;
+use talon_protocol::resource_model;
+use talon_protocol::resources_proto;
 
 #[derive(Args)]
-pub(crate) struct KnowledgeCommand {
+pub struct KnowledgeCommand {
     #[command(subcommand)]
     command: KnowledgeCommands,
 }
@@ -58,7 +62,7 @@ enum KnowledgeCommands {
     },
 }
 
-pub(super) async fn run(cli: &Cli, command: &KnowledgeCommand) -> Result<RunOutcome> {
+pub async fn run(cli: &Cli, command: &KnowledgeCommand) -> Result<RunOutcome> {
     match &command.command {
         KnowledgeCommands::Get { namespace, path } => {
             let knowledge = knowledge_get(cli, namespace, path).await?;
