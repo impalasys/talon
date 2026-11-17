@@ -1,0 +1,20 @@
+[package]
+name = "talon-storage-sqs"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[dependencies]
+anyhow =  "1.0"
+async-trait =  "0.1"
+aws-config =  "1.8"
+aws-sdk-sqs =  { version = "1.102" }
+base64 =  "0.21"
+futures =  "0.3"
+tokio =  { version = "1.0", features = ["full"] }
+talon-contracts = { path = "../talon-contracts" }
+
+[dev-dependencies]
+talon-test-support = { path = "../talon-test-support" }
+tokio =  { version = "1.0", features = ["test-util"] }

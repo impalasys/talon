@@ -10,10 +10,21 @@ publish = false
 path = "features.rs"
 
 [dependencies]
+anyhow = { version = "1.0" }
+async-trait = { version = "0.1" }
+aws-config = { version = "1.8" }
 aws-sdk-dynamodb = { version = "1.103" }
 aws-sdk-scheduler = { version = "=1.102.0" }
 aws-sdk-sqs = { version = "1.102" }
+base64 = { version = "0.21" }
+futures = { version = "0.3" }
 pprof = { version = "0.15", features = ["flamegraph"] }
-rocksdb = { version = "0.24", default-features = false, features = ["lz4", "bindgen-runtime"] }
+rocksdb = { version = "0.24", default-features = false, features = ["bindgen-runtime", "lz4"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
 tikv-jemalloc-ctl = { version = "0.7", features = ["profiling", "stats"] }
 tikv-jemallocator = { version = "0.7", features = ["profiling"] }
+time = { version = "0.3" }
+tokio = { version = "1.0", features = ["full"] }
+tracing = { version = "0.1" }
+urlencoding = { version = "2.1" }

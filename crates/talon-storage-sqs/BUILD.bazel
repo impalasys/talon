@@ -1,0 +1,8 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "talon_storage_sqs",
+    deps = ["//crates/talon-contracts:talon_contracts"],
+    test_deps = ["//crates/talon-test-support:talon_test_support"],
+    unit_tests = True,
+)

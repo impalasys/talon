@@ -1,0 +1,14 @@
+[package]
+name = "talon-storage-common"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[dependencies]
+anyhow =  "1.0"
+talon-contracts = { path = "../talon-contracts" }
+talon-identifiers = { path = "../talon-identifiers" }
+
+[dev-dependencies]
+talon-test-support = { path = "../talon-test-support" }

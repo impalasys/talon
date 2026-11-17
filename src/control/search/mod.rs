@@ -1,12 +1,12 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-pub mod disabled;
-pub mod ephemeral;
+pub use talon_storage_memory::search::disabled;
+pub use talon_storage_memory::search::ephemeral;
 mod events;
 pub mod mapper;
-pub mod postgres;
-pub mod sqlite;
+pub use talon_storage_postgres::search::postgres;
+pub use talon_storage_sqlite::search::sqlite;
 pub mod store;
 
 pub use disabled::{disabled_document_store, DisabledDocumentStore};
