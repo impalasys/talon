@@ -484,7 +484,7 @@ impl KeyValueStore for RocksDbKvStore {
 #[cfg(test)]
 mod tests {
     use super::RocksDbKvStore;
-    use crate::control::{keys, KeyValueStore, Order};
+    use crate::control::{keys, KeyValueStore, ListOptions, Order};
     use tempfile::{tempdir, TempDir};
 
     async fn test_store() -> (TempDir, RocksDbKvStore) {

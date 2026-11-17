@@ -6873,6 +6873,7 @@ dependencies = [
  "sqlx",
  "sse-stream",
  "talon-client",
+ "talon-identifiers",
  "tempfile",
  "tikv-jemalloc-ctl",
  "tikv-jemallocator",
@@ -6923,6 +6924,15 @@ dependencies = [
  "tokio",
  "tonic 0.12.3",
  "tonic-web",
+]
+
+[[package]]
+name = "talon-identifiers"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "sha2 0.10.9",
+ "urlencoding",
 ]
 
 [[package]]

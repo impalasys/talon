@@ -931,15 +931,29 @@ mod tests {
         assert_eq!(captured.body, br#"{"runner":true}"#.to_vec());
         server.await.expect("server should finish");
 
-        let row = sqlx::query(&format!(
-            "SELECT delivered_at_micros FROM {} WHERE handle = $1",
-            backend.table
-        ))
-        .bind(&handle)
-        .fetch_one(&backend.pool)
+        // Receiving the HTTP request precedes the runner's database update.
+        // Wait for that acknowledgement rather than racing its nullable column.
+        tokio::time::timeout(Duration::from_secs(4), async {
+            loop {
+                let row = sqlx::query(&format!(
+                    "SELECT delivered_at_micros FROM {} WHERE handle = $1",
+                    backend.table
+                ))
+                .bind(&handle)
+                .fetch_one(&backend.pool)
+                .await
+                .expect("delivered row should load");
+                if let Some(delivered_at) = row
+                    .try_get::<Option<i64>, _>("delivered_at_micros")
+                    .unwrap()
+                {
+                    assert!(delivered_at > 0);
+                    break;
+                }
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+        })
         .await
-        .expect("delivered row should load");
-        let delivered_at: i64 = row.try_get("delivered_at_micros").unwrap();
-        assert!(delivered_at > 0);
+        .expect("runner should record delivery after the HTTP response");
     }
 }

@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::ns;
+use crate::ns;
 use anyhow::{anyhow, bail, Result};
 use sha2::{Digest, Sha256};
 use std::fmt;
