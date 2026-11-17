@@ -2,7 +2,7 @@ load("//crates:defs.bzl", "talon_crate")
 
 talon_crate(
     name = "talon_monty",
-    deps = [],
     test_deps = ["//crates/talon-test-support:talon_test_support"],
     unit_tests = True,
+    deps = [],
 )

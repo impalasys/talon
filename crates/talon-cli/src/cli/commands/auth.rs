@@ -8,15 +8,19 @@ use talon_client::data::ApiKeyGrant;
 use talon_client::v1::{CreateApiKeyRequest, ListApiKeysRequest, RevokeApiKeyRequest};
 
 use super::{Cli, RunOutcome};
-use crate::cli::{
-    clear_stored_gateway_auth, describe_stored_auth, exchange_oidc_id_token,
-    login_with_google_loopback, mint_local_platform_access_jwt, parse_api_key_grant,
-    resolve_token_ttl_seconds, save_stored_gateway_auth, LocalPlatformTokenScope,
-    DEFAULT_TOKEN_TTL,
-};
+use crate::cli::clear_stored_gateway_auth;
+use crate::cli::describe_stored_auth;
+use crate::cli::exchange_oidc_id_token;
+use crate::cli::login_with_google_loopback;
+use crate::cli::mint_local_platform_access_jwt;
+use crate::cli::parse_api_key_grant;
+use crate::cli::resolve_token_ttl_seconds;
+use crate::cli::save_stored_gateway_auth;
+use crate::cli::LocalPlatformTokenScope;
+use crate::cli::DEFAULT_TOKEN_TTL;
 
 #[derive(Args)]
-pub(crate) struct AuthCommand {
+pub struct AuthCommand {
     #[command(subcommand)]
     command: AuthCommands,
 }
@@ -102,7 +106,7 @@ enum ApiKeyCommands {
     Revoke { id: String },
 }
 
-pub(super) async fn run(cli: &Cli, command: &AuthCommand) -> Result<RunOutcome> {
+pub async fn run(cli: &Cli, command: &AuthCommand) -> Result<RunOutcome> {
     let token = match &command.command {
         AuthCommands::Login {
             id_token,

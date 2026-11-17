@@ -18,7 +18,7 @@ use talon_client::v1::{
 };
 
 #[derive(Args)]
-pub(crate) struct SessionCommand {
+pub struct SessionCommand {
     #[command(subcommand)]
     command: SessionCommands,
 }
@@ -166,7 +166,7 @@ enum PermissionCommands {
     },
 }
 
-pub(super) async fn run(cli: &Cli, command: &SessionCommand) -> Result<RunOutcome> {
+pub async fn run(cli: &Cli, command: &SessionCommand) -> Result<RunOutcome> {
     match &command.command {
         SessionCommands::Create {
             namespace,

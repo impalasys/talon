@@ -1,0 +1,25 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "talon_cli",
+    compile_data = [
+        "//:proto/resources.toml",
+        "//:runtime_data",
+    ],
+    test_deps = ["//crates/talon-test-support:talon_test_support"],
+    unit_tests = True,
+    deps = [
+        "//crates/talon-auth:talon_auth",
+        "//crates/talon-contracts:talon_contracts",
+        "//crates/talon-identifiers:talon_identifiers",
+        "//crates/talon-protocol:talon_protocol",
+        "//crates/talon-security:talon_security",
+        "//sdk/rust/talon-client:talon_client",
+    ],
+)
+
+filegroup(
+    name = "cli_sources",
+    srcs = glob(["src/cli/**"]),
+    visibility = ["//visibility:public"],
+)

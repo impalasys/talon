@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-pub mod cli;
+pub use talon_cli::cli;
 pub mod control;
 pub use crate::control::security::encryption::SecurityProvider;
 pub use crate::harness::executor::{

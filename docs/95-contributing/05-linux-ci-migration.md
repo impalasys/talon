@@ -56,12 +56,14 @@ Historical controlled provider and CPU measurements are preserved in the
 for this broader workload. Subsequent measurements should compare identical
 changes and report selection, queue time, build/test time and artifact transfer.
 
-## Rust crate decomposition plan
+## Rust crate split
 
-The identifiers milestone below is implemented; the remaining extractions are
-planned. Keep the four binary
-names, public Rust paths, protobuf wire formats, manifest behavior and release
-outputs stable while introducing independently compiled crates. Each new crate
+The complete split is implemented in a twelve-PR stack beginning with
+[PR #387](https://github.com/impalasys/talon/pull/387), on top of the identifiers
+extraction in [PR #386](https://github.com/impalasys/talon/pull/386). The stack
+preserves the four executable names, public Rust paths, protobuf wire formats,
+manifest behavior and release outputs while introducing independently compiled
+crates. Each new crate
 gets its own `Cargo.toml`, `BUILD.bazel`, `src/lib.rs` and tests under `crates/`.
 Adding BUILD files alone does not create compilation boundaries: each boundary
 needs a separate `rust_library` with explicit dependencies. See the
@@ -118,6 +120,84 @@ action, and unchanged identifiers artifact hashes. The worker edit was restored.
 This proves that a worker input change does not recompile the new leaf; it is
 not a measured end-to-end speedup or a claim that downstream binaries stay cached.
 
+### Implemented stack and dependency boundaries
+
+The stack is ordered for review and merging from the bottom upward. Every layer
+keeps the legacy facade available; the final layer changes executable composition.
+
+| Layer | Change | Main owners |
+| --- | --- | --- |
+| 1 | Internal generation and serde hooks | `talon-protocol` |
+| 2 | Storage and execution interfaces | `talon-contracts` |
+| 3 | Pure manifests and workflow validation | `talon-protocol` |
+| 4 | Configuration, security and fixtures | `talon-config`, `talon-security`, `talon-test-support` |
+| 5 | Independent backend adapters | `talon-storage-*` |
+| 6 | Shared control services and backend construction | `talon-control`, `talon-bootstrap`, `talon-fanout` |
+| 7 | Shared authentication, sandbox and connector capabilities | `talon-auth`, `talon-sandbox`, `talon-connectors` |
+| 8 | Execution/providers/tools and subprocess protocol | `talon-harness`, `talon-monty` |
+| 9 | Workflow execution and downstream integration tests | `talon-workflows` |
+| 10 | HTTP/RPC gateway and shared cancellation transport | `talon-gateway`, `talon-session-control` |
+| 11 | Worker controllers and runtime | `talon-worker` |
+| 12 | CLI, observability and narrow executable dependencies | `talon-cli`, `talon-observability`, root Bazel executable rules |
+
+A Cargo metadata audit, including all optional production edges, establishes an
+acyclic internal production graph with no internal library depending on the root
+`talon` facade. The CLI's internal dependency closure contains only protocol,
+contracts, identifiers, authentication/security and the existing public SDK.
+It has no control, storage, bootstrap, harness, gateway or worker dependency.
+Gateway has no harness/worker dependency, and worker has no gateway dependency.
+
+`talon-control` owns session persistence, workflow state changes, shared channel
+operations and resource business logic. Its `ControlPlane` builder retains the
+lightweight memory defaults. `talon-bootstrap` owns configured backend factories.
+The sandbox backend capability and generic lease service sit below both harness
+and worker. Authentication middleware consumes an `AuthState` interface; gateway
+keeps the original middleware signature through a wrapper. Generated message
+ownership and pure serde/manifest helpers stay below the service implementations.
+
+Each database backend owns its KV, document and local scheduler adapters where
+applicable. RocksDB, DynamoDB, SQS, EventBridge, cloud tasks, messaging and object
+storage have separate compilation boundaries. Runtime AWS/RocksDB selection and
+optional CPU/heap profiling remain available through the original root flags.
+
+All four Bazel executable rules depend directly on their required libraries;
+none depends on `//:talon`. The combined node intentionally uses gateway and worker.
+The root Cargo package retains the existing executable declarations and facade to
+preserve developer commands and `CARGO_BIN_EXE_*` integration fixtures. Cargo builds
+of that root package still build its compatibility dependency closure; individual
+library package checks and Bazel executable builds use the narrower boundaries.
+
+Shared unit fixtures depend on contracts/protocol, with no service dependency.
+The six workflow tests that exercise worker orchestration live with worker, while
+workflow unit tests remain with workflow execution. Existing Rust tests moved with
+their implementations. Full Linux validation still includes Docker, browser,
+durability, benchmark and E2E targets; macOS release and publishing jobs remain on
+GitHub Actions.
+
+### Cache-isolation validation of the complete split
+
+A native Bazel 9.3.2 / Rust 1.95 fastbuild probe requested all four executables,
+then rebuilt after temporary comment-only edits. The execution logs showed:
+
+| Edited source | Executed Rustc targets | Executables with unchanged hashes |
+| --- | --- | --- |
+| `crates/talon-worker/src/worker/runtime.rs` | worker library, worker executable, combined node | CLI, server |
+| `crates/talon-cli/src/cli/entry.rs` | CLI library, CLI executable | worker, server, combined node |
+
+The worker probe took 7.24 seconds and the CLI probe 2.35 seconds on the native
+host. These are warm source-input cache probes, with default native fastbuild
+flags; they are not a controlled comparison with the earlier Linux CI baseline
+or an end-to-end provider speedup. All edits were restored, and a final build
+recovered the original hashes of all four executables. Protocol, contracts,
+control, harness and unrelated service compilation remained cached in both probes.
+
+The full native `bazel test //...` suite passes 83 targets, with seven Linux-only
+suites skipped on macOS. Cargo workspace/all-target checks pass with all features
+enabled, and all 1,041 Cargo library tests pass. Bazel also builds all four
+executables with AWS, RocksDB and both profiling configurations enabled. Full
+Linux workflow validation must still run on the stack's exact top
+revision, including Docker/browser/E2E suites and verified artifact handoff.
+
 ### Dependency constraints found in the code
 
 These are concrete extraction constraints, rather than a claim that the current
@@ -144,8 +224,10 @@ each extraction; a text scan is not a resolved Rust dependency graph.
 
 ### Intended crate boundaries
 
-Crate names below are proposed implementation targets. Split adapters further
-only when their dependency isolation or measured build cost justifies it.
+The original boundary proposal below guided the implementation. Shared control,
+bootstrap, transport and sandbox capabilities provide the additional boundaries
+needed to remove the actual cycles. Split adapters further only when dependency
+isolation or measured build cost justifies it.
 
 | Crate | Responsibility | Dependency restriction |
 | --- | --- | --- |
@@ -165,7 +247,7 @@ keeping every binary dependent on a facade that imports everything would retain
 much of today's rebuild fan-out. Audit the combined `talon-node` separately;
 its dependency on both gateway and worker is intentional.
 
-### Rollout as reviewable changes
+### Original rollout and validation requirements
 
 1. **Record a warm baseline.** Keep CPU, memory, toolchain, flags and test
    coverage fixed. Compare an unchanged repeat with small CLI, worker, storage

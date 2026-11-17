@@ -4,167 +4,111 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["crates/talon-identifiers", "crates/talon-protocol", "tools/bazel", "tools/install-hooks", "crates/talon-contracts", "crates/talon-test-support", "crates/talon-config", "crates/talon-security", "crates/talon-storage-common", "crates/talon-storage-memory", "crates/talon-storage-sqlite", "crates/talon-storage-postgres", "crates/talon-storage-dynamodb", "crates/talon-storage-rocksdb", "crates/talon-storage-sqs", "crates/talon-storage-pubsub", "crates/talon-storage-cloud-tasks", "crates/talon-storage-eventbridge", "crates/talon-storage-objects", "crates/talon-fanout", "crates/talon-control", "crates/talon-bootstrap", "crates/talon-auth", "crates/talon-sandbox", "crates/talon-connectors", "crates/talon-monty", "crates/talon-harness", "crates/talon-workflows", "crates/talon-session-control", "crates/talon-gateway", "crates/talon-worker"]
+members = [
+    "crates/talon-auth",
+    "crates/talon-bootstrap",
+    "crates/talon-cli",
+    "crates/talon-config",
+    "crates/talon-connectors",
+    "crates/talon-contracts",
+    "crates/talon-control",
+    "crates/talon-fanout",
+    "crates/talon-gateway",
+    "crates/talon-harness",
+    "crates/talon-identifiers",
+    "crates/talon-monty",
+    "crates/talon-observability",
+    "crates/talon-protocol",
+    "crates/talon-sandbox",
+    "crates/talon-security",
+    "crates/talon-session-control",
+    "crates/talon-storage-cloud-tasks",
+    "crates/talon-storage-common",
+    "crates/talon-storage-dynamodb",
+    "crates/talon-storage-eventbridge",
+    "crates/talon-storage-memory",
+    "crates/talon-storage-objects",
+    "crates/talon-storage-postgres",
+    "crates/talon-storage-pubsub",
+    "crates/talon-storage-rocksdb",
+    "crates/talon-storage-sqlite",
+    "crates/talon-storage-sqs",
+    "crates/talon-test-support",
+    "crates/talon-worker",
+    "crates/talon-workflows",
+    "tools/bazel",
+    "tools/install-hooks",
+]
 default-members = ["."]
 resolver = "2"
 
 [features]
-aws = ["talon-bootstrap/aws", "dep:talon-storage-eventbridge", "dep:talon-storage-sqs", "dep:talon-storage-dynamodb", "dep:aws-sdk-dynamodb", "dep:aws-sdk-scheduler", "dep:aws-sdk-sqs"]
-cpu-profile = ["dep:pprof"]
-heap-profile = [
-    "dep:tikv-jemallocator",
-    "tikv-jemallocator/profiling",
-    "dep:tikv-jemalloc-ctl",
-    "tikv-jemalloc-ctl/profiling",
-    "tikv-jemalloc-ctl/stats",
-]
-rocksdb = ["talon-bootstrap/rocksdb", "dep:talon-storage-rocksdb", "dep:rocksdb"]
+aws = ["talon-bootstrap/aws", "dep:talon-storage-eventbridge", "dep:talon-storage-sqs", "dep:talon-storage-dynamodb", "dep:aws-sdk-sqs"]
+cpu-profile = ["talon-observability/cpu-profile"]
+heap-profile = ["talon-observability/heap-profile", "dep:tikv-jemallocator", "tikv-jemallocator/profiling"]
+rocksdb = ["talon-bootstrap/rocksdb", "dep:talon-storage-rocksdb"]
 
 [dependencies]
-aead = "0.5"
-aes-gcm = "0.10"
 anyhow = "1.0"
 async-trait = "0.1"
-async-stream = "0.3"
+aws-sdk-sqs = { version = "1.102", optional = true }
+axum = { version = "0.7", features = ["ws"] }
 base64 = "0.21"
-bollard = "0.20"
 chrono = { version = "0.4", features = ["serde"] }
-chrono-tz = "0.10"
-cron = "0.12"
-jsonwebtoken = { version = "11.0", features = ["rust_crypto"] }
 futures = "0.3"
-flate2 = "1.1"
-zstd = "0.13"
+google-cloud-pubsub = { version = "0.25.0", default-features = false, features = ["auth", "rustls-tls"] }
 hyper = { version = "1", features = ["server", "http1", "http2"] }
 hyper-util = { version = "0.1", features = ["tokio", "server-auto", "server-graceful", "service"] }
-opentelemetry = "0.32"
-opentelemetry-otlp = { version = "0.32", default-features = false, features = ["grpc-tonic", "trace"] }
-opentelemetry_sdk = "0.32"
-pprof = { version = "0.15", features = ["flamegraph"], optional = true }
-tikv-jemallocator = { version = "0.7", optional = true }
-tikv-jemalloc-ctl = { version = "0.7", optional = true }
-redb = "1.0"
-rocksdb = { version = "0.24", default-features = false, features = ["lz4", "bindgen-runtime"], optional = true }
-reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls", "stream"] }
-# Azure's generated clients expose a reqwest transport but default to native
-# TLS. Enable that transport without native TLS, then select reqwest 0.13's
-# rustls-backed default TLS implementation explicitly.
-reqwest_azure = { package = "reqwest", version = "0.13.2", default-features = false, features = ["default-tls"] }
-rand = "0.10"
-rmcp = { version = "1.8", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
-rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
+monty-pool = "0.0.21"
+monty-types = "0.0.21"
 prost = "0.13"
-prost-types = "0.13"
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-sha2 = "0.10"
-sse-stream = "0.2"
 tempfile = "3.0"
-urlencoding = "2.1"
+tikv-jemallocator = { version = "0.7", optional = true }
 tokio = { version = "1.0", features = ["full"] }
-tokio-tungstenite = "0.20"
-tracing = "0.1"
-# 0.33 tracks opentelemetry 0.32; 0.32.x requires opentelemetry 0.31.
-tracing-opentelemetry = "0.33"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
-tonic = { version = "0.12.3", features = ["tls-webpki-roots"] }
-tonic-web = "0.12.3"
-axum = { version = "0.7", features = ["ws"] }
-tower = "0.5"
-tower-http = { version = "0.5", features = ["cors"] }
-toml = "0.8"
-serde_yaml = "0.9"
-minijinja = { version = "=2.19.0", features = ["unstable_machinery"] }
-mime_guess = "2"
-monty-pool = "0.0.21"
-monty-proto = { version = "0.0.21", features = ["worker"] }
-monty-types = "0.0.21"
-url = "2"
-google-cloud-secretmanager-v1 = "1.7"
-google-cloud-auth = "1.8"
-aws-config = "1.8"
-aws-sdk-dynamodb = { version = "1.103", optional = true }
-aws-sdk-scheduler = { version = "=1.102.0", optional = true }
-aws-sdk-s3 = "1.103"
-aws-sdk-secretsmanager = "1.103"
-aws-sdk-sts = "=1.101.0"
-aws-sdk-sqs = { version = "1.102", optional = true }
-azure_core = { version = "0.33", default-features = false, features = ["reqwest", "reqwest_deflate", "reqwest_gzip", "tokio"] }
-azure_identity = { version = "0.33", default-features = false }
-azure_security_keyvault_secrets = { version = "0.12", default-features = false }
-uuid = { version = "1.23.0", features = ["v7"] }
-# SQLx 0.8.6's Rustls verifier mishandles hostname errors from recent Rustls
-# releases in verify-ca mode (upstream #3861). Native TLS preserves URL policy.
-sqlx = { version = "0.8.6", features = ["postgres", "sqlite", "runtime-tokio", "tls-native-tls"] }
-google-cloud-pubsub = { version = "0.25.0", default-features = false, features = ["auth", "rustls-tls"] }
-google-cloud-googleapis = { version = "0.13.0", features = ["pubsub"] }
-clap = { version = "4.6.0", features = ["derive"] }
 tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7.18", features = ["rt"] }
-talon-client = { path = "sdk/rust/talon-client" }
-talon-identifiers = { path = "crates/talon-identifiers" }
+tonic = { version = "0.12.3", features = ["tls-webpki-roots"] }
+tower = "0.5"
+tracing = "0.1"
+url = "2"
+urlencoding = "2.1"
 
-talon-protocol = { path = "crates/talon-protocol" }
-
-talon-contracts = { path = "crates/talon-contracts" }
-
-talon-test-support = { path = "crates/talon-test-support" }
-
-talon-config = { path = "crates/talon-config" }
-
-talon-security = { path = "crates/talon-security" }
-
-talon-storage-common = { path = "crates/talon-storage-common" }
-
-talon-storage-memory = { path = "crates/talon-storage-memory" }
-
-talon-storage-sqlite = { path = "crates/talon-storage-sqlite" }
-
-talon-storage-postgres = { path = "crates/talon-storage-postgres" }
-
-talon-storage-dynamodb = { path = "crates/talon-storage-dynamodb", optional = true }
-
-talon-storage-rocksdb = { path = "crates/talon-storage-rocksdb", optional = true }
-
-talon-storage-sqs = { path = "crates/talon-storage-sqs", optional = true }
-
-talon-storage-pubsub = { path = "crates/talon-storage-pubsub" }
-
-talon-storage-cloud-tasks = { path = "crates/talon-storage-cloud-tasks" }
-
-talon-storage-eventbridge = { path = "crates/talon-storage-eventbridge", optional = true }
-
-talon-storage-objects = { path = "crates/talon-storage-objects" }
-
-talon-fanout = { path = "crates/talon-fanout" }
-
-talon-control = { path = "crates/talon-control" }
-
-talon-bootstrap = { path = "crates/talon-bootstrap" }
-
+# Legacy facade exports and executable composition.
 talon-auth = { path = "crates/talon-auth" }
-
-talon-sandbox = { path = "crates/talon-sandbox" }
-
+talon-bootstrap = { path = "crates/talon-bootstrap" }
+talon-cli = { path = "crates/talon-cli" }
+talon-client = { path = "sdk/rust/talon-client" }
+talon-config = { path = "crates/talon-config" }
 talon-connectors = { path = "crates/talon-connectors" }
-
-talon-monty = { path = "crates/talon-monty" }
-
-talon-harness = { path = "crates/talon-harness" }
-
-talon-workflows = { path = "crates/talon-workflows" }
-
-talon-session-control = { path = "crates/talon-session-control" }
-
+talon-contracts = { path = "crates/talon-contracts" }
+talon-control = { path = "crates/talon-control" }
+talon-fanout = { path = "crates/talon-fanout" }
 talon-gateway = { path = "crates/talon-gateway" }
-
+talon-harness = { path = "crates/talon-harness" }
+talon-identifiers = { path = "crates/talon-identifiers" }
+talon-monty = { path = "crates/talon-monty" }
+talon-observability = { path = "crates/talon-observability" }
+talon-protocol = { path = "crates/talon-protocol" }
+talon-sandbox = { path = "crates/talon-sandbox" }
+talon-security = { path = "crates/talon-security" }
+talon-session-control = { path = "crates/talon-session-control" }
+talon-storage-cloud-tasks = { path = "crates/talon-storage-cloud-tasks" }
+talon-storage-common = { path = "crates/talon-storage-common" }
+talon-storage-dynamodb = { path = "crates/talon-storage-dynamodb", optional = true }
+talon-storage-eventbridge = { path = "crates/talon-storage-eventbridge", optional = true }
+talon-storage-memory = { path = "crates/talon-storage-memory" }
+talon-storage-objects = { path = "crates/talon-storage-objects" }
+talon-storage-postgres = { path = "crates/talon-storage-postgres" }
+talon-storage-pubsub = { path = "crates/talon-storage-pubsub" }
+talon-storage-rocksdb = { path = "crates/talon-storage-rocksdb", optional = true }
+talon-storage-sqlite = { path = "crates/talon-storage-sqlite" }
+talon-storage-sqs = { path = "crates/talon-storage-sqs", optional = true }
+talon-test-support = { path = "crates/talon-test-support" }
 talon-worker = { path = "crates/talon-worker" }
-
-[build-dependencies]
-prost-build = "0.13"
-tonic-build = "0.12.3"
-protoc-gen-prost = "0.4.0"
-protoc-gen-tonic = "0.4.0"
+talon-workflows = { path = "crates/talon-workflows" }
 
 [dev-dependencies]
 aws-smithy-runtime-api = "1.11"

@@ -5,11 +5,13 @@ use anyhow::{Context, Result};
 use serde_json::json;
 
 use super::{Cli, RunOutcome};
-use crate::cli::{parse_raw_manifest, render_manifest_file};
-use crate::control::resource_model::{ChannelSubscriptionResourceExt, TypedResource};
+use crate::cli::parse_raw_manifest;
+use crate::cli::render_manifest_file;
+use talon_protocol::resource_model::ChannelSubscriptionResourceExt;
+use talon_protocol::resource_model::TypedResource;
 
 #[derive(clap::Args)]
-pub(crate) struct RenderCommand {
+pub struct RenderCommand {
     #[arg(short, long)]
     file: String,
     /// Template variables in KEY=VALUE form.
@@ -40,7 +42,7 @@ enum RenderFormat {
     Json,
 }
 
-pub(super) async fn run(_cli: &Cli, command: &RenderCommand) -> Result<RunOutcome> {
+pub async fn run(_cli: &Cli, command: &RenderCommand) -> Result<RunOutcome> {
     let content = render_manifest_file(&command.file, &command.vars)?;
     match command.format {
         RenderFormat::Yaml => {
@@ -68,7 +70,7 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
         "McpServer" => Ok(json!({ "server": manifest_value })),
         "Agent" => Ok(json!({ "agent": manifest_value })),
         "Namespace" => {
-            let namespace = crate::control::manifest::parse_namespace(content)?;
+            let namespace = talon_protocol::manifest::parse_namespace(content)?;
             Ok(json!({
                 "name": namespace.name(),
                 "recursive": true,
@@ -77,11 +79,11 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
         }
         "Knowledge" => Ok(json!({ "knowledge": manifest_value })),
         "Channel" => {
-            let channel = crate::control::manifest::parse_channel(content)?;
+            let channel = talon_protocol::manifest::parse_channel(content)?;
             Ok(json!({ "ns": channel.namespace(), "channel": channel }))
         }
         "ChannelSubscription" => {
-            let subscription = crate::control::manifest::parse_channel_subscription(content)?;
+            let subscription = talon_protocol::manifest::parse_channel_subscription(content)?;
             Ok(json!({
                 "ns": subscription.namespace(),
                 "channel": subscription.channel(),
@@ -89,7 +91,7 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
             }))
         }
         "Workflow" => {
-            let workflow = crate::control::manifest::parse_workflow(content)?;
+            let workflow = talon_protocol::manifest::parse_workflow(content)?;
             Ok(json!({ "ns": workflow.namespace(), "workflow": workflow }))
         }
         kind if crate::cli::resource_kind(kind)

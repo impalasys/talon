@@ -6,17 +6,17 @@ use std::fs;
 
 use super::{Cli, RunOutcome};
 use crate::cli::parse_raw_manifest;
-use crate::control::resource_model::TypedResource;
+use talon_protocol::resource_model::TypedResource;
 
 #[derive(clap::Args)]
-pub(crate) struct GenCommand {
+pub struct GenCommand {
     #[arg(long, default_value = "talon/manifests")]
     dir: String,
     #[arg(long, default_value = "client.ts")]
     out: String,
 }
 
-pub(super) async fn run(_cli: &Cli, command: &GenCommand) -> Result<RunOutcome> {
+pub async fn run(_cli: &Cli, command: &GenCommand) -> Result<RunOutcome> {
     println!("Generating Talon Client SDK from: {}", command.dir);
     let class_methods = sdk_methods_from_dir(&command.dir)?;
 
@@ -64,7 +64,7 @@ fn sdk_methods_from_dir(dir: &str) -> Result<Vec<String>> {
         let content = fs::read_to_string(&path)?;
         let raw = parse_raw_manifest(&content)?;
         if raw.kind == "Agent" {
-            let agent = crate::control::manifest::parse_agent(&content)?;
+            let agent = talon_protocol::manifest::parse_agent(&content)?;
             let method_name = format!("create{}", to_camel_case(&agent.name()));
             class_methods.push(format!(
                 r#"  async {method_name}(workspaceId: string): Promise<any> {{
