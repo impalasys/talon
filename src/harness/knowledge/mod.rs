@@ -10,23 +10,7 @@ use crate::control::search::{DocumentStore, DOCUMENT_KIND_CONTENT, KIND_KNOWLEDG
 use crate::control::MessagePublisher;
 use crate::gateway::rpc::{proto, resources_proto};
 
-#[derive(Default, serde::Serialize, serde::Deserialize)]
-#[serde(default)]
-pub struct KnowledgeEntry {
-    pub namespace: String,
-    pub name: String,
-    pub path: String,
-    pub content: String,
-    pub updated_at: i64,
-}
-
 /// A single search result from the KnowledgeBook.
-pub struct KnowledgeResult {
-    pub namespace: String,
-    pub path: String,
-    pub excerpt: String,
-    pub updated_at: i64,
-}
 
 /// A single listed artifact from the KnowledgeBook.
 #[derive(serde::Serialize)]
@@ -600,16 +584,6 @@ fn knowledge_path_from_metadata(metadata_json: &str) -> Option<String> {
         })
 }
 
-impl KnowledgeEntry {
-    pub fn path(&self) -> String {
-        if self.path.is_empty() {
-            self.name.clone()
-        } else {
-            self.path.clone()
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
@@ -1045,3 +1019,5 @@ mod tests {
         assert!(unknown.is_none());
     }
 }
+
+pub use talon_contracts::knowledge::{KnowledgeEntry, KnowledgeResult};

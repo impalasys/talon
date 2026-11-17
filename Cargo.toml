@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["crates/talon-identifiers", "crates/talon-protocol", "tools/bazel", "tools/install-hooks", "crates/talon-contracts", "crates/talon-test-support", "crates/talon-config", "crates/talon-security", "crates/talon-storage-common", "crates/talon-storage-memory", "crates/talon-storage-sqlite", "crates/talon-storage-postgres", "crates/talon-storage-dynamodb", "crates/talon-storage-rocksdb", "crates/talon-storage-sqs", "crates/talon-storage-pubsub", "crates/talon-storage-cloud-tasks", "crates/talon-storage-eventbridge", "crates/talon-storage-objects", "crates/talon-fanout", "crates/talon-control", "crates/talon-bootstrap"]
+members = ["crates/talon-identifiers", "crates/talon-protocol", "tools/bazel", "tools/install-hooks", "crates/talon-contracts", "crates/talon-test-support", "crates/talon-config", "crates/talon-security", "crates/talon-storage-common", "crates/talon-storage-memory", "crates/talon-storage-sqlite", "crates/talon-storage-postgres", "crates/talon-storage-dynamodb", "crates/talon-storage-rocksdb", "crates/talon-storage-sqs", "crates/talon-storage-pubsub", "crates/talon-storage-cloud-tasks", "crates/talon-storage-eventbridge", "crates/talon-storage-objects", "crates/talon-fanout", "crates/talon-control", "crates/talon-bootstrap", "crates/talon-auth", "crates/talon-sandbox", "crates/talon-connectors"]
 default-members = ["."]
 resolver = "2"
 
@@ -141,6 +141,12 @@ talon-fanout = { path = "crates/talon-fanout" }
 talon-control = { path = "crates/talon-control" }
 
 talon-bootstrap = { path = "crates/talon-bootstrap" }
+
+talon-auth = { path = "crates/talon-auth" }
+
+talon-sandbox = { path = "crates/talon-sandbox" }
+
+talon-connectors = { path = "crates/talon-connectors" }
 
 [build-dependencies]
 prost-build = "0.13"

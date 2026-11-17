@@ -5,10 +5,15 @@ use anyhow::{anyhow, bail, Context, Result};
 use prost::Message;
 use std::collections::{HashMap, HashSet};
 
-use crate::control::resources::ResourceStore;
-use crate::control::security::platform_jwt;
-use crate::control::{keys, ControlPlane, KeyValueStore, ProtoKeyValueStoreExt};
-use crate::gateway::rpc::{data_proto, external_proto, resources_proto};
+use talon_control::control::keys;
+use talon_control::control::resources::ResourceStore;
+use talon_control::control::security::platform_jwt;
+use talon_control::control::ControlPlane;
+use talon_control::control::KeyValueStore;
+use talon_control::control::ProtoKeyValueStoreExt;
+use talon_protocol::data_proto;
+use talon_protocol::external_proto;
+use talon_protocol::resources_proto;
 
 const CONNECTOR_INDEX_FIELD_SEP: &str = "\x1f";
 const CONNECTOR_CALLBACK_TOKEN_TTL_SECONDS: u64 = 365 * 24 * 60 * 60;
@@ -26,7 +31,7 @@ impl ConnectorController {
         &self,
         class: &resources_proto::Resource,
         cp: &ControlPlane,
-        config: &crate::control::config::Config,
+        config: &talon_control::control::config::Config,
     ) -> Result<()> {
         let meta = class
             .metadata
@@ -686,7 +691,7 @@ async fn register_connector_class(
     class_namespace: &str,
     class_name: &str,
     registration_id: &str,
-    config: &crate::control::config::Config,
+    config: &talon_control::control::config::Config,
 ) -> Result<()> {
     let runtime = spec
         .runtime
@@ -814,7 +819,7 @@ fn mint_connector_callback_token(namespace: &str) -> Result<String> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs();
-    let claims = crate::gateway::auth::Claims {
+    let claims = talon_auth::Claims {
         iss: Some(issuer),
         sub: "connector-runtime".to_string(),
         aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
@@ -827,7 +832,7 @@ fn mint_connector_callback_token(namespace: &str) -> Result<String> {
         session: None,
         channel: None,
         origins: Vec::new(),
-        grants: vec![crate::gateway::auth::TalonGrantClaim {
+        grants: vec![talon_auth::TalonGrantClaim {
             kind: "readwrite".to_string(),
             namespace: Some(namespace.to_string()),
             agent: None,
