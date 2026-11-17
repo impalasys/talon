@@ -12,9 +12,7 @@ use std::path::{Component, Path, PathBuf};
 pub mod llm_auth;
 pub mod secrets;
 
-pub mod proto {
-    include!(concat!(env!("OUT_DIR"), "/talon.config.rs"));
-}
+pub use talon_protocol::generated::config as proto;
 
 pub use proto::{
     CapabilityGate, DatabaseConfig, LlmProviderConfig as ProviderConfig, ObjectStoreConfig,

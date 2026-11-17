@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["crates/talon-identifiers", "tools/bazel", "tools/install-hooks"]
+members = ["crates/talon-identifiers", "crates/talon-protocol", "tools/bazel", "tools/install-hooks"]
 default-members = ["."]
 resolver = "2"
 
@@ -103,6 +103,8 @@ tokio-stream = { version = "0.1", features = ["net"] }
 tokio-util = { version = "0.7.18", features = ["rt"] }
 talon-client = { path = "sdk/rust/talon-client" }
 talon-identifiers = { path = "crates/talon-identifiers" }
+
+talon-protocol = { path = "crates/talon-protocol" }
 
 [build-dependencies]
 prost-build = "0.13"
