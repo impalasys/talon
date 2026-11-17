@@ -6873,6 +6873,7 @@ dependencies = [
  "sqlx",
  "sse-stream",
  "talon-client",
+ "talon-contracts",
  "talon-identifiers",
  "talon-protocol",
  "tempfile",
@@ -6925,6 +6926,22 @@ dependencies = [
  "tokio",
  "tonic 0.12.3",
  "tonic-web",
+]
+
+[[package]]
+name = "talon-contracts"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "futures",
+ "prost 0.13.5",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "talon-identifiers",
+ "talon-protocol",
 ]
 
 [[package]]
