@@ -1,0 +1,11 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "talon_harness",
+    deps = ["//crates/talon-contracts:talon_contracts", "//crates/talon-control:talon_control", "//crates/talon-protocol:talon_protocol", "//crates/talon-config:talon_config", "//crates/talon-security:talon_security", "//crates/talon-identifiers:talon_identifiers", "//crates/talon-connectors:talon_connectors", "//crates/talon-sandbox:talon_sandbox", "//crates/talon-monty:talon_monty"],
+    # ACP advertises the runtime version, including in Bazel builds.
+    rustc_env_files = ["//:cargo_env"],
+    test_deps = ["//crates/talon-test-support:talon_test_support"],
+    compile_data = ["//:Cargo.toml", "//:runtime_data", "//:proto/resources.toml", "//:src/control/security/test_rsa_private_key.pem"],
+    unit_tests = True,
+)
