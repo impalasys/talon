@@ -1,0 +1,149 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
+use talon_control::control::keys;
+
+use talon_control::control::ns;
+
+use hyper_util::rt::TokioIo;
+use prost::Message;
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::sync::Arc;
+use talon_control::control::KeyValueStore;
+use talon_protocol::resources_proto;
+use talon_protocol::worker_proto;
+use tokio::net::UnixStream;
+use tokio::sync::Mutex;
+use tonic::transport::{Channel, Endpoint, Uri};
+use tower::service_fn;
+use url::Url;
+
+#[derive(Default)]
+pub struct WorkerConnectionPool {
+    channels: Mutex<HashMap<String, Channel>>,
+}
+
+impl WorkerConnectionPool {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub async fn worker_endpoints(
+        kv: &dyn KeyValueStore,
+        worker_id: &str,
+    ) -> std::result::Result<Vec<resources_proto::WorkerEndpoint>, tonic::Status> {
+        let key = keys::ResourceKey::new(ns::TALON_SYSTEM, &[], "Worker", worker_id);
+        let Some(bytes) = kv
+            .get(&key)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to fetch worker: {err}")))?
+        else {
+            return Err(tonic::Status::not_found("claim worker not found"));
+        };
+        let worker = resources_proto::Worker::decode(bytes.as_slice())
+            .map_err(|err| tonic::Status::internal(format!("Failed to decode worker: {err}")))?;
+        let Some(status) = worker.status else {
+            return Err(tonic::Status::unavailable("worker status is missing"));
+        };
+        if status.phase != "ready" {
+            return Err(tonic::Status::unavailable("worker is not ready"));
+        }
+        let endpoints: Vec<_> = status
+            .endpoints
+            .into_iter()
+            .filter(|endpoint| !endpoint.url.trim().is_empty())
+            .collect();
+        if endpoints.is_empty() {
+            return Err(tonic::Status::unavailable("worker has no endpoints"));
+        }
+        Ok(endpoints)
+    }
+
+    pub async fn fanout_client(
+        &self,
+        endpoint: &resources_proto::WorkerEndpoint,
+    ) -> std::result::Result<
+        worker_proto::fanout_service_client::FanoutServiceClient<Channel>,
+        tonic::Status,
+    > {
+        Ok(
+            worker_proto::fanout_service_client::FanoutServiceClient::new(
+                self.channel(endpoint).await?,
+            ),
+        )
+    }
+
+    pub async fn session_control_client(
+        &self,
+        endpoint: &resources_proto::WorkerEndpoint,
+    ) -> std::result::Result<
+        worker_proto::session_control_service_client::SessionControlServiceClient<Channel>,
+        tonic::Status,
+    > {
+        Ok(
+            worker_proto::session_control_service_client::SessionControlServiceClient::new(
+                self.channel(endpoint).await?,
+            ),
+        )
+    }
+
+    async fn channel(
+        &self,
+        endpoint: &resources_proto::WorkerEndpoint,
+    ) -> std::result::Result<Channel, tonic::Status> {
+        let url = endpoint.url.clone();
+        if let Some(channel) = self.channels.lock().await.get(&url).cloned() {
+            return Ok(channel);
+        }
+
+        let parsed = Url::parse(&url)
+            .map_err(|err| tonic::Status::unavailable(format!("invalid worker endpoint: {err}")))?;
+        let channel = if parsed.scheme() == "unix" {
+            if parsed.path().is_empty() {
+                return Err(tonic::Status::unavailable(
+                    "unix worker endpoint is missing a socket path",
+                ));
+            }
+            let path = urlencoding::decode(parsed.path()).map_err(|err| {
+                tonic::Status::unavailable(format!("invalid unix worker endpoint path: {err}"))
+            })?;
+            let path = Arc::new(PathBuf::from(path.into_owned()));
+            Endpoint::try_from("http://[::]:50051")
+                .map_err(|err| {
+                    tonic::Status::unavailable(format!("invalid worker endpoint: {err}"))
+                })?
+                .connect_with_connector(service_fn(move |_uri: Uri| {
+                    let path = path.clone();
+                    async move { UnixStream::connect(path.as_ref()).await.map(TokioIo::new) }
+                }))
+                .await
+                .map_err(|err| {
+                    tonic::Status::unavailable(format!("failed to connect to worker: {err}"))
+                })?
+        } else {
+            Channel::from_shared(url.clone())
+                .map_err(|err| {
+                    tonic::Status::unavailable(format!("invalid worker endpoint: {err}"))
+                })?
+                .connect()
+                .await
+                .map_err(|err| {
+                    tonic::Status::unavailable(format!("failed to connect to worker: {err}"))
+                })?
+        };
+        let channel = self
+            .channels
+            .lock()
+            .await
+            .entry(url)
+            .or_insert_with(|| channel.clone())
+            .clone();
+        Ok(channel)
+    }
+
+    #[cfg(test)]
+    pub async fn cached_channel_count(&self) -> usize {
+        self.channels.lock().await.len()
+    }
+}
