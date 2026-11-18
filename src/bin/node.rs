@@ -1,26 +1,43 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+mod talon {
+    #[cfg(test)]
+    pub use ::test_support;
+
+    pub use ::auth;
+    pub use ::bootstrap;
+    pub use ::config;
+    pub use ::control;
+    pub use ::gateway;
+    pub use ::monty;
+    pub use ::observability;
+    pub use ::protocol;
+    pub use ::security;
+    pub use ::worker;
+}
+
 use anyhow::Context;
 
-use ::auth::AuthConfig;
-use ::bootstrap::build_control_plane;
-use ::config::Config;
-use ::config::ConfigExt;
-use ::control::control::topics;
-use ::control::control::ControlPlane;
-use ::control::control::MessagePublisher;
-use ::gateway::server::Gateway;
-use ::protocol::resources_proto;
-use ::worker::fanout::FanoutHub;
-use ::worker::mcp_registry::McpRegistry;
-use ::worker::scheduler_auth::SchedulerRequestAuthenticator;
-use ::worker::WorkerEventHandler;
 use anyhow::Result;
 use futures::StreamExt;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
+use talon::auth::AuthConfig;
+use talon::bootstrap::build_control_plane;
+use talon::config::Config;
+use talon::config::ConfigExt;
+use talon::control::topics;
+use talon::control::ControlPlane;
+use talon::control::MessagePublisher;
+use talon::gateway::server::Gateway;
+use talon::protocol::resources_proto;
+use talon::worker::fanout::FanoutHub;
+use talon::worker::mcp_registry::McpRegistry;
+use talon::worker::scheduler_auth::SchedulerRequestAuthenticator;
+use talon::worker::WorkerEventHandler;
 use tokio::net::UnixListener;
 use tokio::signal;
 use tokio::task::JoinHandle;
@@ -72,7 +89,7 @@ fn worker_handler(
         worker_id,
         fanout_hub,
         session_cancellations: Arc::new(
-            ::worker::session_control::SessionCancellationRegistry::default(),
+            talon::worker::session_control::SessionCancellationRegistry::default(),
         ),
     }
 }
@@ -138,7 +155,7 @@ async fn prepare_worker_socket(path: &Path) -> Result<()> {
 async fn serve_worker_fanout_socket(
     socket_path: PathBuf,
     fanout_hub: Arc<FanoutHub>,
-    cancellations: Arc<::worker::session_control::SessionCancellationRegistry>,
+    cancellations: Arc<talon::worker::session_control::SessionCancellationRegistry>,
     shutdown: CancellationToken,
 ) -> Result<()> {
     prepare_worker_socket(&socket_path).await?;
@@ -149,12 +166,12 @@ async fn serve_worker_fanout_socket(
         )
     })?;
     let incoming = UnixListenerStream::new(listener);
-    let service = ::protocol::worker_proto::fanout_service_server::FanoutServiceServer::new(
-        ::worker::fanout::FanoutServiceImpl::new(fanout_hub),
+    let service = talon::protocol::worker_proto::fanout_service_server::FanoutServiceServer::new(
+        talon::worker::fanout::FanoutServiceImpl::new(fanout_hub),
     );
     let control_service =
-        ::protocol::worker_proto::session_control_service_server::SessionControlServiceServer::new(
-            ::worker::session_control::SessionControlServiceImpl::new(cancellations),
+        talon::protocol::worker_proto::session_control_service_server::SessionControlServiceServer::new(
+            talon::worker::session_control::SessionControlServiceImpl::new(cancellations),
         );
     tracing::info!(
         endpoint = %format!("unix://{}", socket_path.display()),
@@ -239,12 +256,12 @@ async fn join_unit_with_grace(task: &mut JoinHandle<()>) {
 
 async fn run() -> Result<()> {
     let config = Arc::new(Config::load_default()?);
-    ::security::platform_jwt::load_key()?;
-    ::security::platform_jwt::issuer()?;
+    talon::security::platform_jwt::load_key()?;
+    talon::security::platform_jwt::issuer()?;
     let cp = Arc::new(build_control_plane(&config).await?);
     let scheduler_authenticator =
         Arc::new(SchedulerRequestAuthenticator::from_config(&config).await?);
-    let worker_id = ::worker::registration::worker_id();
+    let worker_id = talon::worker::registration::worker_id();
     let fanout_hub = Arc::new(FanoutHub::new());
     let handler = worker_handler(
         Arc::clone(&cp),
@@ -258,9 +275,9 @@ async fn run() -> Result<()> {
     let worker_socket_path = node_worker_socket_path(&worker_id)?;
     let worker_endpoint = node_worker_endpoint(&worker_socket_path);
     let worker_registration =
-        ::worker::registration::WorkerRegistration::new(&worker_id, env!("CARGO_PKG_VERSION"))
+        talon::worker::registration::WorkerRegistration::new(&worker_id, env!("CARGO_PKG_VERSION"))
             .with_endpoints(vec![worker_endpoint]);
-    let mut heartbeat_task = tokio::spawn(::worker::registration::run_worker_heartbeat(
+    let mut heartbeat_task = tokio::spawn(talon::worker::registration::run_worker_heartbeat(
         Arc::clone(&cp),
         worker_registration,
         shutdown.child_token(),
@@ -374,7 +391,7 @@ async fn run() -> Result<()> {
 fn main() -> Result<()> {
     // The Monty pool invokes this binary with `subprocess`; handle that mode
     // before Tokio, telemetry, profiling, or Talon configuration initialize.
-    if let Some(status) = ::monty::run_if_requested() {
+    if let Some(status) = talon::monty::run_if_requested() {
         std::process::exit(status);
     }
     talon_node_main()
@@ -382,23 +399,26 @@ fn main() -> Result<()> {
 
 #[tokio::main]
 async fn talon_node_main() -> Result<()> {
-    ::security::install_jwt_crypto_provider();
-    ::security::install_rustls_crypto_provider();
-    let _telemetry_guard = ::observability::telemetry::init_from_env("talon-node")?;
-    ::observability::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
-    ::observability::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
+    talon::security::install_jwt_crypto_provider();
+    talon::security::install_rustls_crypto_provider();
+    let _telemetry_guard = talon::observability::telemetry::init_from_env("talon-node")?;
+    talon::observability::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
+    talon::observability::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
     tracing::info!("Starting Talon node runtime...");
     run().await
 }
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
-    use ::control::control::keys;
-    use ::control::control::ns;
-    use ::control::control::ProtoKeyValueStoreExt;
-    use ::test_support::EmptyPubSub;
-    use ::test_support::MockKvStore;
+    use talon::control::keys;
+    use talon::control::ns;
+    use talon::control::ProtoKeyValueStoreExt;
+    use talon::test_support::EmptyPubSub;
+    use talon::test_support::MockKvStore;
     use tempfile::tempdir;
 
     #[test]
@@ -437,13 +457,14 @@ mod tests {
         let endpoint = node_worker_endpoint(&socket_path);
         let cp =
             ControlPlane::builder(Arc::new(MockKvStore::default()), Arc::new(EmptyPubSub)).build();
-        let registration = ::worker::registration::WorkerRegistration::new("node-worker", "1.2.3")
-            .with_endpoints(vec![endpoint.clone()]);
+        let registration =
+            talon::worker::registration::WorkerRegistration::new("node-worker", "1.2.3")
+                .with_endpoints(vec![endpoint.clone()]);
 
-        ::worker::registration::upsert_worker(&cp, &registration)
+        talon::worker::registration::upsert_worker(&cp, &registration)
             .await
             .unwrap();
-        ::worker::registration::patch_worker_status(&cp, &registration, "ready")
+        talon::worker::registration::patch_worker_status(&cp, &registration, "ready")
             .await
             .unwrap();
 

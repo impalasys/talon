@@ -1,15 +1,11 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::worker_conn::WorkerConnectionPool;
-use ::control::control::config::proto::TrustConfig;
-use ::control::control::object_store::ObjectStore;
-use ::control::control::scheduler::SchedulerBackend;
-use ::control::control::search::DocumentStore;
-use ::control::control::ControlPlane;
-use ::control::control::KeyValueStore;
-use ::control::control::MessagePublisher;
 use anyhow::Result;
 use axum::{
     body::Body,
@@ -20,6 +16,13 @@ use axum::{
 };
 use std::convert::Infallible;
 use std::sync::Arc;
+use talon::control::config::proto::TrustConfig;
+use talon::control::object_store::ObjectStore;
+use talon::control::scheduler::SchedulerBackend;
+use talon::control::search::DocumentStore;
+use talon::control::ControlPlane;
+use talon::control::KeyValueStore;
+use talon::control::MessagePublisher;
 use tonic::body::BoxBody;
 use tower::{Service, ServiceExt};
 use tower_http::cors::{Any, CorsLayer};
@@ -133,73 +136,73 @@ impl Gateway {
         };
 
         let namespace_service = tonic_web::enable(
-            ::protocol::proto::namespace_service_server::NamespaceServiceServer::with_interceptor(
+            talon::protocol::proto::namespace_service_server::NamespaceServiceServer::with_interceptor(
                 handler.clone(),
                 interceptor.clone(),
             ),
         );
         let resource_service = tonic_web::enable(
-            ::protocol::proto::resource_service_server::ResourceServiceServer::with_interceptor(
+            talon::protocol::proto::resource_service_server::ResourceServiceServer::with_interceptor(
                 handler.clone(),
                 interceptor.clone(),
             ),
         );
         let file_service = tonic_web::enable(
-            ::protocol::proto::file_service_server::FileServiceServer::with_interceptor(
+            talon::protocol::proto::file_service_server::FileServiceServer::with_interceptor(
                 handler.clone(),
                 interceptor.clone(),
             ),
         );
         let artifact_service = tonic_web::enable(
-            ::protocol::proto::artifact_service_server::ArtifactServiceServer::with_interceptor(
+            talon::protocol::proto::artifact_service_server::ArtifactServiceServer::with_interceptor(
                 handler.clone(),
                 interceptor.clone(),
             ),
         );
         let session_service = tonic_web::enable(
-            ::protocol::proto::session_service_server::SessionServiceServer::with_interceptor(
+            talon::protocol::proto::session_service_server::SessionServiceServer::with_interceptor(
                 handler.clone(),
                 interceptor.clone(),
             ),
         );
         let cas_service = tonic_web::enable(
-            ::protocol::proto::cas_service_server::CasServiceServer::with_interceptor(
+            talon::protocol::proto::cas_service_server::CasServiceServer::with_interceptor(
                 handler.clone(),
                 interceptor.clone(),
             ),
         );
         let channel_service = tonic_web::enable(
-            ::protocol::proto::channel_service_server::ChannelServiceServer::with_interceptor(
+            talon::protocol::proto::channel_service_server::ChannelServiceServer::with_interceptor(
                 handler.clone(),
                 interceptor.clone(),
             ),
         );
         let workflow_service = tonic_web::enable(
-            ::protocol::proto::workflow_service_server::WorkflowServiceServer::with_interceptor(
+            talon::protocol::proto::workflow_service_server::WorkflowServiceServer::with_interceptor(
                 handler.clone(),
                 interceptor.clone(),
             ),
         );
         let knowledge_service = tonic_web::enable(
-            ::protocol::proto::knowledge_service_server::KnowledgeServiceServer::with_interceptor(
+            talon::protocol::proto::knowledge_service_server::KnowledgeServiceServer::with_interceptor(
                 handler.clone(),
                 interceptor.clone(),
             ),
         );
         let search_service = tonic_web::enable(
-            ::protocol::proto::search_service_server::SearchServiceServer::with_interceptor(
+            talon::protocol::proto::search_service_server::SearchServiceServer::with_interceptor(
                 handler.clone(),
                 interceptor.clone(),
             ),
         );
         let connector_service = tonic_web::enable(
-            ::protocol::proto::connector_service_server::ConnectorServiceServer::with_interceptor(
+            talon::protocol::proto::connector_service_server::ConnectorServiceServer::with_interceptor(
                 handler.clone(),
                 interceptor,
             ),
         );
         let auth_service = tonic_web::enable(
-            ::protocol::proto::auth_service_server::AuthServiceServer::new(handler),
+            talon::protocol::proto::auth_service_server::AuthServiceServer::new(handler),
         );
 
         let grpc_service = Server::builder()
@@ -307,6 +310,9 @@ fn permissive_cors_layer() -> CorsLayer {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     #[test]

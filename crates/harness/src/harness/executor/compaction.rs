@@ -14,6 +14,9 @@
 // preserves a head system message and recent request anchor, and trims older
 // segments without producing orphaned tool calls or results.
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::runtime::{ExecutionContext, ExecutionSink, LoopMessage};
 use crate::harness::llm::chat_content_part;
 use crate::harness::llm::chat_message_text;
@@ -21,9 +24,9 @@ use crate::harness::llm::text_part;
 use crate::harness::llm::ChatContentPart;
 use crate::harness::llm::ChatRequest;
 use crate::harness::llm::LlmProvider;
-use ::control::control::tool_output::is_text_object_media_type;
 use anyhow::Result;
 use serde_json::Value;
+use talon::control::tool_output::is_text_object_media_type;
 
 const MAX_COMPACTION_SUMMARY_WORDS: usize = 10_000;
 
@@ -618,6 +621,9 @@ pub fn context_metrics(
 // invalid segments that the compaction algorithm can deliberately degrade into
 // summaries before sending anything to an LLM provider.
 mod segments {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         compact_loop_message, force_fit_message, serialized_message_weight, truncate_middle,
         ContextBudget, LoopMessage, ModelContextLimits,
@@ -1281,6 +1287,9 @@ fn env_usize(key: &str, default: usize) -> usize {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         compact_history_for_llm_with_budget, compact_history_for_llm_with_budget_and_model_limits,
         context_metrics, replay_has_user_or_tool_anchor, serialized_message_weight, summarize,
@@ -1298,11 +1307,11 @@ mod tests {
     use crate::harness::llm::LlmProvider;
     use crate::harness::llm::ToolCall;
     use crate::harness::memory::Embedding;
-    use ::protocol::data_proto;
     use anyhow::Result;
     use async_trait::async_trait;
     use serde::Deserialize;
     use std::sync::{Arc, Mutex};
+    use talon::protocol::data_proto;
 
     fn budget() -> ContextBudget {
         ContextBudget {

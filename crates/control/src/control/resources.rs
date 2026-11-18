@@ -1,16 +1,19 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::control::events;
 use crate::control::keys;
 use crate::control::topics;
 use crate::control::KeyValueStore;
 use crate::control::MessagePublisher;
-use ::protocol::resources_proto;
 use anyhow::{anyhow, Context, Result};
 use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
 use prost::Message;
 use std::sync::Arc;
+use talon::protocol::resources_proto;
 
 const API_VERSION: &str = "talon.impalasys.com/v1";
 
@@ -1480,6 +1483,9 @@ fn resource_key(resource: &resources_proto::Resource) -> keys::ResourceKey {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::ResourceStore;
     use crate::control::events;
     use crate::control::keys;
@@ -1487,9 +1493,9 @@ mod tests {
     use crate::control::KeyValueStore;
     use crate::test_support::MockKvStore;
     use crate::test_support::RecordingPubSub;
-    use ::protocol::resources_proto;
     use prost::Message;
     use std::sync::Arc;
+    use talon::protocol::resources_proto;
 
     #[tokio::test]
     async fn resource_store_upserts_lists_and_publishes_change_events() {

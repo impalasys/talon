@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::*;
 
 pub async fn create_goal(
@@ -13,7 +16,7 @@ pub async fn create_goal(
     let objective = req_str(args, "objective")?.to_string();
     let now = chrono::Utc::now().timestamp_micros();
     let goal = data_proto::Goal {
-        id: ::control::control::uuid::unique_name("goal"),
+        id: talon::control::uuid::unique_name("goal"),
         namespace: current_namespace.to_string(),
         agent: current_agent.to_string(),
         session_id: current_session.to_string(),

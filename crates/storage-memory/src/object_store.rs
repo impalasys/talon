@@ -1,8 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-pub use ::contracts::object_store::*;
-use ::protocol::data_proto;
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use std::{
@@ -10,6 +11,8 @@ use std::{
     path::{Component, Path, PathBuf},
     sync::Arc,
 };
+pub use talon::contracts::object_store::*;
+use talon::protocol::data_proto;
 const LEGACY_CONTENT_ENCODING_METADATA: &str = "content_encoding";
 #[derive(Default)]
 pub struct InMemoryObjectStore {

@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::*;
 
 pub async fn execute_tool(
@@ -234,7 +237,7 @@ pub async fn execute_tool_for_session_output(
         }
         CHANNEL_PUBLISH_TOOL => {
             let content = req_str(args, "content")?;
-            let message = ::control::channels::publish_channel_message_from_session(
+            let message = talon::control::channels::publish_channel_message_from_session(
                 cp,
                 current_namespace,
                 current_agent,
@@ -252,7 +255,7 @@ pub async fn execute_tool_for_session_output(
         }
         CHANNEL_SKIP_REPLY_TOOL => {
             let reason = opt_str(args, "reason").unwrap_or("");
-            ::control::channels::skip_channel_reply_from_session(
+            talon::control::channels::skip_channel_reply_from_session(
                 cp,
                 current_namespace,
                 current_agent,
@@ -470,7 +473,7 @@ pub async fn execute_tool_for_session_output(
             )
             .await?;
             let now = chrono::Utc::now().timestamp_micros();
-            goal.phase = ::protocol::data_proto::GoalPhase::Succeeded as i32;
+            goal.phase = talon::protocol::data_proto::GoalPhase::Succeeded as i32;
             goal.updated_at = now;
             goal.completed_at = now;
             if let Some(summary) = opt_str(args, "progress_summary") {
@@ -494,7 +497,7 @@ pub async fn execute_tool_for_session_output(
             )
             .await?;
             let now = chrono::Utc::now().timestamp_micros();
-            goal.phase = ::protocol::data_proto::GoalPhase::Blocked as i32;
+            goal.phase = talon::protocol::data_proto::GoalPhase::Blocked as i32;
             goal.updated_at = now;
             goal.blocked_reason = req_str(args, "blocked_reason")?.to_string();
             if let Some(summary) = opt_str(args, "progress_summary") {

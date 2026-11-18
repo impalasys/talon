@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use chrono::Utc;
 use futures::stream::{FuturesUnordered, StreamExt};
@@ -14,7 +17,7 @@ use tokio_util::sync::CancellationToken;
 use tracing::{error, warn};
 
 use super::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend, SCHEDULER_AUTH_HEADER};
-use ::storage_common::validate_identifier;
+use talon::storage::common::validate_identifier;
 
 const DEFAULT_TABLE: &str = "talon_local_scheduler_jobs";
 const CLAIM_TIMEOUT_SECONDS: i64 = 60;
@@ -421,7 +424,7 @@ impl LocalSqliteSchedulerStore {
     }
 
     async fn schedule(&self, req: ScheduleWakeupRequest) -> Result<ScheduledWakeup> {
-        let handle = ::contracts::uuid::scheduler_handle();
+        let handle = talon::contracts::uuid::scheduler_handle();
         let query = format!(
             "INSERT INTO {} (handle, namespace, schedule_id, revision, fire_at_micros, payload, created_at_micros)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
@@ -481,9 +484,12 @@ impl Drop for LocalSqliteSchedulerBackend {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
-    use ::storage_common::sqlite_url_for_path;
     use std::sync::Arc;
+    use talon::storage::common::sqlite_url_for_path;
     use tempfile::tempdir;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::sync::{oneshot, Mutex};

@@ -16,13 +16,13 @@ where
 }
 
 pub fn to_sdk_resource_manifest(
-    manifest: &::protocol::resources_proto::ResourceManifest,
+    manifest: &talon::protocol::resources_proto::ResourceManifest,
 ) -> Result<talon_client::resources::ResourceManifest> {
     transcode_proto(manifest)
 }
 
 pub fn to_internal_resource(
     resource: &talon_client::resources::Resource,
-) -> Result<::protocol::resources_proto::Resource> {
+) -> Result<talon::protocol::resources_proto::Resource> {
     transcode_proto(resource)
 }

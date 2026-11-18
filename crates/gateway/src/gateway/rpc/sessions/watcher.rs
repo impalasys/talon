@@ -1,23 +1,26 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::gateway::worker_conn::WorkerConnectionPool;
-use ::control::control::events;
-use ::control::control::keys;
-use ::control::control::scheduling;
-use ::control::control::topics;
-use ::control::control::KeyValueStore;
-use ::control::control::MessagePublisher;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::data_proto;
-use ::protocol::resources_proto;
-use ::protocol::worker_proto;
 use futures::{stream::SelectAll, Stream, StreamExt};
 use prost::Message;
 use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
+use talon::control::events;
+use talon::control::keys;
+use talon::control::scheduling;
+use talon::control::topics;
+use talon::control::KeyValueStore;
+use talon::control::MessagePublisher;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::data_proto;
+use talon::protocol::resources_proto;
+use talon::protocol::worker_proto;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -174,7 +177,7 @@ fn single_session_parts_event_stream(
             }
 
             let now_micros = chrono::Utc::now().timestamp_micros();
-            let terminal = ::control::sessions::submission_is_terminal(&submission);
+            let terminal = talon::control::sessions::submission_is_terminal(&submission);
             if terminal {
                 yield Ok(terminal_event_from_submission(&target, &submission));
                 break 'outer;
@@ -329,7 +332,7 @@ fn batch_session_parts_event_stream(
                     state.after_sequence = 0;
                 }
 
-                let terminal = ::control::sessions::submission_is_terminal(&submission);
+                let terminal = talon::control::sessions::submission_is_terminal(&submission);
                 if terminal {
                     state.done = true;
                     yield Ok(terminal_event_from_submission(&state.target, &submission));
@@ -373,7 +376,7 @@ fn batch_session_parts_event_stream(
             for (worker_id, streams) in by_worker {
                 let terminal_batch = streams
                     .iter()
-                    .all(|stream| ::control::sessions::submission_is_terminal(&stream.submission));
+                    .all(|stream| talon::control::sessions::submission_is_terminal(&stream.submission));
                 match connect_worker_batch_stream(
                     kv.as_ref(),
                     worker_connections.as_ref(),
@@ -589,7 +592,7 @@ async fn redispatch_expired_session_lease(
     };
     let mut current = data_proto::SessionSubmission::decode(current_bytes.as_slice())
         .map_err(|err| tonic::Status::internal(format!("Failed to decode submission: {err}")))?;
-    if ::control::sessions::submission_is_terminal(&current)
+    if talon::control::sessions::submission_is_terminal(&current)
         || current.status == data_proto::SessionSubmissionStatus::Claimed as i32
             && current
                 .claim_expires_at
@@ -650,9 +653,9 @@ async fn redispatch_expired_session_lease(
         ns: target.ns.clone(),
         submission_id: current.submission_id.clone(),
         kind: if is_compaction {
-            ::control::control::events::SessionDispatchKind::Compact as i32
+            talon::control::events::SessionDispatchKind::Compact as i32
         } else {
-            ::control::control::events::SessionDispatchKind::Message as i32
+            talon::control::events::SessionDispatchKind::Message as i32
         },
     };
     pubsub
@@ -703,7 +706,7 @@ async fn latest_nonterminal_submission(
             data_proto::SessionSubmission::decode(bytes.as_slice()).map_err(|err| {
                 tonic::Status::internal(format!("Failed to decode submission: {err}"))
             })?;
-        if !::control::sessions::submission_is_terminal(&submission) {
+        if !talon::control::sessions::submission_is_terminal(&submission) {
             submissions.push(submission);
         }
     }
@@ -764,11 +767,14 @@ fn terminal_event_from_submission(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
-    use ::control::control::events::SessionMessagePartEventKind;
-    use ::fanout::FanoutHub;
-    use ::fanout::SessionFanoutKey;
     use futures::StreamExt;
+    use talon::control::events::SessionMessagePartEventKind;
+    use talon::fanout::FanoutHub;
+    use talon::fanout::SessionFanoutKey;
     use tempfile::tempdir;
     use tokio::net::UnixListener;
     use tokio::sync::oneshot;
@@ -832,7 +838,7 @@ mod tests {
         let shutdown = CancellationToken::new();
         let hub = Arc::new(FanoutHub::new());
         let service = worker_proto::fanout_service_server::FanoutServiceServer::new(
-            ::fanout::FanoutServiceImpl::new(hub.clone()),
+            talon::fanout::FanoutServiceImpl::new(hub.clone()),
         );
         let server = tokio::spawn(
             Server::builder()

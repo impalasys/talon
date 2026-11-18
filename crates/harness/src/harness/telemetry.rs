@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::harness::executor::compaction::ContextMetrics;
 
 use crate::harness::executor::compaction::ModelContextLimits;
@@ -427,6 +430,9 @@ fn low_cardinality_error_text(error: &str) -> &'static str {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::harness::llm::chat_message_text;
     use crate::harness::llm::object_ref_part;
@@ -434,7 +440,7 @@ mod tests {
     use crate::harness::llm::ChatMessage;
     use crate::harness::llm::Tool;
     use crate::harness::llm::ToolCall;
-    use ::protocol::data_proto;
+    use talon::protocol::data_proto;
 
     #[test]
     fn tenant_slug_uses_first_segment_after_tenant_prefix() {

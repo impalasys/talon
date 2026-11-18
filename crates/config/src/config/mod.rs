@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Context, Result};
 use prost::Message;
 use serde::Deserialize;
@@ -12,7 +15,7 @@ use std::path::{Component, Path, PathBuf};
 pub mod llm_auth;
 pub mod secrets;
 
-pub use ::protocol::generated::config as proto;
+pub use talon::protocol::generated::config as proto;
 
 pub use proto::{
     CapabilityGate, DatabaseConfig, LlmProviderConfig as ProviderConfig, ObjectStoreConfig,

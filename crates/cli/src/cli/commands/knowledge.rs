@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{Context, Result};
 use clap::{Args, Subcommand};
 use std::collections::HashMap;
@@ -11,11 +14,11 @@ use super::{Cli, RunOutcome};
 use crate::cli::connect_gateway;
 use crate::cli::to_internal_resource;
 use crate::cli::to_sdk_resource_manifest;
-use ::protocol::manifests::Knowledge;
-use ::protocol::manifests::KnowledgeSpec;
-use ::protocol::manifests::ObjectMeta;
-use ::protocol::resource_model;
-use ::protocol::resources_proto;
+use talon::protocol::manifests::Knowledge;
+use talon::protocol::manifests::KnowledgeSpec;
+use talon::protocol::manifests::ObjectMeta;
+use talon::protocol::resource_model;
+use talon::protocol::resources_proto;
 use talon_client::v1::{
     CreateResourceRequest, DeleteResourceRequest, GetResourceRequest, ListResourcesRequest,
 };

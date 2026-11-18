@@ -4,7 +4,8 @@
 // Gateway Authentication - platform JWT auth middleware for the Gateway
 // This file is owned by: Agent 4 (Gateway Auth & Tools)
 
-use ::security::platform_jwt;
+pub(crate) mod talon;
+
 use axum::{
     extract::{Request, State},
     http::{header, StatusCode},
@@ -15,6 +16,7 @@ use axum::{
 use serde::{Deserialize, Deserializer, Serialize};
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
+use talon::security::platform_jwt;
 use tonic::{metadata::MetadataMap, Status};
 use url::Url;
 
@@ -669,12 +671,10 @@ pub async fn auth_layer<S: AuthState + 'static>(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
-    use ::test_support::EmptyPubSub;
-    use ::test_support::MockKvStore;
-    use ::test_support::PlatformJwtEnvGuard;
-    use ::test_support::TEST_PLATFORM_JWT_ISSUER;
-    use ::test_support::TEST_RSA_PRIVATE_KEY;
     use axum::{
         body::Body,
         http::{Request as HttpRequest, StatusCode as HttpStatusCode},
@@ -683,6 +683,11 @@ mod tests {
         Router,
     };
     use std::sync::Arc;
+    use talon::test_support::EmptyPubSub;
+    use talon::test_support::MockKvStore;
+    use talon::test_support::PlatformJwtEnvGuard;
+    use talon::test_support::TEST_PLATFORM_JWT_ISSUER;
+    use talon::test_support::TEST_RSA_PRIVATE_KEY;
     use tonic::metadata::MetadataMap;
     use tonic::service::Interceptor;
     use tower::ServiceExt;

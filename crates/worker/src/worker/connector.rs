@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use futures::FutureExt;
 use std::future::Future;
@@ -8,9 +11,9 @@ use std::panic::{resume_unwind, AssertUnwindSafe};
 use std::time::Duration;
 
 use super::WorkerEventHandler;
-use ::connectors::rpc as connector_rpc;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::data_proto;
+use talon::connectors::rpc as connector_rpc;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::data_proto;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
@@ -330,9 +333,7 @@ impl WorkerEventHandler {
         let session = self
             .cp
             .kv
-            .get_msg::<data_proto::Session>(&::control::control::keys::session(
-                ns, agent, session_id,
-            ))
+            .get_msg::<data_proto::Session>(&talon::control::keys::session(ns, agent, session_id))
             .await?
             .ok_or_else(|| anyhow!("session not found"))?;
         if !session.labels.contains_key(LABEL_CONNECTOR_REGISTRATION) {

@@ -1,52 +1,67 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+pub(crate) mod talon;
+
 mod kv {
-    pub use ::storage_common::{legacy, shared, sqlite_url_for_path};
+
+    #[allow(unused_imports)]
+    use crate::talon;
+
+    pub use talon::storage::common::{legacy, shared, sqlite_url_for_path};
     #[cfg(feature = "aws")]
-    pub use ::storage_dynamodb::DynamoDbKvStore;
-    pub use ::storage_postgres::{postgres, PostgresKvStore};
+    pub use talon::storage::dynamodb::DynamoDbKvStore;
+    pub use talon::storage::postgres::{postgres, PostgresKvStore};
     #[cfg(feature = "rocksdb")]
-    pub use ::storage_rocksdb::RocksDbKvStore;
-    pub use ::storage_sqlite::SqliteKvStore;
+    pub use talon::storage::rocksdb::RocksDbKvStore;
+    pub use talon::storage::sqlite::SqliteKvStore;
 }
 mod pubsub {
-    pub use ::storage_pubsub::*;
+    #[allow(unused_imports)]
+    use crate::talon;
+
+    pub use talon::storage::pubsub::*;
     #[cfg(feature = "aws")]
-    pub use ::storage_sqs::*;
+    pub use talon::storage::sqs::*;
 }
 mod scheduler {
-    pub use ::contracts::scheduler::*;
-    pub use ::storage_cloud_tasks::CloudTasksSchedulerBackend;
+    #[allow(unused_imports)]
+    use crate::talon;
+
+    pub use talon::contracts::scheduler::*;
+    pub use talon::storage::cloud_tasks::CloudTasksSchedulerBackend;
     #[cfg(feature = "aws")]
-    pub use ::storage_eventbridge::AwsEventBridgeSchedulerBackend;
-    pub use ::storage_memory::NoopSchedulerBackend;
-    pub use ::storage_postgres::LocalPostgresSchedulerBackend;
-    pub use ::storage_sqlite::LocalSqliteSchedulerBackend;
+    pub use talon::storage::eventbridge::AwsEventBridgeSchedulerBackend;
+    pub use talon::storage::memory::NoopSchedulerBackend;
+    pub use talon::storage::postgres::LocalPostgresSchedulerBackend;
+    pub use talon::storage::sqlite::LocalSqliteSchedulerBackend;
 }
 mod search {
-    pub use ::contracts::search::*;
-    pub use ::storage_memory::search::*;
-    pub use ::storage_postgres::PostgresDocumentStore;
-    pub use ::storage_sqlite::SqliteDocumentStore;
+    #[allow(unused_imports)]
+    use crate::talon;
+
+    pub use talon::contracts::search::*;
+    pub use talon::storage::memory::search::*;
+    pub use talon::storage::postgres::PostgresDocumentStore;
+    pub use talon::storage::sqlite::SqliteDocumentStore;
 }
-use ::control::control::*;
-use ::identifiers::{keys, ns};
-use ::storage_objects as object_store;
-#[cfg(test)]
-pub use ::test_support;
 use kv::postgres::{postgres_credential_provider, CredentialProvider, PostgresPoolSettings};
 use std::{path::PathBuf, sync::Arc};
+use talon::control::*;
+use talon::identifiers::{keys, ns};
+use talon::storage::objects as object_store;
+#[cfg(test)]
+pub use talon::test_support;
 async fn ensure_builtin_namespaces(kv: &(dyn KeyValueStore + Send + Sync)) -> anyhow::Result<()> {
     let default_key = keys::namespace_metadata(ns::DEFAULT);
     if kv
-        .get_msg::<::protocol::resources_proto::Namespace>(&default_key)
+        .get_msg::<talon::protocol::resources_proto::Namespace>(&default_key)
         .await?
         .is_none()
     {
         kv.set_msg(
             &default_key,
-            &::protocol::resource_model::namespace(
+            &talon::protocol::resource_model::namespace(
                 ns::DEFAULT,
                 String::new(),
                 std::collections::HashMap::new(),
@@ -63,8 +78,8 @@ async fn ensure_builtin_namespaces(kv: &(dyn KeyValueStore + Send + Sync)) -> an
 }
 
 fn message_broker_config(
-    cp: &::config::proto::ControlPlaneConfig,
-) -> anyhow::Result<&::config::proto::MessageBrokerConfig> {
+    cp: &talon::config::proto::ControlPlaneConfig,
+) -> anyhow::Result<&talon::config::proto::MessageBrokerConfig> {
     let mb_config = cp
         .message_broker
         .as_ref()
@@ -81,8 +96,8 @@ fn message_broker_config(
     Ok(mb_config)
 }
 
-pub async fn build_control_plane(config: &::config::Config) -> anyhow::Result<ControlPlane> {
-    use ::config::SecretExt;
+pub async fn build_control_plane(config: &talon::config::Config) -> anyhow::Result<ControlPlane> {
+    use talon::config::SecretExt;
 
     let cp = config
         .control_plane
@@ -259,8 +274,8 @@ pub async fn build_control_plane(config: &::config::Config) -> anyhow::Result<Co
             }
         }
         _ => match configured_scheduler(cp.scheduler.as_ref()) {
-            Some(::config::proto::SchedulerConfig {
-                backend: Some(::config::proto::scheduler_config::Backend::CloudTasks(cfg)),
+            Some(talon::config::proto::SchedulerConfig {
+                backend: Some(talon::config::proto::scheduler_config::Backend::CloudTasks(cfg)),
             }) => match scheduler::CloudTasksSchedulerBackend::new(&cfg).await {
                 Ok(backend) => Arc::new(backend),
                 Err(err) => {
@@ -269,12 +284,12 @@ pub async fn build_control_plane(config: &::config::Config) -> anyhow::Result<Co
                     ));
                 }
             },
-            Some(::config::proto::SchedulerConfig { backend: None }) => {
+            Some(talon::config::proto::SchedulerConfig { backend: None }) => {
                 Arc::new(scheduler::NoopSchedulerBackend)
             }
-            Some(::config::proto::SchedulerConfig {
+            Some(talon::config::proto::SchedulerConfig {
                 backend:
-                    Some(::config::proto::scheduler_config::Backend::AwsEventbridgeScheduler(cfg)),
+                    Some(talon::config::proto::scheduler_config::Backend::AwsEventbridgeScheduler(cfg)),
             }) => {
                 #[cfg(feature = "aws")]
                 {
@@ -307,8 +322,8 @@ pub async fn build_control_plane(config: &::config::Config) -> anyhow::Result<Co
 }
 
 fn configured_scheduler(
-    cfg: Option<&::config::proto::SchedulerConfig>,
-) -> Option<::config::proto::SchedulerConfig> {
+    cfg: Option<&talon::config::proto::SchedulerConfig>,
+) -> Option<talon::config::proto::SchedulerConfig> {
     if let Some(cfg) = cfg.filter(|cfg| cfg.backend.is_some()) {
         return Some(cfg.clone());
     }
@@ -320,9 +335,9 @@ fn configured_scheduler(
     }
 
     match driver.as_str() {
-        "cloud_tasks" => Some(::config::proto::SchedulerConfig {
-            backend: Some(::config::proto::scheduler_config::Backend::CloudTasks(
-                ::config::proto::CloudTasksSchedulerConfig {
+        "cloud_tasks" => Some(talon::config::proto::SchedulerConfig {
+            backend: Some(talon::config::proto::scheduler_config::Backend::CloudTasks(
+                talon::config::proto::CloudTasksSchedulerConfig {
                     project_id: std::env::var("TALON_SCHEDULER_PROJECT_ID").unwrap_or_default(),
                     location: std::env::var("TALON_SCHEDULER_LOCATION").unwrap_or_default(),
                     queue: std::env::var("TALON_SCHEDULER_QUEUE").unwrap_or_default(),
@@ -331,10 +346,10 @@ fn configured_scheduler(
                 },
             )),
         }),
-        "aws_eventbridge_scheduler" => Some(::config::proto::SchedulerConfig {
+        "aws_eventbridge_scheduler" => Some(talon::config::proto::SchedulerConfig {
             backend: Some(
-                ::config::proto::scheduler_config::Backend::AwsEventbridgeScheduler(
-                    ::config::proto::AwsEventBridgeSchedulerConfig {
+                talon::config::proto::scheduler_config::Backend::AwsEventbridgeScheduler(
+                    talon::config::proto::AwsEventBridgeSchedulerConfig {
                         group_name: std::env::var("TALON_AWS_SCHEDULER_GROUP_NAME")
                             .unwrap_or_default(),
                         queue_url: std::env::var("TALON_AWS_SCHEDULER_QUEUE_URL")
@@ -374,9 +389,9 @@ fn scheduler_driver() -> Option<String> {
 }
 
 async fn sqlite_database_url(
-    db_config: &::config::proto::DatabaseConfig,
+    db_config: &talon::config::proto::DatabaseConfig,
 ) -> anyhow::Result<String> {
-    use ::config::SecretExt;
+    use talon::config::SecretExt;
 
     if let Some(url_secret) = db_config.url.as_ref() {
         return Ok(url_secret.resolve().await?);
@@ -395,9 +410,9 @@ async fn sqlite_database_url(
 }
 
 async fn configured_document_store(
-    db_config: &::config::proto::DatabaseConfig,
+    db_config: &talon::config::proto::DatabaseConfig,
 ) -> anyhow::Result<SharedDocumentStore> {
-    use ::config::SecretExt;
+    use talon::config::SecretExt;
 
     match db_config.driver.as_str() {
         "postgres" => {
@@ -439,9 +454,9 @@ async fn configured_document_store(
 
 #[cfg(feature = "aws")]
 async fn dynamodb_table_name(
-    db_config: &::config::proto::DatabaseConfig,
+    db_config: &talon::config::proto::DatabaseConfig,
 ) -> anyhow::Result<String> {
-    use ::config::SecretExt;
+    use talon::config::SecretExt;
 
     if let Some(url_secret) = db_config.url.as_ref() {
         let table: String = url_secret.resolve().await?;
@@ -462,9 +477,9 @@ async fn dynamodb_table_name(
 
 #[cfg(feature = "rocksdb")]
 async fn rocksdb_database_path(
-    db_config: &::config::proto::DatabaseConfig,
+    db_config: &talon::config::proto::DatabaseConfig,
 ) -> anyhow::Result<PathBuf> {
-    use ::config::SecretExt;
+    use talon::config::SecretExt;
 
     if let Some(url_secret) = db_config.url.as_ref() {
         let raw: String = url_secret.resolve().await?;
@@ -494,16 +509,16 @@ async fn rocksdb_database_path(
 }
 
 fn configured_scheduler_callback_auth_from_env(
-) -> Option<::config::proto::SchedulerCallbackAuthConfig> {
+) -> Option<talon::config::proto::SchedulerCallbackAuthConfig> {
     if let Some(token) = std::env::var("TALON_SCHEDULER_AUTH_TOKEN")
         .ok()
         .filter(|value| !value.trim().is_empty())
     {
-        return Some(::config::proto::SchedulerCallbackAuthConfig {
+        return Some(talon::config::proto::SchedulerCallbackAuthConfig {
             auth: Some(
-                ::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
-                    ::config::Secret {
-                        source: Some(::config::proto::secret::Source::Plain(token)),
+                talon::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
+                    talon::config::Secret {
+                        source: Some(talon::config::proto::secret::Source::Plain(token)),
                     },
                 ),
             ),
@@ -513,23 +528,28 @@ fn configured_scheduler_callback_auth_from_env(
     std::env::var("TALON_SCHEDULER_AUDIENCE")
         .ok()
         .filter(|value| !value.trim().is_empty())
-        .map(|audience| ::config::proto::SchedulerCallbackAuthConfig {
-            auth: Some(
-                ::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
-                    ::config::proto::GoogleOidcAuthConfig {
-                        audience,
-                        service_account_email: std::env::var(
-                            "TALON_SCHEDULER_SERVICE_ACCOUNT_EMAIL",
-                        )
-                        .unwrap_or_default(),
-                    },
+        .map(
+            |audience| talon::config::proto::SchedulerCallbackAuthConfig {
+                auth: Some(
+                    talon::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
+                        talon::config::proto::GoogleOidcAuthConfig {
+                            audience,
+                            service_account_email: std::env::var(
+                                "TALON_SCHEDULER_SERVICE_ACCOUNT_EMAIL",
+                            )
+                            .unwrap_or_default(),
+                        },
+                    ),
                 ),
-            ),
-        })
+            },
+        )
 }
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     #[cfg(feature = "rocksdb")]
     use super::rocksdb_database_path;
     use super::{
@@ -538,16 +558,16 @@ mod tests {
         ListOptions, ProtoKeyValueStoreExt,
     };
     use crate::test_support::MockKvStore;
-    use ::config::proto;
-    use ::config::proto::scheduler_callback_auth_config;
-    use ::config::proto::scheduler_config;
-    use ::config::proto::secret;
-    use ::control::control::keys;
-    use ::protocol::data_proto;
-    use ::protocol::resource_model::NamespaceResourceExt;
-    use ::protocol::resource_model::TypedResource;
-    use ::protocol::resources_proto;
     use std::collections::HashMap;
+    use talon::config::proto;
+    use talon::config::proto::scheduler_callback_auth_config;
+    use talon::config::proto::scheduler_config;
+    use talon::config::proto::secret;
+    use talon::control::keys;
+    use talon::protocol::data_proto;
+    use talon::protocol::resource_model::NamespaceResourceExt;
+    use talon::protocol::resource_model::TypedResource;
+    use talon::protocol::resources_proto;
     use tempfile::tempdir;
 
     struct EnvGuard {
@@ -1064,7 +1084,7 @@ mod tests {
         let explicit = proto::DatabaseConfig {
             data_dir: String::new(),
             driver: "sqlite".to_string(),
-            url: Some(::config::Secret {
+            url: Some(talon::config::Secret {
                 source: Some(secret::Source::Plain(
                     "sqlite:///tmp/explicit.db".to_string(),
                 )),
@@ -1107,7 +1127,7 @@ mod tests {
         let explicit = proto::DatabaseConfig {
             data_dir: String::new(),
             driver: "rocksdb".to_string(),
-            url: Some(::config::Secret {
+            url: Some(talon::config::Secret {
                 source: Some(secret::Source::Plain(
                     "rocksdb:///tmp/explicit.rocksdb".to_string(),
                 )),

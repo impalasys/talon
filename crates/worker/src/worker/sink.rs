@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use serde_json::Value;
@@ -11,32 +14,32 @@ use tokio::sync::Mutex as AsyncMutex;
 
 use crate::worker::fanout::FanoutHub;
 use crate::worker::fanout::SessionFanoutKey;
-use ::control::control::cas::CasStore;
-use ::control::control::delegation;
-use ::control::control::events::SessionMessagePartEvent;
-use ::control::control::events::SessionMessagePartEventKind;
-use ::control::control::keys;
-use ::control::control::keys::ResourceKey;
-use ::control::control::object_store::default_object_store;
-use ::control::control::object_store::ObjectStore;
-use ::control::control::resources::ResourceStore;
-use ::control::control::session_queue;
-use ::control::control::tool_output;
-use ::control::control::tool_output::ToolOutputExt;
-use ::control::control::tool_output::ToolOutputStorageContext;
-use ::control::control::KeyValueStore;
-use ::control::control::MessagePublisher;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::harness::executor::AgentEvent;
-use ::harness::executor::ExecutionSink;
-use ::harness::llm::ChatResponse;
-use ::harness::llm::TokenCounter;
-use ::harness::llm::ToolOutput;
-use ::harness::sessions;
-use ::harness::sessions::SessionSubmission;
-use ::protocol::data_proto;
-use ::protocol::data_proto::SessionSubmissionStatus;
-use ::protocol::resources_proto;
+use talon::control::cas::CasStore;
+use talon::control::delegation;
+use talon::control::events::SessionMessagePartEvent;
+use talon::control::events::SessionMessagePartEventKind;
+use talon::control::keys;
+use talon::control::keys::ResourceKey;
+use talon::control::object_store::default_object_store;
+use talon::control::object_store::ObjectStore;
+use talon::control::resources::ResourceStore;
+use talon::control::session_queue;
+use talon::control::tool_output;
+use talon::control::tool_output::ToolOutputExt;
+use talon::control::tool_output::ToolOutputStorageContext;
+use talon::control::KeyValueStore;
+use talon::control::MessagePublisher;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::harness::executor::AgentEvent;
+use talon::harness::executor::ExecutionSink;
+use talon::harness::llm::ChatResponse;
+use talon::harness::llm::TokenCounter;
+use talon::harness::llm::ToolOutput;
+use talon::harness::sessions;
+use talon::harness::sessions::SessionSubmission;
+use talon::protocol::data_proto;
+use talon::protocol::data_proto::SessionSubmissionStatus;
+use talon::protocol::resources_proto;
 use tracing::Instrument;
 
 fn chat_usage_payload_json(usage: &TokenCounter) -> String {
@@ -572,7 +575,7 @@ impl PubSubSessionSink {
     }
 
     pub fn rotate_reply_message(&self, message_id: String) {
-        let key = ::control::control::keys::session_message(
+        let key = talon::control::keys::session_message(
             &self.ns,
             &self.agent_id,
             &self.session_id,
@@ -1158,11 +1161,8 @@ impl PubSubSessionSink {
         submission_id: &str,
         attempt_id: &str,
     ) -> bool {
-        let key =
-            ::control::control::keys::session_submission(ns, agent, session_id, submission_id);
-        match ::control::control::ProtoKeyValueStoreExt::get_msg::<SessionSubmission>(kv, &key)
-            .await
-        {
+        let key = talon::control::keys::session_submission(ns, agent, session_id, submission_id);
+        match talon::control::ProtoKeyValueStoreExt::get_msg::<SessionSubmission>(kv, &key).await {
             Ok(Some(submission)) => {
                 submission.attempt_id == attempt_id
                     && !sessions::submission_is_terminal(&submission)
@@ -1207,7 +1207,7 @@ impl PubSubSessionSink {
                 {
                     return;
                 }
-                if let Err(e) = ::control::control::ProtoKeyValueStoreExt::set_msg(
+                if let Err(e) = talon::control::ProtoKeyValueStoreExt::set_msg(
                     self.kv.as_ref(),
                     &self.current_reply_msg_key(),
                     &msg,
@@ -1232,7 +1232,7 @@ impl PubSubSessionSink {
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            ::control::control::ProtoKeyValueStoreExt::set_msg(
+            talon::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
                 &self.current_reply_msg_key(),
                 &msg,
@@ -1271,18 +1271,17 @@ impl PubSubSessionSink {
         };
         let key = self.current_reply_msg_key();
         let _guard = self.persist_lock.lock().await;
-        ::control::control::ProtoKeyValueStoreExt::set_msg(self.kv.as_ref(), &key, &message)
-            .await?;
+        talon::control::ProtoKeyValueStoreExt::set_msg(self.kv.as_ref(), &key, &message).await?;
         drop(_guard);
         self.publish_reply_index_event().await;
         Ok(message_id)
     }
 
     async fn publish_reply_index_event(&self) {
-        if let Err(error) = ::control::control::search::publish_index_event(
+        if let Err(error) = talon::control::search::publish_index_event(
             self.pubsub.as_ref(),
-            ::control::control::events::IndexEvent {
-                operation: ::control::control::events::IndexOperation::Upsert as i32,
+            talon::control::events::IndexEvent {
+                operation: talon::control::events::IndexOperation::Upsert as i32,
                 key: self.current_reply_msg_key().canonical(),
                 ..Default::default()
             },
@@ -1543,7 +1542,7 @@ impl ExecutionSink for PubSubSessionSink {
         Ok(())
     }
 
-    async fn take_steering_messages(&self) -> Result<Vec<::harness::executor::LoopMessage>> {
+    async fn take_steering_messages(&self) -> Result<Vec<talon::harness::executor::LoopMessage>> {
         const MAX_STEER_DRAINS: u8 = 4;
         let drain_attempt = {
             let mut drains = self.steer_drains.lock().unwrap();
@@ -1638,7 +1637,7 @@ impl ExecutionSink for PubSubSessionSink {
         // The steer messages were assigned their UUID7 ids while preparing the
         // batch. Allocate the continuation only after them so session-key
         // ordering matches conversational ordering.
-        let next_assistant_message_id = ::control::control::uuid::session_message_id();
+        let next_assistant_message_id = talon::control::uuid::session_message_id();
         sessions::append_steer_input(
             self.kv.as_ref(),
             &self.ns,
@@ -1664,11 +1663,9 @@ impl ExecutionSink for PubSubSessionSink {
         Ok(batch
             .into_iter()
             .map(|message| {
-                ::harness::executor::LoopMessage::text(
+                talon::harness::executor::LoopMessage::text(
                     "user",
-                    ::control::control::scheduling::session_message_text_projection(
-                        &message.message,
-                    ),
+                    talon::control::scheduling::session_message_text_projection(&message.message),
                 )
             })
             .collect())
@@ -1845,7 +1842,7 @@ impl ExecutionSink for PubSubSessionSink {
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            ::control::control::ProtoKeyValueStoreExt::set_msg(
+            talon::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
                 &self.current_reply_msg_key(),
                 &msg,
@@ -1872,7 +1869,7 @@ impl ExecutionSink for PubSubSessionSink {
                     };
                     let commit_result = async {
                         let _guard = self.persist_lock.lock().await;
-                        ::control::control::ProtoKeyValueStoreExt::set_msg(
+                        talon::control::ProtoKeyValueStoreExt::set_msg(
                             self.kv.as_ref(),
                             &self.current_reply_msg_key(),
                             &committed_msg,
@@ -1926,7 +1923,7 @@ impl ExecutionSink for PubSubSessionSink {
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            ::control::control::ProtoKeyValueStoreExt::set_msg(
+            talon::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
                 &self.current_reply_msg_key(),
                 &msg,
@@ -1969,32 +1966,35 @@ fn token_publish_interval() -> Duration {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         extract_inline_artifact_tags, token_publish_interval, PubSubSessionSink,
         StreamingPartBuffer,
     };
-    use ::control::control::events::IndexEvent;
-    use ::control::control::events::SessionMessagePartEvent;
-    use ::control::control::events::SessionMessagePartEventKind;
-    use ::control::control::keys;
-    use ::control::control::keys::ResourceKey;
-    use ::control::control::keys::ResourceList;
-    use ::control::control::object_store::InMemoryObjectStore;
-    use ::control::control::object_store::ObjectStore;
-    use ::control::control::tool_output::ToolOutputExt;
-    use ::control::control::KeyValueStore;
-    use ::control::control::MessagePublisher;
-    use ::harness::executor::ExecutionSink;
-    use ::harness::llm::TokenCounter;
-    use ::harness::llm::ToolOutput;
-    use ::harness::sessions;
-    use ::protocol::data_proto;
     use async_trait::async_trait;
     use futures::StreamExt;
     use prost::Message;
     use serde_json::json;
     use std::sync::Arc;
     use std::time::{Duration, Instant};
+    use talon::control::events::IndexEvent;
+    use talon::control::events::SessionMessagePartEvent;
+    use talon::control::events::SessionMessagePartEventKind;
+    use talon::control::keys;
+    use talon::control::keys::ResourceKey;
+    use talon::control::keys::ResourceList;
+    use talon::control::object_store::InMemoryObjectStore;
+    use talon::control::object_store::ObjectStore;
+    use talon::control::tool_output::ToolOutputExt;
+    use talon::control::KeyValueStore;
+    use talon::control::MessagePublisher;
+    use talon::harness::executor::ExecutionSink;
+    use talon::harness::llm::TokenCounter;
+    use talon::harness::llm::ToolOutput;
+    use talon::harness::sessions;
+    use talon::protocol::data_proto;
     use tokio::sync::Mutex;
 
     #[derive(Default)]
@@ -2051,7 +2051,7 @@ mod tests {
         async fn list_keys(
             &self,
             _list: &ResourceList,
-            _options: Option<::control::control::ListOptions<'_>>,
+            _options: Option<talon::control::ListOptions<'_>>,
         ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(vec![])
         }
@@ -2096,7 +2096,7 @@ mod tests {
         Box<
             dyn futures::Stream<
                     Item = std::result::Result<
-                        ::protocol::worker_proto::StreamSessionPartsResponse,
+                        talon::protocol::worker_proto::StreamSessionPartsResponse,
                         tonic::Status,
                     >,
                 > + Send,
@@ -2143,7 +2143,7 @@ mod tests {
     #[async_trait]
     impl MessagePublisher for MockPubSub {
         async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
-            if topic == ::control::control::topics::INDEX_EVENTS_TOPIC {
+            if topic == talon::control::topics::INDEX_EVENTS_TOPIC {
                 return Ok(());
             }
             let event = SessionMessagePartEvent::decode(message)?;
@@ -2273,7 +2273,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        ::control::control::ProtoKeyValueStoreExt::set_msg(
+        talon::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -2410,7 +2410,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        ::control::control::ProtoKeyValueStoreExt::set_msg(
+        talon::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -2437,7 +2437,7 @@ mod tests {
         let index_event = published
             .iter()
             .find_map(|(topic, payload)| {
-                (topic == ::control::control::topics::INDEX_EVENTS_TOPIC)
+                (topic == talon::control::topics::INDEX_EVENTS_TOPIC)
                     .then(|| IndexEvent::decode(payload.as_slice()).ok())
                     .flatten()
             })
@@ -2810,7 +2810,7 @@ mod tests {
         let object = persisted.object.as_ref().unwrap();
         let stored = sink.objects.get(&object.key).await.unwrap().unwrap();
         let hydrated = String::from_utf8(
-            ::control::control::cas::decode_stored_object_bytes(&stored, &object.key).unwrap(),
+            talon::control::cas::decode_stored_object_bytes(&stored, &object.key).unwrap(),
         )
         .unwrap();
         assert_eq!(hydrated, raw_output);
@@ -2824,7 +2824,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        ::control::control::ProtoKeyValueStoreExt::set_msg(
+        talon::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -2900,7 +2900,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        ::control::control::ProtoKeyValueStoreExt::set_msg(
+        talon::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -3037,9 +3037,9 @@ mod tests {
 
     #[tokio::test]
     async fn journal_boundaries_record_stable_llm_responses_and_tool_results() {
-        use ::control::control::ProtoKeyValueStoreExt;
-        use ::harness::llm::ChatResponse;
-        use ::harness::llm::ToolCall;
+        use talon::control::ProtoKeyValueStoreExt;
+        use talon::harness::llm::ChatResponse;
+        use talon::harness::llm::ToolCall;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3154,7 +3154,7 @@ mod tests {
             result
                 .tool_output
                 .as_ref()
-                .and_then(::control::control::tool_output::plain_text)
+                .and_then(talon::control::tool_output::plain_text)
                 .as_deref(),
             Some("result-a")
         );
@@ -3181,9 +3181,9 @@ mod tests {
 
     #[tokio::test]
     async fn steering_before_first_response_does_not_persist_empty_assistant() {
-        use ::control::control::session_queue;
-        use ::control::control::session_queue::STEER_QUEUE;
-        use ::control::control::ProtoKeyValueStoreExt;
+        use talon::control::session_queue;
+        use talon::control::session_queue::STEER_QUEUE;
+        use talon::control::ProtoKeyValueStoreExt;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3200,7 +3200,7 @@ mod tests {
         )
         .await
         .unwrap();
-        let initial_reply_id = ::control::control::uuid::session_message_id();
+        let initial_reply_id = talon::control::uuid::session_message_id();
         let initial_reply_key =
             keys::session_message("acme", "infra", "session-1", &initial_reply_id);
         for message in ["first follow-up", "second follow-up"] {
@@ -3265,7 +3265,7 @@ mod tests {
 
     #[tokio::test]
     async fn empty_steering_queue_does_not_persist_projection_or_journal() {
-        use ::control::control::ProtoKeyValueStoreExt;
+        use talon::control::ProtoKeyValueStoreExt;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3303,9 +3303,9 @@ mod tests {
 
     #[tokio::test]
     async fn recovered_tool_only_segment_is_finalized_before_steering() {
-        use ::control::control::session_queue;
-        use ::control::control::session_queue::STEER_QUEUE;
-        use ::control::control::ProtoKeyValueStoreExt;
+        use talon::control::session_queue;
+        use talon::control::session_queue::STEER_QUEUE;
+        use talon::control::ProtoKeyValueStoreExt;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3392,9 +3392,9 @@ mod tests {
 
     #[tokio::test]
     async fn recovery_steer_preserves_an_already_finalized_assistant_segment() {
-        use ::control::control::session_queue;
-        use ::control::control::session_queue::STEER_QUEUE;
-        use ::control::control::ProtoKeyValueStoreExt;
+        use talon::control::session_queue;
+        use talon::control::session_queue::STEER_QUEUE;
+        use talon::control::ProtoKeyValueStoreExt;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3591,8 +3591,8 @@ mod tests {
 
     #[tokio::test]
     async fn latest_llm_response_replaces_session_context_tokens() {
-        use ::control::control::ProtoKeyValueStoreExt;
-        use ::harness::llm::ChatResponse;
+        use talon::control::ProtoKeyValueStoreExt;
+        use talon::harness::llm::ChatResponse;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3690,9 +3690,9 @@ mod tests {
 
     #[tokio::test]
     async fn tool_call_response_does_not_persist_provider_continuation_id() {
-        use ::control::control::ProtoKeyValueStoreExt;
-        use ::harness::llm::ChatResponse;
-        use ::harness::llm::ToolCall;
+        use talon::control::ProtoKeyValueStoreExt;
+        use talon::harness::llm::ChatResponse;
+        use talon::harness::llm::ToolCall;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(crate::test_support::MockKvStore::default());
@@ -3800,7 +3800,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        ::control::control::ProtoKeyValueStoreExt::set_msg(
+        talon::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -3842,7 +3842,7 @@ mod tests {
         let persisted_messages = entries
             .iter()
             .filter_map(|(_, value)| {
-                ::protocol::data_proto::SessionMessage::decode(value.as_slice()).ok()
+                talon::protocol::data_proto::SessionMessage::decode(value.as_slice()).ok()
             })
             .collect::<Vec<_>>();
         assert!(persisted_messages.iter().any(|msg| msg.id == "reply-1"));
@@ -3918,7 +3918,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        ::control::control::ProtoKeyValueStoreExt::set_msg(
+        talon::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("acme", "infra", "session-1", "submission-1"),
             &submission,
@@ -4012,7 +4012,7 @@ mod tests {
 
     #[tokio::test]
     async fn llm_response_projects_encrypted_reasoning_as_object_only_part() {
-        use ::harness::llm::ChatResponse;
+        use talon::harness::llm::ChatResponse;
 
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
@@ -4020,7 +4020,7 @@ mod tests {
             sessions::pending_submission("submission-1", "session-1", "user-1", 100);
         submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
-        ::control::control::ProtoKeyValueStoreExt::set_msg(
+        talon::control::ProtoKeyValueStoreExt::set_msg(
             kv.as_ref(),
             &keys::session_submission("conic", "infra", "session-1", "submission-1"),
             &submission,

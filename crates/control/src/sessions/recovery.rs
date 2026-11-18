@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::Result;
 use prost::Message;
 use std::collections::{HashMap, HashSet};
@@ -14,8 +17,8 @@ use super::{
 use crate::control::ControlPlane;
 use crate::control::ListOptions;
 use crate::control::ProtoKeyValueStoreExt;
-use ::protocol::data_proto;
-use ::protocol::data_proto::SessionExecutionPhase;
+use talon::protocol::data_proto;
+use talon::protocol::data_proto::SessionExecutionPhase;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct JournalRecoveryPlan {
@@ -216,16 +219,19 @@ pub async fn plan_journal_recovery(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::control::cas::CasStore;
     use crate::control::tool_output::ToolOutputExt;
     use crate::sessions;
     use crate::test_support::MockKvStore;
-    use ::contracts::llm::ChatResponse;
-    use ::contracts::llm::ToolCall;
-    use ::contracts::llm::ToolOutput;
-    use ::protocol::data_proto::SessionSubmissionStatus;
     use std::sync::Arc;
+    use talon::contracts::llm::ChatResponse;
+    use talon::contracts::llm::ToolCall;
+    use talon::contracts::llm::ToolOutput;
+    use talon::protocol::data_proto::SessionSubmissionStatus;
 
     fn control_plane(kv: Arc<MockKvStore>) -> ControlPlane {
         ControlPlane::builder(

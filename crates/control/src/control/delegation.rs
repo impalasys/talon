@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{Context, Result};
 use prost::Message;
 use std::collections::{HashMap, HashSet};
@@ -14,8 +17,8 @@ use crate::control::session_queue;
 use crate::control::ControlPlane;
 use crate::control::ListOptions;
 use crate::control::ProtoKeyValueStoreExt;
-use ::protocol::data_proto;
-use ::protocol::resources_proto;
+use talon::protocol::data_proto;
+use talon::protocol::resources_proto;
 
 // Task resource label: marks a Task as created through agent delegation.
 pub const LABEL_DELEGATION: &str = "talon.impalasys.com/delegation";

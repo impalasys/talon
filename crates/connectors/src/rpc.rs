@@ -1,19 +1,22 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::controller;
-use ::control::control::keys;
-use ::control::control::resource_model::ChannelResourceExt;
-use ::control::control::resources::ResourceStore;
-use ::control::control::scheduling;
-use ::control::control::ControlPlane;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::{data_proto, external_proto, resources_proto};
 use anyhow::Context;
 use serde_json::json;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
+use talon::control::keys;
+use talon::control::resource_model::ChannelResourceExt;
+use talon::control::resources::ResourceStore;
+use talon::control::scheduling;
+use talon::control::ControlPlane;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::{data_proto, external_proto, resources_proto};
 
 pub const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
 pub const LABEL_CONNECTOR: &str = "talon.impalasys.com/connector";
@@ -565,10 +568,10 @@ pub async fn mutate_connector_session_message_labels(
         .ok_or_else(|| anyhow::anyhow!("assistant message not found"))?;
     mutate(&mut message.labels);
     cp.kv.set_msg(&message_key, &message).await?;
-    if let Err(error) = ::control::control::search::publish_index_event(
+    if let Err(error) = talon::control::search::publish_index_event(
         cp.pubsub.as_ref(),
-        ::control::control::events::IndexEvent {
-            operation: ::control::control::events::IndexOperation::Upsert as i32,
+        talon::control::events::IndexEvent {
+            operation: talon::control::events::IndexOperation::Upsert as i32,
             key: message_key.canonical(),
             ..Default::default()
         },
@@ -826,24 +829,24 @@ pub async fn dispatch_to_session(
         elapsed_ms = started.elapsed().as_millis(),
         "connector message dispatching to session"
     );
-    ::control::control::session_queue::queue_session_message(
+    talon::control::session_queue::queue_session_message(
         cp.kv.as_ref(),
         &agent_namespace,
         agent_name,
         &session_id,
-        ::control::control::session_queue::STEER_QUEUE,
+        talon::control::session_queue::STEER_QUEUE,
         message,
         chrono::Utc::now(),
     )
     .await
     .map_err(map_dispatch_error)?;
-    ::control::control::session_queue::dispatch_next_queued_message(
+    talon::control::session_queue::dispatch_next_queued_message(
         cp.kv.as_ref(),
         cp.pubsub.as_ref(),
         &agent_namespace,
         agent_name,
         &session_id,
-        ::control::control::session_queue::STEER_QUEUE,
+        talon::control::session_queue::STEER_QUEUE,
         chrono::Utc::now(),
     )
     .await
@@ -906,10 +909,10 @@ pub async fn dispatch_to_channel(
         ));
     }
 
-    let message = ::control::channels::persist_channel_message(
+    let message = talon::control::channels::persist_channel_message(
         cp,
         data_proto::ChannelMessage {
-            id: ::control::control::uuid::channel_message_id(),
+            id: talon::control::uuid::channel_message_id(),
             ns: channel_namespace.clone(),
             channel: channel_name.to_string(),
             author_kind: connector_author_kind(event),
@@ -924,7 +927,7 @@ pub async fn dispatch_to_channel(
     .await
     .map_err(internal_error)?;
 
-    let _session_id = ::control::channels::route_connector_channel_message(
+    let _session_id = talon::control::channels::route_connector_channel_message(
         cp,
         &message,
         agent_name,
@@ -979,7 +982,7 @@ pub async fn dispatch_to_workflow(
     }
 
     let input = connector_workflow_input(connector, event).map_err(internal_error)?;
-    ::control::workflow_state::create_run(cp, &workflow, input, labels)
+    talon::control::workflow_state::create_run(cp, &workflow, input, labels)
         .await
         .map_err(map_dispatch_error)?;
     Ok(ConnectorDispatchOutcome {
@@ -1058,7 +1061,7 @@ pub async fn connector_session_id(
         }
         let reservation = format!(
             "{CONNECTOR_SESSION_RESERVATION_PREFIX}{}",
-            ::control::control::uuid::session_id()
+            talon::control::uuid::session_id()
         );
         if !cp
             .kv
@@ -1271,7 +1274,7 @@ pub fn connector_session_pointer_name(
 
 pub async fn existing_connector_session(
     cp: &ControlPlane,
-    key: &::control::control::keys::ResourceKey,
+    key: &talon::control::keys::ResourceKey,
     agent_namespace: &str,
     agent_name: &str,
 ) -> Result<Option<String>, tonic::Status> {
@@ -1300,7 +1303,7 @@ pub async fn existing_connector_session(
 
 pub async fn wait_for_connector_session(
     cp: &ControlPlane,
-    key: &::control::control::keys::ResourceKey,
+    key: &talon::control::keys::ResourceKey,
     agent_namespace: &str,
     agent_name: &str,
     registration_id: &str,
@@ -1383,7 +1386,7 @@ pub fn connector_session_message(
         ));
     }
     Ok(data_proto::SessionMessage {
-        id: ::control::control::uuid::session_message_id(),
+        id: talon::control::uuid::session_message_id(),
         role: data_proto::MessageRole::RoleUser as i32,
         created_at: now,
         labels,
@@ -1592,4 +1595,4 @@ pub fn map_dispatch_error(err: anyhow::Error) -> tonic::Status {
     }
 }
 
-pub use ::control::connector_runtime::*;
+pub use talon::control::connector_runtime::*;

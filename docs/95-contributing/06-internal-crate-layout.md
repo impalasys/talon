@@ -66,5 +66,5 @@ packages remain independent of unpublished internal packages.
 ## Progress
 
 - Pass 1: internal names shortened.
-- Pass 2: pending.
+- Pass 2: canonical namespaces implemented.
 - Pass 3: pending.

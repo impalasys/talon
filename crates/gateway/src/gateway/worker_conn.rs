@@ -1,18 +1,21 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::control::control::keys;
+#[allow(unused_imports)]
+use crate::talon;
 
-use ::control::control::ns;
+use talon::control::keys;
 
-use ::control::control::KeyValueStore;
-use ::protocol::resources_proto;
-use ::protocol::worker_proto;
+use talon::control::ns;
+
 use hyper_util::rt::TokioIo;
 use prost::Message;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
+use talon::control::KeyValueStore;
+use talon::protocol::resources_proto;
+use talon::protocol::worker_proto;
 use tokio::net::UnixStream;
 use tokio::sync::Mutex;
 use tonic::transport::{Channel, Endpoint, Uri};

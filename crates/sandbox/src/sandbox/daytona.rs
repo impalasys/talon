@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
@@ -65,7 +68,7 @@ impl SandboxBackend for DaytonaSandboxBackend {
         let command = shell_command(&spec);
         let _ = daytona_execute(backend_id, &command).await?;
         Ok(ProcessHandle {
-            id: ::control::control::uuid::process_id(),
+            id: talon::control::uuid::process_id(),
         })
     }
 

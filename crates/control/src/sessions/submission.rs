@@ -1,15 +1,18 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use prost::Message;
 
 use super::{SessionJournalEntry, SessionSubmission};
 use crate::control::keys;
 use crate::control::KeyValueStore;
-use ::protocol::data_proto::SessionExecutionPhase;
-use ::protocol::data_proto::SessionSubmissionKind;
-use ::protocol::data_proto::SessionSubmissionStatus;
+use talon::protocol::data_proto::SessionExecutionPhase;
+use talon::protocol::data_proto::SessionSubmissionKind;
+use talon::protocol::data_proto::SessionSubmissionStatus;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ClaimOutcome {
@@ -293,6 +296,9 @@ fn journal_entry_order(journal_entry_id: &str) -> u64 {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::MockKvStore;
 

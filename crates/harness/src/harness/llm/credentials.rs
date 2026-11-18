@@ -6,9 +6,10 @@
 //! The shared client boundary deliberately knows only how to obtain a token;
 //! identity sources acquire subject tokens; destination adapters exchange them.
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::identity::{identity_source, WorkloadIdentitySource};
-use ::control::control::config::llm_auth::validate_openai_auth;
-use ::control::control::config::proto;
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
 use prost::Message;
@@ -18,6 +19,8 @@ use std::{
     sync::{Arc, Mutex as StdMutex, OnceLock},
     time::{SystemTime, UNIX_EPOCH},
 };
+use talon::control::config::llm_auth::validate_openai_auth;
+use talon::control::config::proto;
 use tokio::sync::Mutex;
 
 #[async_trait]
@@ -245,6 +248,9 @@ pub fn configured_workload_identity(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use serde_json::Value;
     use tokio::{

@@ -1,18 +1,21 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{data_proto, proto, resources_proto, worker_proto, GrpcGatewayHandler};
 use crate::gateway::worker_conn::WorkerConnectionPool;
-use ::control::control::keys;
-use ::control::control::resources::ResourceStore;
-use ::control::control::KeyValueStore;
-use ::control::control::ListOptions;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::control::workflow_state as workflows;
 use futures::StreamExt;
 use prost::Message;
 use std::collections::HashSet;
 use std::time::Duration;
+use talon::control::keys;
+use talon::control::resources::ResourceStore;
+use talon::control::workflow_state as workflows;
+use talon::control::KeyValueStore;
+use talon::control::ListOptions;
+use talon::control::ProtoKeyValueStoreExt;
 
 const DEFAULT_WORKFLOW_RUNS_PAGE_SIZE: usize = 50;
 const MAX_WORKFLOW_RUNS_PAGE_SIZE: usize = 200;
@@ -66,7 +69,7 @@ impl GrpcGatewayHandler {
             .spec
             .as_ref()
             .ok_or_else(|| tonic::Status::invalid_argument("workflow spec is required"))?;
-        ::protocol::workflow_validation::validate_input(&spec.input_schema_json, &input)
+        talon::protocol::workflow_validation::validate_input(&spec.input_schema_json, &input)
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
         let run = workflows::create_run(
             &self.gateway.control_plane(),
@@ -561,6 +564,9 @@ fn is_terminal_workflow_status(status: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     #[test]

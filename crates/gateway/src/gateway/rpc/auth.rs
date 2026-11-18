@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::gateway::auth as gateway_auth;
 use crate::gateway::auth::AuthConfig;
@@ -9,10 +12,6 @@ use crate::gateway::auth::AuthzOperation;
 use crate::gateway::auth::Claims;
 use crate::gateway::auth::TalonGrantClaim;
 use crate::gateway::Gateway;
-use ::control::control::config::proto as config_proto;
-use ::control::control::keys;
-use ::control::control::ns;
-use ::control::control::security::platform_jwt;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
 use jsonwebtoken::{decode, decode_header, jwk::JwkSet, Algorithm, DecodingKey, Validation};
 use prost::Message;
@@ -20,6 +19,10 @@ use rand::RngExt;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
+use talon::control::config::proto as config_proto;
+use talon::control::keys;
+use talon::control::ns;
+use talon::control::security::platform_jwt;
 
 const DEFAULT_GOOGLE_JWKS_URL: &str = "https://www.googleapis.com/oauth2/v3/certs";
 const TALON_ACCESS_TOKEN_TTL_SECONDS: u64 = 900;
@@ -190,7 +193,7 @@ impl GrpcGatewayHandler {
             }
         }
 
-        let id = ::control::control::uuid::auth_record_id();
+        let id = talon::control::uuid::auth_record_id();
         let secret = random_url_token(API_KEY_SECRET_BYTES);
         let raw_key = format!("{API_KEY_PREFIX}{id}_{secret}");
         let prefix = raw_key
@@ -1134,6 +1137,9 @@ fn canonical_oidc_subject(issuer: &str, subject: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::gateway::auth::check_auth;
     use crate::test_support::EmptyPubSub;
@@ -1141,9 +1147,9 @@ mod tests {
     use crate::test_support::PlatformJwtEnvGuard;
     use crate::test_support::TEST_PLATFORM_JWT_ISSUER;
     use crate::test_support::TEST_RSA_PRIVATE_KEY;
-    use ::control::control::ControlPlane;
-    use ::control::control::KeyValueStore;
     use std::sync::Arc;
+    use talon::control::ControlPlane;
+    use talon::control::KeyValueStore;
 
     fn handler() -> GrpcGatewayHandler {
         handler_with_kv(Arc::new(MockKvStore::default()))

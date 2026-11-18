@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::harness::executor::compaction::compact;
 use crate::harness::executor::compaction::compact_history_for_llm_with_model_limits_and_tool_schema;
 use crate::harness::executor::compaction::context_metrics;
@@ -31,12 +34,6 @@ use crate::harness::skills::namespace::load_skill_instructions;
 use crate::harness::skills::registry::ToolRegistry;
 use crate::harness::skills::render::format_active_skill_context;
 use crate::harness::telemetry;
-use ::control::control::cas::CasStore;
-use ::control::control::config::Config;
-use ::control::control::tool_output;
-use ::control::control::tool_output::is_text_object_media_type;
-use ::control::control::tool_output::ToolOutputExt;
-use ::control::control::ControlPlane;
 use anyhow::Result;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -47,16 +44,22 @@ use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
+use talon::control::cas::CasStore;
+use talon::control::config::Config;
+use talon::control::tool_output;
+use talon::control::tool_output::is_text_object_media_type;
+use talon::control::tool_output::ToolOutputExt;
+use talon::control::ControlPlane;
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
 
 const DEFAULT_EXECUTION_TURN_LIMIT: usize = 25;
 const LLM_PREFLIGHT_METRICS: &[&str] = &[
-    ::control::control::usage::METRIC_LLM_REQUESTS,
-    ::control::control::usage::METRIC_LLM_INPUT_TOKENS,
-    ::control::control::usage::METRIC_LLM_OUTPUT_TOKENS,
-    ::control::control::usage::METRIC_LLM_REASONING_TOKENS,
-    ::control::control::usage::METRIC_LLM_TOTAL_TOKENS,
+    talon::control::usage::METRIC_LLM_REQUESTS,
+    talon::control::usage::METRIC_LLM_INPUT_TOKENS,
+    talon::control::usage::METRIC_LLM_OUTPUT_TOKENS,
+    talon::control::usage::METRIC_LLM_REASONING_TOKENS,
+    talon::control::usage::METRIC_LLM_TOTAL_TOKENS,
 ];
 
 fn tool_error_result(name: &str, error: &anyhow::Error) -> String {
@@ -78,7 +81,7 @@ pub struct LoopMessage {
     pub tool_calls: Option<Vec<ToolCall>>,
     pub tool_call_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub encrypted_reasoning: Option<::protocol::data_proto::ObjectRef>,
+    pub encrypted_reasoning: Option<talon::protocol::data_proto::ObjectRef>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -238,7 +241,7 @@ fn prefix_latest_user_message(history: &mut [LoopMessage], prefix: &str) {
 }
 
 fn infer_media_type_for_object_ref(
-    object_ref: &::protocol::data_proto::ObjectRef,
+    object_ref: &talon::protocol::data_proto::ObjectRef,
 ) -> Option<String> {
     [&object_ref.filename, &object_ref.key]
         .into_iter()
@@ -490,7 +493,7 @@ pub struct AgentExecutor {
     pub session_id: String,
     pub context_tokens: Option<TokenCounter>,
     pub control_plane: ControlPlane,
-    pub agent_spec: ::protocol::manifests::AgentSpec,
+    pub agent_spec: talon::protocol::manifests::AgentSpec,
     pub mcp_tools: HashMap<String, RegisteredMcpTool>,
 }
 
@@ -517,7 +520,7 @@ impl AgentExecutor {
         namespace: String,
         agent_id: String,
         control_plane: ControlPlane,
-        agent_spec: ::protocol::manifests::AgentSpec,
+        agent_spec: talon::protocol::manifests::AgentSpec,
         mcp_tools: HashMap<String, RegisteredMcpTool>,
     ) -> Self {
         Self::new_with_session(
@@ -549,7 +552,7 @@ impl AgentExecutor {
         session_id: String,
         context_tokens: Option<TokenCounter>,
         control_plane: ControlPlane,
-        agent_spec: ::protocol::manifests::AgentSpec,
+        agent_spec: talon::protocol::manifests::AgentSpec,
         mcp_tools: HashMap<String, RegisteredMcpTool>,
     ) -> Self {
         Self {
@@ -611,7 +614,7 @@ impl AgentExecutor {
         let configured_system_prompt =
             if !configured_system_prompt.is_empty() && !context.has_system_message() {
                 Some(
-                    ::control::control::manifest::templating::render_runtime_system_prompt_template(
+                    talon::control::manifest::templating::render_runtime_system_prompt_template(
                         configured_system_prompt,
                     )?,
                 )
@@ -633,7 +636,7 @@ impl AgentExecutor {
             None
         } else {
             Some(
-                ::control::control::manifest::templating::render_runtime_post_history_prompt_template(
+                talon::control::manifest::templating::render_runtime_post_history_prompt_template(
                     post_history_prompt,
                 )?,
             )
@@ -1040,7 +1043,7 @@ impl AgentExecutor {
             let thinking = model.and_then(|model| model.thinking.clone());
             let zero_data_retention = model.is_some_and(|model| model.zero_data_retention);
             let usage_subject = self.usage_subject();
-            ::control::control::usage::check_namespace_usage(
+            talon::control::usage::check_namespace_usage(
                 self.control_plane.kv.as_ref(),
                 &usage_subject,
                 LLM_PREFLIGHT_METRICS,
@@ -1120,10 +1123,10 @@ impl AgentExecutor {
                                 );
                             }
                             sink.on_usage(&usage_for_event).await;
-                            ::control::control::usage::charge_namespace_usage(
+                            talon::control::usage::charge_namespace_usage(
                                 self.control_plane.kv.as_ref(),
                                 &usage_subject,
-                                &::control::control::usage::llm_usage_charges(usage.as_ref()),
+                                &talon::control::usage::llm_usage_charges(usage.as_ref()),
                                 chrono::Utc::now().timestamp(),
                             )
                             .await?;
@@ -1284,10 +1287,10 @@ impl AgentExecutor {
             if let Some(usage) = llm_response.usage.as_ref() {
                 sink.on_usage(usage).await;
             }
-            ::control::control::usage::charge_namespace_usage(
+            talon::control::usage::charge_namespace_usage(
                 self.control_plane.kv.as_ref(),
                 &usage_subject,
-                &::control::control::usage::llm_usage_charges(llm_response.usage.as_ref()),
+                &talon::control::usage::llm_usage_charges(llm_response.usage.as_ref()),
                 chrono::Utc::now().timestamp(),
             )
             .await?;
@@ -1314,10 +1317,10 @@ impl AgentExecutor {
                         tool,
                         tool_type,
                     );
-                    ::control::control::usage::check_namespace_usage(
+                    talon::control::usage::check_namespace_usage(
                         self.control_plane.kv.as_ref(),
                         &self.usage_subject(),
-                        &[::control::control::usage::METRIC_TOOL_CALLS],
+                        &[talon::control::usage::METRIC_TOOL_CALLS],
                         chrono::Utc::now().timestamp(),
                     )
                     .await?;
@@ -1350,11 +1353,11 @@ impl AgentExecutor {
                     telemetry::record_tool_result(&tool_span, &result_text);
                     sink.on_tool_result_recorded(&tool.id, &tool.name, &result)
                         .await?;
-                    ::control::control::usage::charge_namespace_usage(
+                    talon::control::usage::charge_namespace_usage(
                         self.control_plane.kv.as_ref(),
                         &self.usage_subject(),
-                        &[::control::control::usage::UsageCharge {
-                            metric: ::control::control::usage::METRIC_TOOL_CALLS,
+                        &[talon::control::usage::UsageCharge {
+                            metric: talon::control::usage::METRIC_TOOL_CALLS,
                             delta: 1,
                         }],
                         chrono::Utc::now().timestamp(),
@@ -1401,8 +1404,8 @@ impl AgentExecutor {
         }
     }
 
-    fn usage_subject(&self) -> ::control::control::usage::UsageSubject {
-        ::control::control::usage::UsageSubject {
+    fn usage_subject(&self) -> talon::control::usage::UsageSubject {
+        talon::control::usage::UsageSubject {
             namespace: self.namespace.clone(),
             agent: self.agent_id.clone(),
             provider: self.llm_provider_key.clone(),
@@ -1469,6 +1472,9 @@ pub fn tool_output_loop_message(tool_call_id: &str, result: &ToolOutput) -> Loop
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         serialized_message_weight, AgentEvent, AgentExecutor, CaptureSink, ContextAssembler,
         ExecutionContext, ExecutionSink, LoopMessage,
@@ -1491,22 +1497,22 @@ mod tests {
     use crate::harness::skills::registry::ToolRegistry;
     use crate::test_support::MockKvStore;
     use crate::test_support::RecordingPubSub;
-    use ::control::control::config::Config;
-    use ::control::control::keys;
-    use ::control::control::object_store::ObjectMetadata;
-    use ::control::control::tool_output::ToolOutputExt;
-    use ::control::control::ControlPlane;
-    use ::control::control::ProtoKeyValueStoreExt;
-    use ::protocol::data_proto;
-    use ::protocol::manifests;
-    use ::protocol::protobuf_value::value::Kind as ProtoValueKind;
-    use ::protocol::protobuf_value::ListValue;
-    use ::protocol::protobuf_value::Value as ProtoValue;
     use anyhow::Result;
     use async_trait::async_trait;
     use serde_json::json;
     use std::collections::HashMap;
     use std::sync::{Arc, Mutex};
+    use talon::control::config::Config;
+    use talon::control::keys;
+    use talon::control::object_store::ObjectMetadata;
+    use talon::control::tool_output::ToolOutputExt;
+    use talon::control::ControlPlane;
+    use talon::control::ProtoKeyValueStoreExt;
+    use talon::protocol::data_proto;
+    use talon::protocol::manifests;
+    use talon::protocol::protobuf_value::value::Kind as ProtoValueKind;
+    use talon::protocol::protobuf_value::ListValue;
+    use talon::protocol::protobuf_value::Value as ProtoValue;
     use tempfile::tempdir;
     use tokio_util::sync::CancellationToken;
 
@@ -3069,7 +3075,7 @@ mod tests {
         let mut config = Config::default();
         config.models.insert(
             "test-model".to_string(),
-            ::control::control::config::proto::ModelConfig {
+            talon::control::config::proto::ModelConfig {
                 context_window_tokens: Some(1_000),
                 ..Default::default()
             },

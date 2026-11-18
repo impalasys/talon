@@ -1,13 +1,16 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::Result;
 use serde_json::{json, Value};
 
 use crate::harness::llm::ToolOutput;
 use crate::harness::skills::registry::ToolRegistry;
-use ::control::control::tool_output::ToolOutputExt;
-use ::control::control::ControlPlane;
+use talon::control::tool_output::ToolOutputExt;
+use talon::control::ControlPlane;
 
 pub fn register(registry: &mut ToolRegistry) {
     registry.register_builtin(
@@ -130,6 +133,9 @@ pub async fn execute_output(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     fn assert_no_top_level_composition(schema: &Value) {

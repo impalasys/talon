@@ -1,16 +1,16 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::protocol::generated::config::object_store_config;
+pub(crate) mod talon;
 
-use ::protocol::generated::config::GcsObjectStoreConfig;
+use talon::protocol::generated::config::object_store_config;
 
-use ::protocol::generated::config::LocalObjectStoreConfig;
+use talon::protocol::generated::config::GcsObjectStoreConfig;
 
-use ::protocol::generated::config::ObjectStoreConfig;
+use talon::protocol::generated::config::LocalObjectStoreConfig;
 
-use ::protocol::data_proto;
-use ::protocol::generated::config::S3ObjectStoreConfig;
+use talon::protocol::generated::config::ObjectStoreConfig;
+
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
 use google_cloud_auth::credentials::{AccessTokenCredentials, Builder as CredentialsBuilder};
@@ -20,12 +20,14 @@ use std::collections::HashMap;
 use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use talon::protocol::data_proto;
+use talon::protocol::generated::config::S3ObjectStoreConfig;
 
 const GCS_STORAGE_SCOPE: &str = "https://www.googleapis.com/auth/devstorage.read_write";
 const GCS_API_BASE: &str = "https://storage.googleapis.com";
 const LEGACY_CONTENT_ENCODING_METADATA: &str = "content_encoding";
 
-pub use ::storage_memory::object_store::*;
+pub use talon::storage::memory::object_store::*;
 
 pub async fn object_store_from_config(
     cfg: Option<&ObjectStoreConfig>,
@@ -718,15 +720,18 @@ fn signed_url_expiry(expires_in: Duration) -> i64 {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         object_store_from_config, prefixed_key, GcsObjectStore, InMemoryObjectStore,
         LocalObjectStore, ObjectMetadata, ObjectStore, S3ObjectStore,
     };
-    use ::protocol::generated::config::object_store_config;
-    use ::protocol::generated::config::GcsObjectStoreConfig;
-    use ::protocol::generated::config::LocalObjectStoreConfig;
-    use ::protocol::generated::config::ObjectStoreConfig;
-    use ::protocol::generated::config::S3ObjectStoreConfig;
+    use talon::protocol::generated::config::object_store_config;
+    use talon::protocol::generated::config::GcsObjectStoreConfig;
+    use talon::protocol::generated::config::LocalObjectStoreConfig;
+    use talon::protocol::generated::config::ObjectStoreConfig;
+    use talon::protocol::generated::config::S3ObjectStoreConfig;
 
     #[tokio::test]
     async fn local_object_store_round_trips_bytes_and_metadata() {

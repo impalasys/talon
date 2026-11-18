@@ -1,18 +1,21 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::control::control::events::IndexEvent;
+#[allow(unused_imports)]
+use crate::talon;
 
-use ::control::control::events::IndexOperation;
-use ::control::control::keys;
-use ::control::control::ns;
-use ::control::control::search::mapper;
-use ::control::control::search::DeleteScope;
-use ::control::control::search::DocumentStore;
-use ::control::control::search::KIND_SESSION_MESSAGE;
-use ::control::control::ControlPlane;
+use talon::control::events::IndexEvent;
+
 use anyhow::Result;
 use std::sync::Arc;
+use talon::control::events::IndexOperation;
+use talon::control::keys;
+use talon::control::ns;
+use talon::control::search::mapper;
+use talon::control::search::DeleteScope;
+use talon::control::search::DocumentStore;
+use talon::control::search::KIND_SESSION_MESSAGE;
+use talon::control::ControlPlane;
 
 #[derive(Clone)]
 pub struct IndexController {
@@ -115,14 +118,17 @@ fn parent_segment(key: &keys::ResourceKey, kind: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::EmptyPubSub;
     use crate::test_support::MockKvStore;
-    use ::control::control::resources::ResourceStore;
-    use ::control::control::search;
-    use ::control::control::search::Document;
-    use ::control::control::ProtoKeyValueStoreExt;
-    use ::protocol::data_proto;
+    use talon::control::resources::ResourceStore;
+    use talon::control::search;
+    use talon::control::search::Document;
+    use talon::control::ProtoKeyValueStoreExt;
+    use talon::protocol::data_proto;
 
     fn control_plane(
         kv: Arc<MockKvStore>,
@@ -268,10 +274,10 @@ mod tests {
         let documents = search::ephemeral_document_store();
         let cp = control_plane(kv.clone(), documents.clone());
         let store = ResourceStore::new(kv.clone(), cp.pubsub.clone());
-        let resource = ::control::control::resource_model::agent_resource(
+        let resource = talon::control::resource_model::agent_resource(
             "acme",
             "support",
-            ::protocol::resources_proto::AgentSpec::default(),
+            talon::protocol::resources_proto::AgentSpec::default(),
             [("team".to_string(), "care".to_string())]
                 .into_iter()
                 .collect(),
@@ -313,10 +319,10 @@ mod tests {
         store
             .upsert(
                 "acme",
-                ::control::control::resource_model::agent_resource(
+                talon::control::resource_model::agent_resource(
                     "acme",
                     "support",
-                    ::protocol::resources_proto::AgentSpec::default(),
+                    talon::protocol::resources_proto::AgentSpec::default(),
                     Default::default(),
                 ),
             )
@@ -328,10 +334,12 @@ mod tests {
                 "Agent",
                 "support",
                 None,
-                ::protocol::resources_proto::ResourceSpec {
-                    kind: Some(::protocol::resources_proto::resource_spec::Kind::Agent(
-                        ::protocol::resources_proto::AgentSpec::default(),
-                    )),
+                talon::protocol::resources_proto::ResourceSpec {
+                    kind: Some(
+                        talon::protocol::resources_proto::resource_spec::Kind::Agent(
+                            talon::protocol::resources_proto::AgentSpec::default(),
+                        ),
+                    ),
                 },
             )
             .await
@@ -396,10 +404,10 @@ mod tests {
         let resource = store
             .upsert(
                 "acme",
-                ::control::control::resource_model::agent_resource(
+                talon::control::resource_model::agent_resource(
                     "acme",
                     "support",
-                    ::protocol::resources_proto::AgentSpec::default(),
+                    talon::protocol::resources_proto::AgentSpec::default(),
                     Default::default(),
                 ),
             )

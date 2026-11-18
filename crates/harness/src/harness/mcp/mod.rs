@@ -1,9 +1,11 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::control::control::security::platform_jwt;
+#[allow(unused_imports)]
+use crate::talon;
 
-use ::protocol::manifests;
+use talon::control::security::platform_jwt;
+
 use anyhow::{anyhow, Result};
 use axum::http::{HeaderName, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
@@ -27,6 +29,7 @@ use sse_stream::{Error as SseError, Sse, SseStream};
 use std::collections::HashMap;
 use std::sync::{Arc, OnceLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use talon::protocol::manifests;
 use tokio::process::Command;
 use tokio::sync::{Mutex, RwLock};
 
@@ -851,7 +854,7 @@ fn mint_auth_broker_jwt(
     agent_name: Option<&str>,
     session_id: Option<&str>,
 ) -> Result<String> {
-    ::control::control::security::install_jwt_crypto_provider();
+    talon::control::security::install_jwt_crypto_provider();
     let now = current_unix_timestamp();
     let claims = BrokerJwtClaims {
         iss: issuer.to_string(),

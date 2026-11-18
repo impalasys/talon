@@ -1,28 +1,31 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use std::collections::HashSet;
 use std::sync::Arc;
 
 use super::mcp_registry::McpRegistry;
-use ::control::control::config::Config;
-use ::control::control::ControlPlane;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::harness::executor::load_excluding_message_ids;
-use ::harness::executor::AgentExecutor;
-use ::harness::executor::ContextAssembler;
-use ::harness::executor::ExecutionContext;
-use ::harness::executor::LoopMessage;
-use ::harness::executor::RegisteredMcpTool;
-use ::harness::native_tools::register_skill_tools;
-use ::harness::skills::namespace::load_available_skills;
-use ::harness::skills::registry::ToolRegistry;
-use ::harness::skills::render::format_skill_catalog;
-use ::protocol::data_proto;
-use ::protocol::manifests;
-use ::protocol::protobuf_value::value::Kind as ProtoValueKind;
-use ::protocol::resources_proto;
+use talon::control::config::Config;
+use talon::control::ControlPlane;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::harness::executor::load_excluding_message_ids;
+use talon::harness::executor::AgentExecutor;
+use talon::harness::executor::ContextAssembler;
+use talon::harness::executor::ExecutionContext;
+use talon::harness::executor::LoopMessage;
+use talon::harness::executor::RegisteredMcpTool;
+use talon::harness::native_tools::register_skill_tools;
+use talon::harness::skills::namespace::load_available_skills;
+use talon::harness::skills::registry::ToolRegistry;
+use talon::harness::skills::render::format_skill_catalog;
+use talon::protocol::data_proto;
+use talon::protocol::manifests;
+use talon::protocol::protobuf_value::value::Kind as ProtoValueKind;
+use talon::protocol::resources_proto;
 
 /// Fully-assembled, ready-to-run environment for one agent session.
 /// Build it from identity coordinates; it resolves everything else
@@ -43,8 +46,7 @@ impl AgentRuntime {
         mcp_registry: &McpRegistry,
     ) -> Result<Self> {
         // 1. Fetch AgentSpec from KV
-        let store =
-            ::control::control::resources::ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+        let store = talon::control::resources::ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
         let agent = store
             .get_agent(ns, agent_id)
             .await?
@@ -89,14 +91,14 @@ impl AgentRuntime {
             .ok_or_else(|| anyhow::anyhow!("Agent '{}' has no spec", agent_id))?;
         let session = cp
             .kv
-            .get_msg::<data_proto::Session>(&::control::control::keys::session(
+            .get_msg::<data_proto::Session>(&talon::control::keys::session(
                 ns, agent_id, session_id,
             ))
             .await?;
         let mut is_delegated_task_session = session.as_ref().is_some_and(|session| {
             session
                 .labels
-                .get(::control::control::delegation::LABEL_TASK_ROLE)
+                .get(talon::control::delegation::LABEL_TASK_ROLE)
                 .map(String::as_str)
                 == Some("delegate")
         });
@@ -105,10 +107,10 @@ impl AgentRuntime {
             .map(|session| {
                 session
                     .labels
-                    .contains_key(::control::channels::LABEL_CHANNEL)
+                    .contains_key(talon::control::channels::LABEL_CHANNEL)
                     && session
                         .labels
-                        .get(::control::channels::LABEL_CHANNEL_REPLY_MODE)
+                        .get(talon::control::channels::LABEL_CHANNEL_REPLY_MODE)
                         .map(|mode| mode != "none" && mode != "hold_for_review" && mode != "review")
                         .unwrap_or(true)
             })
@@ -130,21 +132,21 @@ impl AgentRuntime {
             add_capability_action(&mut spec, "tasks", "update");
         }
         if let Some(goal_context) =
-            ::harness::native_tools::active_goals_context(cp, ns, agent_id, session_id).await?
+            talon::harness::native_tools::active_goals_context(cp, ns, agent_id, session_id).await?
         {
             history.insert(0, LoopMessage::text("system", goal_context));
         }
 
         // 3. Resolve LLM from AgentSpec + Config
         let llm =
-            ::harness::llm::resolver::resolve_llm_for_namespace(&spec, config, cp, ns).await?;
+            talon::harness::llm::resolver::resolve_llm_for_namespace(&spec, config, cp, ns).await?;
 
         // 4. Build tool registry (builtins + future MCP servers)
         let mut mcp_tools = std::collections::HashMap::new();
         let mut reg = ToolRegistry::new();
-        ::harness::native_tools::register_tools(&mut reg, &spec, config);
+        talon::harness::native_tools::register_tools(&mut reg, &spec, config);
         if allow_channel_reply_tools {
-            ::harness::native_tools::register_channel_tools(&mut reg);
+            talon::harness::native_tools::register_channel_tools(&mut reg);
         }
         let builtin_tool_names = builtin_tool_names();
         for mcp_ref in &spec.mcp_server_refs {
@@ -257,10 +259,10 @@ impl AgentRuntime {
 }
 
 fn visible_tools_for_agent(
-    config: &::harness::mcp::McpConnectionConfig,
-    tools: &[::harness::mcp::McpTool],
+    config: &talon::harness::mcp::McpConnectionConfig,
+    tools: &[talon::harness::mcp::McpTool],
     spec: &manifests::AgentSpec,
-) -> Vec<::harness::mcp::McpTool> {
+) -> Vec<talon::harness::mcp::McpTool> {
     let mcp_server_name = config
         .mcp_server_name
         .as_deref()
@@ -311,9 +313,9 @@ fn visible_tools_for_agent(
 }
 
 fn config_for_agent_namespace(
-    config: &::harness::mcp::McpConnectionConfig,
+    config: &talon::harness::mcp::McpConnectionConfig,
     namespace: &str,
-) -> ::harness::mcp::McpConnectionConfig {
+) -> talon::harness::mcp::McpConnectionConfig {
     let mut config = config.clone();
     config.namespace = Some(namespace.to_string());
     config
@@ -365,47 +367,50 @@ fn add_capability_action(spec: &mut manifests::AgentSpec, capability: &str, acti
     }) {
         return;
     }
-    actions.values.push(::protocol::protobuf_value::Value {
+    actions.values.push(talon::protocol::protobuf_value::Value {
         kind: Some(ProtoValueKind::StringValue(action.to_string())),
     });
 }
 
 fn builtin_tool_names() -> &'static [&'static str] {
     &[
-        ::harness::native_tools::CREATE_SCHEDULE_TOOL,
-        ::harness::native_tools::GET_SCHEDULE_TOOL,
-        ::harness::native_tools::LIST_SCHEDULES_TOOL,
-        ::harness::native_tools::UPDATE_SCHEDULE_TOOL,
-        ::harness::native_tools::DELETE_SCHEDULE_TOOL,
-        ::harness::native_tools::CREATE_GOAL_TOOL,
-        ::harness::native_tools::DELEGATE_TASK_TOOL,
-        ::harness::native_tools::AGENT_OPEN_TOOL,
-        ::harness::native_tools::AGENT_SEND_TOOL,
-        ::harness::native_tools::AGENT_STATUS_TOOL,
-        ::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL,
-        ::harness::native_tools::UPDATE_TASK_TOOL,
-        ::harness::native_tools::GET_GOAL_TOOL,
-        ::harness::native_tools::LIST_GOALS_TOOL,
-        ::harness::native_tools::UPDATE_GOAL_TOOL,
-        ::harness::native_tools::COMPLETE_GOAL_TOOL,
-        ::harness::native_tools::BLOCK_GOAL_TOOL,
-        ::harness::native_tools::CHANNEL_PUBLISH_TOOL,
-        ::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL,
-        ::harness::native_tools::ACTIVATE_SKILL_TOOL,
-        ::harness::native_tools::DEACTIVATE_SKILL_TOOL,
-        ::harness::native_tools::READ_SESSION_MESSAGES_TOOL,
-        ::harness::native_tools::CREATE_ARTIFACT_TOOL,
-        ::harness::native_tools::UPDATE_ARTIFACT_TOOL,
-        ::harness::native_tools::READ_ARTIFACT_TOOL,
-        ::harness::native_tools::GET_ARTIFACT_METADATA_TOOL,
-        ::harness::native_tools::GRANT_ARTIFACT_TOOL,
-        ::harness::native_tools::FETCH_URL_TOOL,
-        ::harness::native_tools::WEB_SEARCH_TOOL,
-        ::harness::native_tools::RUN_PYTHON_CODE_TOOL,
+        talon::harness::native_tools::CREATE_SCHEDULE_TOOL,
+        talon::harness::native_tools::GET_SCHEDULE_TOOL,
+        talon::harness::native_tools::LIST_SCHEDULES_TOOL,
+        talon::harness::native_tools::UPDATE_SCHEDULE_TOOL,
+        talon::harness::native_tools::DELETE_SCHEDULE_TOOL,
+        talon::harness::native_tools::CREATE_GOAL_TOOL,
+        talon::harness::native_tools::DELEGATE_TASK_TOOL,
+        talon::harness::native_tools::AGENT_OPEN_TOOL,
+        talon::harness::native_tools::AGENT_SEND_TOOL,
+        talon::harness::native_tools::AGENT_STATUS_TOOL,
+        talon::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL,
+        talon::harness::native_tools::UPDATE_TASK_TOOL,
+        talon::harness::native_tools::GET_GOAL_TOOL,
+        talon::harness::native_tools::LIST_GOALS_TOOL,
+        talon::harness::native_tools::UPDATE_GOAL_TOOL,
+        talon::harness::native_tools::COMPLETE_GOAL_TOOL,
+        talon::harness::native_tools::BLOCK_GOAL_TOOL,
+        talon::harness::native_tools::CHANNEL_PUBLISH_TOOL,
+        talon::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL,
+        talon::harness::native_tools::ACTIVATE_SKILL_TOOL,
+        talon::harness::native_tools::DEACTIVATE_SKILL_TOOL,
+        talon::harness::native_tools::READ_SESSION_MESSAGES_TOOL,
+        talon::harness::native_tools::CREATE_ARTIFACT_TOOL,
+        talon::harness::native_tools::UPDATE_ARTIFACT_TOOL,
+        talon::harness::native_tools::READ_ARTIFACT_TOOL,
+        talon::harness::native_tools::GET_ARTIFACT_METADATA_TOOL,
+        talon::harness::native_tools::GRANT_ARTIFACT_TOOL,
+        talon::harness::native_tools::FETCH_URL_TOOL,
+        talon::harness::native_tools::WEB_SEARCH_TOOL,
+        talon::harness::native_tools::RUN_PYTHON_CODE_TOOL,
     ]
 }
 
-fn qualify_mcp_tool_name(config: &::harness::mcp::McpConnectionConfig, tool_name: &str) -> String {
+fn qualify_mcp_tool_name(
+    config: &talon::harness::mcp::McpConnectionConfig,
+    tool_name: &str,
+) -> String {
     let prefix = config
         .mcp_server_name
         .as_deref()
@@ -436,31 +441,34 @@ fn sanitize_tool_name_component(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         builtin_tool_names, config_for_agent_namespace, has_capability_action,
         qualify_mcp_tool_name, visible_tools_for_agent, AgentRuntime,
     };
     use crate::test_support::MockKvStore;
-    use ::control::control::config::proto;
-    use ::control::control::config::Config;
-    use ::control::control::config::ProviderConfig;
-    use ::control::control::config::Secret;
-    use ::control::control::ControlPlane;
-    use ::control::control::KeyValueStore;
-    use ::control::control::MessagePublisher;
-    use ::control::control::ProtoKeyValueStoreExt;
-    use ::harness::llm::content_part_object_ref;
-    use ::harness::llm::text_part;
-    use ::harness::mcp::McpConnectionConfig;
-    use ::protocol::data_proto;
-    use ::protocol::manifests;
-    use ::protocol::protobuf_value;
-    use ::protocol::resources_proto;
     use futures::stream;
     use prost::Message;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
+    use talon::control::config::proto;
+    use talon::control::config::Config;
+    use talon::control::config::ProviderConfig;
+    use talon::control::config::Secret;
+    use talon::control::ControlPlane;
+    use talon::control::KeyValueStore;
+    use talon::control::MessagePublisher;
+    use talon::control::ProtoKeyValueStoreExt;
+    use talon::harness::llm::content_part_object_ref;
+    use talon::harness::llm::text_part;
+    use talon::harness::mcp::McpConnectionConfig;
+    use talon::protocol::data_proto;
+    use talon::protocol::manifests;
+    use talon::protocol::protobuf_value;
+    use talon::protocol::resources_proto;
 
     #[derive(Default)]
     struct MockPubSub;
@@ -548,7 +556,7 @@ mod tests {
         };
         if agent.spec.is_none() {
             kv.set(
-                &::control::control::keys::agent(namespace, name),
+                &talon::control::keys::agent(namespace, name),
                 &agent.encode_to_vec(),
             )
             .await
@@ -556,7 +564,7 @@ mod tests {
             return;
         }
 
-        let store = ::control::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
+        let store = talon::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
         store
             .upsert(
                 namespace,
@@ -649,8 +657,8 @@ mod tests {
         }
     }
 
-    fn tool(name: &str) -> ::harness::mcp::McpTool {
-        ::harness::mcp::McpTool {
+    fn tool(name: &str) -> talon::harness::mcp::McpTool {
+        talon::harness::mcp::McpTool {
             name: name.to_string(),
             description: String::new(),
             input_schema: serde_json::json!({"type":"object"}),
@@ -714,15 +722,15 @@ mod tests {
     #[test]
     fn builtin_tool_names_contains_expected_native_tools() {
         let names = builtin_tool_names();
-        assert!(names.contains(&::harness::native_tools::CREATE_SCHEDULE_TOOL));
-        assert!(names.contains(&::harness::native_tools::DELETE_SCHEDULE_TOOL));
-        assert!(names.contains(&::harness::native_tools::CREATE_GOAL_TOOL));
-        assert!(names.contains(&::harness::native_tools::LIST_GOALS_TOOL));
-        assert!(names.contains(&::harness::native_tools::CREATE_ARTIFACT_TOOL));
-        assert!(names.contains(&::harness::native_tools::UPDATE_ARTIFACT_TOOL));
-        assert!(names.contains(&::harness::native_tools::DELEGATE_TASK_TOOL));
-        assert!(names.contains(&::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL));
-        assert!(names.contains(&::harness::native_tools::READ_SESSION_MESSAGES_TOOL));
+        assert!(names.contains(&talon::harness::native_tools::CREATE_SCHEDULE_TOOL));
+        assert!(names.contains(&talon::harness::native_tools::DELETE_SCHEDULE_TOOL));
+        assert!(names.contains(&talon::harness::native_tools::CREATE_GOAL_TOOL));
+        assert!(names.contains(&talon::harness::native_tools::LIST_GOALS_TOOL));
+        assert!(names.contains(&talon::harness::native_tools::CREATE_ARTIFACT_TOOL));
+        assert!(names.contains(&talon::harness::native_tools::UPDATE_ARTIFACT_TOOL));
+        assert!(names.contains(&talon::harness::native_tools::DELEGATE_TASK_TOOL));
+        assert!(names.contains(&talon::harness::native_tools::AGENT_WAIT_FOR_MESSAGE_TOOL));
+        assert!(names.contains(&talon::harness::native_tools::READ_SESSION_MESSAGES_TOOL));
     }
 
     #[tokio::test]
@@ -781,11 +789,11 @@ mod tests {
 
         let mut reply_labels = HashMap::new();
         reply_labels.insert(
-            ::control::channels::LABEL_CHANNEL.to_string(),
+            talon::control::channels::LABEL_CHANNEL.to_string(),
             "incident-room".to_string(),
         );
         kv.set_msg(
-            &::control::control::keys::session("acme", "writer", "reply-session"),
+            &talon::control::keys::session("acme", "writer", "reply-session"),
             &data_proto::Session {
                 id: "reply-session".to_string(),
                 agent: "writer".to_string(),
@@ -802,15 +810,15 @@ mod tests {
 
         let mut no_reply_labels = HashMap::new();
         no_reply_labels.insert(
-            ::control::channels::LABEL_CHANNEL.to_string(),
+            talon::control::channels::LABEL_CHANNEL.to_string(),
             "incident-room".to_string(),
         );
         no_reply_labels.insert(
-            ::control::channels::LABEL_CHANNEL_REPLY_MODE.to_string(),
+            talon::control::channels::LABEL_CHANNEL_REPLY_MODE.to_string(),
             "none".to_string(),
         );
         kv.set_msg(
-            &::control::control::keys::session("acme", "writer", "no-reply-session"),
+            &talon::control::keys::session("acme", "writer", "no-reply-session"),
             &data_proto::Session {
                 id: "no-reply-session".to_string(),
                 agent: "writer".to_string(),
@@ -832,10 +840,10 @@ mod tests {
         let reply_registry = reply_runtime.executor.registry.read().await;
         assert!(reply_registry
             .tools
-            .contains_key(::harness::native_tools::CHANNEL_PUBLISH_TOOL));
+            .contains_key(talon::harness::native_tools::CHANNEL_PUBLISH_TOOL));
         assert!(reply_registry
             .tools
-            .contains_key(::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL));
+            .contains_key(talon::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL));
         drop(reply_registry);
 
         let no_reply_runtime = AgentRuntime::build(
@@ -851,10 +859,10 @@ mod tests {
         let no_reply_registry = no_reply_runtime.executor.registry.read().await;
         assert!(!no_reply_registry
             .tools
-            .contains_key(::harness::native_tools::CHANNEL_PUBLISH_TOOL));
+            .contains_key(talon::harness::native_tools::CHANNEL_PUBLISH_TOOL));
         assert!(!no_reply_registry
             .tools
-            .contains_key(::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL));
+            .contains_key(talon::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL));
     }
 
     #[tokio::test]
@@ -876,14 +884,14 @@ mod tests {
 
         put_agent_resource(kv.clone(), "delegate-ns", "writer", Some(spec)).await;
         kv.set_msg(
-            &::control::control::keys::session("delegate-ns", "writer", "session-1"),
+            &talon::control::keys::session("delegate-ns", "writer", "session-1"),
             &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "writer".to_string(),
                 ns: "delegate-ns".to_string(),
                 status: "active".to_string(),
                 labels: HashMap::from([(
-                    ::control::control::delegation::LABEL_TASK_ROLE.to_string(),
+                    talon::control::delegation::LABEL_TASK_ROLE.to_string(),
                     "delegate".to_string(),
                 )]),
                 skill_state: None,
@@ -907,7 +915,7 @@ mod tests {
         let runtime_registry = runtime.executor.registry.read().await;
         assert!(runtime_registry
             .tools
-            .contains_key(::harness::native_tools::UPDATE_TASK_TOOL));
+            .contains_key(talon::harness::native_tools::UPDATE_TASK_TOOL));
     }
 
     #[tokio::test]
@@ -929,7 +937,7 @@ mod tests {
 
         put_agent_resource(kv.clone(), "acme", "writer", Some(spec)).await;
         kv.set_msg(
-            &::control::control::keys::session_message("acme", "writer", "session-1", "msg-1"),
+            &talon::control::keys::session_message("acme", "writer", "session-1", "msg-1"),
             &data_proto::SessionMessage {
                 id: "msg-1".to_string(),
                 role: 1,
@@ -949,7 +957,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            &::control::control::keys::session_message("acme", "writer", "session-1", "msg-2"),
+            &talon::control::keys::session_message("acme", "writer", "session-1", "msg-2"),
             &data_proto::SessionMessage {
                 id: "msg-2".to_string(),
                 role: 2,
@@ -997,7 +1005,7 @@ mod tests {
         .await
         .unwrap();
         kv.set(
-            &::control::control::keys::session_message("acme", "writer", "session-1", "msg-2/sub"),
+            &talon::control::keys::session_message("acme", "writer", "session-1", "msg-2/sub"),
             b"nested",
         )
         .await
@@ -1039,11 +1047,11 @@ mod tests {
         put_agent_resource(kv.clone(), "acme", "writer", Some(spec)).await;
         let mut failed_labels = HashMap::new();
         failed_labels.insert(
-            ::harness::sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
-            ::harness::sessions::SESSION_PROJECTION_STATE_FAILED.to_string(),
+            talon::harness::sessions::SESSION_LABEL_PROJECTION_STATE.to_string(),
+            talon::harness::sessions::SESSION_PROJECTION_STATE_FAILED.to_string(),
         );
         kv.set_msg(
-            &::control::control::keys::session_message("acme", "writer", "session-1", "msg-1"),
+            &talon::control::keys::session_message("acme", "writer", "session-1", "msg-1"),
             &data_proto::SessionMessage {
                 id: "msg-1".to_string(),
                 role: data_proto::MessageRole::RoleAssistant as i32,
@@ -1145,16 +1153,16 @@ mod tests {
             .put(
                 "sessions/session-1/screenshot.png",
                 b"png-bytes",
-                ::control::control::object_store::ObjectMetadata {
+                talon::control::object_store::ObjectMetadata {
                     media_type: "image/png".to_string(),
                     filename: "screenshot.png".to_string(),
-                    ..::control::control::object_store::ObjectMetadata::default()
+                    ..talon::control::object_store::ObjectMetadata::default()
                 },
             )
             .await
             .unwrap();
         kv.set_msg(
-            &::control::control::keys::session_message("acme", "writer", "session-1", "msg-1"),
+            &talon::control::keys::session_message("acme", "writer", "session-1", "msg-1"),
             &data_proto::SessionMessage {
                 id: "msg-1".to_string(),
                 role: data_proto::MessageRole::RoleUser as i32,

@@ -1,9 +1,10 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+pub(crate) mod talon;
+
 mod local_socket;
 
-use ::contracts::MessagePublisher;
 use anyhow::Result;
 use google_cloud_googleapis::pubsub::v1::ExpirationPolicy;
 use google_cloud_googleapis::pubsub::v1::PubsubMessage;
@@ -14,6 +15,7 @@ use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
+use talon::contracts::MessagePublisher;
 use tokio::sync::RwLock;
 
 pub use local_socket::{LocalSocketMessagePublisher, LocalSocketSubscriber};
@@ -267,7 +269,7 @@ impl MessagePublisher for GcpPubSubPublisher {
         // Create a temporary subscription for this stream
         let project = configured_project_id();
         let base_name = topic_name.rsplit('/').next().unwrap_or(topic_name);
-        let sub_id = format!("{}-sub-{}", base_name, ::contracts::uuid::v7());
+        let sub_id = format!("{}-sub-{}", base_name, talon::contracts::uuid::v7());
         let fq_sub = fully_qualified_subscription_name(&project, &sub_id);
         self.backend.ensure_subscription(&fq_topic, &fq_sub).await?;
         let _guard = SubscriptionGuard {
@@ -289,14 +291,17 @@ impl MessagePublisher for GcpPubSubPublisher {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         configured_project_id, fully_qualified_subscription_name, fully_qualified_topic_name,
         GcpPubSubPublisher, PubSubBackend,
     };
-    use ::contracts::MessagePublisher;
     use std::collections::{HashMap, VecDeque};
     use std::pin::Pin;
     use std::sync::Arc;
+    use talon::contracts::MessagePublisher;
     use tokio::sync::Mutex;
 
     #[derive(Default)]
@@ -427,7 +432,7 @@ mod tests {
 
     #[test]
     fn configured_project_id_defaults_when_env_missing() {
-        let _lock = ::test_support::env_lock();
+        let _lock = talon::test_support::env_lock();
         std::env::remove_var("GCP_PROJECT_ID");
         assert_eq!(configured_project_id(), "talon-local");
         std::env::set_var("GCP_PROJECT_ID", "project-123");
@@ -437,7 +442,7 @@ mod tests {
 
     #[tokio::test]
     async fn publish_caches_topic_initialization_and_records_payloads() {
-        let _lock = ::test_support::async_env_mutex().lock().await;
+        let _lock = talon::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         let publisher = GcpPubSubPublisher::with_backend(backend.clone());
@@ -467,7 +472,7 @@ mod tests {
 
     #[tokio::test]
     async fn publish_concurrently_initializes_topic_once() {
-        let _lock = ::test_support::async_env_mutex().lock().await;
+        let _lock = talon::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         let publisher = Arc::new(GcpPubSubPublisher::with_backend(backend.clone()));
@@ -493,7 +498,7 @@ mod tests {
 
     #[tokio::test]
     async fn subscribe_creates_and_cleans_up_temporary_subscription() {
-        let _lock = ::test_support::async_env_mutex().lock().await;
+        let _lock = talon::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         let publisher = GcpPubSubPublisher::with_backend(backend.clone());
@@ -514,7 +519,7 @@ mod tests {
 
     #[tokio::test]
     async fn subscribe_uses_topic_basename_for_temporary_subscription_id() {
-        let _lock = ::test_support::async_env_mutex().lock().await;
+        let _lock = talon::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         let publisher = GcpPubSubPublisher::with_backend(backend.clone());
@@ -537,7 +542,7 @@ mod tests {
 
     #[tokio::test]
     async fn publish_and_subscribe_surface_backend_failures() {
-        let _lock = ::test_support::async_env_mutex().lock().await;
+        let _lock = talon::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         *backend.fail_topic.lock().await =
@@ -562,7 +567,7 @@ mod tests {
 
     #[tokio::test]
     async fn subscribe_stream_yields_received_messages_in_order() {
-        let _lock = ::test_support::async_env_mutex().lock().await;
+        let _lock = talon::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         let publisher = GcpPubSubPublisher::with_backend(backend.clone());
@@ -598,7 +603,7 @@ mod tests {
 
     #[tokio::test]
     async fn publish_surfaces_backend_publish_failure_after_topic_init() {
-        let _lock = ::test_support::async_env_mutex().lock().await;
+        let _lock = talon::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         *backend.fail_publish.lock().await = Some("projects/project-123/topics/events".to_string());
@@ -615,7 +620,7 @@ mod tests {
 
     #[tokio::test]
     async fn subscribe_surfaces_subscription_creation_failure() {
-        let _lock = ::test_support::async_env_mutex().lock().await;
+        let _lock = talon::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         *backend.fail_ensure_subscription.lock().await = Some("events-sub-".to_string());
@@ -631,7 +636,7 @@ mod tests {
 
     #[tokio::test]
     async fn backend_named_receive_batches_and_cleanup_failure_path_are_exercised() {
-        let _lock = ::test_support::async_env_mutex().lock().await;
+        let _lock = talon::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         *backend.fail_delete_contains.lock().await = Some("events-sub-".to_string());

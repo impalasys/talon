@@ -1,15 +1,18 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::control::control::keys;
-use ::control::control::resources::ResourceStore;
-use ::control::control::ControlPlane;
-use ::protocol::data_proto;
-use ::protocol::external_proto;
-use ::protocol::resources_proto;
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::Context;
 use std::collections::HashMap;
 use std::time::Duration;
+use talon::control::keys;
+use talon::control::resources::ResourceStore;
+use talon::control::ControlPlane;
+use talon::protocol::data_proto;
+use talon::protocol::external_proto;
+use talon::protocol::resources_proto;
 
 pub const LABEL_CONNECTOR: &str = "talon.impalasys.com/connector";
 pub const LABEL_CONNECTOR_CLASS: &str = "talon.impalasys.com/connector-class";

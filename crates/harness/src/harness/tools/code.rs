@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::*;
 use base64::engine::general_purpose;
 use serde_json::Number;
@@ -1111,7 +1114,7 @@ async fn read_file_bytes(cp: &ControlPlane, file: &resources_proto::File) -> Res
         .as_ref()
         .and_then(|status| status.object_ref.as_ref())
         .ok_or_else(|| anyhow!("File has no objectRef"))?;
-    let object = ::control::control::cas::CasStore::new(cp.objects.clone())
+    let object = talon::control::cas::CasStore::new(cp.objects.clone())
         .get_object_decoded(&object_ref.key)
         .await?
         .ok_or_else(|| anyhow!("File object '{}' not found", object_ref.key))?;
@@ -1702,18 +1705,21 @@ fn is_python_identifier(value: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::EmptyPubSub;
     use crate::test_support::MockKvStore;
-    use ::control::control::config::CapabilityGate;
-    use ::control::control::object_store::InMemoryObjectStore;
-    use ::control::control::object_store::ObjectMetadata;
-    use ::control::control::object_store::ObjectStore;
-    use ::control::control::scheduler::ScheduleWakeupRequest;
-    use ::control::control::scheduler::ScheduledWakeup;
-    use ::control::control::scheduler::SchedulerBackend;
     use std::collections::HashMap;
     use std::sync::Arc;
+    use talon::control::config::CapabilityGate;
+    use talon::control::object_store::InMemoryObjectStore;
+    use talon::control::object_store::ObjectMetadata;
+    use talon::control::object_store::ObjectStore;
+    use talon::control::scheduler::ScheduleWakeupRequest;
+    use talon::control::scheduler::ScheduledWakeup;
+    use talon::control::scheduler::SchedulerBackend;
     use tokio::sync::Mutex;
 
     #[derive(Default)]
@@ -1748,10 +1754,10 @@ mod tests {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
                 "code".to_string(),
-                ::protocol::protobuf_value::ListValue {
+                talon::protocol::protobuf_value::ListValue {
                     values: capabilities
                         .iter()
-                        .map(|action| ::protocol::protobuf_value::Value {
+                        .map(|action| talon::protocol::protobuf_value::Value {
                             kind: Some(ProtoValueKind::StringValue((*action).to_string())),
                         })
                         .collect(),
@@ -1769,10 +1775,10 @@ mod tests {
             capabilities: HashMap::from([
                 (
                     "code".to_string(),
-                    ::protocol::protobuf_value::ListValue {
+                    talon::protocol::protobuf_value::ListValue {
                         values: code_capabilities
                             .iter()
-                            .map(|action| ::protocol::protobuf_value::Value {
+                            .map(|action| talon::protocol::protobuf_value::Value {
                                 kind: Some(ProtoValueKind::StringValue((*action).to_string())),
                             })
                             .collect(),
@@ -1780,10 +1786,10 @@ mod tests {
                 ),
                 (
                     "files".to_string(),
-                    ::protocol::protobuf_value::ListValue {
+                    talon::protocol::protobuf_value::ListValue {
                         values: file_capabilities
                             .iter()
-                            .map(|action| ::protocol::protobuf_value::Value {
+                            .map(|action| talon::protocol::protobuf_value::Value {
                                 kind: Some(ProtoValueKind::StringValue((*action).to_string())),
                             })
                             .collect(),

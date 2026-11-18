@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{Context, Result};
 use base64::{engine::general_purpose, Engine};
 use serde::{Deserialize, Serialize};
@@ -13,9 +16,9 @@ use talon_client::v1::{ExchangeApiKeyRequest, ExchangeOidcTokenRequest};
 use talon_client::{GatewayClientOptions, GatewayTransport, TalonClient};
 use url::Url;
 
-use ::auth::Claims;
-use ::auth::TalonGrantClaim;
-use ::security::platform_jwt;
+use talon::auth::Claims;
+use talon::auth::TalonGrantClaim;
+use talon::security::platform_jwt;
 
 use super::commands::Cli;
 
@@ -735,6 +738,9 @@ pub async fn connect_gateway(cli: &Cli) -> Result<TalonClient> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         api_key_cache_hash, gateway_http_base, gateway_http_base_from_endpoint,
         google_token_request_form, mint_local_platform_access_jwt, parse_ttl_seconds,
@@ -743,10 +749,10 @@ mod tests {
     };
     use crate::cli::commands::Cli;
     use crate::test_support::TEST_RSA_PRIVATE_KEY;
-    use ::auth::Claims;
-    use ::security::platform_jwt;
     use clap::Parser;
     use std::ffi::OsString;
+    use talon::auth::Claims;
+    use talon::security::platform_jwt;
     use talon_client::data::ApiKeyGrant;
 
     struct EnvVarGuard {

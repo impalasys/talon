@@ -1,13 +1,16 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{proto, GrpcGatewayHandler};
-use ::control::control::cas::object_ref_from_metadata;
-use ::control::control::cas::object_ref_from_stored_object;
-use ::control::control::cas::parse_session_object_key;
-use ::control::control::cas::CasStore;
-use ::control::control::object_store::ObjectMetadata;
 use std::time::Duration;
+use talon::control::cas::object_ref_from_metadata;
+use talon::control::cas::object_ref_from_stored_object;
+use talon::control::cas::parse_session_object_key;
+use talon::control::cas::CasStore;
+use talon::control::object_store::ObjectMetadata;
 
 const CAS_SIGNED_URL_TTL: Duration = Duration::from_secs(5 * 60);
 
@@ -178,14 +181,17 @@ impl GrpcGatewayHandler {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::gateway::Gateway;
     use crate::test_support::MockKvStore;
     use crate::test_support::RecordingPubSub;
-    use ::control::control::cas::CasStore;
-    use ::control::control::object_store::InMemoryObjectStore;
-    use ::control::control::ControlPlane;
     use std::sync::Arc;
+    use talon::control::cas::CasStore;
+    use talon::control::object_store::InMemoryObjectStore;
+    use talon::control::ControlPlane;
 
     const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
 

@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::store::{sort_results, DocumentStore};
 use super::{
     document_attributes, document_ref, document_source, next_page_token, page_offset, query_terms,
@@ -11,10 +14,10 @@ use super::{
 use crate::postgres::connect_postgres_pool;
 use crate::postgres::CredentialRefresh;
 use crate::postgres::PostgresPoolSettings;
-use ::protocol::proto;
 use anyhow::Result;
 use sqlx::{PgPool, Postgres, QueryBuilder, Row};
 use std::collections::HashMap;
+use talon::protocol::proto;
 
 pub struct PostgresDocumentStore {
     pool: PgPool,
@@ -426,7 +429,7 @@ fn document_from_row(row: &sqlx::postgres::PgRow) -> Result<Document> {
     let labels_json: String = row.try_get("labels_json")?;
     let part_id: String = row.try_get("part_id")?;
     Ok(Document {
-        r#ref: Some(::protocol::data_proto::DocumentRef {
+        r#ref: Some(talon::protocol::data_proto::DocumentRef {
             attributes: document_attributes([
                 (ATTR_AGENT, row.try_get("agent")?),
                 (ATTR_SESSION_ID, row.try_get("session_id")?),
@@ -488,11 +491,14 @@ fn prefix_tsquery(query: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
-    use ::contracts::search::DOCUMENT_KIND_CONTENT;
-    use ::test_support::docker_test_guard;
-    use ::test_support::PostgresContainer;
     use std::time::Duration;
+    use talon::contracts::search::DOCUMENT_KIND_CONTENT;
+    use talon::test_support::docker_test_guard;
+    use talon::test_support::PostgresContainer;
 
     async fn init_test_store(database_url: &str) -> PostgresDocumentStore {
         let mut last_error = None;
@@ -517,7 +523,7 @@ mod tests {
         let pg = PostgresContainer::start("talon-documents-pg");
         let store = init_test_store(&pg.database_url()).await;
         let mut document = Document {
-            r#ref: Some(::contracts::search::DocumentRef {
+            r#ref: Some(talon::contracts::search::DocumentRef {
                 id: "doc-1".to_string(),
                 source: Some(document_source(
                     "acme".to_string(),

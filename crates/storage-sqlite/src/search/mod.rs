@@ -1,5 +1,8 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-pub use ::contracts::search::*;
+#[allow(unused_imports)]
+use crate::talon;
+
+pub use talon::contracts::search::*;
 pub mod sqlite;

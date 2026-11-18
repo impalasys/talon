@@ -1,24 +1,27 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::{MockKvStore, RecordingPubSub};
-use ::contracts::topics;
-use ::contracts::{KeyValueStore, ListOptions, ProtoKeyValueStoreExt};
-use ::identifiers::keys;
-use ::protocol::events::{MessageDirection, SessionDispatchEvent, WorkflowDispatchEvent};
-use ::protocol::{
-    data_proto, events, manifests, resource_model, resource_model::TypedResource, resources_proto,
-};
 use chrono::Utc;
 use prost::Message;
 use serde_json::{json, Value};
 use std::{collections::HashMap, sync::Arc};
+use talon::contracts::topics;
+use talon::contracts::{KeyValueStore, ListOptions, ProtoKeyValueStoreExt};
+use talon::identifiers::keys;
+use talon::protocol::events::{MessageDirection, SessionDispatchEvent, WorkflowDispatchEvent};
+use talon::protocol::{
+    data_proto, events, manifests, resource_model, resource_model::TypedResource, resources_proto,
+};
 pub fn workflow_fixture(
     namespace: &str,
     name: &str,
     spec: resources_proto::WorkflowSpec,
 ) -> resources_proto::Workflow {
-    ::protocol::resource_model::workflow(namespace, name, spec, HashMap::new())
+    talon::protocol::resource_model::workflow(namespace, name, spec, HashMap::new())
 }
 
 pub fn agent_fixture(

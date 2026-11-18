@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::control::events;
 use crate::control::keys;
 use crate::control::resource_model::ChannelResourceExt;
@@ -13,12 +16,12 @@ use crate::control::KeyValueStore;
 use crate::control::ListOptions;
 use crate::control::MessagePublisher;
 use crate::control::ProtoKeyValueStoreExt;
-use ::protocol::{data_proto, external_proto, proto, resources_proto};
 use anyhow::Context;
 use futures::StreamExt;
 use prost::Message;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
+use talon::protocol::{data_proto, external_proto, proto, resources_proto};
 
 pub const DEFAULT_CHANNEL_MESSAGES_LIMIT: usize = 50;
 pub const MAX_CHANNEL_MESSAGES_LIMIT: usize = 200;

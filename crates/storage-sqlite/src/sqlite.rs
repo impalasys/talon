@@ -1,13 +1,15 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::contracts::keys::ResourceKey;
+#[allow(unused_imports)]
+use crate::talon;
 
-use ::contracts::keys::ResourceList;
+use talon::contracts::keys::ResourceKey;
 
-use ::contracts::KeyValueStore;
+use talon::contracts::keys::ResourceList;
 
-use ::contracts::ListOptions;
+use talon::contracts::KeyValueStore;
+
 use anyhow::{bail, Result};
 use sqlx::{
     pool::PoolConnection,
@@ -18,6 +20,7 @@ use std::{
     str::FromStr,
     time::{Duration, Instant},
 };
+use talon::contracts::ListOptions;
 use tracing::{field, Instrument, Span};
 
 use super::shared::{quoted_identifier, validate_identifier};
@@ -559,14 +562,17 @@ impl KeyValueStore for SqliteKvStore {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         compare_and_swap_query, create_table_statement, delete_query, get_query,
         list_entries_query, list_keys_query, set_query, sqlite_pool, SqliteKvStore,
     };
-    use ::contracts::keys;
-    use ::contracts::KeyValueStore;
-    use ::contracts::ListOptions;
-    use ::storage_common::sqlite_url_for_path;
+    use talon::contracts::keys;
+    use talon::contracts::KeyValueStore;
+    use talon::contracts::ListOptions;
+    use talon::storage::common::sqlite_url_for_path;
     use tempfile::tempdir;
 
     #[test]
@@ -601,7 +607,7 @@ mod tests {
         assert_eq!(
             super::super::legacy::namespaced_key("talon-system:ns", "Namespace/quickstart")
                 .unwrap(),
-            ::contracts::keys::namespace_metadata("quickstart").canonical()
+            talon::contracts::keys::namespace_metadata("quickstart").canonical()
         );
         assert_eq!(
             super::super::legacy::namespaced_key(
@@ -609,7 +615,7 @@ mod tests {
                 "NamespaceRef/quickstart"
             )
             .unwrap(),
-            ::contracts::keys::namespace_ref(None, "quickstart").canonical()
+            talon::contracts::keys::namespace_ref(None, "quickstart").canonical()
         );
     }
 
@@ -660,14 +666,14 @@ mod tests {
 
         assert_eq!(
             store
-                .get(&::contracts::keys::namespace_metadata("quickstart"))
+                .get(&talon::contracts::keys::namespace_metadata("quickstart"))
                 .await
                 .unwrap(),
             Some(b"meta".to_vec())
         );
         assert_eq!(
             store
-                .get(&::contracts::keys::namespace_ref(None, "quickstart"))
+                .get(&talon::contracts::keys::namespace_ref(None, "quickstart"))
                 .await
                 .unwrap(),
             Some(b"edge".to_vec())

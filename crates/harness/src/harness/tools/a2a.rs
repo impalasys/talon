@@ -1,23 +1,26 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use prost::Message;
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
-use ::control::control::keys;
+use talon::control::keys;
 
-use ::control::control::scheduling;
+use talon::control::scheduling;
 
-use ::control::control::session_queue;
+use talon::control::session_queue;
 
-use ::control::control::ControlPlane;
+use talon::control::ControlPlane;
 
 use crate::harness::skills::registry::ToolRegistry;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::data_proto;
-use ::protocol::manifests;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::data_proto;
+use talon::protocol::manifests;
 
 const A2A_WIRE_METADATA_PREFIX: &str = "wire.a2a.talon.impalasys.com/";
 const OWNER_ALIAS: &str = "owner";
@@ -909,13 +912,16 @@ fn status_message_ids(active: Option<&str>, pending_entry_ids: &[String]) -> Vec
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::MockKvStore;
     use crate::test_support::RecordingPubSub;
-    use ::control::control::resources::ResourceStore;
-    use ::control::control::KeyValueStore;
-    use ::protocol::resources_proto;
     use std::sync::Arc;
+    use talon::control::resources::ResourceStore;
+    use talon::control::KeyValueStore;
+    use talon::protocol::resources_proto;
 
     async fn put_agent(kv: Arc<MockKvStore>, namespace: &str, name: &str) {
         let store = ResourceStore::new(kv, Arc::new(RecordingPubSub::default()));

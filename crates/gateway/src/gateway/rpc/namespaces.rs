@@ -1,20 +1,23 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::control::control::resource_model;
+#[allow(unused_imports)]
+use crate::talon;
 
-use ::control::control::resource_model::NamespaceResourceExt;
+use talon::control::resource_model;
+
+use talon::control::resource_model::NamespaceResourceExt;
 
 use crate::gateway::rpc::GrpcGatewayHandler;
-use ::control::control::events;
-use ::control::control::keys;
-use ::control::control::resource_model::TypedResource;
-use ::control::control::topics;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::proto;
-use ::protocol::resources_proto;
 use prost::Message;
 use std::time::{SystemTime, UNIX_EPOCH};
+use talon::control::events;
+use talon::control::keys;
+use talon::control::resource_model::TypedResource;
+use talon::control::topics;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::proto;
+use talon::protocol::resources_proto;
 
 fn namespace_response(ns: resources_proto::Namespace) -> proto::NamespaceResponse {
     proto::NamespaceResponse {
@@ -406,6 +409,9 @@ impl GrpcGatewayHandler {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::gateway::auth::AuthConfig;
     use crate::gateway::auth::Claims;
@@ -414,11 +420,11 @@ mod tests {
     use crate::test_support::PlatformJwtEnvGuard;
     use crate::test_support::TEST_PLATFORM_JWT_ISSUER;
     use crate::test_support::TEST_RSA_PRIVATE_KEY;
-    use ::control::control::security::platform_jwt;
-    use ::control::control::ControlPlane;
-    use ::control::control::MessagePublisher;
     use std::collections::HashMap;
     use std::sync::Arc;
+    use talon::control::security::platform_jwt;
+    use talon::control::ControlPlane;
+    use talon::control::MessagePublisher;
 
     struct MockPubSub;
     #[async_trait::async_trait]

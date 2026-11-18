@@ -1,17 +1,20 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::Result;
 use serde_json::{json, Value};
 use std::sync::Arc;
 
-use ::control::control::resources::ResourceStore;
-use ::control::control::search::DocumentStore;
-use ::control::control::search::DOCUMENT_KIND_CONTENT;
-use ::control::control::search::KIND_KNOWLEDGE;
-use ::control::control::MessagePublisher;
-use ::protocol::proto;
-use ::protocol::resources_proto;
+use talon::control::resources::ResourceStore;
+use talon::control::search::DocumentStore;
+use talon::control::search::DOCUMENT_KIND_CONTENT;
+use talon::control::search::KIND_KNOWLEDGE;
+use talon::control::MessagePublisher;
+use talon::protocol::proto;
+use talon::protocol::resources_proto;
 
 /// A single search result from the KnowledgeBook.
 
@@ -196,13 +199,13 @@ pub async fn execute_tool(
 
 /// KV-backed implementation of KnowledgeBook.
 pub struct KvKnowledgeBook {
-    pub kv: Arc<dyn ::control::control::KeyValueStore>,
+    pub kv: Arc<dyn talon::control::KeyValueStore>,
     pub pubsub: Option<Arc<dyn MessagePublisher + Send + Sync>>,
     pub documents: Option<Arc<dyn DocumentStore + Send + Sync>>,
 }
 
 impl KvKnowledgeBook {
-    pub fn new(kv: Arc<dyn ::control::control::KeyValueStore>) -> Self {
+    pub fn new(kv: Arc<dyn talon::control::KeyValueStore>) -> Self {
         Self {
             kv,
             pubsub: None,
@@ -211,7 +214,7 @@ impl KvKnowledgeBook {
     }
 
     pub fn with_documents(
-        kv: Arc<dyn ::control::control::KeyValueStore>,
+        kv: Arc<dyn talon::control::KeyValueStore>,
         pubsub: Arc<dyn MessagePublisher + Send + Sync>,
         documents: Arc<dyn DocumentStore + Send + Sync>,
     ) -> Self {
@@ -241,12 +244,12 @@ impl KvKnowledgeBook {
     }
 
     async fn find_entry(&self, ns: &str, path: &str) -> Result<Option<KnowledgeEntry>> {
-        let key = ::control::control::keys::knowledge(ns, path);
+        let key = talon::control::keys::knowledge(ns, path);
         if let Some(bytes) = self.kv.get(&key).await? {
             return Ok(Some(Self::normalize_entry(ns, path, &bytes)));
         }
 
-        let prefix = ::control::control::keys::knowledge_prefix(ns);
+        let prefix = talon::control::keys::knowledge_prefix(ns);
         let path_lower = path.to_lowercase();
         let matches = self
             .kv
@@ -254,8 +257,8 @@ impl KvKnowledgeBook {
             .await?
             .into_iter()
             .filter(|candidate| {
-                let artifact_path = ::control::control::keys::direct_child_name(&prefix, candidate)
-                    .unwrap_or_default();
+                let artifact_path =
+                    talon::control::keys::direct_child_name(&prefix, candidate).unwrap_or_default();
                 let artifact_lower = artifact_path.to_lowercase();
                 artifact_lower == path_lower
                     || artifact_lower.ends_with(&format!("/{}", path_lower))
@@ -270,7 +273,7 @@ impl KvKnowledgeBook {
             return Ok(None);
         };
         let artifact_path =
-            ::control::control::keys::direct_child_name(&prefix, &matches[0]).unwrap_or_default();
+            talon::control::keys::direct_child_name(&prefix, &matches[0]).unwrap_or_default();
         Ok(Some(Self::normalize_entry(ns, &artifact_path, &bytes)))
     }
 
@@ -311,7 +314,7 @@ impl KvKnowledgeBook {
             return Ok(None);
         }
 
-        let namespaces = ::control::control::ns::ancestry(ns);
+        let namespaces = talon::control::ns::ancestry(ns);
         let response = documents
             .search(&proto::SearchRequest {
                 query: query.to_string(),
@@ -379,7 +382,7 @@ impl KvKnowledgeBook {
 #[async_trait::async_trait]
 impl KnowledgeBook for KvKnowledgeBook {
     async fn get(&self, ns: &str, path: &str) -> Result<Option<KnowledgeEntry>> {
-        for candidate_ns in ::control::control::ns::ancestry(ns) {
+        for candidate_ns in talon::control::ns::ancestry(ns) {
             if let Some(entry) = self.find_entry(&candidate_ns, path).await? {
                 return Ok(Some(entry));
             }
@@ -388,7 +391,7 @@ impl KnowledgeBook for KvKnowledgeBook {
     }
 
     async fn write(&self, ns: &str, path: &str, content: &str) -> Result<()> {
-        let key = ::control::control::keys::knowledge(ns, path);
+        let key = talon::control::keys::knowledge(ns, path);
         let entry = KnowledgeEntry {
             namespace: ns.to_string(),
             name: path.to_string(),
@@ -452,14 +455,14 @@ impl KnowledgeBook for KvKnowledgeBook {
         let mut scored_results: Vec<(i32, usize, KnowledgeResult)> = Vec::new();
         let mut seen_paths = std::collections::HashSet::new();
 
-        for (depth, candidate_ns) in ::control::control::ns::ancestry(ns).into_iter().enumerate() {
-            let prefix = ::control::control::keys::knowledge_prefix(&candidate_ns);
+        for (depth, candidate_ns) in talon::control::ns::ancestry(ns).into_iter().enumerate() {
+            let prefix = talon::control::keys::knowledge_prefix(&candidate_ns);
             let keys = self.kv.list_keys(&prefix, None).await?;
 
             for key in keys {
                 if let Some(bytes) = self.kv.get(&key).await.unwrap_or(None) {
-                    let artifact_path = ::control::control::keys::direct_child_name(&prefix, &key)
-                        .unwrap_or_default();
+                    let artifact_path =
+                        talon::control::keys::direct_child_name(&prefix, &key).unwrap_or_default();
                     let entry = Self::normalize_entry(&candidate_ns, &artifact_path, &bytes);
                     let path = entry.path();
                     if !seen_paths.insert(path.clone()) {
@@ -538,16 +541,16 @@ impl KnowledgeBook for KvKnowledgeBook {
         let namespaces = if local_only {
             vec![ns.to_string()]
         } else {
-            ::control::control::ns::ancestry(ns)
+            talon::control::ns::ancestry(ns)
         };
 
         for candidate_ns in namespaces {
-            let prefix = ::control::control::keys::knowledge_prefix(&candidate_ns);
+            let prefix = talon::control::keys::knowledge_prefix(&candidate_ns);
             let keys = self.kv.list_keys(&prefix, None).await?;
 
             for key in keys {
                 let artifact_path =
-                    ::control::control::keys::direct_child_name(&prefix, &key).unwrap_or_default();
+                    talon::control::keys::direct_child_name(&prefix, &key).unwrap_or_default();
                 if !Self::entry_matches_prefix(&artifact_path, &normalized_prefix, recursive) {
                     continue;
                 }
@@ -589,21 +592,24 @@ fn knowledge_path_from_metadata(metadata_json: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         execute_tool, KnowledgeBook, KnowledgeEntry, KvKnowledgeBook, KNOWLEDGE_GET_TOOL,
         KNOWLEDGE_LIST_TOOL, KNOWLEDGE_SEARCH_TOOL, KNOWLEDGE_WRITE_TOOL,
     };
     use crate::test_support::MockKvStore;
-    use ::control::control::search::document_ref;
-    use ::control::control::search::document_source;
-    use ::control::control::search::ephemeral_document_store;
-    use ::control::control::search::Document;
-    use ::control::control::search::DocumentRef;
-    use ::control::control::search::DOCUMENT_KIND_CONTENT;
-    use ::control::control::search::KIND_KNOWLEDGE;
-    use ::control::control::KeyValueStore;
     use serde_json::json;
     use std::sync::Arc;
+    use talon::control::search::document_ref;
+    use talon::control::search::document_source;
+    use talon::control::search::ephemeral_document_store;
+    use talon::control::search::Document;
+    use talon::control::search::DocumentRef;
+    use talon::control::search::DOCUMENT_KIND_CONTENT;
+    use talon::control::search::KIND_KNOWLEDGE;
+    use talon::control::KeyValueStore;
 
     fn knowledge_document(
         id: &str,
@@ -653,7 +659,7 @@ mod tests {
                 updated_at: 7,
             };
             kv.set(
-                &::control::control::keys::knowledge(ns, path),
+                &talon::control::keys::knowledge(ns, path),
                 &serde_json::to_vec(&entry).unwrap(),
             )
             .await
@@ -711,7 +717,7 @@ mod tests {
         };
         let bytes = serde_json::to_vec(&entry).unwrap();
         kv.set(
-            &::control::control::keys::knowledge("acme", "unicode.md"),
+            &talon::control::keys::knowledge("acme", "unicode.md"),
             &bytes,
         )
         .await
@@ -760,9 +766,8 @@ mod tests {
 
         assert_eq!(name, "docs%2Fhello%20world.md");
         assert!(!name.contains('/'));
-        let key = ::control::control::keys::ResourceKey::new("acme", &[], KIND_KNOWLEDGE, &name);
-        let parsed =
-            ::control::control::keys::ResourceKey::parse_canonical(&key.canonical()).unwrap();
+        let key = talon::control::keys::ResourceKey::new("acme", &[], KIND_KNOWLEDGE, &name);
+        let parsed = talon::control::keys::ResourceKey::parse_canonical(&key.canonical()).unwrap();
         assert_eq!(parsed.name, name);
     }
 
@@ -822,7 +827,7 @@ mod tests {
         };
         let bytes = serde_json::to_vec(&entry).unwrap();
         kv.set(
-            &::control::control::keys::knowledge("acme", "playbooks/aeo.md"),
+            &talon::control::keys::knowledge("acme", "playbooks/aeo.md"),
             &bytes,
         )
         .await
@@ -852,7 +857,7 @@ mod tests {
             };
             let bytes = serde_json::to_vec(&entry).unwrap();
             kv.set(
-                &::control::control::keys::knowledge(ns, "playbooks/framework.md"),
+                &talon::control::keys::knowledge(ns, "playbooks/framework.md"),
                 &bytes,
             )
             .await
@@ -870,7 +875,7 @@ mod tests {
         let book = KvKnowledgeBook::new(kv.clone());
 
         kv.set(
-            &::control::control::keys::knowledge("acme", "notes/Plan.md"),
+            &talon::control::keys::knowledge("acme", "notes/Plan.md"),
             b"plain text body",
         )
         .await
@@ -881,7 +886,7 @@ mod tests {
         assert_eq!(resolved.content, "plain text body");
 
         kv.set(
-            &::control::control::keys::knowledge("acme", "other/Plan.md"),
+            &talon::control::keys::knowledge("acme", "other/Plan.md"),
             b"another body",
         )
         .await
@@ -909,7 +914,7 @@ mod tests {
                 updated_at: 0,
             };
             kv.set(
-                &::control::control::keys::knowledge("acme", path),
+                &talon::control::keys::knowledge("acme", path),
                 &serde_json::to_vec(&entry).unwrap(),
             )
             .await
@@ -1027,4 +1032,4 @@ mod tests {
     }
 }
 
-pub use ::contracts::knowledge::{KnowledgeEntry, KnowledgeResult};
+pub use talon::contracts::knowledge::{KnowledgeEntry, KnowledgeResult};

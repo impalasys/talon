@@ -1,14 +1,17 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use prost::Message;
 
 use super::{submission, SubmissionLease};
 use crate::control::keys;
 use crate::control::KeyValueStore;
-use ::protocol::data_proto;
-use ::protocol::data_proto::TokenCounter;
+use talon::protocol::data_proto;
+use talon::protocol::data_proto::TokenCounter;
 
 pub async fn persist_context_tokens(
     kv: &dyn KeyValueStore,
@@ -126,6 +129,9 @@ pub async fn reset_provider_request_id_if_idle(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::test_support::MockKvStore;

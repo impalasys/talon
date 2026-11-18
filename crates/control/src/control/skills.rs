@@ -3,8 +3,11 @@
 
 //! Shared invariants for namespace Skill resources and their File packages.
 
-use ::protocol::resources_proto;
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{bail, Result};
+use talon::protocol::resources_proto;
 
 pub const SKILLS_ROOT: &str = "/skills";
 pub const SKILL_ENTRYPOINT: &str = "SKILL.md";
@@ -67,6 +70,9 @@ pub fn validate_skill_file_spec(spec: &resources_proto::FileSpec) -> Result<()> 
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     fn skill_file(path: &str) -> resources_proto::FileSpec {

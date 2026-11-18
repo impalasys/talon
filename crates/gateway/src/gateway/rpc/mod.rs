@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::gateway::server::Gateway;
 use std::sync::Arc;
 
@@ -18,7 +21,7 @@ pub mod search;
 pub mod sessions;
 pub mod workflows;
 
-pub use ::protocol::{
+pub use talon::protocol::{
     data, data_proto, events, external_proto, generated, harness_proto, manifests, proto,
     protobuf_value, resources_proto, worker_proto,
 };
@@ -121,7 +124,7 @@ pub type SessionPartsStream = Pin<
     Box<
         dyn futures::Stream<
                 Item = std::result::Result<
-                    ::control::control::events::SessionMessagePartEvent,
+                    talon::control::events::SessionMessagePartEvent,
                     tonic::Status,
                 >,
             > + Send,

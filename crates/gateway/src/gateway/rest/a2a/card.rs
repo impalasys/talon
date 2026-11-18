@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -14,8 +17,8 @@ use serde_json::{json, Value};
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::auth::AuthMode;
 use crate::gateway::server::Gateway;
-use ::control::control::resource_model::TypedResource;
-use ::protocol::manifests;
+use talon::control::resource_model::TypedResource;
+use talon::protocol::manifests;
 
 use super::a2a_error;
 
@@ -185,10 +188,8 @@ pub async fn resolve_agent_card_route(
     ns: &str,
     agent_name: &str,
 ) -> Result<AgentCardRoute, Response> {
-    let store = ::control::control::resources::ResourceStore::new(
-        gateway.kv.clone(),
-        gateway.pubsub.clone(),
-    );
+    let store =
+        talon::control::resources::ResourceStore::new(gateway.kv.clone(), gateway.pubsub.clone());
     let agent = store
         .get_agent(ns, agent_name)
         .await

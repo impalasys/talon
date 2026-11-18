@@ -1,12 +1,15 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::Result;
 use redb::{Database, ReadableTable, TableDefinition};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-pub use ::contracts::llm::Embedding;
+pub use talon::contracts::llm::Embedding;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VectorEntry {

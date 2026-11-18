@@ -1,24 +1,27 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::runtime::LoopMessage;
 use crate::harness::llm::content_part_object_ref;
 use crate::harness::llm::object_ref_part;
 use crate::harness::llm::text_part;
 use crate::harness::llm::ChatContentPart;
 use crate::harness::llm::ToolCall;
-use ::control::control::cas::decode_stored_object_bytes;
-use ::control::control::cas::object_ref_from_metadata;
-use ::control::control::object_store::ObjectStore;
-use ::control::control::tool_output;
-use ::control::control::tool_output::ToolOutputExt;
-use ::control::control::KeyValueStore;
-use ::control::control::ListOptions;
-use ::protocol::data_proto;
 use anyhow::{anyhow, Result};
 use prost::Message;
 use std::collections::HashSet;
 use std::path::Path;
+use talon::control::cas::decode_stored_object_bytes;
+use talon::control::cas::object_ref_from_metadata;
+use talon::control::object_store::ObjectStore;
+use talon::control::tool_output;
+use talon::control::tool_output::ToolOutputExt;
+use talon::control::KeyValueStore;
+use talon::control::ListOptions;
+use talon::protocol::data_proto;
 
 pub struct Loaded {
     pub messages: Vec<LoopMessage>,
@@ -54,7 +57,7 @@ pub async fn load_excluding_message_ids(
     session_id: &str,
     excluded_message_ids: &HashSet<String>,
 ) -> Result<Loaded> {
-    let prefix = ::control::control::keys::session_message_prefix(ns, agent_id, session_id);
+    let prefix = talon::control::keys::session_message_prefix(ns, agent_id, session_id);
     let mut later_messages = Vec::new();
     let mut has_delegated_task = false;
     let mut before_name = None;
@@ -84,7 +87,7 @@ pub async fn load_excluding_message_ids(
             }
             if message
                 .labels
-                .get(::control::control::delegation::LABEL_TASK_ROLE)
+                .get(talon::control::delegation::LABEL_TASK_ROLE)
                 .map(String::as_str)
                 == Some("delegate")
             {
@@ -615,6 +618,9 @@ fn unavailable_historical_tool_output() -> String {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         load, load_excluding_message_ids, message_content_parts, session_message_to_loop_messages,
         tool_result_message_from_part,
@@ -624,15 +630,15 @@ mod tests {
     use crate::harness::llm::text_part;
     use crate::harness::llm::ToolOutput;
     use crate::test_support::MockKvStore;
-    use ::control::control::object_store::InMemoryObjectStore;
-    use ::control::control::object_store::ObjectMetadata;
-    use ::control::control::object_store::ObjectStore;
-    use ::control::control::tool_output;
-    use ::control::control::tool_output::ToolOutputExt;
-    use ::control::control::KeyValueStore;
-    use ::protocol::data_proto;
     use prost::Message;
     use std::collections::{HashMap, HashSet};
+    use talon::control::object_store::InMemoryObjectStore;
+    use talon::control::object_store::ObjectMetadata;
+    use talon::control::object_store::ObjectStore;
+    use talon::control::tool_output;
+    use talon::control::tool_output::ToolOutputExt;
+    use talon::control::KeyValueStore;
+    use talon::protocol::data_proto;
 
     fn tool_result_part(content: String, payload_json: String) -> data_proto::SessionMessagePart {
         data_proto::SessionMessagePart {
@@ -763,7 +769,7 @@ mod tests {
         };
         for message in [&old, &marker, &recent] {
             kv.set(
-                &::control::control::keys::session_message("ns", "agent", "session", &message.id),
+                &talon::control::keys::session_message("ns", "agent", "session", &message.id),
                 &message.encode_to_vec(),
             )
             .await
@@ -802,7 +808,7 @@ mod tests {
                 parts: vec![session_text_part("000001", text)],
             };
             kv.set(
-                &::control::control::keys::session_message("ns", "agent", "session", id),
+                &talon::control::keys::session_message("ns", "agent", "session", id),
                 &message.encode_to_vec(),
             )
             .await
@@ -871,7 +877,7 @@ mod tests {
             ],
         };
         kv.set(
-            &::control::control::keys::session_message("ns", "agent", "session", &assistant.id),
+            &talon::control::keys::session_message("ns", "agent", "session", &assistant.id),
             &assistant.encode_to_vec(),
         )
         .await

@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -11,7 +14,7 @@ use prost::Message;
 use crate::control::keys;
 
 use crate::control::KeyValueStore;
-use ::protocol::data_proto;
+use talon::protocol::data_proto;
 
 use super::{renew_submission_claim, RenewOutcome};
 
@@ -164,6 +167,9 @@ async fn renew_session_lock_timestamp(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::test_support::MockKvStore;

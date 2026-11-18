@@ -1,5 +1,8 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::common::has_capability_action;
 use super::{
     ACTIVATE_SKILL_TOOL, BLOCK_GOAL_TOOL, CHANNEL_PUBLISH_TOOL, CHANNEL_SKIP_REPLY_TOOL,
@@ -12,9 +15,9 @@ use super::{
 use crate::harness::skills::namespace;
 use crate::harness::skills::namespace::NamespaceSkill;
 use crate::harness::skills::registry::ToolRegistry;
-use ::control::control::config::Config;
-use ::protocol::manifests;
 use serde_json::{json, Value};
+use talon::control::config::Config;
+use talon::protocol::manifests;
 
 pub fn register_skill_tools(registry: &mut ToolRegistry, skills: &[NamespaceSkill]) {
     let names = namespace::effective_skill_names(skills);

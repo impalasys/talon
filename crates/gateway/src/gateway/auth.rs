@@ -1,9 +1,12 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-pub use ::auth::*;
+#[allow(unused_imports)]
+use crate::talon;
 
-impl ::auth::AuthState for crate::gateway::server::Gateway {
+pub use talon::auth::*;
+
+impl talon::auth::AuthState for crate::gateway::server::Gateway {
     fn auth_config(&self) -> Option<&AuthConfig> {
         self.auth_config.as_ref()
     }
@@ -14,5 +17,5 @@ pub async fn auth_layer(
     request: axum::extract::Request,
     next: axum::middleware::Next,
 ) -> axum::response::Response {
-    ::auth::auth_layer(state, request, next).await
+    talon::auth::auth_layer(state, request, next).await
 }

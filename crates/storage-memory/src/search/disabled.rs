@@ -1,11 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{DeleteScope, Document, DocumentStoreCapabilities};
-use ::contracts::search::store::DocumentStore;
-use ::protocol::proto;
 use anyhow::{anyhow, Result};
 use std::sync::Arc;
+use talon::contracts::search::store::DocumentStore;
+use talon::protocol::proto;
 
 #[derive(Default)]
 pub struct DisabledDocumentStore;

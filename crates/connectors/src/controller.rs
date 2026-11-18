@@ -1,19 +1,22 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, bail, Context, Result};
 use prost::Message;
 use std::collections::{HashMap, HashSet};
 
-use ::control::control::keys;
-use ::control::control::resources::ResourceStore;
-use ::control::control::security::platform_jwt;
-use ::control::control::ControlPlane;
-use ::control::control::KeyValueStore;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::data_proto;
-use ::protocol::external_proto;
-use ::protocol::resources_proto;
+use talon::control::keys;
+use talon::control::resources::ResourceStore;
+use talon::control::security::platform_jwt;
+use talon::control::ControlPlane;
+use talon::control::KeyValueStore;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::data_proto;
+use talon::protocol::external_proto;
+use talon::protocol::resources_proto;
 
 const CONNECTOR_INDEX_FIELD_SEP: &str = "\x1f";
 const CONNECTOR_CALLBACK_TOKEN_TTL_SECONDS: u64 = 365 * 24 * 60 * 60;
@@ -31,7 +34,7 @@ impl ConnectorController {
         &self,
         class: &resources_proto::Resource,
         cp: &ControlPlane,
-        config: &::control::control::config::Config,
+        config: &talon::control::config::Config,
     ) -> Result<()> {
         let meta = class
             .metadata
@@ -691,7 +694,7 @@ async fn register_connector_class(
     class_namespace: &str,
     class_name: &str,
     registration_id: &str,
-    config: &::control::control::config::Config,
+    config: &talon::control::config::Config,
 ) -> Result<()> {
     let runtime = spec
         .runtime
@@ -819,7 +822,7 @@ fn mint_connector_callback_token(namespace: &str) -> Result<String> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs();
-    let claims = ::auth::Claims {
+    let claims = talon::auth::Claims {
         iss: Some(issuer),
         sub: "connector-runtime".to_string(),
         aud: platform_jwt::TALON_GATEWAY_AUDIENCE.to_string(),
@@ -832,7 +835,7 @@ fn mint_connector_callback_token(namespace: &str) -> Result<String> {
         session: None,
         channel: None,
         origins: Vec::new(),
-        grants: vec![::auth::TalonGrantClaim {
+        grants: vec![talon::auth::TalonGrantClaim {
             kind: "readwrite".to_string(),
             namespace: Some(namespace.to_string()),
             agent: None,
@@ -863,6 +866,9 @@ fn condition(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     #[test]

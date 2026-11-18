@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Context, Result};
 use chrono::{DateTime, Duration, LocalResult, NaiveDateTime, TimeZone, Utc};
 use chrono_tz::Tz;
@@ -20,8 +23,8 @@ use crate::control::ControlPlane;
 use crate::control::KeyValueStore;
 use crate::control::MessagePublisher;
 use crate::control::ProtoKeyValueStoreExt;
-use ::protocol::data_proto;
-use ::protocol::resources_proto;
+use talon::protocol::data_proto;
+use talon::protocol::resources_proto;
 
 pub const MIN_RECURRING_INTERVAL_SECONDS: u32 = 300;
 const DEFAULT_SESSION_PROCESSING_TIMEOUT_SECONDS: i64 = 10;
@@ -1259,15 +1262,18 @@ pub fn append_schedule_event(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::control::scheduler::NoopSchedulerBackend;
     use crate::control::MessagePublisher;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::test_support::MockKvStore;
-    use ::protocol::manifests;
     use futures::stream;
     use std::pin::Pin;
     use std::sync::Arc;
+    use talon::protocol::manifests;
     use tokio::sync::Mutex;
 
     #[derive(Default)]
@@ -1642,7 +1648,7 @@ mod tests {
         assert_eq!(submission.user_message_id, dispatch.message_id);
         assert_eq!(
             submission.status,
-            ::protocol::data_proto::SessionSubmissionStatus::Pending as i32
+            talon::protocol::data_proto::SessionSubmissionStatus::Pending as i32
         );
         assert_eq!(submission.completed_at, None);
         assert_eq!(submission.committed_message_id, None);

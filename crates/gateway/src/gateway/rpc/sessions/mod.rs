@@ -1,26 +1,29 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{connectors as connector_rpc, data_proto, proto, GrpcGatewayHandler};
-use ::control::control::cas::session_object_key_prefix;
-use ::control::control::cas::SessionCasScope;
-use ::control::control::cas::METADATA_AGENT;
-use ::control::control::events;
-use ::control::control::keys;
-use ::control::control::keys::ResourceParent;
-use ::control::control::scheduling;
-use ::control::control::session_queue;
-use ::control::control::tool_output;
-use ::control::control::topics;
-use ::control::control::KeyValueStore;
-use ::control::control::ListOptions;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::harness_proto::chat_content_part;
-use ::protocol::harness_proto::ToolOutput;
 use prost::Message;
 use serde_json::{json, Value};
 use std::collections::HashSet;
 use std::sync::OnceLock;
+use talon::control::cas::session_object_key_prefix;
+use talon::control::cas::SessionCasScope;
+use talon::control::cas::METADATA_AGENT;
+use talon::control::events;
+use talon::control::keys;
+use talon::control::keys::ResourceParent;
+use talon::control::scheduling;
+use talon::control::session_queue;
+use talon::control::tool_output;
+use talon::control::topics;
+use talon::control::KeyValueStore;
+use talon::control::ListOptions;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::harness_proto::chat_content_part;
+use talon::protocol::harness_proto::ToolOutput;
 
 pub mod cancellation;
 pub mod watcher;
@@ -127,8 +130,8 @@ fn namespace_usage_subject(
     ns: &str,
     agent: &str,
     rate_limit_key: Option<String>,
-) -> ::control::control::usage::UsageSubject {
-    ::control::control::usage::UsageSubject {
+) -> talon::control::usage::UsageSubject {
+    talon::control::usage::UsageSubject {
         namespace: ns.to_string(),
         agent: agent.to_string(),
         provider: String::new(),
@@ -143,7 +146,7 @@ fn session_usage_subject_from_request<T>(
     req: &tonic::Request<T>,
     ns: &str,
     agent: &str,
-) -> ::control::control::usage::UsageSubject {
+) -> talon::control::usage::UsageSubject {
     namespace_usage_subject(
         ns,
         agent,
@@ -157,14 +160,14 @@ fn session_usage_subject_from_request<T>(
 async fn charge_session_quota_or_delete(
     gateway: &crate::gateway::Gateway,
     session_key: &keys::ResourceKey,
-    subject: &::control::control::usage::UsageSubject,
+    subject: &talon::control::usage::UsageSubject,
     now_seconds: i64,
 ) -> std::result::Result<(), tonic::Status> {
-    let result = ::control::control::usage::charge_namespace_usage_under_limit(
+    let result = talon::control::usage::charge_namespace_usage_under_limit(
         gateway.kv.as_ref(),
         subject,
-        &[::control::control::usage::UsageCharge {
-            metric: ::control::control::usage::METRIC_AGENT_SESSIONS,
+        &[talon::control::usage::UsageCharge {
+            metric: talon::control::usage::METRIC_AGENT_SESSIONS,
             delta: 1,
         }],
         now_seconds,
@@ -182,13 +185,11 @@ async fn charge_session_quota_or_delete(
                 "Failed to roll back session after quota admission failure",
             ));
         }
-        return Err(
-            if ::control::control::usage::is_quota_exceeded_error(&err) {
-                tonic::Status::resource_exhausted(err.to_string())
-            } else {
-                tonic::Status::internal(format!("Failed to charge session usage: {}", err))
-            },
-        );
+        return Err(if talon::control::usage::is_quota_exceeded_error(&err) {
+            tonic::Status::resource_exhausted(err.to_string())
+        } else {
+            tonic::Status::internal(format!("Failed to charge session usage: {}", err))
+        });
     }
 
     Ok(())
@@ -200,7 +201,7 @@ async fn charge_session_quota_or_delete(
 async fn rollback_created_session(
     gateway: &crate::gateway::Gateway,
     session_key: &keys::ResourceKey,
-    subject: &::control::control::usage::UsageSubject,
+    subject: &talon::control::usage::UsageSubject,
     now_seconds: i64,
 ) -> std::result::Result<(), tonic::Status> {
     if let Err(delete_err) = gateway.kv.delete(session_key).await {
@@ -213,11 +214,11 @@ async fn rollback_created_session(
             "Failed to delete session while rolling back create_session",
         ));
     }
-    if let Err(refund_err) = ::control::control::usage::refund_namespace_usage(
+    if let Err(refund_err) = talon::control::usage::refund_namespace_usage(
         gateway.kv.as_ref(),
         subject,
-        &[::control::control::usage::UsageCharge {
-            metric: ::control::control::usage::METRIC_AGENT_SESSIONS,
+        &[talon::control::usage::UsageCharge {
+            metric: talon::control::usage::METRIC_AGENT_SESSIONS,
             delta: 1,
         }],
         now_seconds,
@@ -499,7 +500,7 @@ fn normalize_appended_session_message(
 ) -> data_proto::SessionMessage {
     let now_micros = chrono::Utc::now().timestamp_micros();
     if message.id.is_empty() {
-        message.id = ::control::control::uuid::session_message_id();
+        message.id = talon::control::uuid::session_message_id();
     }
     if message.role == data_proto::MessageRole::RoleUnspecified as i32 {
         message.role = data_proto::MessageRole::RoleUser as i32;
@@ -703,7 +704,7 @@ impl GrpcGatewayHandler {
         let req = req.into_inner();
 
         // 1. Verify agent exists in namespace
-        let store = ::control::control::resources::ResourceStore::new(
+        let store = talon::control::resources::ResourceStore::new(
             self.gateway.kv.clone(),
             self.gateway.pubsub.clone(),
         );
@@ -725,7 +726,7 @@ impl GrpcGatewayHandler {
                         .as_ref()
                         .is_some_and(|metadata| metadata.name == req.agent)
                 })
-                .map(::control::control::resources::agent_from_resource)
+                .map(talon::control::resources::agent_from_resource)
                 .transpose()
                 .map_err(|e| tonic::Status::internal(format!("Failed to decode agent: {}", e)))?;
         }
@@ -738,7 +739,7 @@ impl GrpcGatewayHandler {
         }
 
         // Use ULID (UUID v7 gives time-sorted guarantees like ULID)
-        let session_id = ::control::control::uuid::session_id();
+        let session_id = talon::control::uuid::session_id();
         let session_usage_now = chrono::Utc::now().timestamp();
 
         let session = data_proto::Session {
@@ -1312,10 +1313,10 @@ impl GrpcGatewayHandler {
             .delete(&session_db_key)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to delete session: {}", e)))?;
-        if let Err(error) = ::control::control::search::publish_index_event(
+        if let Err(error) = talon::control::search::publish_index_event(
             self.gateway.pubsub.as_ref(),
-            ::control::control::events::IndexEvent {
-                operation: ::control::control::events::IndexOperation::Delete as i32,
+            talon::control::events::IndexEvent {
+                operation: talon::control::events::IndexOperation::Delete as i32,
                 key: session_db_key.canonical(),
                 ..Default::default()
             },
@@ -1402,10 +1403,10 @@ impl GrpcGatewayHandler {
         }
 
         release_clear_session_lock(self.gateway.kv.as_ref(), &session_db_key, now_micros).await?;
-        if let Err(error) = ::control::control::search::publish_index_event(
+        if let Err(error) = talon::control::search::publish_index_event(
             self.gateway.pubsub.as_ref(),
-            ::control::control::events::IndexEvent {
-                operation: ::control::control::events::IndexOperation::Delete as i32,
+            talon::control::events::IndexEvent {
+                operation: talon::control::events::IndexOperation::Delete as i32,
                 key: session_db_key.canonical(),
                 ..Default::default()
             },
@@ -1482,7 +1483,7 @@ impl GrpcGatewayHandler {
             &req.session_id,
         )
         .await?;
-        let reset = ::control::sessions::reset_provider_request_id_if_idle(
+        let reset = talon::control::sessions::reset_provider_request_id_if_idle(
             self.gateway.kv.as_ref(),
             &req.ns,
             &req.agent,
@@ -1613,10 +1614,10 @@ impl GrpcGatewayHandler {
             .set_msg(&session_db_key, session)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to update session: {}", e)))?;
-        if let Err(error) = ::control::control::search::publish_index_event(
+        if let Err(error) = talon::control::search::publish_index_event(
             self.gateway.pubsub.as_ref(),
-            ::control::control::events::IndexEvent {
-                operation: ::control::control::events::IndexOperation::Upsert as i32,
+            talon::control::events::IndexEvent {
+                operation: talon::control::events::IndexOperation::Upsert as i32,
                 key: message_key.canonical(),
                 ..Default::default()
             },
@@ -1733,10 +1734,10 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to update session: {}", e)))?;
 
-        if let Err(error) = ::control::control::search::publish_index_event(
+        if let Err(error) = talon::control::search::publish_index_event(
             self.gateway.pubsub.as_ref(),
-            ::control::control::events::IndexEvent {
-                operation: ::control::control::events::IndexOperation::Upsert as i32,
+            talon::control::events::IndexEvent {
+                operation: talon::control::events::IndexOperation::Upsert as i32,
                 key: message_key.canonical(),
                 ..Default::default()
             },
@@ -2102,24 +2103,27 @@ fn map_session_submit_error(err: anyhow::Error) -> tonic::Status {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::gateway::Gateway;
     use crate::test_support::MockKvStore;
     use crate::test_support::RecordingPubSub;
-    use ::control::control::object_store::InMemoryObjectStore;
-    use ::control::control::object_store::ObjectMetadata;
-    use ::control::control::object_store::ObjectStore;
-    use ::control::control::object_store::StoredObject;
-    use ::control::control::tool_output::ToolOutputExt;
-    use ::control::control::ControlPlane;
-    use ::control::control::MessagePublisher;
-    use ::control::control::ProtoKeyValueStoreExt;
-    use ::protocol::resources_proto;
     use anyhow::Result;
     use futures::stream;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
+    use talon::control::object_store::InMemoryObjectStore;
+    use talon::control::object_store::ObjectMetadata;
+    use talon::control::object_store::ObjectStore;
+    use talon::control::object_store::StoredObject;
+    use talon::control::tool_output::ToolOutputExt;
+    use talon::control::ControlPlane;
+    use talon::control::MessagePublisher;
+    use talon::control::ProtoKeyValueStoreExt;
+    use talon::protocol::resources_proto;
 
     fn handler(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>) -> GrpcGatewayHandler {
         let control_plane = ControlPlane::builder(kv, pubsub).build();
@@ -2258,7 +2262,7 @@ mod tests {
     }
 
     async fn put_agent(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>, ns: &str, name: &str) {
-        let store = ::control::control::resources::ResourceStore::new(kv, pubsub);
+        let store = talon::control::resources::ResourceStore::new(kv, pubsub);
         store
             .upsert(
                 ns,
@@ -2289,7 +2293,7 @@ mod tests {
         name: &str,
         limit: resources_proto::UsageLimit,
     ) {
-        let store = ::control::control::resources::ResourceStore::new(kv, pubsub);
+        let store = talon::control::resources::ResourceStore::new(kv, pubsub);
         store
             .upsert(
                 ns,
@@ -2322,7 +2326,7 @@ mod tests {
         ns: &str,
         name: &str,
     ) -> resources_proto::UsagePolicyStatus {
-        let store = ::control::control::resources::ResourceStore::new(kv, pubsub);
+        let store = talon::control::resources::ResourceStore::new(kv, pubsub);
         let resource = store
             .get(ns, "UsagePolicy", name)
             .await
@@ -2611,7 +2615,7 @@ mod tests {
                     ns,
                     agent,
                     session_id,
-                    ::control::control::session_queue::NEXT_QUEUE,
+                    talon::control::session_queue::NEXT_QUEUE,
                     entry_id,
                 ),
                 &data_proto::SessionMessage {
@@ -2640,17 +2644,14 @@ mod tests {
                     ns: ns.to_string(),
                     agent: agent.to_string(),
                     session_id: session_id.to_string(),
-                    queue: ::control::control::session_queue::NEXT_QUEUE.to_string(),
+                    queue: talon::control::session_queue::NEXT_QUEUE.to_string(),
                 },
             ))
             .await
             .unwrap()
             .into_inner();
 
-        assert_eq!(
-            response.queue,
-            ::control::control::session_queue::NEXT_QUEUE
-        );
+        assert_eq!(response.queue, talon::control::session_queue::NEXT_QUEUE);
         assert_eq!(response.entries.len(), 2);
         assert_eq!(response.entries[0].entry_id, "00000000000000000001-first");
         assert_eq!(response.entries[1].entry_id, "00000000000000000002-second");
@@ -2939,7 +2940,7 @@ mod tests {
             .unwrap();
         kv.set_msg(
             &keys::session_submission(ns, agent, session_id, submission_id),
-            &::control::sessions::pending_submission(submission_id, session_id, "user-1", 1),
+            &talon::control::sessions::pending_submission(submission_id, session_id, "user-1", 1),
         )
         .await
         .unwrap();
@@ -3022,7 +3023,7 @@ mod tests {
             .unwrap();
         kv.set_msg(
             &keys::session_submission(ns, agent, session_id, submission_id),
-            &::control::sessions::pending_submission(submission_id, session_id, "user-1", 1),
+            &talon::control::sessions::pending_submission(submission_id, session_id, "user-1", 1),
         )
         .await
         .unwrap();
@@ -3041,7 +3042,7 @@ mod tests {
                     payload: Some(
                         data_proto::session_journal_entry_payload::Payload::LlmResponse(
                             data_proto::SessionJournalEntryPayloadLlmResponse {
-                                response: Some(::contracts::llm::ChatResponse {
+                                response: Some(talon::contracts::llm::ChatResponse {
                                     content: String::new(),
                                     tool_calls: Vec::new(),
                                     usage: None,
@@ -3104,7 +3105,7 @@ mod tests {
             .unwrap();
         kv.set_msg(
             &keys::session_submission(ns, agent, session_id, submission_id),
-            &::control::sessions::pending_submission(submission_id, session_id, "user-1", 1),
+            &talon::control::sessions::pending_submission(submission_id, session_id, "user-1", 1),
         )
         .await
         .unwrap();
@@ -3128,8 +3129,8 @@ mod tests {
                                 output: String::new(),
                                 object: None,
                                 tool_output: Some(
-                                    ::contracts::llm::ToolOutput::from_content_parts(
-                                        vec![::contracts::llm::object_ref_part(object)],
+                                    talon::contracts::llm::ToolOutput::from_content_parts(
+                                        vec![talon::contracts::llm::object_ref_part(object)],
                                         "",
                                     ),
                                 ),
@@ -3270,7 +3271,7 @@ mod tests {
         seed_session(kv.as_ref(), ns, agent, session_id).await;
         kv.set_msg(
             &keys::session_submission(ns, agent, session_id, submission_id),
-            &::control::sessions::pending_submission(submission_id, session_id, "user-1", 1),
+            &talon::control::sessions::pending_submission(submission_id, session_id, "user-1", 1),
         )
         .await
         .unwrap();
@@ -3629,7 +3630,7 @@ mod tests {
                     provider: String::new(),
                     model: String::new(),
                 }),
-                metric: ::control::control::usage::METRIC_AGENT_SESSIONS.to_string(),
+                metric: talon::control::usage::METRIC_AGENT_SESSIONS.to_string(),
                 max: 1,
                 window: "1h".to_string(),
                 subject_scope: "all".to_string(),
@@ -3647,7 +3648,7 @@ mod tests {
         assert_eq!(status.hard.len(), 1);
         assert_eq!(
             status.hard[0].metric,
-            ::control::control::usage::METRIC_AGENT_SESSIONS
+            talon::control::usage::METRIC_AGENT_SESSIONS
         );
         assert_eq!(status.hard[0].used, 1);
         assert_eq!(status.hard[0].remaining, 0);
@@ -3711,7 +3712,7 @@ mod tests {
                     provider: String::new(),
                     model: String::new(),
                 }),
-                metric: ::control::control::usage::METRIC_AGENT_SESSIONS.to_string(),
+                metric: talon::control::usage::METRIC_AGENT_SESSIONS.to_string(),
                 max: 1,
                 window: "1h".to_string(),
                 subject_scope: "identity".to_string(),
@@ -3753,7 +3754,7 @@ mod tests {
                     provider: String::new(),
                     model: String::new(),
                 }),
-                metric: ::control::control::usage::METRIC_AGENT_SESSIONS.to_string(),
+                metric: talon::control::usage::METRIC_AGENT_SESSIONS.to_string(),
                 max: 1,
                 window: "1h".to_string(),
                 subject_scope: "all".to_string(),

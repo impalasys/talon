@@ -1,18 +1,21 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::control::control::resource_model::NamespaceResourceExt;
+#[allow(unused_imports)]
+use crate::talon;
 
-use ::control::control::keys;
-use ::control::control::resource_model::TypedResource;
-use ::control::control::resources::ResourceStore;
-use ::control::control::ControlPlane;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::resources_proto;
+use talon::control::resource_model::NamespaceResourceExt;
+
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
+use talon::control::keys;
+use talon::control::resource_model::TypedResource;
+use talon::control::resources::ResourceStore;
+use talon::control::ControlPlane;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::resources_proto;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
@@ -150,7 +153,7 @@ impl DeploymentController {
                     .as_ref()
                     .ok_or_else(|| anyhow!("rendered resource metadata is required"))?;
                 let rendered_key = format!("{}/{}", rendered.kind, rendered_meta.name);
-                let rendered_json = ::control::control::manifest::render_resource_yaml(&rendered)?;
+                let rendered_json = talon::control::manifest::render_resource_yaml(&rendered)?;
                 rendered_hashes.insert(rendered_key.clone(), stable_hash(&rendered_json));
                 last_rendered_json.insert(rendered_key.clone(), rendered_json);
                 rendered_refs.push(format!(
@@ -432,7 +435,7 @@ impl DeploymentController {
             rendered_meta.name.clone()
         };
         let (rendered_spec, rendered_status) =
-            ::control::control::manifest::resource_spec_status_from_json(
+            talon::control::manifest::resource_spec_status_from_json(
                 &spec.kind,
                 &spec.spec_json,
                 "{}",
@@ -496,7 +499,7 @@ impl DeploymentController {
             .get("vibiz.io/customer-name")
             .map(String::as_str)
             .unwrap_or_else(|| namespace.name());
-        let rendered_spec = ::control::control::manifest::templating::render_resource_template(
+        let rendered_spec = talon::control::manifest::templating::render_resource_template(
             &spec.spec_json,
             serde_json::json!({
                 "namespace": {
@@ -597,7 +600,7 @@ impl DeploymentController {
             ),
         };
         let next_run_at =
-            ::control::control::scheduling::initialize_schedule(&mut schedule, chrono::Utc::now())?;
+            talon::control::scheduling::initialize_schedule(&mut schedule, chrono::Utc::now())?;
         let stored = self
             .store
             .upsert(namespace, schedule_resource(&api_version, &schedule))
@@ -606,12 +609,8 @@ impl DeploymentController {
             .metadata
             .as_ref()
             .map(|meta| meta.resource_version.clone());
-        ::control::control::scheduling::arm_schedule(
-            cp.scheduler.as_ref(),
-            &mut schedule,
-            next_run_at,
-        )
-        .await?;
+        talon::control::scheduling::arm_schedule(cp.scheduler.as_ref(), &mut schedule, next_run_at)
+            .await?;
 
         let status = resources_proto::ResourceStatus {
             kind: Some(resources_proto::resource_status::Kind::Schedule(
@@ -711,11 +710,14 @@ fn parse_rendered_ref(rendered_ref: &str) -> Option<(&str, &str, &str)> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::MockKvStore;
     use crate::test_support::RecordingPubSub;
-    use ::control::control::ProtoKeyValueStoreExt;
     use std::sync::Arc;
+    use talon::control::ProtoKeyValueStoreExt;
 
     fn controller() -> DeploymentController {
         DeploymentController::new(ResourceStore::new(

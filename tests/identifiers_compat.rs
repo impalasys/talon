@@ -1,8 +1,8 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::identifiers::{keys, ns};
 use talon::control::{keys as legacy, ns as legacy_ns};
+use talon::identifiers::{keys, ns};
 
 #[test]
 fn existing_import_paths_expose_the_same_types_as_the_leaf_crate() {
@@ -34,4 +34,58 @@ fn storage_keys_round_trip_across_the_existing_and_new_import_paths() {
         ns::TALON_SYSTEM
     );
     assert!(keys::ResourceKey::parse_canonical("Namespace/acme/Agent/a").is_err());
+}
+
+// A single type parameter makes these assertions fail at compile time if a
+// canonical path ever stops naming the same type as its compatibility path.
+fn same_type<T>(_: Option<T>, _: Option<T>) {}
+
+#[test]
+fn canonical_component_paths_preserve_facade_types() {
+    same_type(
+        None::<talon::config::Config>,
+        None::<talon::control::config::Config>,
+    );
+    same_type(
+        None::<talon::gateway::Gateway>,
+        None::<talon::gateway::server::Gateway>,
+    );
+    same_type(
+        None::<talon::harness::AgentExecutor>,
+        None::<talon::AgentExecutor>,
+    );
+    same_type(
+        None::<talon::control::registration::WorkerRegistration>,
+        None::<talon::worker::registration::WorkerRegistration>,
+    );
+}
+
+#[test]
+fn nested_storage_paths_preserve_facade_types() {
+    same_type(
+        None::<talon::storage::postgres::PostgresKvStore>,
+        None::<talon::control::kv::postgres::PostgresKvStore>,
+    );
+    same_type(
+        None::<talon::storage::sqlite::SqliteKvStore>,
+        None::<talon::control::kv::SqliteKvStore>,
+    );
+}
+
+#[cfg(feature = "aws")]
+#[test]
+fn optional_aws_storage_paths_preserve_facade_types() {
+    same_type(
+        None::<talon::storage::dynamodb::DynamoDbKvStore>,
+        None::<talon::control::kv::DynamoDbKvStore>,
+    );
+}
+
+#[cfg(feature = "rocksdb")]
+#[test]
+fn optional_rocksdb_storage_paths_preserve_facade_types() {
+    same_type(
+        None::<talon::storage::rocksdb::RocksDbKvStore>,
+        None::<talon::control::kv::RocksDbKvStore>,
+    );
 }

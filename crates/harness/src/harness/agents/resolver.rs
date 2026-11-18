@@ -1,15 +1,18 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use std::collections::HashSet;
 
 use anyhow::{anyhow, bail, Context, Result};
 
-use ::protocol::manifests;
+use talon::protocol::manifests;
 
-use ::protocol::protobuf_value::value::Kind as ProtoValueKind;
+use talon::protocol::protobuf_value::value::Kind as ProtoValueKind;
 
-use ::protocol::protobuf_value::ListValue;
+use talon::protocol::protobuf_value::ListValue;
 
 pub fn resolve_agent_spec(spec: manifests::AgentSpec) -> Result<manifests::AgentSpec> {
     validate_agent_spec(&spec)?;
@@ -314,6 +317,9 @@ fn validate_model(model: &manifests::Model, path: &str) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use std::collections::HashMap;
 
@@ -503,8 +509,8 @@ mod tests {
             .contains("unsupported action"));
     }
 
-    fn protobuf_string(value: &str) -> ::protocol::protobuf_value::Value {
-        ::protocol::protobuf_value::Value {
+    fn protobuf_string(value: &str) -> talon::protocol::protobuf_value::Value {
+        talon::protocol::protobuf_value::Value {
             kind: Some(ProtoValueKind::StringValue(value.to_string())),
         }
     }

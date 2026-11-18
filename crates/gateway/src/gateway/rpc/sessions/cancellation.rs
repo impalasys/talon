@@ -1,11 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::gateway::server::Gateway;
-use ::control::control::keys;
-use ::protocol::data_proto;
-use ::protocol::worker_proto;
 use prost::Message;
+use talon::control::keys;
+use talon::protocol::data_proto;
+use talon::protocol::worker_proto;
 
 pub async fn cancel_session_generation(
     gateway: &Gateway,
@@ -16,7 +19,7 @@ pub async fn cancel_session_generation(
     let mut targets = vec![(ns.to_string(), agent.to_string(), session_id.to_string())];
     let cp = gateway.control_plane();
     targets.extend(
-        ::control::control::delegation::open_a2a_connection_descendants(&cp, ns, agent, session_id)
+        talon::control::delegation::open_a2a_connection_descendants(&cp, ns, agent, session_id)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to resolve A2A connections: {e}"))
@@ -102,16 +105,19 @@ async fn cancel_one(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::EmptyPubSub;
     use crate::test_support::MockKvStore;
-    use ::control::control::ControlPlane;
-    use ::control::control::ProtoKeyValueStoreExt;
-    use ::protocol::resources_proto;
-    use ::session_control::SessionCancellationKey;
-    use ::session_control::SessionCancellationRegistry;
-    use ::session_control::SessionControlServiceImpl;
     use std::sync::Arc;
+    use talon::control::ControlPlane;
+    use talon::control::ProtoKeyValueStoreExt;
+    use talon::protocol::resources_proto;
+    use talon::session_control::SessionCancellationKey;
+    use talon::session_control::SessionCancellationRegistry;
+    use talon::session_control::SessionControlServiceImpl;
     use tempfile::tempdir;
     use tokio::net::UnixListener;
     use tokio_stream::wrappers::UnixListenerStream;
@@ -142,7 +148,7 @@ mod tests {
 
     async fn put_worker(kv: &MockKvStore, id: &str, path: &std::path::Path) {
         kv.set_msg(
-            &keys::ResourceKey::new(::control::control::ns::TALON_SYSTEM, &[], "Worker", id),
+            &keys::ResourceKey::new(talon::control::ns::TALON_SYSTEM, &[], "Worker", id),
             &resources_proto::Worker {
                 status: Some(resources_proto::WorkerStatus {
                     phase: "ready".into(),

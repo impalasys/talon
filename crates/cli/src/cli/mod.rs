@@ -1,6 +1,8 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::talon;
+
 include!("prelude.rs");
 include!("proto_bridge.rs");
 include!("resource_kinds.rs");

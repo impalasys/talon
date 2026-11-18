@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::*;
 
 pub async fn list_files_tool(
@@ -159,7 +162,7 @@ pub async fn delete_file_tool(
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
     let name = file_name_from_file(&file);
-    let latest_key = ::control::control::cas::latest_file_object_key(&namespace, &path);
+    let latest_key = talon::control::cas::latest_file_object_key(&namespace, &path);
     let object_key = file
         .status
         .as_ref()
@@ -168,7 +171,7 @@ pub async fn delete_file_tool(
     let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
     let deleted = store.delete(&namespace, "File", &name).await?;
     if deleted {
-        let cas = ::control::control::cas::CasStore::new(cp.objects.clone());
+        let cas = talon::control::cas::CasStore::new(cp.objects.clone());
         if let Err(error) = cas.delete_object(&latest_key).await {
             tracing::warn!(
                 error = %error,
@@ -305,12 +308,11 @@ pub async fn read_file_object(
         .as_ref()
         .and_then(|status| status.object_ref.as_ref())
         .ok_or_else(|| anyhow!("File has no objectRef"))?;
-    let object = ::control::control::cas::CasStore::new(cp.objects.clone())
+    let object = talon::control::cas::CasStore::new(cp.objects.clone())
         .get_object_decoded(&object_ref.key)
         .await?
         .ok_or_else(|| anyhow!("File object '{}' not found", object_ref.key))?;
-    let object_ref =
-        ::control::control::cas::object_ref_from_stored_object(&object_ref.key, &object);
+    let object_ref = talon::control::cas::object_ref_from_stored_object(&object_ref.key, &object);
     Ok(ReadFileObject { object, object_ref })
 }
 
@@ -395,7 +397,7 @@ pub async fn write_file_objects(
     media_type: &str,
     content: &[u8],
 ) -> Result<resources_proto::FileObjectRef> {
-    let cas = ::control::control::cas::CasStore::new(cp.objects.clone());
+    let cas = talon::control::cas::CasStore::new(cp.objects.clone());
     let object_ref = cas
         .put_file(namespace, file_uid, path, content, media_type)
         .await?;
@@ -512,7 +514,7 @@ pub fn ensure_file_read_namespace(
     } else {
         requested_namespace
     };
-    if ::control::control::ns::ancestry(current_namespace)
+    if talon::control::ns::ancestry(current_namespace)
         .iter()
         .any(|namespace| namespace == requested_namespace)
     {

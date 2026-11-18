@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::*;
 
 pub async fn create_artifact(
@@ -25,8 +28,8 @@ pub async fn create_artifact(
     let content = artifact_content_bytes(args)?;
     let labels = string_map(args.get("labels"));
     let metadata = string_map(args.get("metadata"));
-    let artifact_id = ::control::control::uuid::unique_name("artifact");
-    let object_ref = ::control::control::cas::CasStore::new(cp.objects.clone())
+    let artifact_id = talon::control::uuid::unique_name("artifact");
+    let object_ref = talon::control::cas::CasStore::new(cp.objects.clone())
         .put_artifact(
             current_namespace,
             current_agent,
@@ -37,7 +40,7 @@ pub async fn create_artifact(
             metadata.clone(),
         )
         .await?;
-    let artifact = ::protocol::data_proto::Artifact {
+    let artifact = talon::protocol::data_proto::Artifact {
         id: artifact_id.clone(),
         session_id: current_session.to_string(),
         title: title.to_string(),
@@ -137,7 +140,7 @@ pub async fn update_artifact(
     }
     let mut artifact = cp
         .kv
-        .get_msg::<::protocol::data_proto::Artifact>(&keys::artifact(
+        .get_msg::<talon::protocol::data_proto::Artifact>(&keys::artifact(
             &uri.namespace,
             &uri.agent,
             &uri.session_id,
@@ -158,7 +161,7 @@ pub async fn update_artifact(
         ));
     }
     let content = artifact_content_bytes(args)?;
-    let cas = ::control::control::cas::CasStore::new(cp.objects.clone());
+    let cas = talon::control::cas::CasStore::new(cp.objects.clone());
     let object_ref = cas
         .put_artifact(
             &uri.namespace,
@@ -270,7 +273,7 @@ pub async fn grant_artifact(
         .unwrap_or_else(default_access_expiry);
     let target_agent = opt_str(args, "target_agent").unwrap_or("");
     let target_session_id = opt_str(args, "target_session_id").unwrap_or("");
-    let access = ::protocol::data_proto::ArtifactAccess {
+    let access = talon::protocol::data_proto::ArtifactAccess {
         target_agent: target_agent.to_string(),
         target_session_id: target_session_id.to_string(),
         operations,
@@ -317,11 +320,11 @@ pub async fn resolve_artifact_uri(
     current_session: &str,
     artifact_uri: &str,
     operation: &str,
-) -> Result<(ArtifactUri, ::protocol::data_proto::Artifact)> {
+) -> Result<(ArtifactUri, talon::protocol::data_proto::Artifact)> {
     let uri = parse_artifact_uri(artifact_uri)?;
     let artifact = cp
         .kv
-        .get_msg::<::protocol::data_proto::Artifact>(&keys::artifact(
+        .get_msg::<talon::protocol::data_proto::Artifact>(&keys::artifact(
             &uri.namespace,
             &uri.agent,
             &uri.session_id,
@@ -341,7 +344,7 @@ pub async fn resolve_artifact_uri(
     Ok((uri, artifact))
 }
 
-pub fn artifact_json(artifact: &::protocol::data_proto::Artifact) -> Value {
+pub fn artifact_json(artifact: &talon::protocol::data_proto::Artifact) -> Value {
     let object_ref = artifact.object_ref.as_ref();
     json!({
         "id": artifact.id,
@@ -411,7 +414,7 @@ pub async fn authorize_artifact_access(
     }
     let access = cp
         .kv
-        .get_msg::<::protocol::data_proto::ArtifactAccess>(&keys::artifact_access(
+        .get_msg::<talon::protocol::data_proto::ArtifactAccess>(&keys::artifact_access(
             &uri.namespace,
             &uri.agent,
             &uri.session_id,

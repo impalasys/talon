@@ -1,9 +1,12 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 
-use ::contracts::keys;
+use talon::contracts::keys;
 
 pub fn namespaced_key(namespace: &str, key: &str) -> Result<String> {
     let namespace = match namespace {
@@ -75,17 +78,20 @@ pub fn namespaced_key(namespace: &str, key: &str) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::namespaced_key;
 
     #[test]
     fn legacy_keys_convert_to_ordered_keys() {
         assert_eq!(
             namespaced_key("acme", "Agent/agent-1/Session/s1/Messages/m1").unwrap(),
-            ::contracts::keys::session_message("acme", "agent-1", "s1", "m1").canonical()
+            talon::contracts::keys::session_message("acme", "agent-1", "s1", "m1").canonical()
         );
         assert_eq!(
             namespaced_key("acme", "Agent/agent-1/Session/s1/Messages/m1/Steps/000001").unwrap(),
-            ::contracts::keys::ResourceKey::new(
+            talon::contracts::keys::ResourceKey::new(
                 "acme",
                 &[
                     ("Agent", "agent-1"),
@@ -99,24 +105,24 @@ mod tests {
         );
         assert_eq!(
             namespaced_key("Sys:ns", "Namespace/acme:team").unwrap(),
-            ::contracts::keys::namespace_metadata("acme:team").canonical()
+            talon::contracts::keys::namespace_metadata("acme:team").canonical()
         );
         assert_eq!(
             namespaced_key("acme", "KnowledgeResource/playbooks/aeo-prompt-strategy.md").unwrap(),
-            ::contracts::keys::knowledge_resource("acme", "playbooks/aeo-prompt-strategy.md")
+            talon::contracts::keys::knowledge_resource("acme", "playbooks/aeo-prompt-strategy.md")
                 .canonical()
         );
         assert_eq!(
             namespaced_key("acme:ns:internal", "NamespaceRef/acme:team").unwrap(),
-            ::contracts::keys::namespace_ref(Some("acme"), "team").canonical()
+            talon::contracts::keys::namespace_ref(Some("acme"), "team").canonical()
         );
         assert_eq!(
             namespaced_key("talon-system:ns", "Namespace/quickstart").unwrap(),
-            ::contracts::keys::namespace_metadata("quickstart").canonical()
+            talon::contracts::keys::namespace_metadata("quickstart").canonical()
         );
         assert_eq!(
             namespaced_key("talon-system:ns:internal", "NamespaceRef/quickstart").unwrap(),
-            ::contracts::keys::namespace_ref(None, "quickstart").canonical()
+            talon::contracts::keys::namespace_ref(None, "quickstart").canonical()
         );
     }
 }

@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::control::events;
 
 use crate::control::keys;
@@ -16,10 +19,6 @@ use crate::control::ListOptions;
 use crate::control::MessagePublisher;
 
 use crate::control::ProtoKeyValueStoreExt;
-use ::fanout::{FanoutHub, WorkflowFanoutKey};
-use ::protocol::{
-    data_proto, resource_model::TypedResource, resources_proto, workflow_validation::*,
-};
 use anyhow::{anyhow, bail, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -27,6 +26,10 @@ use serde_json::{json, Map, Value};
 use std::{
     collections::{HashMap, HashSet},
     sync::Arc,
+};
+use talon::fanout::{FanoutHub, WorkflowFanoutKey};
+use talon::protocol::{
+    data_proto, resource_model::TypedResource, resources_proto, workflow_validation::*,
 };
 pub const MAX_CAS_RETRIES: usize = 8;
 pub const DEFAULT_WORKFLOW_CLAIM_TIMEOUT_SECONDS: i64 = 60;
