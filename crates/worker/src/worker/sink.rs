@@ -4,10 +4,12 @@
 #[allow(unused_imports)]
 use crate::talon;
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
+use prost::Message;
 use serde_json::Value;
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex as AsyncMutex;
@@ -41,6 +43,32 @@ use talon::protocol::data_proto;
 use talon::protocol::data_proto::SessionSubmissionStatus;
 use talon::protocol::resources_proto;
 use tracing::Instrument;
+
+const DEFAULT_SESSION_MESSAGE_MAX_BYTES: usize = 350 * 1024;
+
+#[derive(Debug)]
+struct SessionMessageTooLarge {
+    size: usize,
+    limit: usize,
+}
+impl std::fmt::Display for SessionMessageTooLarge {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "session message encoded size {} exceeds {} byte storage limit",
+            self.size, self.limit
+        )
+    }
+}
+impl std::error::Error for SessionMessageTooLarge {}
+
+fn session_message_max_bytes() -> usize {
+    std::env::var("TALON_SESSION_MESSAGE_MAX_BYTES")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .filter(|bytes| *bytes > 0)
+        .unwrap_or(DEFAULT_SESSION_MESSAGE_MAX_BYTES)
+}
 
 fn chat_usage_payload_json(usage: &TokenCounter) -> String {
     serde_json::to_string(&serde_json::json!({
@@ -383,6 +411,8 @@ pub struct PubSubSessionSink {
     latest_journal_entry_id: Mutex<Option<String>>, // Latest durable boundary reflected in projection labels.
     recorded_tool_results: Mutex<std::collections::HashMap<String, RecordedToolResult>>,
     steer_drains: Mutex<u8>,
+    message_max_bytes: usize, // Captured once per sink, never read per streamed token.
+    terminal_cutover: AtomicBool,
     persist_lock: Arc<AsyncMutex<()>>, // Serializes projection writes with final message commit.
 
     // Run summary counters for logs/telemetry.
@@ -547,6 +577,8 @@ impl PubSubSessionSink {
             latest_journal_entry_id: Mutex::new(None),
             recorded_tool_results: Mutex::new(std::collections::HashMap::new()),
             steer_drains: Mutex::new(0),
+            message_max_bytes: session_message_max_bytes(),
+            terminal_cutover: AtomicBool::new(false),
             persist_lock: Arc::new(AsyncMutex::new(())),
             input_token_chunks: Mutex::new(0),
             input_token_chars: Mutex::new(0),
@@ -1153,6 +1185,102 @@ impl PubSubSessionSink {
         }
     }
 
+    fn check_session_message_size(&self, message: &data_proto::SessionMessage) -> Result<()> {
+        let size = message.encoded_len();
+        if size > self.message_max_bytes {
+            return Err(SessionMessageTooLarge {
+                size,
+                limit: self.message_max_bytes,
+            }
+            .into());
+        }
+        Ok(())
+    }
+
+    // Caller holds persist_lock. No projection may overwrite a terminal failure.
+    async fn set_session_message(&self, message: &data_proto::SessionMessage) -> Result<()> {
+        self.ensure_not_cutover()?;
+        self.check_session_message_size(message)?;
+        self.kv
+            .set_msg(&self.current_reply_msg_key(), message)
+            .await
+    }
+
+    pub(crate) fn is_cutover_terminal(&self) -> bool {
+        self.terminal_cutover.load(Ordering::Acquire)
+    }
+
+    fn ensure_not_cutover(&self) -> Result<()> {
+        if self.is_cutover_terminal() {
+            return Err(anyhow!("session persistence failed; execution is terminal"));
+        }
+        Ok(())
+    }
+
+    async fn cutover_to_failed(&self, reason: &str) {
+        let guard = self.persist_lock.lock().await;
+        if self.terminal_cutover.swap(true, Ordering::AcqRel) {
+            return;
+        }
+        // Do not let a reclaimed worker overwrite the current attempt's UI or
+        // journal. The in-memory flag still prevents this worker reporting success.
+        if Self::submission_attempt_is_current(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.agent_id,
+            &self.session_id,
+            &self.submission_id,
+            &self.attempt_id,
+        )
+        .await
+        {
+            let msg = data_proto::SessionMessage {
+                id: self.current_reply_msg_id(),
+                role: data_proto::MessageRole::RoleAssistant as i32,
+                created_at: chrono::Utc::now().timestamp_micros(),
+                labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_FAILED),
+                parts: vec![data_proto::SessionMessagePart {
+                    id: self.next_part_id(),
+                    part_type: data_proto::SessionMessagePartType::Error as i32,
+                    content: reason.chars().take(1024).collect(),
+                    created_at: chrono::Utc::now().timestamp_micros(),
+                    ..Default::default()
+                }],
+            };
+            let result = async {
+                self.check_session_message_size(&msg)?;
+                self.kv.set_msg(&self.current_reply_msg_key(), &msg).await
+            }
+            .await;
+            if let Err(error) = result {
+                tracing::error!(%error, "failed to persist compact session failure");
+            }
+            // Mark failed even if storage rejected the compact projection, so
+            // the submission cannot later be committed or falsely reported done.
+            self.mark_terminal(SessionSubmissionStatus::Failed as i32)
+                .await;
+            self.durable_parts.lock().unwrap().clear();
+            *self.active_stream_buffer.lock().unwrap() = None;
+        }
+        drop(guard);
+        self.publish_reply_index_event().await;
+        self.publish_event(AgentEvent::Error(reason.to_string()))
+            .await;
+    }
+
+    async fn check_boundary_size(&self) -> Result<()> {
+        self.ensure_not_cutover()?;
+        let message = self.projection_message(sessions::SESSION_PROJECTION_STATE_IN_PROGRESS);
+        if let Err(error) = self.check_session_message_size(&message) {
+            self.cutover_to_failed(
+                "Error: assistant message exceeded the session message storage limit",
+            )
+            .await;
+            return Err(error);
+        }
+        Ok(())
+    }
+
     async fn submission_attempt_is_current(
         kv: &dyn KeyValueStore,
         ns: &str,
@@ -1176,6 +1304,9 @@ impl PubSubSessionSink {
     }
 
     async fn maybe_flush_kv(&self) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         let should_flush = {
             let mut last = self.last_flush.lock().unwrap();
             if last.elapsed().as_millis() > 1000 {
@@ -1193,7 +1324,7 @@ impl PubSubSessionSink {
                 agent = %self.agent_id,
                 session = %self.session_id,
             );
-            async {
+            let oversized = async {
                 let _guard = self.persist_lock.lock().await;
                 if !Self::submission_attempt_is_current(
                     self.kv.as_ref(),
@@ -1205,24 +1336,31 @@ impl PubSubSessionSink {
                 )
                 .await
                 {
-                    return;
+                    return None;
                 }
-                if let Err(e) = talon::control::ProtoKeyValueStoreExt::set_msg(
-                    self.kv.as_ref(),
-                    &self.current_reply_msg_key(),
-                    &msg,
-                )
-                .await
-                {
+                if let Err(e) = self.set_session_message(&msg).await {
                     tracing::error!("Failed to persist session projection: {}", e);
+                    if e.is::<SessionMessageTooLarge>() {
+                        return Some(e);
+                    }
                 }
+                None
             }
             .instrument(span)
             .await;
+            if oversized.is_some() {
+                self.cutover_to_failed(
+                    "Error: assistant message exceeded the session message storage limit",
+                )
+                .await;
+            }
         }
     }
 
     async fn persist_durable_message(&self, span_name: &'static str) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         let msg = data_proto::SessionMessage {
             id: self.current_reply_msg_id(),
             role: data_proto::MessageRole::RoleAssistant as i32,
@@ -1232,12 +1370,7 @@ impl PubSubSessionSink {
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            talon::control::ProtoKeyValueStoreExt::set_msg(
-                self.kv.as_ref(),
-                &self.current_reply_msg_key(),
-                &msg,
-            )
-            .await
+            self.set_session_message(&msg).await
         }
         .instrument(tracing::info_span!(
             "PubSubSessionSink.persist_durable_message",
@@ -1253,6 +1386,12 @@ impl PubSubSessionSink {
                 "Failed to persist durable message: {}",
                 e
             );
+            if e.is::<SessionMessageTooLarge>() {
+                self.cutover_to_failed(
+                    "Error: assistant message exceeded the session message storage limit",
+                )
+                .await;
+            }
             return;
         }
         self.publish_reply_index_event().await;
@@ -1269,10 +1408,14 @@ impl PubSubSessionSink {
             labels: self.projection_labels(sessions::SESSION_PROJECTION_STATE_COMMITTED),
             parts,
         };
-        let key = self.current_reply_msg_key();
         let _guard = self.persist_lock.lock().await;
-        talon::control::ProtoKeyValueStoreExt::set_msg(self.kv.as_ref(), &key, &message).await?;
+        let result = self.set_session_message(&message).await;
         drop(_guard);
+        if let Err(error) = result {
+            self.cutover_to_failed("Error: failed to persist assistant segment")
+                .await;
+            return Err(error);
+        }
         self.publish_reply_index_event().await;
         Ok(message_id)
     }
@@ -1347,6 +1490,19 @@ impl PubSubSessionSink {
 #[async_trait]
 impl ExecutionSink for PubSubSessionSink {
     async fn on_llm_response(&self, response: &ChatResponse) -> Result<()> {
+        self.ensure_not_cutover()?;
+        self.check_boundary_size().await?;
+        if response.encoded_len() > self.message_max_bytes {
+            let error = SessionMessageTooLarge {
+                size: response.encoded_len(),
+                limit: self.message_max_bytes,
+            };
+            self.cutover_to_failed(
+                "Error: assistant response exceeded the session message storage limit",
+            )
+            .await;
+            return Err(error.into());
+        }
         // A Responses API response that asks for tools is waiting for matching
         // function_call_output values on the provider. It remains usable only
         // in this live executor turn; durable recovery must reconstruct from
@@ -1406,6 +1562,7 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_compaction(&self, summary: &str) -> Result<()> {
+        self.ensure_not_cutover()?;
         let (entry, summary_object) = sessions::append_compaction(
             self.kv.as_ref(),
             &CasStore::new(self.objects.clone()),
@@ -1434,10 +1591,13 @@ impl ExecutionSink for PubSubSessionSink {
         // replacing the executor's live context. This projection is canonical;
         // public RPC paths expose the same compaction metadata.
         self.persist_durable_message("compaction").await;
-        Ok(())
+        self.ensure_not_cutover()
     }
 
     async fn on_token(&self, token: &str) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         *self.input_token_chunks.lock().unwrap() += 1;
         *self.input_token_chars.lock().unwrap() += token.len();
         if self
@@ -1454,6 +1614,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_reasoning(&self, reasoning: &str) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         *self.reasoning_chunks.lock().unwrap() += 1;
         *self.reasoning_chars.lock().unwrap() += reasoning.len();
         if self
@@ -1470,6 +1633,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         *self.tool_calls.lock().unwrap() += 1;
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
@@ -1484,6 +1650,9 @@ impl ExecutionSink for PubSubSessionSink {
             .unwrap_or_else(|_| "{}".to_string()),
         );
         self.persist_durable_message("tool_call").await;
+        if self.check_boundary_size().await.is_err() {
+            return;
+        }
         self.publish_event(AgentEvent::Action {
             id: id.to_string(),
             name: name.to_string(),
@@ -1493,6 +1662,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_tool_call_stream_started(&self) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         self.flush_active_stream_event_buffer().await;
     }
 
@@ -1502,6 +1674,7 @@ impl ExecutionSink for PubSubSessionSink {
         name: &str,
         result: &ToolOutput,
     ) -> Result<()> {
+        self.ensure_not_cutover()?;
         let part_id = self.next_part_id();
         let cas = CasStore::new(self.objects.clone());
         let entry = sessions::append_tool_result(
@@ -1543,6 +1716,7 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn take_steering_messages(&self) -> Result<Vec<talon::harness::executor::LoopMessage>> {
+        self.ensure_not_cutover()?;
         const MAX_STEER_DRAINS: u8 = 4;
         let drain_attempt = {
             let mut drains = self.steer_drains.lock().unwrap();
@@ -1672,6 +1846,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_tool_result(&self, id: &str, name: &str, result: &ToolOutput) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         *self.tool_results.lock().unwrap() += 1;
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
@@ -1728,6 +1905,9 @@ impl ExecutionSink for PubSubSessionSink {
             payload_json,
             object,
         );
+        if self.check_boundary_size().await.is_err() {
+            return;
+        }
         self.publish_event(AgentEvent::Observation {
             id: id.to_string(),
             name: name.to_string(),
@@ -1737,6 +1917,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_request_permission(&self, id: &str, action: &str, payload: &Value) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
         self.record_part(
@@ -1751,6 +1934,9 @@ impl ExecutionSink for PubSubSessionSink {
             .unwrap_or_else(|_| "{}".to_string()),
         );
         self.persist_durable_message("request_permission").await;
+        if self.check_boundary_size().await.is_err() {
+            return;
+        }
         self.publish_event(AgentEvent::RequestPermission {
             id: id.to_string(),
             action: action.to_string(),
@@ -1760,6 +1946,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_permission_result(&self, id: &str, outcome: &Value) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
         self.record_part(
@@ -1777,6 +1966,9 @@ impl ExecutionSink for PubSubSessionSink {
             .unwrap_or_else(|_| "{}".to_string()),
         );
         self.persist_durable_message("permission_result").await;
+        if self.check_boundary_size().await.is_err() {
+            return;
+        }
         self.publish_event(AgentEvent::PermissionResult {
             id: id.to_string(),
             outcome: outcome.clone(),
@@ -1785,6 +1977,9 @@ impl ExecutionSink for PubSubSessionSink {
     }
 
     async fn on_usage(&self, usage: &TokenCounter) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         *self.usage_events.lock().unwrap() += 1;
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
@@ -1794,20 +1989,24 @@ impl ExecutionSink for PubSubSessionSink {
             String::new(),
             chat_usage_payload_json(usage),
         );
+        if self.check_boundary_size().await.is_err() {
+            return;
+        }
         self.publish_event(AgentEvent::Usage(usage.clone())).await;
     }
 
     async fn on_done(&self) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         self.flush_active_stream_event_buffer().await;
         // Final KV write (complete message)
         let mut parts = match self.final_message_parts() {
             Ok(parts) => parts,
             Err(err) => {
                 tracing::error!(error = %err, "Failed to assemble final assistant message parts");
-                self.publish_event(AgentEvent::Error(
-                    "Error: failed to assemble final assistant message".to_string(),
-                ))
-                .await;
+                self.cutover_to_failed("Error: failed to assemble final assistant message")
+                    .await;
                 return;
             }
         };
@@ -1815,10 +2014,8 @@ impl ExecutionSink for PubSubSessionSink {
             Ok(uris) => uris,
             Err(err) => {
                 tracing::error!(error = %err, "Failed to materialize inline artifact tags");
-                self.publish_event(AgentEvent::Error(
-                    "Error: failed to create inline artifact".to_string(),
-                ))
-                .await;
+                self.cutover_to_failed("Error: failed to create inline artifact")
+                    .await;
                 return;
             }
         };
@@ -1827,10 +2024,8 @@ impl ExecutionSink for PubSubSessionSink {
             .await
         {
             tracing::error!(error = %err, "Failed to attach inline artifacts to delegated Task");
-            self.publish_event(AgentEvent::Error(
-                "Error: failed to attach inline artifact to task".to_string(),
-            ))
-            .await;
+            self.cutover_to_failed("Error: failed to attach inline artifact to task")
+                .await;
             return;
         }
         let msg = data_proto::SessionMessage {
@@ -1842,12 +2037,7 @@ impl ExecutionSink for PubSubSessionSink {
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            talon::control::ProtoKeyValueStoreExt::set_msg(
-                self.kv.as_ref(),
-                &self.current_reply_msg_key(),
-                &msg,
-            )
-            .await
+            self.set_session_message(&msg).await
         }
         .instrument(tracing::info_span!(
             "PubSubSessionSink.persist_final_message",
@@ -1869,42 +2059,36 @@ impl ExecutionSink for PubSubSessionSink {
                     };
                     let commit_result = async {
                         let _guard = self.persist_lock.lock().await;
-                        talon::control::ProtoKeyValueStoreExt::set_msg(
-                            self.kv.as_ref(),
-                            &self.current_reply_msg_key(),
-                            &committed_msg,
-                        )
-                        .await
+                        self.set_session_message(&committed_msg).await
                     }
                     .await;
                     if let Err(err) = commit_result {
                         tracing::error!(error = %err, "Failed to persist committed projection");
-                        self.publish_event(AgentEvent::Error(
-                            "Error: failed to persist committed assistant message".to_string(),
-                        ))
+                        self.cutover_to_failed(
+                            "Error: failed to persist committed assistant message",
+                        )
                         .await;
                         return;
                     }
                     self.publish_reply_index_event().await;
                     self.publish_event(AgentEvent::Done).await;
                 } else {
-                    self.publish_event(AgentEvent::Error(
-                        "Error: failed to mark session submission terminal".to_string(),
-                    ))
-                    .await;
+                    self.cutover_to_failed("Error: failed to mark session submission terminal")
+                        .await;
                 }
             }
             Err(e) => {
                 tracing::error!("Failed to persist final message: {}", e);
-                self.publish_event(AgentEvent::Error(
-                    "Error: failed to persist final assistant message".to_string(),
-                ))
-                .await;
+                self.cutover_to_failed("Error: failed to persist final assistant message")
+                    .await;
             }
         }
     }
 
     async fn on_error(&self, err: &str) {
+        if self.is_cutover_terminal() {
+            return;
+        }
         self.flush_active_stream_event_buffer().await;
         self.close_active_stream_part();
 
@@ -1923,12 +2107,7 @@ impl ExecutionSink for PubSubSessionSink {
         };
         let result = async {
             let _guard = self.persist_lock.lock().await;
-            talon::control::ProtoKeyValueStoreExt::set_msg(
-                self.kv.as_ref(),
-                &self.current_reply_msg_key(),
-                &msg,
-            )
-            .await
+            self.set_session_message(&msg).await
         }
         .instrument(tracing::info_span!(
             "PubSubSessionSink.persist_error_message",
@@ -1946,10 +2125,8 @@ impl ExecutionSink for PubSubSessionSink {
             }
             Err(e) => {
                 tracing::error!("Failed to persist error message: {}", e);
-                self.publish_event(AgentEvent::Error(
-                    "Error: failed to persist session error message".to_string(),
-                ))
-                .await;
+                self.cutover_to_failed("Error: failed to persist session error message")
+                    .await;
             }
         }
     }
@@ -1990,6 +2167,7 @@ mod tests {
     use talon::control::tool_output::ToolOutputExt;
     use talon::control::KeyValueStore;
     use talon::control::MessagePublisher;
+    use talon::control::ProtoKeyValueStoreExt;
     use talon::harness::executor::ExecutionSink;
     use talon::harness::llm::TokenCounter;
     use talon::harness::llm::ToolOutput;
@@ -2039,10 +2217,20 @@ mod tests {
         }
         async fn compare_and_swap(
             &self,
-            _k: &ResourceKey,
-            _expected: Option<&[u8]>,
-            _value: &[u8],
+            key: &ResourceKey,
+            expected: Option<&[u8]>,
+            value: &[u8],
         ) -> anyhow::Result<bool> {
+            let mut entries = self.entries.lock().await;
+            let current = entries
+                .iter()
+                .rev()
+                .find(|(k, _)| k == &key.to_string())
+                .map(|(_, v)| v.as_slice());
+            if current != expected {
+                return Ok(false);
+            }
+            entries.push((key.to_string(), value.to_vec()));
             Ok(true)
         }
         async fn delete(&self, _k: &ResourceKey) -> anyhow::Result<()> {
@@ -2050,10 +2238,23 @@ mod tests {
         }
         async fn list_keys(
             &self,
-            _list: &ResourceList,
-            _options: Option<talon::control::ListOptions<'_>>,
+            list: &ResourceList,
+            options: Option<talon::control::ListOptions<'_>>,
         ) -> anyhow::Result<Vec<ResourceKey>> {
-            Ok(vec![])
+            let mut keys = self
+                .entries
+                .lock()
+                .await
+                .iter()
+                .filter_map(|(key, _)| ResourceKey::parse_canonical(key).ok())
+                .filter(|key| list.matches(key))
+                .collect::<Vec<_>>();
+            keys.sort();
+            keys.dedup();
+            Ok(talon::contracts::apply_list_options_to_keys(
+                keys,
+                options.unwrap_or_default(),
+            ))
         }
     }
 
@@ -2210,6 +2411,187 @@ mod tests {
         assert_eq!(tags[0].title, "Valid");
         assert_eq!(tags[0].media_type, "text/plain");
         assert_eq!(tags[0].content, "done");
+    }
+
+    async fn claimed_sink(kv: Arc<MockKvStore>) -> PubSubSessionSink {
+        let mut submission =
+            sessions::pending_submission("submission-1", "session-1", "user-1", 100);
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt-1".to_string();
+        kv.set_msg(
+            &keys::session_submission("acme", "infra", "session-1", "submission-1"),
+            &submission,
+        )
+        .await
+        .unwrap();
+        let mut sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv,
+            Arc::new(MockPubSub {
+                events: Arc::new(Mutex::new(Vec::new())),
+            }),
+            "acme",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            "submission-1",
+            "attempt-1",
+            Duration::from_secs(10),
+        );
+        sink.message_max_bytes = 4096;
+        sink
+    }
+
+    async fn assert_failed_cutover(kv: &MockKvStore, sink: &PubSubSessionSink) {
+        assert!(sink.is_cutover_terminal());
+        let message = latest_reply_message(kv).await;
+        assert_eq!(
+            message
+                .labels
+                .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                .map(String::as_str),
+            Some(sessions::SESSION_PROJECTION_STATE_FAILED)
+        );
+        assert_eq!(message.parts.len(), 1);
+        assert_eq!(
+            message.parts[0].part_type,
+            data_proto::SessionMessagePartType::Error as i32
+        );
+        assert!(message.encoded_len() <= sink.message_max_bytes);
+        let submission = kv
+            .get_msg::<data_proto::SessionSubmission>(&keys::session_submission(
+                "acme",
+                "infra",
+                "session-1",
+                "submission-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            submission.status,
+            data_proto::SessionSubmissionStatus::Failed as i32
+        );
+        // No oversized reply ever reached storage.
+        assert!(kv
+            .entries
+            .lock()
+            .await
+            .iter()
+            .filter(|(key, _)| key == &reply_key().to_string())
+            .all(|(_, value)| value.len() <= sink.message_max_bytes));
+    }
+
+    #[tokio::test]
+    async fn oversized_stream_projection_is_terminal_and_cannot_be_overwritten() {
+        let kv = Arc::new(MockKvStore::default());
+        let sink = claimed_sink(kv.clone()).await;
+        *sink.last_flush.lock().unwrap() = Instant::now() - Duration::from_secs(2);
+        sink.on_token(&"x".repeat(5000)).await;
+        assert_failed_cutover(&kv, &sink).await;
+        let before = kv.reply_set_count.lock().await.to_owned();
+        sink.on_token("later").await;
+        sink.on_reasoning("later").await;
+        sink.on_tool_call("id", "tool", &json!({})).await;
+        sink.on_done().await;
+        sink.on_error("later error").await;
+        assert_eq!(*kv.reply_set_count.lock().await, before);
+        assert!(sink.on_llm_response(&Default::default()).await.is_err());
+        assert!(sink.take_steering_messages().await.is_err());
+    }
+
+    #[tokio::test]
+    async fn oversized_final_and_error_messages_use_compact_failure() {
+        for failure in [false, true] {
+            let kv = Arc::new(MockKvStore::default());
+            let sink = claimed_sink(kv.clone()).await;
+            sink.on_token(&"x".repeat(5000)).await;
+            assert!(!sink.is_cutover_terminal(), "projection hasn't flushed yet");
+            if failure {
+                sink.on_error("original failure").await;
+            } else {
+                sink.on_done().await;
+            }
+            assert_failed_cutover(&kv, &sink).await;
+        }
+    }
+
+    #[tokio::test]
+    async fn oversized_response_is_rejected_before_journaling_tool_arguments() {
+        let kv = Arc::new(MockKvStore::default());
+        let sink = claimed_sink(kv.clone()).await;
+        let response = talon::harness::llm::ChatResponse {
+            content: "x".repeat(5000),
+            ..Default::default()
+        };
+        let error = sink.on_llm_response(&response).await.unwrap_err();
+        assert!(error.is::<super::SessionMessageTooLarge>());
+        assert_failed_cutover(&kv, &sink).await;
+        let entries = kv.entries.lock().await;
+        let journal = entries
+            .iter()
+            .filter(|(key, _)| key.contains("/SessionJournalEntry/"))
+            .map(|(_, bytes)| data_proto::SessionJournalEntry::decode(bytes.as_slice()).unwrap())
+            .collect::<Vec<_>>();
+        assert!(
+            !journal.is_empty(),
+            "terminal failure must journal its commit"
+        );
+        assert!(journal
+            .iter()
+            .all(|entry| entry.phase != data_proto::SessionExecutionPhase::LlmResponse as i32));
+    }
+
+    #[tokio::test]
+    async fn failed_final_write_marks_terminal_even_when_compact_write_fails() {
+        let kv = Arc::new(MockKvStore {
+            fail_reply_sets_after: Some(0),
+            ..Default::default()
+        });
+        let sink = claimed_sink(kv.clone()).await;
+        sink.on_token("small").await;
+        sink.on_done().await;
+        assert!(sink.is_cutover_terminal());
+        let submission = kv
+            .get_msg::<data_proto::SessionSubmission>(&keys::session_submission(
+                "acme",
+                "infra",
+                "session-1",
+                "submission-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            submission.status,
+            data_proto::SessionSubmissionStatus::Failed as i32
+        );
+    }
+
+    #[tokio::test]
+    async fn stale_attempt_cannot_replace_a_new_attempt_with_compact_failure() {
+        let kv = Arc::new(MockKvStore::default());
+        let sink = claimed_sink(kv.clone()).await;
+        let key = keys::session_submission("acme", "infra", "session-1", "submission-1");
+        let mut submission = kv
+            .get_msg::<data_proto::SessionSubmission>(&key)
+            .await
+            .unwrap()
+            .unwrap();
+        submission.attempt_id = "new-attempt".to_string();
+        kv.set_msg(&key, &submission).await.unwrap();
+        sink.on_token(&"x".repeat(5000)).await;
+        sink.on_done().await;
+        assert!(sink.is_cutover_terminal());
+        assert_eq!(*kv.reply_set_count.lock().await, 0);
+        assert_eq!(
+            kv.get_msg::<data_proto::SessionSubmission>(&key)
+                .await
+                .unwrap()
+                .unwrap()
+                .attempt_id,
+            "new-attempt"
+        );
     }
 
     #[tokio::test]
