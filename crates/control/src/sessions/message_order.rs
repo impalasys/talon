@@ -124,6 +124,25 @@ async fn begin_input(
     let key = state_key(ns, agent, session);
     for _ in 0..32 {
         let (raw, mut state) = load(kv, &key).await?;
+        if canonical {
+            // Read after the admission snapshot, so a competing append either
+            // has materialized already or changes the state CAS below. A
+            // duplicate must never readmit an old reply after newer input.
+            if kv
+                .get(&keys::session_message(ns, agent, session, &message.id))
+                .await?
+                .is_some()
+            {
+                return Ok(None);
+            }
+            if state.canonical_id.as_deref() == Some(message.id.as_str())
+                && state.pending_write.is_some()
+            {
+                return Err(anyhow!(
+                    "message append is pending; retry the same message ID"
+                ));
+            }
+        }
         state.order = state
             .order
             .checked_add(1)
@@ -212,6 +231,36 @@ async fn finish(
     Err(anyhow!("failed to complete user message admission"))
 }
 
+// A known failed insert owns no durable input. Clear only its own reservation,
+// retaining the monotonic order but no confirmable text. Never restore an older
+// snapshot: another writer may already have completed while it was superseded.
+async fn abandon_insert(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session: &str,
+    write: Option<&AdmissionWrite>,
+) -> Result<()> {
+    let Some(write) = write else { return Ok(()) };
+    let key = state_key(ns, agent, session);
+    for _ in 0..32 {
+        let (raw, mut state) = load(kv, &key).await?;
+        if state.latest.as_ref() != Some(&write.receipt)
+            || state.pending_write.as_deref() != Some(write.nonce.as_str())
+        {
+            return Ok(());
+        }
+        state.pending_write = None;
+        state.latest = None;
+        state.canonical_id = None;
+        state.text_digest.clear();
+        if save(kv, &key, raw.as_deref(), &mut state).await? {
+            return Ok(());
+        }
+    }
+    Err(anyhow!("failed to clear unsuccessful message append"))
+}
+
 /// Appends cannot give an existing/edited message a fresh admission order.
 pub async fn append_admitted_session_message(
     kv: &dyn KeyValueStore,
@@ -229,6 +278,7 @@ pub async fn append_admitted_session_message(
         .compare_and_swap(&key, None, &message.encode_to_vec())
         .await?
     {
+        abandon_insert(kv, ns, agent, session, write.as_ref()).await?;
         return Ok(false);
     }
     finish(kv, ns, agent, session, write.as_ref(), message).await?;
@@ -252,6 +302,19 @@ pub async fn edit_admitted_session_message(
         )
         .await?
     {
+        if let Some(raw) = kv
+            .get(&keys::session_message(ns, agent, session, &message.id))
+            .await?
+        {
+            let current = data_proto::SessionMessage::decode(raw.as_slice())?;
+            if is_user(&current) {
+                finish(kv, ns, agent, session, write.as_ref(), &current).await?;
+            } else {
+                abandon_insert(kv, ns, agent, session, write.as_ref()).await?;
+            }
+        } else {
+            abandon_insert(kv, ns, agent, session, write.as_ref()).await?;
+        }
         return Ok(false);
     }
     finish(kv, ns, agent, session, write.as_ref(), message).await?;
@@ -481,6 +544,152 @@ mod tests {
     }
     fn deadline() -> i64 {
         chrono::Utc::now().timestamp_micros() + 60_000_000
+    }
+
+    struct RacingAppendKv {
+        inner: MockKvStore,
+        reads: std::sync::atomic::AtomicUsize,
+        barrier: tokio::sync::Barrier,
+    }
+    #[async_trait::async_trait]
+    impl KeyValueStore for RacingAppendKv {
+        async fn get(&self, key: &keys::ResourceKey) -> Result<Option<Vec<u8>>> {
+            let result = self.inner.get(key).await?;
+            if key.kind == "SessionMessage"
+                && key.name == "same-id"
+                && self.reads.fetch_add(1, std::sync::atomic::Ordering::SeqCst) < 2
+            {
+                self.barrier.wait().await;
+            }
+            Ok(result)
+        }
+        async fn set(&self, key: &keys::ResourceKey, value: &[u8]) -> Result<()> {
+            self.inner.set(key, value).await
+        }
+        async fn compare_and_swap(
+            &self,
+            key: &keys::ResourceKey,
+            expected: Option<&[u8]>,
+            value: &[u8],
+        ) -> Result<bool> {
+            self.inner.compare_and_swap(key, expected, value).await
+        }
+        async fn compare_and_delete(
+            &self,
+            key: &keys::ResourceKey,
+            expected: &[u8],
+        ) -> Result<bool> {
+            self.inner.compare_and_delete(key, expected).await
+        }
+        async fn delete(&self, key: &keys::ResourceKey) -> Result<()> {
+            self.inner.delete(key).await
+        }
+        async fn list_keys(
+            &self,
+            list: &keys::ResourceList,
+            options: Option<crate::control::ListOptions<'_>>,
+        ) -> Result<Vec<keys::ResourceKey>> {
+            self.inner.list_keys(list, options).await
+        }
+    }
+
+    #[tokio::test]
+    async fn concurrent_duplicate_appends_do_not_leave_a_pending_reservation() {
+        let kv = RacingAppendKv {
+            inner: MockKvStore::default(),
+            reads: Default::default(),
+            barrier: tokio::sync::Barrier::new(2),
+        };
+        let reply = message("same-id", "exact reply");
+        let (a, b) = tokio::join!(
+            append_admitted_session_message(&kv, "ns", "agent", "session", &reply),
+            append_admitted_session_message(&kv, "ns", "agent", "session", &reply)
+        );
+        assert_eq!(
+            [a, b].into_iter().filter(|r| matches!(r, Ok(true))).count(),
+            1
+        );
+        let (_, state) = load(&kv, &state_key("ns", "agent", "session"))
+            .await
+            .unwrap();
+        assert!(state.pending_write.is_none());
+        assert_eq!(state.order, 1);
+        validate_user_confirmation(&kv, "ns", "agent", "session", 0, "exact reply")
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn duplicate_append_cannot_readmit_an_old_reply_after_newer_input() {
+        let kv = MockKvStore::default();
+        input(&kv, "same-id", "exact reply").await;
+        input(&kv, "newer", "cancel").await;
+        let before = kv.get(&state_key("ns", "agent", "session")).await.unwrap();
+        // Exercise the reservation path after a competing client passed its
+        // initial missing-key read, then paused while the winner/cancel arrived.
+        assert!(begin_input(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            &message("same-id", "exact reply"),
+            true
+        )
+        .await
+        .unwrap()
+        .is_none());
+        assert_eq!(
+            kv.get(&state_key("ns", "agent", "session")).await.unwrap(),
+            before
+        );
+        assert!(snapshot(&kv, 0).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn failed_edit_reconciles_durable_text_without_sticking_the_fence() {
+        let kv = MockKvStore::default();
+        input(&kv, "reply", "exact reply").await;
+        let key = keys::session_message("ns", "agent", "session", "reply");
+        let stale = kv.get(&key).await.unwrap().unwrap();
+        assert!(edit_admitted_session_message(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            &stale,
+            &message("reply", "cancel")
+        )
+        .await
+        .unwrap());
+        assert!(!edit_admitted_session_message(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            &stale,
+            &message("reply", "exact reply")
+        )
+        .await
+        .unwrap());
+        assert!(load(&kv, &state_key("ns", "agent", "session"))
+            .await
+            .unwrap()
+            .1
+            .pending_write
+            .is_none());
+        assert!(snapshot(&kv, 0).await.is_err());
+        let current = kv.get(&key).await.unwrap().unwrap();
+        assert!(edit_admitted_session_message(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            &current,
+            &message("reply", "exact reply")
+        )
+        .await
+        .unwrap());
+        snapshot(&kv, 0).await.unwrap();
     }
 
     #[tokio::test]
