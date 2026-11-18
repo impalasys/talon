@@ -70,6 +70,55 @@ pub fn submission_is_terminal(submission: &SessionSubmission) -> bool {
         || submission.status == SessionSubmissionStatus::Interrupted as i32
 }
 
+/// Atomically make a live claim terminal before writing its failed UI projection.
+/// Unlike a commit, failure need not reference a recoverable assistant response.
+/// Preserve the last successful journal pointer; the terminal submission tombstone
+/// prevents recovery/reclaim even when writing the compact error also fails.
+pub async fn fail_submission_if_current(
+    kv: &dyn KeyValueStore,
+    claim: &super::SubmissionLease,
+    failed_message_id: &str,
+    now_micros: i64,
+) -> Result<bool> {
+    let key = keys::session_submission(
+        &claim.ns,
+        &claim.agent,
+        &claim.session_id,
+        &claim.submission_id,
+    );
+    for _ in 0..8 {
+        let Some(current) = kv.get(&key).await? else {
+            return Ok(false);
+        };
+        let mut submission = SessionSubmission::decode(current.as_slice())?;
+        if submission.attempt_id != claim.attempt_id {
+            return Ok(false);
+        }
+        if submission_is_terminal(&submission) {
+            return Ok(submission.status == SessionSubmissionStatus::Failed as i32
+                && submission.committed_message_id.as_deref() == Some(failed_message_id));
+        }
+        if submission
+            .claim_expires_at
+            .is_some_and(|expiry| expiry <= now_micros)
+        {
+            return Ok(false);
+        }
+        submission.status = SessionSubmissionStatus::Failed as i32;
+        submission.updated_at = now_micros;
+        submission.completed_at = Some(now_micros);
+        submission.claim_expires_at = None;
+        submission.committed_message_id = Some(failed_message_id.to_string());
+        if kv
+            .compare_and_swap(&key, Some(&current), &submission.encode_to_vec())
+            .await?
+        {
+            return Ok(true);
+        }
+    }
+    Err(anyhow!("failed to atomically fail session submission"))
+}
+
 pub async fn create_submission_if_absent(
     kv: &dyn KeyValueStore,
     ns: &str,
@@ -322,5 +371,68 @@ mod tests {
             panic!("expected claim");
         };
         assert_eq!(submission.claim_worker_id, "worker-1");
+    }
+}
+
+#[cfg(test)]
+mod failure_fence_tests {
+    use super::*;
+    use crate::control::ProtoKeyValueStoreExt;
+    use crate::test_support::MockKvStore;
+    #[tokio::test]
+    async fn failure_fence_is_expiry_aware_and_excludes_reclaim() {
+        let kv = MockKvStore::default();
+        let claim = super::super::SubmissionLease {
+            ns: "ns".into(),
+            agent: "agent".into(),
+            session_id: "session".into(),
+            submission_id: "submission".into(),
+            attempt_id: "attempt".into(),
+            ttl_micros: 100,
+        };
+        let key = keys::session_submission("ns", "agent", "session", "submission");
+        let mut submission = pending_submission("submission", "session", "user", 1);
+        submission.status = SessionSubmissionStatus::Claimed as i32;
+        submission.attempt_id = "attempt".into();
+        submission.claim_expires_at = Some(10);
+        kv.set_msg(&key, &submission).await.unwrap();
+        assert!(!fail_submission_if_current(&kv, &claim, "reply", 10)
+            .await
+            .unwrap());
+        submission.attempt_id = "new-attempt".into();
+        submission.claim_expires_at = Some(100);
+        kv.set_msg(&key, &submission).await.unwrap();
+        assert!(!fail_submission_if_current(&kv, &claim, "reply", 20)
+            .await
+            .unwrap());
+        submission.attempt_id = "attempt".into();
+        kv.set_msg(&key, &submission).await.unwrap();
+        assert!(fail_submission_if_current(&kv, &claim, "reply", 20)
+            .await
+            .unwrap());
+        assert!(matches!(
+            claim_submission(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                "submission",
+                "user",
+                "new-worker",
+                30,
+                100
+            )
+            .await
+            .unwrap(),
+            ClaimOutcome::AlreadyTerminal(_)
+        ));
+        assert!(fail_submission_if_current(&kv, &claim, "reply", 40)
+            .await
+            .unwrap());
+        assert!(
+            !fail_submission_if_current(&kv, &claim, "different-reply", 40)
+                .await
+                .unwrap()
+        );
     }
 }
