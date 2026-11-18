@@ -1,0 +1,8 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "fanout",
+    test_deps = ["//crates/test-support:test_support"],
+    unit_tests = True,
+    deps = ["//crates/protocol:protocol"],
+)

@@ -1,0 +1,30 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "worker",
+    compile_data = [
+        "//:runtime_data",
+        "//:src/control/security/test_rsa_private_key.pem",
+    ],
+    test_deps = [
+        "//crates/storage-common:storage_common",
+        "//crates/storage-sqlite:storage_sqlite",
+        "//crates/test-support:test_support",
+    ],
+    unit_tests = True,
+    deps = [
+        "//crates/auth:auth",
+        "//crates/config:config",
+        "//crates/connectors:connectors",
+        "//crates/contracts:contracts",
+        "//crates/control:control",
+        "//crates/fanout:fanout",
+        "//crates/harness:harness",
+        "//crates/identifiers:identifiers",
+        "//crates/protocol:protocol",
+        "//crates/sandbox:sandbox",
+        "//crates/security:security",
+        "//crates/session-control:session_control",
+        "//crates/workflows:workflows",
+    ],
+)

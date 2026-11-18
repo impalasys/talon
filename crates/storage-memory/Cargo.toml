@@ -1,0 +1,18 @@
+[package]
+name = "storage-memory"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[dependencies]
+anyhow =  "1.0"
+async-trait =  "0.1"
+tokio =  { version = "1.0", features = ["full"] }
+contracts = { path = "../contracts" }
+protocol = { path = "../protocol" }
+
+[dev-dependencies]
+chrono =  { version = "0.4", features = ["serde"] }
+test-support = { path = "../test-support" }
+tokio =  { version = "1.0", features = ["test-util"] }

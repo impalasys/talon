@@ -1,8 +1,8 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use ::identifiers::{keys, ns};
 use talon::control::{keys as legacy, ns as legacy_ns};
-use talon_identifiers::{keys, ns};
 
 #[test]
 fn existing_import_paths_expose_the_same_types_as_the_leaf_crate() {

@@ -1,6 +1,19 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use ::bootstrap::build_control_plane;
+use ::config::Config;
+use ::config::ConfigExt;
+use ::control::control::topics;
+use ::control::control::ControlPlane;
+use ::storage_pubsub::configured_local_socket_path;
+use ::storage_pubsub::fully_qualified_subscription_name;
+use ::storage_pubsub::fully_qualified_topic_name;
+use ::storage_pubsub::LocalSocketMessagePublisher;
+#[cfg(feature = "aws")]
+use ::storage_sqs::SqsMessagePublisher;
+use ::worker::scheduler_auth::SchedulerRequestAuthenticator;
+use ::worker::WorkerEventHandler;
 use anyhow::Result;
 use axum::body::Body;
 use axum::body::Bytes;
@@ -31,19 +44,6 @@ use std::convert::Infallible;
 use std::os::unix::fs::FileTypeExt;
 use std::path::PathBuf;
 use std::sync::Arc;
-use talon_bootstrap::build_control_plane;
-use talon_config::Config;
-use talon_config::ConfigExt;
-use talon_control::control::topics;
-use talon_control::control::ControlPlane;
-use talon_storage_pubsub::configured_local_socket_path;
-use talon_storage_pubsub::fully_qualified_subscription_name;
-use talon_storage_pubsub::fully_qualified_topic_name;
-use talon_storage_pubsub::LocalSocketMessagePublisher;
-#[cfg(feature = "aws")]
-use talon_storage_sqs::SqsMessagePublisher;
-use talon_worker::scheduler_auth::SchedulerRequestAuthenticator;
-use talon_worker::WorkerEventHandler;
 #[cfg(unix)]
 use tokio::net::UnixListener;
 use tokio::signal;
@@ -292,17 +292,17 @@ fn build_worker_handler(
     config: Arc<Config>,
     scheduler_authenticator: Arc<SchedulerRequestAuthenticator>,
     worker_id: String,
-    fanout_hub: Arc<talon_worker::fanout::FanoutHub>,
+    fanout_hub: Arc<::worker::fanout::FanoutHub>,
 ) -> WorkerEventHandler {
     WorkerEventHandler {
         cp,
         config,
-        mcp_registry: Arc::new(talon_worker::mcp_registry::McpRegistry::new()),
+        mcp_registry: Arc::new(::worker::mcp_registry::McpRegistry::new()),
         scheduler_authenticator,
         worker_id,
         fanout_hub,
         session_cancellations: Arc::new(
-            talon_worker::session_control::SessionCancellationRegistry::default(),
+            ::worker::session_control::SessionCancellationRegistry::default(),
         ),
     }
 }
@@ -310,13 +310,15 @@ fn build_worker_handler(
 fn worker_router(handler: WorkerEventHandler) -> Router {
     use tonic::transport::Server;
 
-    let fanout_service =
-        talon_protocol::worker_proto::fanout_service_server::FanoutServiceServer::new(
-            talon_worker::fanout::FanoutServiceImpl::new(handler.fanout_hub.clone()),
-        );
-    let control_service = talon_protocol::worker_proto::session_control_service_server::SessionControlServiceServer::new(
-        talon_worker::session_control::SessionControlServiceImpl::new(handler.session_cancellations.clone()),
+    let fanout_service = ::protocol::worker_proto::fanout_service_server::FanoutServiceServer::new(
+        ::worker::fanout::FanoutServiceImpl::new(handler.fanout_hub.clone()),
     );
+    let control_service =
+        ::protocol::worker_proto::session_control_service_server::SessionControlServiceServer::new(
+            ::worker::session_control::SessionControlServiceImpl::new(
+                handler.session_cancellations.clone(),
+            ),
+        );
     let tonic_service = Server::builder()
         .accept_http1(true)
         .add_service(fanout_service)
@@ -328,7 +330,7 @@ fn worker_router(handler: WorkerEventHandler) -> Router {
         .route("/schedules/fire", post(schedule_fire))
         .nest(
             "/mcp/talon-ops",
-            talon_worker::talon_ops::talon_ops_router(handler.clone()),
+            ::worker::talon_ops::talon_ops_router(handler.clone()),
         )
         .fallback_service(grpc_service(tonic_service))
         .with_state(handler)
@@ -375,7 +377,7 @@ struct GcpPullSubscriptionBackend {
 }
 
 struct LocalSocketPullSubscriptionBackend {
-    subscriber: talon_storage_pubsub::LocalSocketSubscriber,
+    subscriber: ::storage_pubsub::LocalSocketSubscriber,
     topic_name: String,
     subscription_name: String,
 }
@@ -1227,8 +1229,8 @@ where
     Fut: std::future::Future<Output = Result<()>>,
     FShutdown: std::future::Future,
 {
-    let worker_id = talon_worker::registration::worker_id();
-    let fanout_hub = Arc::new(talon_worker::fanout::FanoutHub::new());
+    let worker_id = ::worker::registration::worker_id();
+    let fanout_hub = Arc::new(::worker::fanout::FanoutHub::new());
     let handler = build_worker_handler(
         cp,
         config,
@@ -1239,12 +1241,12 @@ where
     let pull_mode = pull_mode_enabled(&env_get);
     let project_id = pubsub_project_id(&env_get);
     let port = worker_port(&env_get);
-    let endpoints = talon_worker::registration::discover_worker_endpoints(&env_get, &port).await?;
+    let endpoints = ::worker::registration::discover_worker_endpoints(&env_get, &port).await?;
     let shutdown_token = CancellationToken::new();
     let worker_registration =
-        talon_worker::registration::WorkerRegistration::new(worker_id, env!("CARGO_PKG_VERSION"))
+        ::worker::registration::WorkerRegistration::new(worker_id, env!("CARGO_PKG_VERSION"))
             .with_endpoints(endpoints);
-    let heartbeat_task = tokio::spawn(talon_worker::registration::run_worker_heartbeat(
+    let heartbeat_task = tokio::spawn(::worker::registration::run_worker_heartbeat(
         handler.cp.clone(),
         worker_registration,
         shutdown_token.child_token(),
@@ -1305,8 +1307,8 @@ where
     FShutdown: std::future::Future,
 {
     let config = load_config()?;
-    talon_security::platform_jwt::load_key()?;
-    talon_security::platform_jwt::issuer()?;
+    ::security::platform_jwt::load_key()?;
+    ::security::platform_jwt::issuer()?;
     let cp = build_cp(&config).await?;
     let scheduler_authenticator = build_auth(&config).await?;
     run_worker_with(
@@ -1365,7 +1367,7 @@ async fn schedule_fire(
         return axum::http::StatusCode::UNAUTHORIZED;
     }
 
-    let payload = match talon_worker::decode_scheduler_fire_payload(&body) {
+    let payload = match ::worker::decode_scheduler_fire_payload(&body) {
         Ok(payload) => payload,
         Err(err) => {
             tracing::warn!(error = %err, "Invalid scheduler wakeup payload");
@@ -1385,7 +1387,7 @@ async fn schedule_fire(
 fn main() -> Result<()> {
     // The Monty pool invokes this binary with `subprocess`; handle that mode
     // before Tokio, telemetry, profiling, or Talon configuration initialize.
-    if let Some(status) = talon_monty::run_if_requested() {
+    if let Some(status) = ::monty::run_if_requested() {
         std::process::exit(status);
     }
     tokio::runtime::Builder::new_multi_thread()
@@ -1396,11 +1398,11 @@ fn main() -> Result<()> {
 }
 
 async fn worker_main() -> Result<()> {
-    talon_security::install_jwt_crypto_provider();
-    talon_security::install_rustls_crypto_provider();
-    let _telemetry_guard = talon_observability::telemetry::init_from_env("talon-worker")?;
-    talon_observability::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
-    talon_observability::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
+    ::security::install_jwt_crypto_provider();
+    ::security::install_rustls_crypto_provider();
+    let _telemetry_guard = ::observability::telemetry::init_from_env("talon-worker")?;
+    ::observability::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
+    ::observability::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
     tracing::info!("Starting Talon Worker Engine...");
     tracing::info!("Connecting to control plane services...");
     run_worker_main_with(
@@ -1461,6 +1463,21 @@ mod tests {
     use super::ResolvedPullSubscriptionSpec;
     use super::DEFAULT_WORKER_THREAD_STACK_SIZE_BYTES;
     use super::HEALTHY_PULL_RUNTIME_RESET;
+    use ::config::Config;
+    use ::control::control::events::LifecycleEvent;
+    use ::control::control::keys;
+    use ::control::control::topics;
+    use ::control::control::ControlPlane;
+    use ::control::control::KeyValueStore;
+    use ::control::control::MessagePublisher;
+    use ::control::control::ProtoKeyValueStoreExt;
+    use ::protocol::resources_proto;
+    use ::security::platform_jwt;
+    use ::test_support::EmptyPubSub;
+    use ::test_support::MockKvStore;
+    use ::worker::mcp_registry::McpRegistry;
+    use ::worker::scheduler_auth::SchedulerRequestAuthenticator;
+    use ::worker::WorkerEventHandler;
     use anyhow::Result;
     use axum::body::Bytes;
     use axum::extract::State;
@@ -1479,21 +1496,6 @@ mod tests {
     use serde_json::json;
     use std::collections::HashMap;
     use std::sync::Arc;
-    use talon_config::Config;
-    use talon_control::control::events::LifecycleEvent;
-    use talon_control::control::keys;
-    use talon_control::control::topics;
-    use talon_control::control::ControlPlane;
-    use talon_control::control::KeyValueStore;
-    use talon_control::control::MessagePublisher;
-    use talon_control::control::ProtoKeyValueStoreExt;
-    use talon_protocol::resources_proto;
-    use talon_security::platform_jwt;
-    use talon_test_support::EmptyPubSub;
-    use talon_test_support::MockKvStore;
-    use talon_worker::mcp_registry::McpRegistry;
-    use talon_worker::scheduler_auth::SchedulerRequestAuthenticator;
-    use talon_worker::WorkerEventHandler;
     use tokio_util::sync::CancellationToken;
     use tower::ServiceExt;
 
@@ -1533,9 +1535,9 @@ mod tests {
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(authenticator),
             worker_id: "test-worker".to_string(),
-            fanout_hub: Arc::new(talon_worker::fanout::FanoutHub::new()),
+            fanout_hub: Arc::new(::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(
-                talon_worker::session_control::SessionCancellationRegistry::default(),
+                ::worker::session_control::SessionCancellationRegistry::default(),
             ),
         }
     }
@@ -1598,7 +1600,7 @@ mod tests {
     }
 
     fn schedule_with_next_run(revision: u64, next_run_at: i64) -> resources_proto::Schedule {
-        talon_control::control::resource_model::schedule(
+        ::control::control::resource_model::schedule(
             "default",
             "nightly",
             resources_proto::ScheduleSpec {
@@ -1698,17 +1700,17 @@ mod tests {
         assert_eq!(specs.len(), 4);
         assert_eq!(
             specs[0].topic_name,
-            talon_control::control::topics::SESSION_DISPATCH_TOPIC
+            ::control::control::topics::SESSION_DISPATCH_TOPIC
         );
         assert_eq!(specs[1].event_type, "resource_lifecycle");
         assert_eq!(
             specs[2].topic_name,
-            talon_control::control::topics::WORKFLOW_DISPATCH_TOPIC
+            ::control::control::topics::WORKFLOW_DISPATCH_TOPIC
         );
         assert_eq!(specs[2].event_type, "workflow_dispatch");
         assert_eq!(
             specs[3].topic_name,
-            talon_control::control::topics::INDEX_EVENTS_TOPIC
+            ::control::control::topics::INDEX_EVENTS_TOPIC
         );
         assert_eq!(specs[3].subscription_name, "talon-index-events-sub");
         assert_eq!(specs[3].event_type, "index");
@@ -1791,7 +1793,7 @@ mod tests {
         let cp = Arc::new(ControlPlane::noop());
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
-        let fanout_hub = Arc::new(talon_worker::fanout::FanoutHub::new());
+        let fanout_hub = Arc::new(::worker::fanout::FanoutHub::new());
         let handler = build_worker_handler(
             cp.clone(),
             config.clone(),
@@ -1901,14 +1903,14 @@ mod tests {
     #[tokio::test]
     async fn maybe_spawn_pull_subscriptions_uses_local_socket_specs_when_configured() {
         let mut config = Config::default();
-        config.control_plane = Some(talon_config::proto::ControlPlaneConfig {
-            database: Some(talon_config::proto::DatabaseConfig {
+        config.control_plane = Some(::config::proto::ControlPlaneConfig {
+            database: Some(::config::proto::DatabaseConfig {
                 data_dir: String::new(),
                 driver: "sqlite".to_string(),
                 url: None,
                 auth_mode: String::new(),
             }),
-            message_broker: Some(talon_config::proto::MessageBrokerConfig {
+            message_broker: Some(::config::proto::MessageBrokerConfig {
                 driver: "local_socket".to_string(),
             }),
             scheduler: None,
@@ -1921,9 +1923,9 @@ mod tests {
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
             worker_id: "test-worker".to_string(),
-            fanout_hub: Arc::new(talon_worker::fanout::FanoutHub::new()),
+            fanout_hub: Arc::new(::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(
-                talon_worker::session_control::SessionCancellationRegistry::default(),
+                ::worker::session_control::SessionCancellationRegistry::default(),
             ),
         };
         let spawned = std::sync::Mutex::new(Vec::<(String, String, String)>::new());
@@ -1947,7 +1949,7 @@ mod tests {
         assert_eq!(spawned[0].0, "demo");
         assert_eq!(
             spawned[0].1,
-            talon_control::control::topics::SESSION_DISPATCH_TOPIC
+            ::control::control::topics::SESSION_DISPATCH_TOPIC
         );
         assert_eq!(spawned[0].2, "talon-session-dispatch-sub");
         assert_eq!(spawned[3].1, topics::INDEX_EVENTS_TOPIC);
@@ -1957,14 +1959,14 @@ mod tests {
     #[tokio::test]
     async fn maybe_spawn_pull_subscriptions_uses_sqs_specs_when_configured() {
         let mut config = Config::default();
-        config.control_plane = Some(talon_config::proto::ControlPlaneConfig {
-            database: Some(talon_config::proto::DatabaseConfig {
+        config.control_plane = Some(::config::proto::ControlPlaneConfig {
+            database: Some(::config::proto::DatabaseConfig {
                 data_dir: String::new(),
                 driver: "dynamodb".to_string(),
                 url: None,
                 auth_mode: String::new(),
             }),
-            message_broker: Some(talon_config::proto::MessageBrokerConfig {
+            message_broker: Some(::config::proto::MessageBrokerConfig {
                 driver: "sqs".to_string(),
             }),
             scheduler: None,
@@ -1977,9 +1979,9 @@ mod tests {
             mcp_registry: Arc::new(McpRegistry::new()),
             scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
             worker_id: "test-worker".to_string(),
-            fanout_hub: Arc::new(talon_worker::fanout::FanoutHub::new()),
+            fanout_hub: Arc::new(::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(
-                talon_worker::session_control::SessionCancellationRegistry::default(),
+                ::worker::session_control::SessionCancellationRegistry::default(),
             ),
         };
         let spawned = std::sync::Mutex::new(Vec::<(String, String, String)>::new());
@@ -2085,7 +2087,7 @@ mod tests {
                 "data": general_purpose::STANDARD.encode(event.encode_to_vec()),
                 "messageId": "m1"
             },
-            "subscription": format!("projects/test/subscriptions/{}", talon_control::control::topics::RESOURCE_LIFECYCLE_TOPIC)
+            "subscription": format!("projects/test/subscriptions/{}", ::control::control::topics::RESOURCE_LIFECYCLE_TOPIC)
         });
 
         let response = push_webhook(State(handler), Json(payload))
@@ -2104,7 +2106,7 @@ mod tests {
             },
             "subscription": format!(
                 "projects/test/subscriptions/{}",
-                talon_control::control::topics::SESSION_DISPATCH_TOPIC
+                ::control::control::topics::SESSION_DISPATCH_TOPIC
             )
         });
 
@@ -2182,10 +2184,10 @@ mod tests {
                 "reason": "wait"
             }
         });
-        match talon_worker::decode_scheduler_fire_payload(&serde_json::to_vec(&workflow).unwrap())
+        match ::worker::decode_scheduler_fire_payload(&serde_json::to_vec(&workflow).unwrap())
             .unwrap()
         {
-            talon_control::control::scheduling::SchedulerFirePayload::Workflow(payload) => {
+            ::control::control::scheduling::SchedulerFirePayload::Workflow(payload) => {
                 assert_eq!(payload.workflow, "wf");
                 assert_eq!(payload.reason, "wait");
             }
@@ -2198,12 +2200,12 @@ mod tests {
             "revision": 7,
             "intended_run_at": 123
         });
-        match talon_worker::decode_scheduler_fire_payload(
+        match ::worker::decode_scheduler_fire_payload(
             &serde_json::to_vec(&legacy_schedule).unwrap(),
         )
         .unwrap()
         {
-            talon_control::control::scheduling::SchedulerFirePayload::Schedule(payload) => {
+            ::control::control::scheduling::SchedulerFirePayload::Schedule(payload) => {
                 assert_eq!(payload.schedule_id, "nightly");
                 assert_eq!(payload.revision, 7);
             }
@@ -2215,10 +2217,10 @@ mod tests {
             "workflow": "wf",
             "run_id": "run"
         });
-        assert!(talon_worker::decode_scheduler_fire_payload(
-            &serde_json::to_vec(&ambiguous).unwrap()
-        )
-        .is_err());
+        assert!(
+            ::worker::decode_scheduler_fire_payload(&serde_json::to_vec(&ambiguous).unwrap())
+                .is_err()
+        );
     }
 
     #[tokio::test]
@@ -2239,9 +2241,9 @@ mod tests {
                 "secret".to_string(),
             )),
             worker_id: "test-worker".to_string(),
-            fanout_hub: Arc::new(talon_worker::fanout::FanoutHub::new()),
+            fanout_hub: Arc::new(::worker::fanout::FanoutHub::new()),
             session_cancellations: Arc::new(
-                talon_worker::session_control::SessionCancellationRegistry::default(),
+                ::worker::session_control::SessionCancellationRegistry::default(),
             ),
         };
 
@@ -2426,7 +2428,7 @@ mod tests {
         .unwrap_err();
         assert!(config_err.to_string().contains("config failed"));
 
-        let _env_lock = talon_test_support::async_env_mutex().lock().await;
+        let _env_lock = ::test_support::async_env_mutex().lock().await;
         let _private_key = EnvGuard::set(
             platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
             TEST_RSA_PRIVATE_KEY,
@@ -2461,7 +2463,7 @@ mod tests {
 
     #[tokio::test]
     async fn run_worker_main_with_starts_and_routes_to_worker_runtime() {
-        let _env_lock = talon_test_support::async_env_mutex().lock().await;
+        let _env_lock = ::test_support::async_env_mutex().lock().await;
         let _private_key = EnvGuard::set(
             platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
             TEST_RSA_PRIVATE_KEY,
@@ -2803,4 +2805,4 @@ mod tests {
 }
 
 #[cfg(feature = "aws")]
-use talon_contracts::pubsub::TALON_TOPIC_ATTRIBUTE;
+use ::contracts::pubsub::TALON_TOPIC_ATTRIBUTE;

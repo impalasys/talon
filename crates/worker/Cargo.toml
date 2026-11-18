@@ -1,0 +1,46 @@
+[package]
+name = "worker"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[dependencies]
+anyhow =  "1.0"
+async-trait =  "0.1"
+axum =  { version = "0.7", features = ["ws"] }
+chrono =  { version = "0.4", features = ["serde"] }
+futures =  "0.3"
+jsonwebtoken =  { version = "11.0", features = ["rust_crypto"] }
+mime_guess =  "2"
+prost =  "0.13"
+rand =  "0.10"
+reqwest =  { version = "0.11", default-features = false, features = ["json", "rustls-tls", "stream"] }
+rmcp =  { version = "1.8", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
+serde =  { version = "1.0", features = ["derive"] }
+serde_json =  "1.0"
+tempfile =  "3.0"
+tokio =  { version = "1.0", features = ["full"] }
+tokio-util =  { version = "0.7.18", features = ["rt"] }
+tonic =  { version = "0.12.3", features = ["tls-webpki-roots"] }
+tracing =  "0.1"
+uuid =  { version = "1.23.0", features = ["v7"] }
+auth = { path = "../auth" }
+config = { path = "../config" }
+connectors = { path = "../connectors" }
+contracts = { path = "../contracts" }
+control = { path = "../control" }
+fanout = { path = "../fanout" }
+harness = { path = "../harness" }
+identifiers = { path = "../identifiers" }
+protocol = { path = "../protocol" }
+sandbox = { path = "../sandbox" }
+security = { path = "../security" }
+session-control = { path = "../session-control" }
+workflows = { path = "../workflows" }
+
+[dev-dependencies]
+storage-sqlite = { path = "../storage-sqlite" }
+storage-common = { path = "../storage-common" }
+test-support = { path = "../test-support" }
+tokio =  { version = "1.0", features = ["test-util"] }

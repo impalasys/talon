@@ -5,37 +5,37 @@ edition = "2021"
 
 [workspace]
 members = [
-    "crates/talon-auth",
-    "crates/talon-bootstrap",
-    "crates/talon-cli",
-    "crates/talon-config",
-    "crates/talon-connectors",
-    "crates/talon-contracts",
-    "crates/talon-control",
-    "crates/talon-fanout",
-    "crates/talon-gateway",
-    "crates/talon-harness",
-    "crates/talon-identifiers",
-    "crates/talon-monty",
-    "crates/talon-observability",
-    "crates/talon-protocol",
-    "crates/talon-sandbox",
-    "crates/talon-security",
-    "crates/talon-session-control",
-    "crates/talon-storage-cloud-tasks",
-    "crates/talon-storage-common",
-    "crates/talon-storage-dynamodb",
-    "crates/talon-storage-eventbridge",
-    "crates/talon-storage-memory",
-    "crates/talon-storage-objects",
-    "crates/talon-storage-postgres",
-    "crates/talon-storage-pubsub",
-    "crates/talon-storage-rocksdb",
-    "crates/talon-storage-sqlite",
-    "crates/talon-storage-sqs",
-    "crates/talon-test-support",
-    "crates/talon-worker",
-    "crates/talon-workflows",
+    "crates/auth",
+    "crates/bootstrap",
+    "crates/cli",
+    "crates/config",
+    "crates/connectors",
+    "crates/contracts",
+    "crates/control",
+    "crates/fanout",
+    "crates/gateway",
+    "crates/harness",
+    "crates/identifiers",
+    "crates/monty",
+    "crates/observability",
+    "crates/protocol",
+    "crates/sandbox",
+    "crates/security",
+    "crates/session-control",
+    "crates/storage-cloud-tasks",
+    "crates/storage-common",
+    "crates/storage-dynamodb",
+    "crates/storage-eventbridge",
+    "crates/storage-memory",
+    "crates/storage-objects",
+    "crates/storage-postgres",
+    "crates/storage-pubsub",
+    "crates/storage-rocksdb",
+    "crates/storage-sqlite",
+    "crates/storage-sqs",
+    "crates/test-support",
+    "crates/worker",
+    "crates/workflows",
     "tools/bazel",
     "tools/install-hooks",
 ]
@@ -43,10 +43,10 @@ default-members = ["."]
 resolver = "2"
 
 [features]
-aws = ["talon-bootstrap/aws", "dep:talon-storage-eventbridge", "dep:talon-storage-sqs", "dep:talon-storage-dynamodb", "dep:aws-sdk-sqs"]
-cpu-profile = ["talon-observability/cpu-profile"]
-heap-profile = ["talon-observability/heap-profile", "dep:tikv-jemallocator", "tikv-jemallocator/profiling"]
-rocksdb = ["talon-bootstrap/rocksdb", "dep:talon-storage-rocksdb"]
+aws = ["bootstrap/aws", "dep:storage-eventbridge", "dep:storage-sqs", "dep:storage-dynamodb", "dep:aws-sdk-sqs"]
+cpu-profile = ["observability/cpu-profile"]
+heap-profile = ["observability/heap-profile", "dep:tikv-jemallocator", "tikv-jemallocator/profiling"]
+rocksdb = ["bootstrap/rocksdb", "dep:storage-rocksdb"]
 
 [dependencies]
 anyhow = "1.0"
@@ -77,38 +77,38 @@ url = "2"
 urlencoding = "2.1"
 
 # Legacy facade exports and executable composition.
-talon-auth = { path = "crates/talon-auth" }
-talon-bootstrap = { path = "crates/talon-bootstrap" }
-talon-cli = { path = "crates/talon-cli" }
+auth = { path = "crates/auth" }
+bootstrap = { path = "crates/bootstrap" }
+cli = { path = "crates/cli" }
 talon-client = { path = "sdk/rust/talon-client" }
-talon-config = { path = "crates/talon-config" }
-talon-connectors = { path = "crates/talon-connectors" }
-talon-contracts = { path = "crates/talon-contracts" }
-talon-control = { path = "crates/talon-control" }
-talon-fanout = { path = "crates/talon-fanout" }
-talon-gateway = { path = "crates/talon-gateway" }
-talon-harness = { path = "crates/talon-harness" }
-talon-identifiers = { path = "crates/talon-identifiers" }
-talon-monty = { path = "crates/talon-monty" }
-talon-observability = { path = "crates/talon-observability" }
-talon-protocol = { path = "crates/talon-protocol" }
-talon-sandbox = { path = "crates/talon-sandbox" }
-talon-security = { path = "crates/talon-security" }
-talon-session-control = { path = "crates/talon-session-control" }
-talon-storage-cloud-tasks = { path = "crates/talon-storage-cloud-tasks" }
-talon-storage-common = { path = "crates/talon-storage-common" }
-talon-storage-dynamodb = { path = "crates/talon-storage-dynamodb", optional = true }
-talon-storage-eventbridge = { path = "crates/talon-storage-eventbridge", optional = true }
-talon-storage-memory = { path = "crates/talon-storage-memory" }
-talon-storage-objects = { path = "crates/talon-storage-objects" }
-talon-storage-postgres = { path = "crates/talon-storage-postgres" }
-talon-storage-pubsub = { path = "crates/talon-storage-pubsub" }
-talon-storage-rocksdb = { path = "crates/talon-storage-rocksdb", optional = true }
-talon-storage-sqlite = { path = "crates/talon-storage-sqlite" }
-talon-storage-sqs = { path = "crates/talon-storage-sqs", optional = true }
-talon-test-support = { path = "crates/talon-test-support" }
-talon-worker = { path = "crates/talon-worker" }
-talon-workflows = { path = "crates/talon-workflows" }
+config = { path = "crates/config" }
+connectors = { path = "crates/connectors" }
+contracts = { path = "crates/contracts" }
+control = { path = "crates/control" }
+fanout = { path = "crates/fanout" }
+gateway = { path = "crates/gateway" }
+harness = { path = "crates/harness" }
+identifiers = { path = "crates/identifiers" }
+monty = { path = "crates/monty" }
+observability = { path = "crates/observability" }
+protocol = { path = "crates/protocol" }
+sandbox = { path = "crates/sandbox" }
+security = { path = "crates/security" }
+session-control = { path = "crates/session-control" }
+storage-cloud-tasks = { path = "crates/storage-cloud-tasks" }
+storage-common = { path = "crates/storage-common" }
+storage-dynamodb = { path = "crates/storage-dynamodb", optional = true }
+storage-eventbridge = { path = "crates/storage-eventbridge", optional = true }
+storage-memory = { path = "crates/storage-memory" }
+storage-objects = { path = "crates/storage-objects" }
+storage-postgres = { path = "crates/storage-postgres" }
+storage-pubsub = { path = "crates/storage-pubsub" }
+storage-rocksdb = { path = "crates/storage-rocksdb", optional = true }
+storage-sqlite = { path = "crates/storage-sqlite" }
+storage-sqs = { path = "crates/storage-sqs", optional = true }
+test-support = { path = "crates/test-support" }
+worker = { path = "crates/worker" }
+workflows = { path = "crates/workflows" }
 
 [dev-dependencies]
 aws-smithy-runtime-api = "1.11"

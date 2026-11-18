@@ -1,0 +1,21 @@
+[package]
+name = "storage-rocksdb"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[dependencies]
+anyhow =  "1.0"
+async-trait =  "0.1"
+rocksdb =  { version = "0.24", default-features = false, features = ["lz4", "bindgen-runtime"] }
+time =  "0.3"
+tokio =  { version = "1.0", features = ["full"] }
+tracing =  "0.1"
+contracts = { path = "../contracts" }
+storage-common = { path = "../storage-common" }
+
+[dev-dependencies]
+test-support = { path = "../test-support" }
+tempfile =  "3.0"
+tokio =  { version = "1.0", features = ["test-util"] }

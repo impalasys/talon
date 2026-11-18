@@ -1,0 +1,11 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "contracts",
+    test_deps = [],
+    unit_tests = True,
+    deps = [
+        "//crates/identifiers:identifiers",
+        "//crates/protocol:protocol",
+    ],
+)

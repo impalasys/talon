@@ -1,0 +1,16 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "connectors",
+    test_deps = ["//crates/test-support:test_support"],
+    unit_tests = True,
+    deps = [
+        "//crates/auth:auth",
+        "//crates/config:config",
+        "//crates/contracts:contracts",
+        "//crates/control:control",
+        "//crates/identifiers:identifiers",
+        "//crates/protocol:protocol",
+        "//crates/security:security",
+    ],
+)

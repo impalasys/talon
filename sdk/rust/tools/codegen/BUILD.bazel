@@ -7,7 +7,7 @@ rust_binary(
     edition = "2021",
     visibility = ["//visibility:public"],
     deps = all_crate_deps(
-        package_name = "crates/talon-protocol",
+        package_name = "crates/protocol",
         build = True,
     ),
 )

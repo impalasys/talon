@@ -1,0 +1,129 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
+use ::protocol::manifest::templating::render_cli_manifest_template;
+
+pub fn parse_raw_manifest(content: &str) -> Result<::protocol::manifest::RawManifest> {
+    serde_yaml::from_str(content).context("Failed to parse manifest YAML")
+}
+
+#[derive(Debug, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+struct KnowledgeManifestFile {
+    spec: KnowledgeSpecFile,
+}
+
+#[derive(Debug, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct KnowledgeSpecFile {
+    content: Option<String>,
+    content_from_file: Option<String>,
+}
+
+pub fn render_manifest_file(file: &str, vars: &[String]) -> Result<String> {
+    let content = fs::read_to_string(file)
+        .with_context(|| format!("Failed to read manifest file: {}", file))?;
+    let vars = parse_vars(vars)?;
+    let rendered = render_cli_manifest_template(&content, &vars)
+        .with_context(|| format!("Failed to render manifest file: {}", file))?;
+    if rendered.trim().is_empty() {
+        return Ok(rendered);
+    }
+    resolve_manifest_sources(file, &rendered)
+}
+
+fn resolve_manifest_sources(file: &str, rendered: &str) -> Result<String> {
+    let mut documents = Vec::new();
+    let mut changed = false;
+    for document in serde_yaml::Deserializer::from_str(rendered) {
+        let mut manifest: serde_yaml::Value = serde_yaml::Value::deserialize(document)
+            .context("Failed to parse rendered manifest")?;
+        if matches!(manifest, serde_yaml::Value::Null) {
+            continue;
+        }
+
+        if manifest.is_mapping() {
+            let raw: ::protocol::manifest::RawManifest =
+                serde_yaml::from_value(manifest.clone())
+                    .context("Failed to parse manifest YAML")?;
+            if raw.kind == "Knowledge" {
+                resolve_knowledge_manifest_sources(file, &mut manifest)?;
+                changed = true;
+            }
+        }
+
+        documents.push(
+            serde_yaml::to_string(&manifest).context("Failed to serialize rendered manifest")?,
+        );
+    }
+
+    if changed {
+        Ok(documents.concat())
+    } else {
+        Ok(rendered.to_string())
+    }
+}
+
+fn resolve_knowledge_manifest_sources(file: &str, manifest: &mut serde_yaml::Value) -> Result<()> {
+    let file_manifest: KnowledgeManifestFile = serde_yaml::from_value(manifest.clone())
+        .context("Failed to parse Knowledge manifest source directives")?;
+
+    let content = match (
+        file_manifest.spec.content.clone(),
+        file_manifest.spec.content_from_file.clone(),
+    ) {
+        (Some(content), None) => content,
+        (None, Some(path)) => {
+            let base_dir = Path::new(file).parent().unwrap_or_else(|| Path::new("."));
+            let full_path = canonicalize_manifest_path(base_dir, &path);
+            fs::read_to_string(&full_path).with_context(|| {
+                format!(
+                    "Failed to read Knowledge contentFromFile '{}'",
+                    full_path.display()
+                )
+            })?
+        }
+        (Some(_), Some(_)) => {
+            anyhow::bail!("Knowledge manifest spec can set only one of content or contentFromFile")
+        }
+        (None, None) => {
+            anyhow::bail!("Knowledge manifest spec must set one of content or contentFromFile")
+        }
+    };
+
+    if let Some(spec) = manifest
+        .get_mut("spec")
+        .and_then(|value| value.as_mapping_mut())
+    {
+        spec.remove(&serde_yaml::Value::String("contentFromFile".to_string()));
+        spec.insert(
+            serde_yaml::Value::String("content".to_string()),
+            serde_yaml::Value::String(content),
+        );
+    }
+
+    Ok(())
+}
+
+fn canonicalize_manifest_path(base_dir: &Path, raw_path: &str) -> PathBuf {
+    let path = Path::new(raw_path);
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        base_dir.join(path)
+    }
+}
+
+fn parse_vars(entries: &[String]) -> Result<HashMap<String, String>> {
+    let mut vars = HashMap::new();
+    for entry in entries {
+        let (key, value) = entry
+            .split_once('=')
+            .with_context(|| format!("Invalid --var '{}', expected KEY=VALUE", entry))?;
+        if key.is_empty() {
+            anyhow::bail!("Invalid --var '{}', key cannot be empty", entry);
+        }
+        vars.insert(key.to_string(), value.to_string());
+    }
+    Ok(vars)
+}
