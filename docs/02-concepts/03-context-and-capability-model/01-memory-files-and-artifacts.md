@@ -28,9 +28,9 @@ Prompt and message history are not a substitute for durable memory. [Skills](./s
 ### File tool authorization and deletion
 
 The `files` capability grants actions (`read`/`inspect`, `create`, `update`,
-`delete`). File tools resolve the namespace from `uri` when supplied, otherwise
-from `namespace` (default: current). Reads also inherit access to ancestor
-namespaces. Mutations are scoped to the current namespace. Add exact namespace
+`delete`). Listing selects `namespace` (default: current). Tools that accept
+`uri` resolve its namespace when supplied, otherwise use `namespace` (default:
+current). Reads also inherit access to ancestor namespaces. Mutations are scoped to the current namespace. Add exact namespace
 names in `capabilities.fileNamespaces` to permit additional namespaces for an
 already-granted action; wildcard strings do not grant wildcard access.
 
@@ -40,8 +40,14 @@ The first call returns `status: confirmation_required`, `confirmationId`, and
 in a later message, then repeat the tool with `confirmation_id`. A confirmation
 expires after one hour, is single-use, and is bound to the requesting session,
 agent, namespace, path, and resource version. Any intervening File update requires
-a fresh confirmation. Confirmation ordering uses a server-owned admission counter,
-not client message timestamps or IDs; editing an old message does not make it a
-later confirmation. Exact namespace grants also apply to File mounts in
-`run_python_code`. Deletion removes the resource metadata conditionally;
+a fresh confirmation. Confirmation ordering uses a server-owned, versioned
+admission state, recorded when input is accepted (including queued replies),
+not client timestamps or IDs. Pending inputs and edits fence consumption;
+editing an old message does not make it a later confirmation. If input changes
+during confirmation, request a new delete token. Exact namespace grants also
+apply to File mounts in `run_python_code`. Deletion removes the resource metadata conditionally;
 it does not eagerly remove shared blobs or a potentially replaced latest alias.
+
+Files with finalizers are rejected before requesting confirmation. Complete their
+external cleanup first; native deletion does not remove finalizers or create a
+pending-finalizer deletion that depends on an unreliable notification.

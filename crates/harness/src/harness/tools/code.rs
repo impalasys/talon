@@ -586,6 +586,7 @@ async fn run_python_code_tool(
             deadline,
             "Monty mount preparation",
             prepare_code_mounts(
+                config,
                 cp,
                 current_namespace,
                 current_agent,
@@ -877,6 +878,7 @@ async fn run_monty_python(
 }
 
 async fn prepare_code_mounts(
+    config: &Config,
     cp: &ControlPlane,
     current_namespace: &str,
     current_agent: &str,
@@ -932,6 +934,7 @@ async fn prepare_code_mounts(
         }
         let remaining_input_bytes = MAX_CODE_INPUT_BYTES.saturating_sub(total_input_bytes);
         let (bytes, media_type, source_kind) = read_code_mount_source(
+            config,
             cp,
             current_namespace,
             current_agent,
@@ -987,6 +990,7 @@ async fn prepare_code_mounts(
 }
 
 async fn read_code_mount_source(
+    config: &Config,
     cp: &ControlPlane,
     current_namespace: &str,
     current_agent: &str,
@@ -996,6 +1000,7 @@ async fn read_code_mount_source(
     max_bytes: u64,
 ) -> Result<(Vec<u8>, String, &'static str)> {
     if uri.starts_with("file://") {
+        super::dispatch::require_global_capability(config, "files", "read")?;
         require_file_read(spec)?;
         let (namespace, path) = parse_file_uri(uri)?;
         let namespace = if namespace == "current" {
@@ -2436,6 +2441,45 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn code_file_mount_enforces_deployment_read_gate_before_lookup() {
+        let cp = control_plane(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockScheduler::default()),
+        );
+        let mut spec = code_and_file_spec(&["run"], &["read"]);
+        let grant = code_and_file_spec(&[], &["Tenant:other"])
+            .capabilities
+            .remove("files")
+            .unwrap();
+        spec.capabilities.insert("fileNamespaces".into(), grant);
+        let mut config = Config::default();
+        config.capabilities.insert(
+            "files".into(),
+            CapabilityGate {
+                actions: HashMap::from([("read".into(), false)]),
+            },
+        );
+        for uri in ["file://Tenant:own/data.txt", "file://Tenant:other/data.txt"] {
+            let error = read_code_mount_source(
+                &config,
+                &cp,
+                "Tenant:own",
+                "agent",
+                "session",
+                &spec,
+                uri,
+                MAX_CODE_INPUT_BYTES,
+            )
+            .await
+            .unwrap_err();
+            assert_eq!(
+                error.to_string(),
+                "capability 'files:read' is disabled by deployment configuration"
+            );
+        }
+    }
+
+    #[tokio::test]
     async fn code_file_mount_honors_exact_grant_and_current_alias() {
         let cp = control_plane(
             Arc::new(MockKvStore::default()),
@@ -2457,6 +2501,7 @@ mod tests {
             ("file://current/data.txt", "Tenant:own"),
         ] {
             let (bytes, _, _) = read_code_mount_source(
+                &Config::default(),
                 &cp,
                 "Tenant:own",
                 "agent",
@@ -2478,6 +2523,7 @@ mod tests {
             Arc::new(MockScheduler::default()),
         );
         let error = read_code_mount_source(
+            &Config::default(),
             &cp,
             "Tenant:team:Workspace:main",
             "analyst",
@@ -2537,6 +2583,7 @@ mod tests {
         let artifact_output: Value = serde_json::from_str(&artifact_output).unwrap();
         let artifact_uri = artifact_output["artifactUri"].as_str().unwrap();
         let denied = read_code_mount_source(
+            &Config::default(),
             &cp,
             namespace,
             reader,
@@ -2569,6 +2616,7 @@ mod tests {
         .unwrap()
         .unwrap();
         let (bytes, media_type, source_kind) = read_code_mount_source(
+            &Config::default(),
             &cp,
             namespace,
             reader,

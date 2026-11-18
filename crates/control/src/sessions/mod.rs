@@ -7,8 +7,10 @@ use crate::talon;
 mod journal;
 mod message_order;
 pub use message_order::{
-    current_message_admission_order, message_admission_orders, persist_admitted_session_message,
-    record_user_message_admission,
+    append_admitted_session_message, consume_user_confirmation, current_message_admission_order,
+    edit_admitted_session_message, persist_admitted_session_message,
+    persist_promoted_session_message, persist_queued_session_message, validate_user_confirmation,
+    UserConfirmationSnapshot,
 };
 mod lease;
 mod recovery;

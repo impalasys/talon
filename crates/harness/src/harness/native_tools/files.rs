@@ -161,6 +161,15 @@ pub async fn delete_file_tool(
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
+    if file
+        .metadata
+        .as_ref()
+        .is_some_and(|m| !m.finalizers.is_empty())
+    {
+        return Err(anyhow!(
+            "File has finalizers; finish their cleanup before requesting deletion"
+        ));
+    }
     if let Some(response) = require_delete_confirmation(
         cp,
         current_namespace,
@@ -306,42 +315,23 @@ async fn require_delete_confirmation(
         ));
     }
 
-    let latest_user = latest_user_message(
-        cp,
+    let snapshot = talon::control::sessions::validate_user_confirmation(
+        cp.kv.as_ref(),
         current_namespace,
         current_agent,
         current_session,
         pending.requested_after,
+        &pending.required_reply,
     )
-    .await?
-    .ok_or_else(|| {
-        anyhow!(
-            "delete requires a separate user message exactly: {}",
-            pending.required_reply
-        )
-    })?;
-    let latest_text = latest_user
-        .parts
-        .iter()
-        .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
-        .map(|part| part.content.as_str())
-        .collect::<String>();
-    if latest_text.trim() != pending.required_reply {
-        return Err(anyhow!(
-            "delete requires a separate user message exactly: {}",
-            pending.required_reply
-        ));
-    }
-    if !cp
-        .kv
-        .compare_and_swap(&key, Some(&pending_bytes), b"consumed")
-        .await?
-    {
-        return Err(anyhow!(
-            "delete confirmation '{}' was already used",
-            confirmation_id
-        ));
-    }
+    .await?;
+    talon::control::sessions::consume_user_confirmation(
+        cp.kv.as_ref(),
+        snapshot,
+        &key,
+        &pending_bytes,
+        pending.expires_at,
+    )
+    .await?;
     Ok(None)
 }
 
@@ -357,39 +347,6 @@ fn delete_confirmation_key(
         "DeleteConfirmation",
         confirmation_id,
     )
-}
-
-async fn latest_user_message(
-    cp: &ControlPlane,
-    current_namespace: &str,
-    current_agent: &str,
-    current_session: &str,
-    requested_after: u64,
-) -> Result<Option<data_proto::SessionMessage>> {
-    let entries = cp
-        .kv
-        .list_entries(
-            &keys::session_message_prefix(current_namespace, current_agent, current_session),
-            None,
-        )
-        .await?;
-    let orders = talon::control::sessions::message_admission_orders(
-        cp.kv.as_ref(),
-        current_namespace,
-        current_agent,
-        current_session,
-    )
-    .await?;
-    Ok(entries
-        .into_iter()
-        .filter_map(|(_, bytes)| data_proto::SessionMessage::decode(bytes.as_slice()).ok())
-        .filter(|message| message.role == data_proto::MessageRole::RoleUser as i32)
-        .filter(|message| {
-            orders
-                .get(&message.id)
-                .is_some_and(|order| *order > requested_after)
-        })
-        .max_by_key(|message| orders[&message.id]))
 }
 
 pub async fn list_files_by_filter(

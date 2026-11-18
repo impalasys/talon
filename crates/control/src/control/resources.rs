@@ -464,31 +464,25 @@ impl ResourceStore {
         let Some(current) = self.kv.get(&key).await? else {
             return Ok(false);
         };
-        let mut resource = Self::decode_stored_resource(kind, &current)?;
+        let resource = Self::decode_stored_resource(kind, &current)?;
         let meta = resource
             .metadata
-            .as_mut()
+            .as_ref()
             .ok_or_else(|| anyhow!("resource metadata missing"))?;
         if meta.resource_version != expected_version {
             return Err(anyhow!("resourceVersion conflict for {}/{}", kind, name));
         }
-        let change = if meta.finalizers.is_empty() {
-            if !self.kv.compare_and_delete(&key, &current).await? {
-                return Err(anyhow!("resourceVersion conflict for {}/{}", kind, name));
-            }
-            events::ResourceChangeType::Deleted
-        } else {
-            meta.deletion_timestamp = Some(chrono::Utc::now().timestamp_micros());
-            meta.resource_version = crate::control::uuid::resource_version();
-            if !self
-                .kv
-                .compare_and_swap(&key, Some(&current), &encode_stored_resource(&resource)?)
-                .await?
-            {
-                return Err(anyhow!("resourceVersion conflict for {}/{}", kind, name));
-            }
-            events::ResourceChangeType::Updated
-        };
+        if !meta.finalizers.is_empty() {
+            return Err(anyhow!(
+                "conditional deletion requires finalizer cleanup for {}/{}",
+                kind,
+                name
+            ));
+        }
+        if !self.kv.compare_and_delete(&key, &current).await? {
+            return Err(anyhow!("resourceVersion conflict for {}/{}", kind, name));
+        }
+        let change = events::ResourceChangeType::Deleted;
         self.publish_index_event(&resource, change, &key).await;
         self.publish_changed(&resource, change, &["metadata"])
             .await?;
@@ -1601,6 +1595,61 @@ mod tests {
             event.change_type,
             events::ResourceChangeType::Created as i32
         );
+    }
+
+    #[tokio::test]
+    async fn conditional_delete_rejects_finalizers_without_mutation_or_event() {
+        let kv = Arc::new(MockKvStore::new());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let store = ResourceStore::new(kv, pubsub.clone());
+        let path = "/memory/protected.md";
+        let name = keys::file_name_for_path(path);
+        let resource = store
+            .upsert(
+                "ns",
+                resources_proto::Resource {
+                    api_version: "talon.impalasys.com/v1".into(),
+                    kind: "File".into(),
+                    metadata: Some(resources_proto::ResourceMeta {
+                        name: name.clone(),
+                        namespace: "ns".into(),
+                        finalizers: vec!["external-cleanup".into()],
+                        ..Default::default()
+                    }),
+                    spec: Some(resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::File(
+                            resources_proto::FileSpec {
+                                path: path.into(),
+                                media_type: "text/plain".into(),
+                                purpose: resources_proto::FilePurpose::Memory as i32,
+                                index_policy: resources_proto::FileIndexPolicy::Retrieval as i32,
+                                retention: resources_proto::FileRetention::Retained as i32,
+                            },
+                        )),
+                    }),
+                    status: None,
+                },
+            )
+            .await
+            .unwrap();
+        pubsub.published.lock().await.clear();
+        let before = resource.metadata.unwrap();
+        assert!(store
+            .delete_if_version("ns", "File", &name, &before.resource_version)
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("finalizer cleanup"));
+        let after = store
+            .get("ns", "File", &name)
+            .await
+            .unwrap()
+            .unwrap()
+            .metadata
+            .unwrap();
+        assert_eq!(after, before);
+        assert!(after.deletion_timestamp.is_none());
+        assert!(pubsub.published.lock().await.is_empty());
     }
 
     #[tokio::test]

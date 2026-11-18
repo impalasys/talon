@@ -138,8 +138,15 @@ pub async fn prepare_steer_batch(
                     part.created_at = message.created_at;
                 }
             }
-            crate::sessions::persist_admitted_session_message(kv, ns, agent, session_id, &message)
-                .await?;
+            crate::sessions::persist_promoted_session_message(
+                kv,
+                ns,
+                agent,
+                session_id,
+                &entry_id,
+                &mut message,
+            )
+            .await?;
             if !kv
                 .compare_and_swap(
                     &keys::session_queue_entry(ns, agent, session_id, STEER_QUEUE, &entry_id),
@@ -153,7 +160,7 @@ pub async fn prepare_steer_batch(
                 // Stop here so the batch stays contiguous in admission order.
                 break;
             }
-            message_id
+            message.id.clone()
         } else {
             message.id.clone()
         };
@@ -301,9 +308,8 @@ pub async fn queue_session_message(
     // timestamp. Connector event times may arrive out of order, and using them
     // here would allow a later accepted message to overtake an earlier one.
     let entry_id = format!("{now_micros:020}-{queue_entry_suffix}");
-    kv.set_msg(
-        &keys::session_queue_entry(ns, agent, session_id, queue, &entry_id),
-        &message,
+    crate::sessions::persist_queued_session_message(
+        kv, ns, agent, session_id, queue, &entry_id, &message,
     )
     .await?;
 
@@ -451,8 +457,17 @@ async fn publish_queued_message(
         }
     }
 
+    crate::sessions::persist_promoted_session_message(
+        kv,
+        ns,
+        agent,
+        session_id,
+        entry_id,
+        &mut message,
+    )
+    .await?;
     let message_key = keys::session_message(ns, agent, session_id, &message.id);
-    crate::sessions::persist_admitted_session_message(kv, ns, agent, session_id, &message).await?;
+
     if let Err(error) = crate::control::search::publish_index_event(
         pubsub,
         events::IndexEvent {

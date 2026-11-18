@@ -534,7 +534,11 @@ pub async fn execute_tool_for_session_output(
     }
 }
 
-fn require_global_capability(config: &Config, capability: &str, action: &str) -> Result<()> {
+pub(super) fn require_global_capability(
+    config: &Config,
+    capability: &str,
+    action: &str,
+) -> Result<()> {
     if global_capability_allowed(config, capability, action) {
         Ok(())
     } else {
