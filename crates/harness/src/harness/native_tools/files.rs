@@ -682,11 +682,8 @@ pub fn ensure_file_read_namespace(
     current_namespace: &str,
     requested_namespace: &str,
 ) -> Result<()> {
-    let requested_namespace = if requested_namespace == "current" {
-        current_namespace
-    } else {
-        requested_namespace
-    };
+    // This helper authorizes concrete namespaces. Argument aliases must be
+    // resolved by namespace_arg before lookup; URI authorities are literal.
     if talon::control::ns::ancestry(current_namespace)
         .iter()
         .any(|namespace| namespace == requested_namespace)

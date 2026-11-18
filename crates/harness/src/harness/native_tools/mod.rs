@@ -1369,6 +1369,37 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn literal_current_uri_does_not_bypass_namespace_acl() {
+        let cp = control_plane(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockScheduler::default()),
+        );
+        let spec = file_spec(&["read"]);
+        for tool in [READ_FILE_TOOL, GET_FILE_METADATA_TOOL] {
+            let error = execute_tool_for_session(
+                &cp,
+                "Tenant:own",
+                "agent",
+                "session",
+                &spec,
+                tool,
+                &json!({"uri":"file://current/secret.md"}),
+                &Config::default(),
+            )
+            .await
+            .unwrap_err();
+            assert!(error.to_string().contains("file namespace access denied"));
+        }
+        assert!(files::require_file_namespace_access(
+            &spec,
+            "Tenant:own",
+            &json!({"namespace":"current"}),
+            true
+        )
+        .is_ok());
+    }
+
+    #[tokio::test]
     async fn delete_requires_later_user_reply_and_exact_version() {
         let kv = Arc::new(MockKvStore::default());
         let cp = control_plane(kv.clone(), Arc::new(MockScheduler::default()));

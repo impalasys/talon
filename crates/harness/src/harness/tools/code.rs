@@ -2416,11 +2416,11 @@ mod tests {
     #[test]
     fn file_read_namespace_scope_allows_ancestors_only() {
         let current = "Tenant:team:Workspace:main";
-        ensure_file_read_namespace(current, "current").unwrap();
         for allowed in [current, "Tenant:team:Workspace", "Tenant:team", "Tenant"] {
             ensure_file_read_namespace(current, allowed).unwrap();
         }
         for denied in [
+            "current",
             "Tenant:team:Workspace:other",
             "Tenant:other",
             "Tenant:team:Workspace:main:child",
