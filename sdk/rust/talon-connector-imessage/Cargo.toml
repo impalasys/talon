@@ -1,0 +1,14 @@
+[package]
+name = "talon-connector-imessage"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+description = "Non-operational iMessage reference skeleton for Talon connectors"
+publish = false
+
+[dependencies]
+async-trait = "0.1"
+talon-connector = { path = "../talon-connector" }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }

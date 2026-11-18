@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "talon-connector",
+    "talon-connector-imessage",
     "talon-client",
     "talon-server",
     "tools/codegen",
