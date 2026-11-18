@@ -414,6 +414,7 @@ pub struct PubSubSessionSink {
     message_max_bytes: usize, // Captured once per sink, never read per streamed token.
     terminal_cutover: AtomicBool,
     cutover_release_authority: AtomicBool,
+    committed_submission_owned: AtomicBool,
     persist_lock: Arc<AsyncMutex<()>>, // Serializes projection writes with final message commit.
 
     // Run summary counters for logs/telemetry.
@@ -581,6 +582,7 @@ impl PubSubSessionSink {
             message_max_bytes: session_message_max_bytes(),
             terminal_cutover: AtomicBool::new(false),
             cutover_release_authority: AtomicBool::new(false),
+            committed_submission_owned: AtomicBool::new(false),
             persist_lock: Arc::new(AsyncMutex::new(())),
             input_token_chunks: Mutex::new(0),
             input_token_chars: Mutex::new(0),
@@ -1231,27 +1233,26 @@ impl PubSubSessionSink {
         // Win the lease-fenced terminal CAS before touching the projection.
         // A reclaimed/expired attempt cannot mark failed; once this attempt
         // wins, a new worker cannot reclaim the terminal submission.
-        let owns_failure = match sessions::fail_submission_if_current(
-            self.kv.as_ref(),
-            &self.claim,
-            &self.current_reply_msg_id(),
-            chrono::Utc::now().timestamp_micros(),
-        )
-        .await
-        {
-            Ok(owns_failure) => owns_failure,
-            Err(error) => {
-                tracing::error!(%error, "failed to persist terminal submission failure");
-                false
-            }
-        };
-        let owns_committed_submission = if owns_failure {
+        // on_done records its successful commit before the UI projection
+        // update. Keep that durable authority even if storage reads fail next.
+        let owns_committed_submission = self.committed_submission_owned.load(Ordering::Acquire);
+        let owns_failure = if owns_committed_submission {
             false
         } else {
-            matches!(self.kv.get_msg::<SessionSubmission>(&keys::session_submission(
-                &self.ns, &self.agent_id, &self.session_id, &self.submission_id)).await,
-                Ok(Some(submission)) if submission.attempt_id == self.attempt_id
-                    && submission.status == SessionSubmissionStatus::Committed as i32)
+            match sessions::fail_submission_if_current(
+                self.kv.as_ref(),
+                &self.claim,
+                &self.current_reply_msg_id(),
+                chrono::Utc::now().timestamp_micros(),
+            )
+            .await
+            {
+                Ok(owns_failure) => owns_failure,
+                Err(error) => {
+                    tracing::error!(%error, "failed to persist terminal submission failure");
+                    false
+                }
+            }
         };
         // Only an owned terminal state excludes reclaim. A stale/expired sink
         // may stop itself, but cannot release the live session or its queues.
@@ -1504,6 +1505,11 @@ impl PubSubSessionSink {
         .await
         {
             Ok(entry) => {
+                if status == SessionSubmissionStatus::Committed as i32 {
+                    self.committed_submission_owned
+                        .store(true, Ordering::Release);
+                }
+
                 *self.latest_journal_entry_id.lock().unwrap() = Some(entry.journal_entry_id);
                 true
             }
@@ -2226,6 +2232,8 @@ mod tests {
     struct MockKvStore {
         entries: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
         fail_reply_sets_after: Option<usize>,
+        fail_submission_gets_on_reply_failure: bool,
+        fail_submission_gets: std::sync::atomic::AtomicBool,
         reply_set_count: Arc<Mutex<usize>>,
     }
 
@@ -2236,6 +2244,13 @@ mod tests {
     #[async_trait]
     impl KeyValueStore for MockKvStore {
         async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+            if key.kind == "SessionSubmission"
+                && self
+                    .fail_submission_gets
+                    .load(std::sync::atomic::Ordering::Acquire)
+            {
+                anyhow::bail!("injected submission read failure");
+            }
             Ok(self
                 .entries
                 .lock()
@@ -2253,6 +2268,10 @@ mod tests {
                     .fail_reply_sets_after
                     .is_some_and(|limit| *count > limit)
                 {
+                    if self.fail_submission_gets_on_reply_failure {
+                        self.fail_submission_gets
+                            .store(true, std::sync::atomic::Ordering::Release);
+                    }
                     anyhow::bail!("injected reply write failure");
                 }
             }
@@ -2275,6 +2294,10 @@ mod tests {
                     .fail_reply_sets_after
                     .is_some_and(|limit| *count > limit)
                 {
+                    if self.fail_submission_gets_on_reply_failure {
+                        self.fail_submission_gets
+                            .store(true, std::sync::atomic::Ordering::Release);
+                    }
                     anyhow::bail!("injected reply write failure");
                 }
             }
@@ -2568,7 +2591,7 @@ mod tests {
             kv.set_msg(&reply_key(), &original).await.unwrap();
             sink.cutover_to_failed("late error").await;
             assert!(sink.is_cutover_terminal());
-            assert_eq!(sink.has_cutover_release_authority(), !expired);
+            assert!(!sink.has_cutover_release_authority());
             assert_eq!(latest_reply_message(&kv).await, original);
         }
     }
@@ -4383,6 +4406,7 @@ mod tests {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore {
             fail_reply_sets_after: Some(1),
+            fail_submission_gets_on_reply_failure: true,
             ..MockKvStore::default()
         });
         let mut submission =
@@ -4413,6 +4437,10 @@ mod tests {
 
         let mut fanout = fanout_stream(&sink).await;
         sink.on_done().await;
+        assert!(
+            sink.has_cutover_release_authority(),
+            "a known commit cannot become stale because its follow-up read failed"
+        );
 
         let events = fanout_events_until_terminal(&mut fanout).await;
         assert!(events.iter().any(
