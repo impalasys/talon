@@ -39,12 +39,12 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
 
+  # This requirements.txt includes /tests/requirements.txt; one owner for both.
   - package-ecosystem: pip
     directories:
       - /sdk/python/talon-client
       - /sdk/python/talon-server
       - /sdk/examples/python
-      - /tests
       - /tools/bazel
     schedule:
       interval: weekly
@@ -54,9 +54,9 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
 
+  # The example includes ../../java as a composite build, covering the SDK too.
   - package-ecosystem: gradle
     directories:
-      - /sdk/java
       - /sdk/examples/java
     schedule:
       interval: weekly
@@ -83,5 +83,15 @@ updates:
     open-pull-requests-limit: 3
     groups:
       actions-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      compose-minor-and-patch:
         patterns: ["*"]
         update-types: [minor, patch]

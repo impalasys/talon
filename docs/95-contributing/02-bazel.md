@@ -218,7 +218,7 @@ The metadata package resolves optional dependencies for Bazel without enabling
 those features in ordinary builds. Maven dependencies are pinned in
 `tools/bazel/maven_install.json`; repin with `REPIN=1 bazel run @maven//:pin`.
 Python dependencies use `tools/bazel/requirements.lock`, generated with
-`uv pip compile --universal --python-version 3.13 --generate-hashes tools/bazel/requirements.in -o tools/bazel/requirements.lock`.
+`uv pip compile --universal --python-version 3.13 --generate-hashes tools/bazel/requirements.txt -o tools/bazel/requirements.lock`.
 
 `tools/bazel` contains dependency pins and the small integration points that need
 Talon-specific behavior: production feature selection, release layout/checksums,
@@ -230,12 +230,16 @@ package assembly, and generic build actions come from `rules_pkg`, `rules_js`,
 ## Dependency update PRs
 
 Dependabot scans the root pnpm workspace, the three independent Cargo workspace
-roots, Go modules, Python SDK/example/test manifests and Bazel requirements,
-both Java Gradle projects, Bazel modules, and GitHub Actions. Workspace members
-are covered by their root job; do not add overlapping updater jobs for individual
-Rust crates or pnpm packages. Each ecosystem runs weekly with at most three open
-version-update PRs, grouping minor and patch updates. Major updates remain
-separate and require review; nothing is automatically merged.
+roots, Go modules, Python SDK/example manifests and the shared Bazel/test
+requirements, the Java example and its included SDK Gradle build, Bazel modules,
+GitHub Actions, and Docker Compose images. Workspace members and included
+manifests are covered by one owner: the `/tools/bazel` pip job follows its
+`requirements.txt` include into `tests/requirements.txt`, and the Java example
+includes `../../java`. Do not add duplicate jobs for those children, individual
+Rust crates, or pnpm packages. Each ecosystem runs weekly with at most three
+open version-update PRs, grouping minor and patch updates (24 version PRs maximum
+across eight ecosystems). Major updates remain separate and require review;
+nothing is automatically merged.
 
 Dependabot does not run Talon's repository-specific generation steps. Before
 approving a dependency PR, inspect which manifest it changed and regenerate the

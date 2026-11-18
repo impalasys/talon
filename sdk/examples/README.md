@@ -24,6 +24,12 @@ cd sdk/examples/js && pnpm install && pnpm start
 cd sdk/examples/python && python3 -m venv .venv && . .venv/bin/activate && pip install -e ../../python/talon-client -e ../../python/talon-server . && python main.py
 ```
 
+The JavaScript example belongs to the repository's root pnpm workspace and uses
+its `pnpm-lock.yaml`; running `pnpm install` from the example finds that workspace.
+There is no separate example lockfile. The Java example includes the SDK as a
+Gradle composite build, so updating the example's included build also covers the
+SDK's dependency manifests.
+
 Each example uses SQLite and the `local_socket` broker through the `talon-server` defaults, so it is suitable for local development and tests rather than production hosting. The server helpers also accept a full Talon config object, a caller-owned Talon config path, or a persistent SQLite data directory while still generating the local default config:
 
 - JavaScript: `start({ config: { workspace_dir: ".", control_plane: { database: { driver: "sqlite", data_dir: ".talon-data" }, message_broker: { driver: "local_socket" } } } })`
