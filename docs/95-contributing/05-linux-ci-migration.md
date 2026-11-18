@@ -102,7 +102,7 @@ test stage. No speedup factor is established yet.
 
 ### Identifiers milestone
 
-`crates/talon-identifiers` now owns resource keys and namespace helpers, with its
+`crates/identifiers` now owns resource keys and namespace helpers, with its
 own Cargo manifest, Bazel library and unit-test target. Its only direct external
 dependencies are `anyhow`, `sha2` and `urlencoding`; it has no runtime, RPC or
 storage dependency. The existing `talon::control::keys` and
@@ -127,18 +127,18 @@ keeps the legacy facade available; the final layer changes executable compositio
 
 | Layer | Change | Main owners |
 | --- | --- | --- |
-| 1 | Internal generation and serde hooks | `talon-protocol` |
-| 2 | Storage and execution interfaces | `talon-contracts` |
-| 3 | Pure manifests and workflow validation | `talon-protocol` |
-| 4 | Configuration, security and fixtures | `talon-config`, `talon-security`, `talon-test-support` |
+| 1 | Internal generation and serde hooks | `protocol` |
+| 2 | Storage and execution interfaces | `contracts` |
+| 3 | Pure manifests and workflow validation | `protocol` |
+| 4 | Configuration, security and fixtures | `config`, `security`, `test-support` |
 | 5 | Independent backend adapters | `talon-storage-*` |
-| 6 | Shared control services and backend construction | `talon-control`, `talon-bootstrap`, `talon-fanout` |
-| 7 | Shared authentication, sandbox and connector capabilities | `talon-auth`, `talon-sandbox`, `talon-connectors` |
-| 8 | Execution/providers/tools and subprocess protocol | `talon-harness`, `talon-monty` |
-| 9 | Workflow execution and downstream integration tests | `talon-workflows` |
-| 10 | HTTP/RPC gateway and shared cancellation transport | `talon-gateway`, `talon-session-control` |
-| 11 | Worker controllers and runtime | `talon-worker` |
-| 12 | CLI, observability and narrow executable dependencies | `talon-cli`, `talon-observability`, root Bazel executable rules |
+| 6 | Shared control services and backend construction | `control`, `bootstrap`, `fanout` |
+| 7 | Shared authentication, sandbox and connector capabilities | `auth`, `sandbox`, `connectors` |
+| 8 | Execution/providers/tools and subprocess protocol | `harness`, `monty` |
+| 9 | Workflow execution and downstream integration tests | `workflows` |
+| 10 | HTTP/RPC gateway and shared cancellation transport | `gateway`, `session-control` |
+| 11 | Worker controllers and runtime | `worker` |
+| 12 | CLI, observability and narrow executable dependencies | `cli`, `observability`, root Bazel executable rules |
 
 A Cargo metadata audit, including all optional production edges, establishes an
 acyclic internal production graph with no internal library depending on the root
@@ -147,9 +147,9 @@ contracts, identifiers, authentication/security and the existing public SDK.
 It has no control, storage, bootstrap, harness, gateway or worker dependency.
 Gateway has no harness/worker dependency, and worker has no gateway dependency.
 
-`talon-control` owns session persistence, workflow state changes, shared channel
+`control` owns session persistence, workflow state changes, shared channel
 operations and resource business logic. Its `ControlPlane` builder retains the
-lightweight memory defaults. `talon-bootstrap` owns configured backend factories.
+lightweight memory defaults. `bootstrap` owns configured backend factories.
 The sandbox backend capability and generic lease service sit below both harness
 and worker. Authentication middleware consumes an `AuthState` interface; gateway
 keeps the original middleware signature through a wrapper. Generated message
@@ -181,8 +181,8 @@ then rebuilt after temporary comment-only edits. The execution logs showed:
 
 | Edited source | Executed Rustc targets | Executables with unchanged hashes |
 | --- | --- | --- |
-| `crates/talon-worker/src/worker/runtime.rs` | worker library, worker executable, combined node | CLI, server |
-| `crates/talon-cli/src/cli/entry.rs` | CLI library, CLI executable | worker, server, combined node |
+| `crates/worker/src/worker/runtime.rs` | worker library, worker executable, combined node | CLI, server |
+| `crates/cli/src/cli/entry.rs` | CLI library, CLI executable | worker, server, combined node |
 
 The worker probe took 7.24 seconds and the CLI probe 2.35 seconds on the native
 host. These are warm source-input cache probes, with default native fastbuild
@@ -231,15 +231,15 @@ isolation or measured build cost justifies it.
 
 | Crate | Responsibility | Dependency restriction |
 | --- | --- | --- |
-| `talon-identifiers` | Resource keys, paths and namespace helpers | Small leaf; no runtime, storage or generated RPC dependency |
-| `talon-protocol` | Internal generated messages, event types and their serde hooks | No control, gateway, harness or worker implementation dependency |
-| `talon-contracts` | Storage/pubsub interfaces, shared execution DTOs and capability interfaces | Depends on identifiers/protocol, not concrete backends or services |
+| `identifiers` | Resource keys, paths and namespace helpers | Small leaf; no runtime, storage or generated RPC dependency |
+| `protocol` | Internal generated messages, event types and their serde hooks | No control, gateway, harness or worker implementation dependency |
+| `contracts` | Storage/pubsub interfaces, shared execution DTOs and capability interfaces | Depends on identifiers/protocol, not concrete backends or services |
 | `talon-storage-*` | SQLite/Postgres/RocksDB and cloud adapters | Depends on contracts; each backend owns only its required native/cloud dependencies |
-| `talon-harness` | Execution, providers, tools and knowledge integration | Depends on contracts/protocol; no concrete worker dependency |
-| `talon-gateway` | RPC/HTTP serving and handlers | Uses contracts and injected capabilities instead of worker controllers |
-| `talon-worker` | Controllers, scheduling and runtime orchestration | Uses harness/contracts/protocol; generated clients come from protocol, not gateway implementation |
-| `talon-cli` | CLI commands and lightweight manifest helpers | Avoids backend/service dependencies where commands do not need them |
-| `talon-test-support` | Mocks and reusable test fixtures | Dev/test dependency; production crates do not import it |
+| `harness` | Execution, providers, tools and knowledge integration | Depends on contracts/protocol; no concrete worker dependency |
+| `gateway` | RPC/HTTP serving and handlers | Uses contracts and injected capabilities instead of worker controllers |
+| `worker` | Controllers, scheduling and runtime orchestration | Uses harness/contracts/protocol; generated clients come from protocol, not gateway implementation |
+| `cli` | CLI commands and lightweight manifest helpers | Avoids backend/service dependencies where commands do not need them |
+| `test-support` | Mocks and reusable test fixtures | Dev/test dependency; production crates do not import it |
 
 The root `talon` crate initially remains a compatibility facade. Final binary
 composition must use the actual subset of crates needed by each entry point:
@@ -257,14 +257,14 @@ its dependency on both gateway and worker is intentional.
    change, retaining read-only PR access. Do not mix that experiment with crate
    extraction. Likewise, evaluate RocksDB's current `NUM_JOBS=4` separately.
 2. **Prove the mechanism with identifiers.** Move `control/keys.rs` and
-   `control/ns.rs` into `talon-identifiers`. Preserve old module paths through
+   `control/ns.rs` into `identifiers`. Preserve old module paths through
    re-exports. Update Cargo workspace/path dependencies, Bazel dependencies,
    crate-universe metadata and dependency-sync checks together. Demonstrate that
    a worker-only edit leaves this leaf's compilation cached before expanding
    the refactor. This small cut proves the tooling; it is not expected to remove
    most of the 89-second Talon action by itself.
 3. **Extract protocol and serialization together.** Move internal generation
-   and generated module ownership to `talon-protocol`. Move pure enum/capability
+   and generated module ownership to `protocol`. Move pure enum/capability
    serde hooks below the runtime and update their generated paths. Audit type-
    owned trait and inherent impls; keep them with their owning types or use
    explicit extension traits where appropriate. Preserve

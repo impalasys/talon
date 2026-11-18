@@ -1,0 +1,12 @@
+[package]
+name = "monty"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[dependencies]
+monty-proto =  { version = "0.0.21", features = ["worker"] }
+
+[dev-dependencies]
+test-support = { path = "../test-support" }

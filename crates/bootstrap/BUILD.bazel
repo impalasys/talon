@@ -1,0 +1,39 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "bootstrap",
+    compile_data = ["//:runtime_data"],
+    crate_features = select({
+        "//:aws": ["aws"],
+        "//conditions:default": [],
+    }) + select({
+        "//:rocksdb": ["rocksdb"],
+        "//conditions:default": [],
+    }),
+    test_deps = ["//crates/test-support:test_support"],
+    unit_tests = True,
+    deps = [
+        "//crates/config:config",
+        "//crates/contracts:contracts",
+        "//crates/control:control",
+        "//crates/identifiers:identifiers",
+        "//crates/protocol:protocol",
+        "//crates/storage-cloud-tasks:storage_cloud_tasks",
+        "//crates/storage-common:storage_common",
+        "//crates/storage-memory:storage_memory",
+        "//crates/storage-objects:storage_objects",
+        "//crates/storage-postgres:storage_postgres",
+        "//crates/storage-pubsub:storage_pubsub",
+        "//crates/storage-sqlite:storage_sqlite",
+    ] + select({
+        "//:aws": [
+            "//crates/storage-dynamodb:storage_dynamodb",
+            "//crates/storage-eventbridge:storage_eventbridge",
+            "//crates/storage-sqs:storage_sqs",
+        ],
+        "//conditions:default": [],
+    }) + select({
+        "//:rocksdb": ["//crates/storage-rocksdb:storage_rocksdb"],
+        "//conditions:default": [],
+    }),
+)

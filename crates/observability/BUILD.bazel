@@ -1,0 +1,31 @@
+load("@crates//:defs.bzl", "crate_deps")
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "observability",
+    crate_features = select({
+        "//:cpu-profile": ["cpu-profile"],
+        "//conditions:default": [],
+    }) + select({
+        "//:heap-profile": ["heap-profile"],
+        "//conditions:default": [],
+    }),
+    test_deps = ["//crates/test-support:test_support"],
+    unit_tests = True,
+    deps = select({
+        "//:cpu-profile": crate_deps(
+            ["pprof"],
+            package_name = "tools/bazel",
+        ),
+        "//conditions:default": [],
+    }) + select({
+        "//:heap-profile": crate_deps(
+            [
+                "tikv-jemallocator",
+                "tikv-jemalloc-ctl",
+            ],
+            package_name = "tools/bazel",
+        ),
+        "//conditions:default": [],
+    }),
+)

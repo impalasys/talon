@@ -1,0 +1,18 @@
+[package]
+name = "storage-dynamodb"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[dependencies]
+anyhow =  "1.0"
+async-trait =  "0.1"
+aws-config =  "1.8"
+aws-sdk-dynamodb =  { version = "1.103" }
+urlencoding =  "2.1"
+contracts = { path = "../contracts" }
+storage-common = { path = "../storage-common" }
+
+[dev-dependencies]
+test-support = { path = "../test-support" }

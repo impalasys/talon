@@ -1,0 +1,36 @@
+[package]
+name = "bootstrap"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[features]
+aws = ["dep:storage-dynamodb", "dep:storage-eventbridge", "dep:storage-sqs"]
+rocksdb = ["dep:storage-rocksdb"]
+
+[dependencies]
+storage-common = { path = "../storage-common" }
+
+anyhow =  "1.0"
+tokio =  { version = "1.0", features = ["full"] }
+tracing =  "0.1"
+config = { path = "../config" }
+contracts = { path = "../contracts" }
+control = { path = "../control" }
+identifiers = { path = "../identifiers" }
+protocol = { path = "../protocol" }
+storage-cloud-tasks = { path = "../storage-cloud-tasks" }
+storage-memory = { path = "../storage-memory" }
+storage-objects = { path = "../storage-objects" }
+storage-postgres = { path = "../storage-postgres" }
+storage-pubsub = { path = "../storage-pubsub" }
+storage-sqlite = { path = "../storage-sqlite" }
+
+storage-dynamodb = { path = "../storage-dynamodb", optional = true }
+storage-eventbridge = { path = "../storage-eventbridge", optional = true }
+storage-sqs = { path = "../storage-sqs", optional = true }
+storage-rocksdb = { path = "../storage-rocksdb", optional = true }
+[dev-dependencies]
+tempfile = "3.0"
+test-support = { path = "../test-support" }

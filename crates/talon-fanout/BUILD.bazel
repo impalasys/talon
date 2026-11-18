@@ -1,8 +1,0 @@
-load("//crates:defs.bzl", "talon_crate")
-
-talon_crate(
-    name = "talon_fanout",
-    test_deps = ["//crates/talon-test-support:talon_test_support"],
-    unit_tests = True,
-    deps = ["//crates/talon-protocol:talon_protocol"],
-)

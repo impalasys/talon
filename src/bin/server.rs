@@ -1,16 +1,16 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use ::auth::AuthConfig;
+use ::bootstrap::build_control_plane;
+use ::config::proto::TrustConfig;
+use ::config::Config;
+use ::config::ConfigExt;
+use ::control::control::ControlPlane;
+use ::gateway::server::Gateway;
+use ::security::platform_jwt;
 use anyhow::Result;
 use std::sync::Arc;
-use talon_auth::AuthConfig;
-use talon_bootstrap::build_control_plane;
-use talon_config::proto::TrustConfig;
-use talon_config::Config;
-use talon_config::ConfigExt;
-use talon_control::control::ControlPlane;
-use talon_gateway::server::Gateway;
-use talon_security::platform_jwt;
 use tokio::signal;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
@@ -124,7 +124,7 @@ where
 fn main() -> Result<()> {
     // The Monty pool invokes this binary with `subprocess`; handle that mode
     // before Tokio, telemetry, profiling, or Talon configuration initialize.
-    if let Some(status) = talon_monty::run_if_requested() {
+    if let Some(status) = ::monty::run_if_requested() {
         std::process::exit(status);
     }
     talon_server_main()
@@ -132,10 +132,10 @@ fn main() -> Result<()> {
 
 #[tokio::main]
 async fn talon_server_main() -> Result<()> {
-    talon_security::install_jwt_crypto_provider();
-    talon_security::install_rustls_crypto_provider();
-    let _telemetry_guard = talon_observability::telemetry::init_from_env("talon-server")?;
-    talon_observability::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
+    ::security::install_jwt_crypto_provider();
+    ::security::install_rustls_crypto_provider();
+    let _telemetry_guard = ::observability::telemetry::init_from_env("talon-server")?;
+    ::observability::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
     tracing::info!("Starting Talon Gateway Server...");
     run_server_main_with(
         || Ok(Arc::new(Config::load_default()?)),
@@ -152,8 +152,8 @@ async fn talon_server_main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use talon_test_support::EmptyPubSub;
-    use talon_test_support::MockKvStore;
+    use ::test_support::EmptyPubSub;
+    use ::test_support::MockKvStore;
 
     const TEST_RSA_PRIVATE_KEY: &str = include_str!("../control/security/test_rsa_private_key.pem");
 
@@ -190,7 +190,7 @@ mod tests {
 
     #[test]
     fn build_gateway_uses_platform_jwt_when_private_key_is_configured() {
-        let _env_lock = talon_test_support::env_lock();
+        let _env_lock = ::test_support::env_lock();
         let _private_key = EnvGuard::set(
             platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
             TEST_RSA_PRIVATE_KEY,
@@ -199,6 +199,6 @@ mod tests {
         let gateway = build_gateway(select_auth_config(), None, test_control_plane());
         let auth_config = gateway.auth_config.as_ref().unwrap();
 
-        assert_eq!(auth_config.mode, talon_auth::AuthMode::Jwt);
+        assert_eq!(auth_config.mode, ::auth::AuthMode::Jwt);
     }
 }

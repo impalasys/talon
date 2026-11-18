@@ -274,6 +274,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "auth"
+version = "0.1.0"
+dependencies = [
+ "axum 0.7.9",
+ "protocol",
+ "security",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "test-support",
+ "tokio",
+ "tonic 0.12.3",
+ "tower 0.5.3",
+ "url",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1216,6 +1233,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "bootstrap"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "config",
+ "contracts",
+ "control",
+ "identifiers",
+ "protocol",
+ "storage-cloud-tasks",
+ "storage-common",
+ "storage-dynamodb",
+ "storage-eventbridge",
+ "storage-memory",
+ "storage-objects",
+ "storage-postgres",
+ "storage-pubsub",
+ "storage-rocksdb",
+ "storage-sqlite",
+ "storage-sqs",
+ "tempfile",
+ "test-support",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "boxcar"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1482,6 +1526,36 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
+name = "cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "auth",
+ "base64 0.21.7",
+ "clap",
+ "contracts",
+ "futures",
+ "identifiers",
+ "mime_guess",
+ "prost 0.13.5",
+ "protocol",
+ "rand 0.10.1",
+ "reqwest 0.11.27",
+ "security",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2 0.10.9",
+ "talon-client",
+ "tempfile",
+ "test-support",
+ "tokio",
+ "toml 0.8.23",
+ "tonic 0.12.3",
+ "url",
+]
+
+[[package]]
 name = "cmake"
 version = "0.1.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1577,6 +1651,57 @@ dependencies = [
 ]
 
 [[package]]
+name = "config"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-secretsmanager",
+ "azure_core",
+ "azure_identity",
+ "azure_security_keyvault_secrets",
+ "google-cloud-secretmanager-v1",
+ "identifiers",
+ "prost 0.13.5",
+ "protocol",
+ "reqwest 0.13.2",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tempfile",
+ "test-support",
+ "tokio",
+ "toml 0.8.23",
+]
+
+[[package]]
+name = "connectors"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "auth",
+ "chrono",
+ "config",
+ "contracts",
+ "control",
+ "futures",
+ "identifiers",
+ "prost 0.13.5",
+ "protocol",
+ "reqwest 0.11.27",
+ "security",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "test-support",
+ "tokio",
+ "tonic 0.12.3",
+ "tracing",
+ "urlencoding",
+]
+
+[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1593,6 +1718,59 @@ name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "245097e9a4535ee1e3e3931fcfcd55a796a44c643e8596ff6566d68f09b87bbc"
+
+[[package]]
+name = "contracts"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "futures",
+ "identifiers",
+ "prost 0.13.5",
+ "protocol",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "uuid",
+]
+
+[[package]]
+name = "control"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.21.7",
+ "chrono",
+ "chrono-tz",
+ "config",
+ "contracts",
+ "cron",
+ "fanout",
+ "flate2",
+ "futures",
+ "identifiers",
+ "prost 0.13.5",
+ "protocol",
+ "rand 0.10.1",
+ "reqwest 0.11.27",
+ "security",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "storage-memory",
+ "test-support",
+ "tokio",
+ "tokio-util",
+ "tonic 0.12.3",
+ "tracing",
+ "url",
+ "urlencoding",
+ "uuid",
+ "zstd 0.13.3",
+]
 
 [[package]]
 name = "core-foundation"
@@ -2131,6 +2309,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "fanout"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "futures",
+ "protocol",
+ "test-support",
+ "tokio",
+ "tonic 0.12.3",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2369,6 +2559,50 @@ dependencies = [
  "memchr",
  "pin-project-lite",
  "slab",
+]
+
+[[package]]
+name = "gateway"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-stream",
+ "async-trait",
+ "auth",
+ "axum 0.7.9",
+ "base64 0.21.7",
+ "chrono",
+ "config",
+ "connectors",
+ "contracts",
+ "control",
+ "fanout",
+ "futures",
+ "hyper-util",
+ "identifiers",
+ "jsonwebtoken 11.0.0",
+ "prost 0.13.5",
+ "protocol",
+ "rand 0.10.1",
+ "reqwest 0.11.27",
+ "security",
+ "serde",
+ "serde_json",
+ "session-control",
+ "sha2 0.10.9",
+ "tempfile",
+ "test-support",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "tonic 0.12.3",
+ "tonic-web",
+ "tower 0.5.3",
+ "tower-http 0.5.2",
+ "tracing",
+ "url",
+ "urlencoding",
+ "uuid",
 ]
 
 [[package]]
@@ -2781,6 +3015,50 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+]
+
+[[package]]
+name = "harness"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-sts",
+ "axum 0.7.9",
+ "base64 0.21.7",
+ "chrono",
+ "config",
+ "connectors",
+ "contracts",
+ "control",
+ "futures",
+ "identifiers",
+ "mime_guess",
+ "monty 0.1.0",
+ "monty-pool",
+ "monty-types",
+ "opentelemetry 0.32.0",
+ "prost 0.13.5",
+ "protocol",
+ "redb",
+ "reqwest 0.11.27",
+ "rmcp",
+ "sandbox",
+ "security",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2 0.10.9",
+ "sse-stream",
+ "tempfile",
+ "test-support",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-opentelemetry 0.33.0",
+ "url",
+ "urlencoding",
 ]
 
 [[package]]
@@ -3272,6 +3550,15 @@ name = "ident_case"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
+
+[[package]]
+name = "identifiers"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "sha2 0.10.9",
+ "urlencoding",
+]
 
 [[package]]
 name = "idna"
@@ -3935,6 +4222,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "monty"
+version = "0.1.0"
+dependencies = [
+ "monty-proto",
+ "test-support",
+]
+
+[[package]]
 name = "monty-fs"
 version = "0.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3978,7 +4273,7 @@ version = "0.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b8741cb0a667eebd8bf090affd2f5f92bcf1597b9216f7714e9ea6b2ef6ac556"
 dependencies = [
- "monty",
+ "monty 0.0.21",
  "monty-type-checking",
  "monty-types",
  "num-bigint",
@@ -4175,6 +4470,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff76201f031d8863c38aa7f905eca4f53abbfa15f609db4277d44cd8938f33fe"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "observability"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "opentelemetry 0.32.0",
+ "opentelemetry-otlp",
+ "opentelemetry_sdk 0.32.1",
+ "pprof",
+ "serde_json",
+ "test-support",
+ "tikv-jemalloc-ctl",
+ "tikv-jemallocator",
+ "tracing",
+ "tracing-opentelemetry 0.33.0",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -4830,6 +5143,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8991c4cbdb8bc5b11f0b074ffe286c30e523de90fee5ba8132f1399f23cb3dd7"
 dependencies = [
  "prost 0.14.4",
+]
+
+[[package]]
+name = "protocol"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "minijinja",
+ "prost 0.13.5",
+ "prost-build",
+ "prost-types 0.13.5",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "toml 0.8.23",
+ "tonic 0.12.3",
+ "tonic-build",
 ]
 
 [[package]]
@@ -5910,6 +6241,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "sandbox"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.21.7",
+ "chrono",
+ "config",
+ "contracts",
+ "control",
+ "futures",
+ "identifiers",
+ "protocol",
+ "reqwest 0.11.27",
+ "security",
+ "serde",
+ "serde_json",
+ "test-support",
+ "tokio",
+ "urlencoding",
+]
+
+[[package]]
 name = "schannel"
 version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5984,6 +6338,23 @@ dependencies = [
  "pkcs8",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "security"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.21.7",
+ "bollard",
+ "contracts",
+ "jsonwebtoken 11.0.0",
+ "rustls 0.23.37",
+ "serde",
+ "serde_json",
+ "test-support",
+ "url",
 ]
 
 [[package]]
@@ -6164,6 +6535,17 @@ dependencies = [
  "ryu",
  "serde",
  "unsafe-libyaml",
+]
+
+[[package]]
+name = "session-control"
+version = "0.1.0"
+dependencies = [
+ "protocol",
+ "test-support",
+ "tokio",
+ "tokio-util",
+ "tonic 0.12.3",
 ]
 
 [[package]]
@@ -6556,6 +6938,205 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
+name = "storage-cloud-tasks"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum 0.7.9",
+ "base64 0.21.7",
+ "chrono",
+ "config",
+ "contracts",
+ "google-cloud-auth 1.8.0",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "test-support",
+ "time",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "storage-common"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "contracts",
+ "identifiers",
+ "test-support",
+]
+
+[[package]]
+name = "storage-dynamodb"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-dynamodb",
+ "contracts",
+ "storage-common",
+ "test-support",
+ "urlencoding",
+]
+
+[[package]]
+name = "storage-eventbridge"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-scheduler",
+ "base64 0.21.7",
+ "config",
+ "contracts",
+ "serde",
+ "serde_json",
+ "test-support",
+]
+
+[[package]]
+name = "storage-memory"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "contracts",
+ "protocol",
+ "test-support",
+ "tokio",
+]
+
+[[package]]
+name = "storage-objects"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-s3",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "contracts",
+ "google-cloud-auth 1.8.0",
+ "protocol",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "storage-memory",
+ "tempfile",
+ "test-support",
+ "time",
+ "tokio",
+ "urlencoding",
+]
+
+[[package]]
+name = "storage-postgres"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "config",
+ "contracts",
+ "futures",
+ "protocol",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "storage-common",
+ "test-support",
+ "time",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "storage-pubsub"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-stream",
+ "async-trait",
+ "base64 0.21.7",
+ "contracts",
+ "futures",
+ "google-cloud-googleapis",
+ "google-cloud-pubsub",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "test-support",
+ "time",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "storage-rocksdb"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "contracts",
+ "rocksdb",
+ "storage-common",
+ "tempfile",
+ "test-support",
+ "time",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "storage-sqlite"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "contracts",
+ "futures",
+ "protocol",
+ "reqwest 0.11.27",
+ "serde_json",
+ "sqlx",
+ "storage-common",
+ "tempfile",
+ "test-support",
+ "time",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "storage-sqs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "aws-config",
+ "aws-sdk-sqs",
+ "base64 0.21.7",
+ "contracts",
+ "futures",
+ "test-support",
+ "tokio",
+]
+
+[[package]]
 name = "str_stack"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6719,56 +7300,54 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "auth",
  "aws-sdk-sqs",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
  "axum 0.7.9",
  "base64 0.21.7",
+ "bootstrap",
  "chrono",
+ "cli",
+ "config",
+ "connectors",
+ "contracts",
+ "control",
+ "fanout",
  "futures",
+ "gateway",
  "google-cloud-pubsub",
+ "harness",
  "hyper 1.9.0",
  "hyper-util",
+ "identifiers",
+ "monty 0.1.0",
  "monty-pool",
  "monty-types",
+ "observability",
  "prost 0.13.5",
+ "protocol",
  "rcgen",
  "rustls 0.23.37",
+ "sandbox",
+ "security",
  "serde",
  "serde_json",
- "talon-auth",
- "talon-bootstrap",
- "talon-cli",
+ "session-control",
+ "storage-cloud-tasks",
+ "storage-common",
+ "storage-dynamodb",
+ "storage-eventbridge",
+ "storage-memory",
+ "storage-objects",
+ "storage-postgres",
+ "storage-pubsub",
+ "storage-rocksdb",
+ "storage-sqlite",
+ "storage-sqs",
  "talon-client",
- "talon-config",
- "talon-connectors",
- "talon-contracts",
- "talon-control",
- "talon-fanout",
- "talon-gateway",
- "talon-harness",
- "talon-identifiers",
- "talon-monty",
- "talon-observability",
- "talon-protocol",
- "talon-sandbox",
- "talon-security",
- "talon-session-control",
- "talon-storage-cloud-tasks",
- "talon-storage-common",
- "talon-storage-dynamodb",
- "talon-storage-eventbridge",
- "talon-storage-memory",
- "talon-storage-objects",
- "talon-storage-postgres",
- "talon-storage-pubsub",
- "talon-storage-rocksdb",
- "talon-storage-sqlite",
- "talon-storage-sqs",
- "talon-test-support",
- "talon-worker",
- "talon-workflows",
  "tempfile",
+ "test-support",
  "tikv-jemallocator",
  "time",
  "tokio",
@@ -6780,23 +7359,8 @@ dependencies = [
  "tracing",
  "url",
  "urlencoding",
-]
-
-[[package]]
-name = "talon-auth"
-version = "0.1.0"
-dependencies = [
- "axum 0.7.9",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "talon-protocol",
- "talon-security",
- "talon-test-support",
- "tokio",
- "tonic 0.12.3",
- "tower 0.5.3",
- "url",
+ "worker",
+ "workflows",
 ]
 
 [[package]]
@@ -6829,63 +7393,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "talon-bootstrap"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "talon-config",
- "talon-contracts",
- "talon-control",
- "talon-identifiers",
- "talon-protocol",
- "talon-storage-cloud-tasks",
- "talon-storage-common",
- "talon-storage-dynamodb",
- "talon-storage-eventbridge",
- "talon-storage-memory",
- "talon-storage-objects",
- "talon-storage-postgres",
- "talon-storage-pubsub",
- "talon-storage-rocksdb",
- "talon-storage-sqlite",
- "talon-storage-sqs",
- "talon-test-support",
- "tempfile",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "talon-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base64 0.21.7",
- "clap",
- "futures",
- "mime_guess",
- "prost 0.13.5",
- "rand 0.10.1",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "serde_yaml",
- "sha2 0.10.9",
- "talon-auth",
- "talon-client",
- "talon-contracts",
- "talon-identifiers",
- "talon-protocol",
- "talon-security",
- "talon-test-support",
- "tempfile",
- "tokio",
- "toml 0.8.23",
- "tonic 0.12.3",
- "url",
-]
-
-[[package]]
 name = "talon-client"
 version = "0.2.11"
 dependencies = [
@@ -6901,597 +7408,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "talon-config"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "aws-config",
- "aws-sdk-secretsmanager",
- "azure_core",
- "azure_identity",
- "azure_security_keyvault_secrets",
- "google-cloud-secretmanager-v1",
- "prost 0.13.5",
- "reqwest 0.13.2",
- "serde",
- "serde_json",
- "serde_yaml",
- "talon-identifiers",
- "talon-protocol",
- "talon-test-support",
- "tempfile",
- "tokio",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "talon-connectors"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "futures",
- "prost 0.13.5",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "talon-auth",
- "talon-config",
- "talon-contracts",
- "talon-control",
- "talon-identifiers",
- "talon-protocol",
- "talon-security",
- "talon-test-support",
- "tokio",
- "tonic 0.12.3",
- "tracing",
- "urlencoding",
-]
-
-[[package]]
-name = "talon-contracts"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "futures",
- "prost 0.13.5",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "talon-identifiers",
- "talon-protocol",
- "uuid",
-]
-
-[[package]]
-name = "talon-control"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.21.7",
- "chrono",
- "chrono-tz",
- "cron",
- "flate2",
- "futures",
- "prost 0.13.5",
- "rand 0.10.1",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "talon-config",
- "talon-contracts",
- "talon-fanout",
- "talon-identifiers",
- "talon-protocol",
- "talon-security",
- "talon-storage-memory",
- "talon-test-support",
- "tokio",
- "tokio-util",
- "tonic 0.12.3",
- "tracing",
- "url",
- "urlencoding",
- "uuid",
- "zstd 0.13.3",
-]
-
-[[package]]
-name = "talon-fanout"
-version = "0.1.0"
-dependencies = [
- "async-stream",
- "futures",
- "talon-protocol",
- "talon-test-support",
- "tokio",
- "tonic 0.12.3",
-]
-
-[[package]]
-name = "talon-gateway"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-stream",
- "async-trait",
- "axum 0.7.9",
- "base64 0.21.7",
- "chrono",
- "futures",
- "hyper-util",
- "jsonwebtoken 11.0.0",
- "prost 0.13.5",
- "rand 0.10.1",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "talon-auth",
- "talon-config",
- "talon-connectors",
- "talon-contracts",
- "talon-control",
- "talon-fanout",
- "talon-identifiers",
- "talon-protocol",
- "talon-security",
- "talon-session-control",
- "talon-test-support",
- "tempfile",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "tonic 0.12.3",
- "tonic-web",
- "tower 0.5.3",
- "tower-http 0.5.2",
- "tracing",
- "url",
- "urlencoding",
- "uuid",
-]
-
-[[package]]
-name = "talon-harness"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "aws-config",
- "aws-sdk-sts",
- "axum 0.7.9",
- "base64 0.21.7",
- "chrono",
- "futures",
- "mime_guess",
- "monty-pool",
- "monty-types",
- "opentelemetry 0.32.0",
- "prost 0.13.5",
- "redb",
- "reqwest 0.11.27",
- "rmcp",
- "serde",
- "serde_json",
- "serde_yaml",
- "sha2 0.10.9",
- "sse-stream",
- "talon-config",
- "talon-connectors",
- "talon-contracts",
- "talon-control",
- "talon-identifiers",
- "talon-monty",
- "talon-protocol",
- "talon-sandbox",
- "talon-security",
- "talon-test-support",
- "tempfile",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-opentelemetry 0.33.0",
- "url",
- "urlencoding",
-]
-
-[[package]]
-name = "talon-identifiers"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "sha2 0.10.9",
- "urlencoding",
-]
-
-[[package]]
 name = "talon-install-hooks"
 version = "0.0.0"
-
-[[package]]
-name = "talon-monty"
-version = "0.1.0"
-dependencies = [
- "monty-proto",
- "talon-test-support",
-]
-
-[[package]]
-name = "talon-observability"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "opentelemetry 0.32.0",
- "opentelemetry-otlp",
- "opentelemetry_sdk 0.32.1",
- "pprof",
- "serde_json",
- "talon-test-support",
- "tikv-jemalloc-ctl",
- "tikv-jemallocator",
- "tracing",
- "tracing-opentelemetry 0.33.0",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "talon-protocol"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "minijinja",
- "prost 0.13.5",
- "prost-build",
- "prost-types 0.13.5",
- "serde",
- "serde_json",
- "serde_yaml",
- "toml 0.8.23",
- "tonic 0.12.3",
- "tonic-build",
-]
-
-[[package]]
-name = "talon-sandbox"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.21.7",
- "chrono",
- "futures",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "talon-config",
- "talon-contracts",
- "talon-control",
- "talon-identifiers",
- "talon-protocol",
- "talon-security",
- "talon-test-support",
- "tokio",
- "urlencoding",
-]
-
-[[package]]
-name = "talon-security"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.21.7",
- "bollard",
- "jsonwebtoken 11.0.0",
- "rustls 0.23.37",
- "serde",
- "serde_json",
- "talon-contracts",
- "talon-test-support",
- "url",
-]
-
-[[package]]
-name = "talon-session-control"
-version = "0.1.0"
-dependencies = [
- "talon-protocol",
- "talon-test-support",
- "tokio",
- "tokio-util",
- "tonic 0.12.3",
-]
-
-[[package]]
-name = "talon-storage-cloud-tasks"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "axum 0.7.9",
- "base64 0.21.7",
- "chrono",
- "google-cloud-auth 1.8.0",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "talon-config",
- "talon-contracts",
- "talon-test-support",
- "time",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "talon-storage-common"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "talon-contracts",
- "talon-identifiers",
- "talon-test-support",
-]
-
-[[package]]
-name = "talon-storage-dynamodb"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "aws-config",
- "aws-sdk-dynamodb",
- "talon-contracts",
- "talon-storage-common",
- "talon-test-support",
- "urlencoding",
-]
-
-[[package]]
-name = "talon-storage-eventbridge"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "aws-config",
- "aws-sdk-scheduler",
- "base64 0.21.7",
- "serde",
- "serde_json",
- "talon-config",
- "talon-contracts",
- "talon-test-support",
-]
-
-[[package]]
-name = "talon-storage-memory"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "talon-contracts",
- "talon-protocol",
- "talon-test-support",
- "tokio",
-]
-
-[[package]]
-name = "talon-storage-objects"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "aws-config",
- "aws-sdk-s3",
- "aws-smithy-runtime-api",
- "aws-smithy-types",
- "google-cloud-auth 1.8.0",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "talon-contracts",
- "talon-protocol",
- "talon-storage-memory",
- "talon-test-support",
- "tempfile",
- "time",
- "tokio",
- "urlencoding",
-]
-
-[[package]]
-name = "talon-storage-postgres"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "futures",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "sqlx",
- "talon-config",
- "talon-contracts",
- "talon-protocol",
- "talon-storage-common",
- "talon-test-support",
- "time",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "talon-storage-pubsub"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-stream",
- "async-trait",
- "base64 0.21.7",
- "futures",
- "google-cloud-googleapis",
- "google-cloud-pubsub",
- "serde",
- "serde_json",
- "talon-contracts",
- "talon-test-support",
- "tempfile",
- "time",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "talon-storage-rocksdb"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "rocksdb",
- "talon-contracts",
- "talon-storage-common",
- "talon-test-support",
- "tempfile",
- "time",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "talon-storage-sqlite"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "futures",
- "reqwest 0.11.27",
- "serde_json",
- "sqlx",
- "talon-contracts",
- "talon-protocol",
- "talon-storage-common",
- "talon-test-support",
- "tempfile",
- "time",
- "tokio",
- "tokio-util",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "talon-storage-sqs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "aws-config",
- "aws-sdk-sqs",
- "base64 0.21.7",
- "futures",
- "talon-contracts",
- "talon-test-support",
- "tokio",
-]
-
-[[package]]
-name = "talon-test-support"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "futures",
- "prost 0.13.5",
- "serde_json",
- "talon-contracts",
- "talon-identifiers",
- "talon-protocol",
- "tokio",
-]
-
-[[package]]
-name = "talon-worker"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "axum 0.7.9",
- "chrono",
- "futures",
- "jsonwebtoken 11.0.0",
- "mime_guess",
- "prost 0.13.5",
- "rand 0.10.1",
- "reqwest 0.11.27",
- "rmcp",
- "serde",
- "serde_json",
- "talon-auth",
- "talon-config",
- "talon-connectors",
- "talon-contracts",
- "talon-control",
- "talon-fanout",
- "talon-harness",
- "talon-identifiers",
- "talon-protocol",
- "talon-sandbox",
- "talon-security",
- "talon-session-control",
- "talon-storage-common",
- "talon-storage-sqlite",
- "talon-test-support",
- "talon-workflows",
- "tempfile",
- "tokio",
- "tokio-util",
- "tonic 0.12.3",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "talon-workflows"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "axum 0.7.9",
- "chrono",
- "futures",
- "prost 0.13.5",
- "serde",
- "serde_json",
- "talon-config",
- "talon-connectors",
- "talon-contracts",
- "talon-control",
- "talon-fanout",
- "talon-harness",
- "talon-identifiers",
- "talon-protocol",
- "talon-test-support",
- "tokio",
- "tracing",
-]
 
 [[package]]
 name = "tap"
@@ -7516,6 +7434,22 @@ dependencies = [
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "test-support"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "contracts",
+ "futures",
+ "identifiers",
+ "prost 0.13.5",
+ "protocol",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -9405,6 +9339,72 @@ dependencies = [
  "serde_json",
  "unicode-xid",
  "wasmparser",
+]
+
+[[package]]
+name = "worker"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "auth",
+ "axum 0.7.9",
+ "chrono",
+ "config",
+ "connectors",
+ "contracts",
+ "control",
+ "fanout",
+ "futures",
+ "harness",
+ "identifiers",
+ "jsonwebtoken 11.0.0",
+ "mime_guess",
+ "prost 0.13.5",
+ "protocol",
+ "rand 0.10.1",
+ "reqwest 0.11.27",
+ "rmcp",
+ "sandbox",
+ "security",
+ "serde",
+ "serde_json",
+ "session-control",
+ "storage-common",
+ "storage-sqlite",
+ "tempfile",
+ "test-support",
+ "tokio",
+ "tokio-util",
+ "tonic 0.12.3",
+ "tracing",
+ "uuid",
+ "workflows",
+]
+
+[[package]]
+name = "workflows"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum 0.7.9",
+ "chrono",
+ "config",
+ "connectors",
+ "contracts",
+ "control",
+ "fanout",
+ "futures",
+ "harness",
+ "identifiers",
+ "prost 0.13.5",
+ "protocol",
+ "serde",
+ "serde_json",
+ "test-support",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

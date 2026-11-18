@@ -1,0 +1,11 @@
+load("//crates:defs.bzl", "talon_crate")
+
+talon_crate(
+    name = "storage_cloud_tasks",
+    test_deps = ["//crates/test-support:test_support"],
+    unit_tests = True,
+    deps = [
+        "//crates/config:config",
+        "//crates/contracts:contracts",
+    ],
+)

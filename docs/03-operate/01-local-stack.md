@@ -28,7 +28,7 @@ Use Docker Compose when you want the full local stack, including Sightline, Post
 
 - **[Docker](https://www.docker.com/)** and Docker Compose
 - **[Git](https://git-scm.com/)**
-- **[Rust](https://www.rust-lang.org/tools/install)** toolchain for host-side `talon-cli`
+- **[Rust](https://www.rust-lang.org/tools/install)** toolchain for host-side `cli`
 - **[OpenAI](https://platform.openai.com/api-keys)** API key
 
 ### 1. Configure the provider
@@ -79,7 +79,7 @@ This starts the local compose stack and brings up:
 export TALON_API_KEY="$(docker compose run --rm --no-deps init-api-key 'cat /data/talon/auth/api-key')"
 ```
 
-`talon-cli` reads `TALON_API_KEY` automatically. For shorter commands:
+`cli` reads `TALON_API_KEY` automatically. For shorter commands:
 
 ```bash
 talon() {

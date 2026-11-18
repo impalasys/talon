@@ -3,5 +3,5 @@
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    talon_cli::main().await
+    ::cli::main().await
 }

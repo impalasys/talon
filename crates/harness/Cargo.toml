@@ -1,0 +1,49 @@
+[package]
+name = "harness"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[dependencies]
+anyhow =  "1.0"
+async-trait =  "0.1"
+aws-config =  "1.8"
+aws-sdk-sts =  "=1.101.0"
+axum =  { version = "0.7", features = ["ws"] }
+base64 =  "0.21"
+chrono =  { version = "0.4", features = ["serde"] }
+futures =  "0.3"
+mime_guess =  "2"
+monty-pool =  "0.0.21"
+monty-types =  "0.0.21"
+opentelemetry =  "0.32"
+prost =  "0.13"
+redb =  "1.0"
+reqwest =  { version = "0.11", default-features = false, features = ["json", "rustls-tls", "stream"] }
+rmcp =  { version = "1.8", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
+serde =  { version = "1.0", features = ["derive"] }
+serde_json =  "1.0"
+serde_yaml =  "0.9"
+sha2 =  "0.10"
+sse-stream =  "0.2"
+tempfile =  "3.0"
+tokio =  { version = "1.0", features = ["full"] }
+tokio-util =  { version = "0.7.18", features = ["rt"] }
+tracing =  "0.1"
+tracing-opentelemetry =  "0.33"
+url =  "2"
+urlencoding =  "2.1"
+config = { path = "../config" }
+connectors = { path = "../connectors" }
+contracts = { path = "../contracts" }
+control = { path = "../control" }
+identifiers = { path = "../identifiers" }
+monty = { path = "../monty" }
+protocol = { path = "../protocol" }
+sandbox = { path = "../sandbox" }
+security = { path = "../security" }
+
+[dev-dependencies]
+test-support = { path = "../test-support" }
+tokio =  { version = "1.0", features = ["test-util"] }

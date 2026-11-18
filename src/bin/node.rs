@@ -3,24 +3,24 @@
 
 use anyhow::Context;
 
+use ::auth::AuthConfig;
+use ::bootstrap::build_control_plane;
+use ::config::Config;
+use ::config::ConfigExt;
+use ::control::control::topics;
+use ::control::control::ControlPlane;
+use ::control::control::MessagePublisher;
+use ::gateway::server::Gateway;
+use ::protocol::resources_proto;
+use ::worker::fanout::FanoutHub;
+use ::worker::mcp_registry::McpRegistry;
+use ::worker::scheduler_auth::SchedulerRequestAuthenticator;
+use ::worker::WorkerEventHandler;
 use anyhow::Result;
 use futures::StreamExt;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
-use talon_auth::AuthConfig;
-use talon_bootstrap::build_control_plane;
-use talon_config::Config;
-use talon_config::ConfigExt;
-use talon_control::control::topics;
-use talon_control::control::ControlPlane;
-use talon_control::control::MessagePublisher;
-use talon_gateway::server::Gateway;
-use talon_protocol::resources_proto;
-use talon_worker::fanout::FanoutHub;
-use talon_worker::mcp_registry::McpRegistry;
-use talon_worker::scheduler_auth::SchedulerRequestAuthenticator;
-use talon_worker::WorkerEventHandler;
 use tokio::net::UnixListener;
 use tokio::signal;
 use tokio::task::JoinHandle;
@@ -72,7 +72,7 @@ fn worker_handler(
         worker_id,
         fanout_hub,
         session_cancellations: Arc::new(
-            talon_worker::session_control::SessionCancellationRegistry::default(),
+            ::worker::session_control::SessionCancellationRegistry::default(),
         ),
     }
 }
@@ -138,7 +138,7 @@ async fn prepare_worker_socket(path: &Path) -> Result<()> {
 async fn serve_worker_fanout_socket(
     socket_path: PathBuf,
     fanout_hub: Arc<FanoutHub>,
-    cancellations: Arc<talon_worker::session_control::SessionCancellationRegistry>,
+    cancellations: Arc<::worker::session_control::SessionCancellationRegistry>,
     shutdown: CancellationToken,
 ) -> Result<()> {
     prepare_worker_socket(&socket_path).await?;
@@ -149,12 +149,13 @@ async fn serve_worker_fanout_socket(
         )
     })?;
     let incoming = UnixListenerStream::new(listener);
-    let service = talon_protocol::worker_proto::fanout_service_server::FanoutServiceServer::new(
-        talon_worker::fanout::FanoutServiceImpl::new(fanout_hub),
+    let service = ::protocol::worker_proto::fanout_service_server::FanoutServiceServer::new(
+        ::worker::fanout::FanoutServiceImpl::new(fanout_hub),
     );
-    let control_service = talon_protocol::worker_proto::session_control_service_server::SessionControlServiceServer::new(
-        talon_worker::session_control::SessionControlServiceImpl::new(cancellations),
-    );
+    let control_service =
+        ::protocol::worker_proto::session_control_service_server::SessionControlServiceServer::new(
+            ::worker::session_control::SessionControlServiceImpl::new(cancellations),
+        );
     tracing::info!(
         endpoint = %format!("unix://{}", socket_path.display()),
         "Starting node worker fanout service"
@@ -238,12 +239,12 @@ async fn join_unit_with_grace(task: &mut JoinHandle<()>) {
 
 async fn run() -> Result<()> {
     let config = Arc::new(Config::load_default()?);
-    talon_security::platform_jwt::load_key()?;
-    talon_security::platform_jwt::issuer()?;
+    ::security::platform_jwt::load_key()?;
+    ::security::platform_jwt::issuer()?;
     let cp = Arc::new(build_control_plane(&config).await?);
     let scheduler_authenticator =
         Arc::new(SchedulerRequestAuthenticator::from_config(&config).await?);
-    let worker_id = talon_worker::registration::worker_id();
+    let worker_id = ::worker::registration::worker_id();
     let fanout_hub = Arc::new(FanoutHub::new());
     let handler = worker_handler(
         Arc::clone(&cp),
@@ -257,9 +258,9 @@ async fn run() -> Result<()> {
     let worker_socket_path = node_worker_socket_path(&worker_id)?;
     let worker_endpoint = node_worker_endpoint(&worker_socket_path);
     let worker_registration =
-        talon_worker::registration::WorkerRegistration::new(&worker_id, env!("CARGO_PKG_VERSION"))
+        ::worker::registration::WorkerRegistration::new(&worker_id, env!("CARGO_PKG_VERSION"))
             .with_endpoints(vec![worker_endpoint]);
-    let mut heartbeat_task = tokio::spawn(talon_worker::registration::run_worker_heartbeat(
+    let mut heartbeat_task = tokio::spawn(::worker::registration::run_worker_heartbeat(
         Arc::clone(&cp),
         worker_registration,
         shutdown.child_token(),
@@ -373,7 +374,7 @@ async fn run() -> Result<()> {
 fn main() -> Result<()> {
     // The Monty pool invokes this binary with `subprocess`; handle that mode
     // before Tokio, telemetry, profiling, or Talon configuration initialize.
-    if let Some(status) = talon_monty::run_if_requested() {
+    if let Some(status) = ::monty::run_if_requested() {
         std::process::exit(status);
     }
     talon_node_main()
@@ -381,11 +382,11 @@ fn main() -> Result<()> {
 
 #[tokio::main]
 async fn talon_node_main() -> Result<()> {
-    talon_security::install_jwt_crypto_provider();
-    talon_security::install_rustls_crypto_provider();
-    let _telemetry_guard = talon_observability::telemetry::init_from_env("talon-node")?;
-    talon_observability::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
-    talon_observability::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
+    ::security::install_jwt_crypto_provider();
+    ::security::install_rustls_crypto_provider();
+    let _telemetry_guard = ::observability::telemetry::init_from_env("talon-node")?;
+    ::observability::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
+    ::observability::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
     tracing::info!("Starting Talon node runtime...");
     run().await
 }
@@ -393,11 +394,11 @@ async fn talon_node_main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use talon_control::control::keys;
-    use talon_control::control::ns;
-    use talon_control::control::ProtoKeyValueStoreExt;
-    use talon_test_support::EmptyPubSub;
-    use talon_test_support::MockKvStore;
+    use ::control::control::keys;
+    use ::control::control::ns;
+    use ::control::control::ProtoKeyValueStoreExt;
+    use ::test_support::EmptyPubSub;
+    use ::test_support::MockKvStore;
     use tempfile::tempdir;
 
     #[test]
@@ -436,14 +437,13 @@ mod tests {
         let endpoint = node_worker_endpoint(&socket_path);
         let cp =
             ControlPlane::builder(Arc::new(MockKvStore::default()), Arc::new(EmptyPubSub)).build();
-        let registration =
-            talon_worker::registration::WorkerRegistration::new("node-worker", "1.2.3")
-                .with_endpoints(vec![endpoint.clone()]);
+        let registration = ::worker::registration::WorkerRegistration::new("node-worker", "1.2.3")
+            .with_endpoints(vec![endpoint.clone()]);
 
-        talon_worker::registration::upsert_worker(&cp, &registration)
+        ::worker::registration::upsert_worker(&cp, &registration)
             .await
             .unwrap();
-        talon_worker::registration::patch_worker_status(&cp, &registration, "ready")
+        ::worker::registration::patch_worker_status(&cp, &registration, "ready")
             .await
             .unwrap();
 
