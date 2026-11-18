@@ -40,5 +40,8 @@ The first call returns `status: confirmation_required`, `confirmationId`, and
 in a later message, then repeat the tool with `confirmation_id`. A confirmation
 expires after one hour, is single-use, and is bound to the requesting session,
 agent, namespace, path, and resource version. Any intervening File update requires
-a fresh confirmation. Deletion removes the resource metadata conditionally;
+a fresh confirmation. Confirmation ordering uses a server-owned admission counter,
+not client message timestamps or IDs; editing an old message does not make it a
+later confirmation. Exact namespace grants also apply to File mounts in
+`run_python_code`. Deletion removes the resource metadata conditionally;
 it does not eagerly remove shared blobs or a potentially replaced latest alias.

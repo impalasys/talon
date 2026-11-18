@@ -1259,26 +1259,19 @@ mod tests {
         text: &str,
         role: data_proto::MessageRole,
     ) {
-        let id = talon::control::uuid::session_message_id();
-        let key = keys::ResourceKey::new(
-            ns,
-            &[("Agent", agent), ("Session", session)],
-            "SessionMessage",
-            &id,
-        );
-        kv.set_msg(
-            &key,
-            &data_proto::SessionMessage {
-                id,
-                role: role as i32,
-                created_at: chrono::Utc::now().timestamp_micros(),
-                parts: vec![data_proto::SessionMessagePart {
-                    part_type: data_proto::SessionMessagePartType::Text as i32,
-                    content: text.to_string(),
-                    ..Default::default()
-                }],
+        let message = data_proto::SessionMessage {
+            id: talon::control::uuid::session_message_id(),
+            role: role as i32,
+            created_at: if text == "yes" { i64::MAX } else { 1 },
+            parts: vec![data_proto::SessionMessagePart {
+                part_type: data_proto::SessionMessagePartType::Text as i32,
+                content: text.to_string(),
                 ..Default::default()
-            },
+            }],
+            ..Default::default()
+        };
+        talon::control::sessions::persist_admitted_session_message(
+            kv, ns, agent, session, &message,
         )
         .await
         .unwrap();

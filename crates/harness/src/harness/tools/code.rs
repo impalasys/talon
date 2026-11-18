@@ -998,12 +998,12 @@ async fn read_code_mount_source(
     if uri.starts_with("file://") {
         require_file_read(spec)?;
         let (namespace, path) = parse_file_uri(uri)?;
-        ensure_file_read_namespace(current_namespace, &namespace)?;
         let namespace = if namespace == "current" {
             current_namespace.to_string()
         } else {
             namespace
         };
+        files::require_file_namespace(spec, current_namespace, &namespace, true)?;
         let file = find_file_by_path(cp, &namespace, &path)
             .await?
             .ok_or_else(|| anyhow!("File '{}' not found", path))?;
@@ -2436,6 +2436,42 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn code_file_mount_honors_exact_grant_and_current_alias() {
+        let cp = control_plane(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockScheduler::default()),
+        );
+        for ns in ["Tenant:own", "Tenant:other"] {
+            files::create_file_tool(&cp, ns, &json!({"path":"/data.txt", "content":ns}))
+                .await
+                .unwrap();
+        }
+        let mut spec = code_and_file_spec(&["run"], &["read"]);
+        let grant = code_and_file_spec(&[], &["Tenant:other"])
+            .capabilities
+            .remove("files")
+            .unwrap();
+        spec.capabilities.insert("fileNamespaces".into(), grant);
+        for (uri, expected) in [
+            ("file://Tenant:other/data.txt", "Tenant:other"),
+            ("file://current/data.txt", "Tenant:own"),
+        ] {
+            let (bytes, _, _) = read_code_mount_source(
+                &cp,
+                "Tenant:own",
+                "agent",
+                "session",
+                &spec,
+                uri,
+                MAX_CODE_INPUT_BYTES,
+            )
+            .await
+            .unwrap();
+            assert_eq!(bytes, expected.as_bytes());
+        }
+    }
+
+    #[tokio::test]
     async fn code_file_mount_rejects_non_ancestral_namespace_before_lookup() {
         let cp = control_plane(
             Arc::new(MockKvStore::default()),
@@ -2453,10 +2489,7 @@ mod tests {
         .await
         .unwrap_err()
         .to_string();
-        assert!(
-            error.contains("outside the current namespace ancestry"),
-            "{error}"
-        );
+        assert!(error.contains("file namespace access denied"), "{error}");
 
         let error = execute_tool_for_session(
             &cp,

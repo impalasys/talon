@@ -138,11 +138,8 @@ pub async fn prepare_steer_batch(
                     part.created_at = message.created_at;
                 }
             }
-            kv.set_msg(
-                &keys::session_message(ns, agent, session_id, &message_id),
-                &message,
-            )
-            .await?;
+            crate::sessions::persist_admitted_session_message(kv, ns, agent, session_id, &message)
+                .await?;
             if !kv
                 .compare_and_swap(
                     &keys::session_queue_entry(ns, agent, session_id, STEER_QUEUE, &entry_id),
@@ -455,7 +452,7 @@ async fn publish_queued_message(
     }
 
     let message_key = keys::session_message(ns, agent, session_id, &message.id);
-    kv.set_msg(&message_key, &message).await?;
+    crate::sessions::persist_admitted_session_message(kv, ns, agent, session_id, &message).await?;
     if let Err(error) = crate::control::search::publish_index_event(
         pubsub,
         events::IndexEvent {

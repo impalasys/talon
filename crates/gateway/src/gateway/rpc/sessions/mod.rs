@@ -1596,6 +1596,15 @@ impl GrpcGatewayHandler {
             message.role == data_proto::MessageRole::RoleAssistant as i32;
         let message_key = keys::session_message(&req.ns, &req.agent, &req.session_id, &message.id);
         let message_id = message.id.clone();
+        talon::control::sessions::record_user_message_admission(
+            self.gateway.kv.as_ref(),
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+            &message,
+        )
+        .await
+        .map_err(|e| tonic::Status::internal(format!("Failed to order appended message: {e}")))?;
         let inserted = self
             .gateway
             .kv

@@ -200,7 +200,7 @@ struct PendingFileDelete {
     path: String,
     resource_name: String,
     resource_version: String,
-    requested_at: i64,
+    requested_after: u64,
     expires_at: i64,
     required_reply: String,
 }
@@ -240,7 +240,13 @@ async fn require_delete_confirmation(
             path: path.to_string(),
             resource_name,
             resource_version,
-            requested_at: now,
+            requested_after: talon::control::sessions::current_message_admission_order(
+                cp.kv.as_ref(),
+                current_namespace,
+                current_agent,
+                current_session,
+            )
+            .await?,
             expires_at: now + DELETE_CONFIRMATION_TTL_MICROS,
             required_reply: required_reply.clone(),
         };
@@ -300,23 +306,27 @@ async fn require_delete_confirmation(
         ));
     }
 
-    let latest_user = latest_user_message(cp, current_namespace, current_agent, current_session)
-        .await?
-        .ok_or_else(|| {
-            anyhow!(
-                "delete requires a separate user message exactly: {}",
-                pending.required_reply
-            )
-        })?;
+    let latest_user = latest_user_message(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        pending.requested_after,
+    )
+    .await?
+    .ok_or_else(|| {
+        anyhow!(
+            "delete requires a separate user message exactly: {}",
+            pending.required_reply
+        )
+    })?;
     let latest_text = latest_user
         .parts
         .iter()
         .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
         .map(|part| part.content.as_str())
         .collect::<String>();
-    if latest_user.created_at <= pending.requested_at
-        || latest_text.trim() != pending.required_reply
-    {
+    if latest_text.trim() != pending.required_reply {
         return Err(anyhow!(
             "delete requires a separate user message exactly: {}",
             pending.required_reply
@@ -354,6 +364,7 @@ async fn latest_user_message(
     current_namespace: &str,
     current_agent: &str,
     current_session: &str,
+    requested_after: u64,
 ) -> Result<Option<data_proto::SessionMessage>> {
     let entries = cp
         .kv
@@ -362,11 +373,23 @@ async fn latest_user_message(
             None,
         )
         .await?;
+    let orders = talon::control::sessions::message_admission_orders(
+        cp.kv.as_ref(),
+        current_namespace,
+        current_agent,
+        current_session,
+    )
+    .await?;
     Ok(entries
         .into_iter()
         .filter_map(|(_, bytes)| data_proto::SessionMessage::decode(bytes.as_slice()).ok())
         .filter(|message| message.role == data_proto::MessageRole::RoleUser as i32)
-        .max_by_key(|message| message.created_at))
+        .filter(|message| {
+            orders
+                .get(&message.id)
+                .is_some_and(|order| *order > requested_after)
+        })
+        .max_by_key(|message| orders[&message.id]))
 }
 
 pub async fn list_files_by_filter(
@@ -836,7 +859,7 @@ pub(super) fn require_file_list_namespace_access(
     require_file_namespace(spec, current, &namespace_arg(current, args), true)
 }
 
-fn require_file_namespace(
+pub(super) fn require_file_namespace(
     spec: &manifests::AgentSpec,
     current: &str,
     target: &str,

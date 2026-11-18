@@ -752,7 +752,7 @@ pub async fn enqueue_session_message_without_dispatch(
     }
 
     let message_key = keys::session_message(ns, agent, session_id, &user_msg.id);
-    kv.set_msg(&message_key, &user_msg).await?;
+    crate::sessions::persist_admitted_session_message(kv, ns, agent, session_id, &user_msg).await?;
     let message_id = user_msg.id.clone();
     if let Err(error) = crate::control::search::publish_index_event(
         pubsub,
@@ -862,7 +862,10 @@ pub async fn send_session_message(
     }
 
     let message_key = keys::session_message(ns, agent, session_id, &user_msg.id);
-    if let Err(err) = kv.set_msg(&message_key, &user_msg).await {
+    if let Err(err) =
+        crate::sessions::persist_admitted_session_message(kv, ns, agent, session_id, &user_msg)
+            .await
+    {
         log_session_release_failure(
             try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
             ns,

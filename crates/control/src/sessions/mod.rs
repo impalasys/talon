@@ -5,6 +5,11 @@
 use crate::talon;
 
 mod journal;
+mod message_order;
+pub use message_order::{
+    current_message_admission_order, message_admission_orders, persist_admitted_session_message,
+    record_user_message_admission,
+};
 mod lease;
 mod recovery;
 mod session;
