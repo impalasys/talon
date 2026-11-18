@@ -39,3 +39,8 @@ chromatic-diagnostics.json
 # Bazel output symlinks and per-developer credentials
 /bazel-*
 /.bazelrc.local
+
+# Machine-local Bazel Rust IDE model and launchers
+/.rules_rust_analyzer/
+/rust-project.json
+/.zed/settings.json
