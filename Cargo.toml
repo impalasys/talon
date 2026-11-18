@@ -22,17 +22,17 @@ members = [
     "crates/sandbox",
     "crates/security",
     "crates/session-control",
-    "crates/storage-cloud-tasks",
-    "crates/storage-common",
-    "crates/storage-dynamodb",
-    "crates/storage-eventbridge",
-    "crates/storage-memory",
-    "crates/storage-objects",
-    "crates/storage-postgres",
-    "crates/storage-pubsub",
-    "crates/storage-rocksdb",
-    "crates/storage-sqlite",
-    "crates/storage-sqs",
+    "crates/storage/cloud-tasks",
+    "crates/storage/common",
+    "crates/storage/dynamodb",
+    "crates/storage/eventbridge",
+    "crates/storage/memory",
+    "crates/storage/objects",
+    "crates/storage/postgres",
+    "crates/storage/pubsub",
+    "crates/storage/rocksdb",
+    "crates/storage/sqlite",
+    "crates/storage/sqs",
     "crates/test-support",
     "crates/worker",
     "crates/workflows",
@@ -95,17 +95,17 @@ protocol = { path = "crates/protocol" }
 sandbox = { path = "crates/sandbox" }
 security = { path = "crates/security" }
 session-control = { path = "crates/session-control" }
-storage-cloud-tasks = { path = "crates/storage-cloud-tasks" }
-storage-common = { path = "crates/storage-common" }
-storage-dynamodb = { path = "crates/storage-dynamodb", optional = true }
-storage-eventbridge = { path = "crates/storage-eventbridge", optional = true }
-storage-memory = { path = "crates/storage-memory" }
-storage-objects = { path = "crates/storage-objects" }
-storage-postgres = { path = "crates/storage-postgres" }
-storage-pubsub = { path = "crates/storage-pubsub" }
-storage-rocksdb = { path = "crates/storage-rocksdb", optional = true }
-storage-sqlite = { path = "crates/storage-sqlite" }
-storage-sqs = { path = "crates/storage-sqs", optional = true }
+storage-cloud-tasks = { path = "crates/storage/cloud-tasks" }
+storage-common = { path = "crates/storage/common" }
+storage-dynamodb = { path = "crates/storage/dynamodb", optional = true }
+storage-eventbridge = { path = "crates/storage/eventbridge", optional = true }
+storage-memory = { path = "crates/storage/memory" }
+storage-objects = { path = "crates/storage/objects" }
+storage-postgres = { path = "crates/storage/postgres" }
+storage-pubsub = { path = "crates/storage/pubsub" }
+storage-rocksdb = { path = "crates/storage/rocksdb", optional = true }
+storage-sqlite = { path = "crates/storage/sqlite" }
+storage-sqs = { path = "crates/storage/sqs", optional = true }
 test-support = { path = "crates/test-support" }
 worker = { path = "crates/worker" }
 workflows = { path = "crates/workflows" }

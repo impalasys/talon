@@ -7,8 +7,8 @@ talon_crate(
         "//:src/control/security/test_rsa_private_key.pem",
     ],
     test_deps = [
-        "//crates/storage-common:storage_common",
-        "//crates/storage-sqlite:storage_sqlite",
+        "//crates/storage/common:storage_common",
+        "//crates/storage/sqlite:storage_sqlite",
         "//crates/test-support:test_support",
     ],
     unit_tests = True,

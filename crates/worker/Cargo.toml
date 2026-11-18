@@ -40,7 +40,7 @@ session-control = { path = "../session-control" }
 workflows = { path = "../workflows" }
 
 [dev-dependencies]
-storage-sqlite = { path = "../storage-sqlite" }
-storage-common = { path = "../storage-common" }
+storage-sqlite = { path = "../storage/sqlite" }
+storage-common = { path = "../storage/common" }
 test-support = { path = "../test-support" }
 tokio =  { version = "1.0", features = ["test-util"] }

@@ -6,6 +6,6 @@ talon_crate(
     unit_tests = True,
     deps = [
         "//crates/contracts:contracts",
-        "//crates/storage-common:storage_common",
+        "//crates/storage/common:storage_common",
     ],
 )

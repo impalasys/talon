@@ -1,11 +1,13 @@
 load("//crates:defs.bzl", "talon_crate")
 
 talon_crate(
-    name = "storage_dynamodb",
+    name = "storage_postgres",
     test_deps = ["//crates/test-support:test_support"],
     unit_tests = True,
     deps = [
+        "//crates/config:config",
         "//crates/contracts:contracts",
-        "//crates/storage-common:storage_common",
+        "//crates/protocol:protocol",
+        "//crates/storage/common:storage_common",
     ],
 )

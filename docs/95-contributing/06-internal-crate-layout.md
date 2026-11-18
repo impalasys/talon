@@ -67,4 +67,4 @@ packages remain independent of unpublished internal packages.
 
 - Pass 1: internal names shortened.
 - Pass 2: canonical namespaces implemented.
-- Pass 3: pending.
+- Pass 3: storage directories nested; package names and namespaces unchanged.
