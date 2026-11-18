@@ -1222,18 +1222,24 @@ impl PubSubSessionSink {
         if self.terminal_cutover.swap(true, Ordering::AcqRel) {
             return;
         }
-        // Do not let a reclaimed worker overwrite the current attempt's UI or
-        // journal. The in-memory flag still prevents this worker reporting success.
-        if Self::submission_attempt_is_current(
+        // Win the lease-fenced terminal CAS before touching the projection.
+        // A reclaimed/expired attempt cannot mark failed; once this attempt
+        // wins, a new worker cannot reclaim the terminal submission.
+        let owns_failure = match sessions::fail_submission_if_current(
             self.kv.as_ref(),
-            &self.ns,
-            &self.agent_id,
-            &self.session_id,
-            &self.submission_id,
-            &self.attempt_id,
+            &self.claim,
+            &self.current_reply_msg_id(),
+            chrono::Utc::now().timestamp_micros(),
         )
         .await
         {
+            Ok(owns_failure) => owns_failure,
+            Err(error) => {
+                tracing::error!(%error, "failed to persist terminal submission failure");
+                false
+            }
+        };
+        if owns_failure {
             let msg = data_proto::SessionMessage {
                 id: self.current_reply_msg_id(),
                 role: data_proto::MessageRole::RoleAssistant as i32,
@@ -1249,16 +1255,36 @@ impl PubSubSessionSink {
             };
             let result = async {
                 self.check_session_message_size(&msg)?;
-                self.kv.set_msg(&self.current_reply_msg_key(), &msg).await
+                let key = self.current_reply_msg_key();
+                let current = self.kv.get(&key).await?;
+                if let Some(bytes) = current.as_deref() {
+                    let stored = data_proto::SessionMessage::decode(bytes)?;
+                    if stored
+                        .labels
+                        .get(sessions::SESSION_LABEL_PROJECTION_STATE)
+                        .map(String::as_str)
+                        == Some(sessions::SESSION_PROJECTION_STATE_COMMITTED)
+                    {
+                        return Err(anyhow!(
+                            "refusing to overwrite a committed assistant projection"
+                        ));
+                    }
+                }
+                if !self
+                    .kv
+                    .compare_and_swap(&key, current.as_deref(), &msg.encode_to_vec())
+                    .await?
+                {
+                    return Err(anyhow!(
+                        "assistant projection changed during failure cutover"
+                    ));
+                }
+                Ok(())
             }
             .await;
             if let Err(error) = result {
                 tracing::error!(%error, "failed to persist compact session failure");
             }
-            // Mark failed even if storage rejected the compact projection, so
-            // the submission cannot later be committed or falsely reported done.
-            self.mark_terminal(SessionSubmissionStatus::Failed as i32)
-                .await;
             self.durable_parts.lock().unwrap().clear();
             *self.active_stream_buffer.lock().unwrap() = None;
         }
@@ -1293,6 +1319,9 @@ impl PubSubSessionSink {
         match talon::control::ProtoKeyValueStoreExt::get_msg::<SessionSubmission>(kv, &key).await {
             Ok(Some(submission)) => {
                 submission.attempt_id == attempt_id
+                    && !submission
+                        .claim_expires_at
+                        .is_some_and(|expiry| expiry <= chrono::Utc::now().timestamp_micros())
                     && !sessions::submission_is_terminal(&submission)
             }
             Ok(None) => false,
@@ -2221,6 +2250,16 @@ mod tests {
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
+            if key == &reply_key() {
+                let mut count = self.reply_set_count.lock().await;
+                *count += 1;
+                if self
+                    .fail_reply_sets_after
+                    .is_some_and(|limit| *count > limit)
+                {
+                    anyhow::bail!("injected reply write failure");
+                }
+            }
             let mut entries = self.entries.lock().await;
             let current = entries
                 .iter()
@@ -2483,6 +2522,39 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn expired_lease_and_committed_submission_cannot_be_overwritten_by_failure() {
+        for expired in [false, true] {
+            let kv = Arc::new(MockKvStore::default());
+            let sink = claimed_sink(kv.clone()).await;
+            let key = keys::session_submission("acme", "infra", "session-1", "submission-1");
+            let mut submission = kv
+                .get_msg::<data_proto::SessionSubmission>(&key)
+                .await
+                .unwrap()
+                .unwrap();
+            if expired {
+                submission.claim_expires_at = Some(1);
+            } else {
+                submission.status = data_proto::SessionSubmissionStatus::Committed as i32;
+                submission.committed_message_id = Some("reply-1".into());
+            }
+            kv.set_msg(&key, &submission).await.unwrap();
+            let original = data_proto::SessionMessage {
+                id: "reply-1".into(),
+                labels: std::collections::HashMap::from([(
+                    sessions::SESSION_LABEL_PROJECTION_STATE.into(),
+                    sessions::SESSION_PROJECTION_STATE_COMMITTED.into(),
+                )]),
+                ..Default::default()
+            };
+            kv.set_msg(&reply_key(), &original).await.unwrap();
+            sink.cutover_to_failed("late error").await;
+            assert!(sink.is_cutover_terminal());
+            assert_eq!(latest_reply_message(&kv).await, original);
+        }
+    }
+
+    #[tokio::test]
     async fn oversized_stream_projection_is_terminal_and_cannot_be_overwritten() {
         let kv = Arc::new(MockKvStore::default());
         let sink = claimed_sink(kv.clone()).await;
@@ -2533,10 +2605,7 @@ mod tests {
             .filter(|(key, _)| key.contains("/SessionJournalEntry/"))
             .map(|(_, bytes)| data_proto::SessionJournalEntry::decode(bytes.as_slice()).unwrap())
             .collect::<Vec<_>>();
-        assert!(
-            !journal.is_empty(),
-            "terminal failure must journal its commit"
-        );
+        // The failed submission tombstone is durable without a synthetic commit.
         assert!(journal
             .iter()
             .all(|entry| entry.phase != data_proto::SessionExecutionPhase::LlmResponse as i32));
