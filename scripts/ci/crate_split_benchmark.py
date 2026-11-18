@@ -110,7 +110,9 @@ def main():
               }}
     result_path = output / f"crate-split-{args.round}.json"
     nonce = uuid.uuid4().hex
-    with tempfile.TemporaryDirectory(prefix="talon-crate-split-") as directory:
+    # Repository contents caches contain read-only trees. Cleanup of this
+    # disposable VM's scratch files must not abort an otherwise valid sample.
+    with tempfile.TemporaryDirectory(prefix="talon-crate-split-", ignore_cleanup_errors=True) as directory:
         work = Path(directory)
         shared = [f"--repository_cache={work / 'downloads'}",
                   f"--repo_contents_cache={work / 'repositories'}"]
@@ -180,7 +182,7 @@ def main():
                                    stderr=subprocess.STDOUT, check=True)
                 subprocess.run(command(active, "shutdown", variant), check=True)
                 active = None
-            shutil.rmtree(work / "prefetch")
+            shutil.rmtree(work / "prefetch", ignore_errors=True)
             for variant in order:
                 checkout(variant)
                 active = work / ("output-" + variant)
@@ -207,7 +209,7 @@ def main():
                         row["verified_unaffected_binaries"] = unchanged
                     current_hashes = now
                 subprocess.run(command(active, "shutdown", variant), check=True)
-                shutil.rmtree(active)
+                shutil.rmtree(active, ignore_errors=True)
                 active = None
             report["success"] = True
         except BaseException as error:
