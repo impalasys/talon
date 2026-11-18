@@ -105,28 +105,12 @@ pub async fn prepare_steer_batch(
                     error = %error,
                     "dropping undecodable steer queue entry"
                 );
-                kv.delete(&keys::session_queue_entry(
-                    ns,
-                    agent,
-                    session_id,
-                    STEER_QUEUE,
-                    &entry_id,
-                ))
-                .await?;
+                remove_queue_entry(kv, ns, agent, session_id, STEER_QUEUE, &entry_id).await?;
                 continue;
             }
         };
-        let text_chars = message
-            .parts
-            .iter()
-            .map(|part| part.content.chars().count())
-            .sum::<usize>();
-        if !prepared.is_empty() && total_chars.saturating_add(text_chars) > max_chars {
-            break;
-        }
-        let message_id = if message.id.is_empty() {
-            let message_id = crate::control::uuid::session_message_id();
-            message.id = message_id.clone();
+        if message.id.is_empty() {
+            message.id = crate::control::uuid::session_message_id();
             if message.created_at == 0 {
                 message.created_at = now.timestamp_micros();
             }
@@ -138,32 +122,36 @@ pub async fn prepare_steer_batch(
                     part.created_at = message.created_at;
                 }
             }
-            crate::sessions::persist_promoted_session_message(
-                kv,
-                ns,
-                agent,
-                session_id,
-                &entry_id,
-                &mut message,
+        }
+        crate::sessions::persist_promoted_session_message(
+            kv,
+            ns,
+            agent,
+            session_id,
+            &entry_id,
+            &mut message,
+        )
+        .await?;
+        if !kv
+            .compare_and_swap(
+                &keys::session_queue_entry(ns, agent, session_id, STEER_QUEUE, &entry_id),
+                Some(original_bytes.as_slice()),
+                &message.encode_to_vec(),
             )
-            .await?;
-            if !kv
-                .compare_and_swap(
-                    &keys::session_queue_entry(ns, agent, session_id, STEER_QUEUE, &entry_id),
-                    Some(original_bytes.as_slice()),
-                    &message.encode_to_vec(),
-                )
-                .await?
-            {
-                // Another worker claimed and canonicalized this entry. It will
-                // either commit it or make it visible on the next attempt.
-                // Stop here so the batch stays contiguous in admission order.
-                break;
-            }
-            message.id.clone()
-        } else {
-            message.id.clone()
-        };
+            .await?
+        {
+            // Keep the batch contiguous when another worker changed the entry.
+            break;
+        }
+        let message_id = message.id.clone();
+        let text_chars = message
+            .parts
+            .iter()
+            .map(|part| part.content.chars().count())
+            .sum::<usize>();
+        if !prepared.is_empty() && total_chars.saturating_add(text_chars) > max_chars {
+            break;
+        }
         total_chars = total_chars.saturating_add(text_chars);
         prepared.push(SteeredQueuedSessionMessage {
             entry_id,
@@ -174,6 +162,21 @@ pub async fn prepare_steer_batch(
     Ok(prepared)
 }
 
+async fn remove_queue_entry(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session: &str,
+    queue: &str,
+    entry: &str,
+) -> Result<()> {
+    // Keep the mapping until the entry is gone, so a failed queue delete can
+    // still retry using the original canonical message.
+    kv.delete(&keys::session_queue_entry(ns, agent, session, queue, entry))
+        .await?;
+    crate::sessions::remove_queue_receipt(kv, ns, agent, session, entry).await
+}
+
 pub async fn commit_steer_batch(
     kv: &dyn KeyValueStore,
     ns: &str,
@@ -182,14 +185,7 @@ pub async fn commit_steer_batch(
     batch: &[SteeredQueuedSessionMessage],
 ) -> Result<()> {
     for item in batch {
-        kv.delete(&keys::session_queue_entry(
-            ns,
-            agent,
-            session_id,
-            STEER_QUEUE,
-            &item.entry_id,
-        ))
-        .await?;
+        remove_queue_entry(kv, ns, agent, session_id, STEER_QUEUE, &item.entry_id).await?;
     }
     Ok(())
 }
@@ -232,7 +228,9 @@ pub async fn commit_journaled_steer_queue_entries(
             continue;
         };
         if journaled_message_ids.contains(&message.id) {
-            kv.delete(&entry_key).await?;
+            if let Some(entry_id) = keys::direct_child_name(&prefix, &entry_key) {
+                remove_queue_entry(kv, ns, agent, session_id, STEER_QUEUE, &entry_id).await?;
+            }
         }
     }
     Ok(())
@@ -508,10 +506,7 @@ async fn publish_queued_message(
         submission_id: submission_id.clone(),
         kind: events::SessionDispatchKind::Message as i32,
     };
-    kv.delete(&keys::session_queue_entry(
-        ns, agent, session_id, queue, entry_id,
-    ))
-    .await?;
+    remove_queue_entry(kv, ns, agent, session_id, queue, entry_id).await?;
     pubsub
         .publish(topics::SESSION_DISPATCH_TOPIC, &event.encode_to_vec())
         .await?;
@@ -568,6 +563,86 @@ mod tests {
     use crate::test_support::RecordingPubSub;
     use std::sync::Arc;
     use talon::protocol::data_proto::SessionSubmission;
+
+    async fn receipt_exists(kv: &MockKvStore, entry: &str) -> bool {
+        kv.get(&keys::ResourceKey::new(
+            "Tenant:acme:Ops",
+            &[("Agent", "agent"), ("Session", "session-1")],
+            "QueuedMessageAdmission",
+            entry,
+        ))
+        .await
+        .unwrap()
+        .is_some()
+    }
+
+    #[tokio::test]
+    async fn prepared_steer_retry_reloads_canonical_edits() {
+        let kv = MockKvStore::new();
+        queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            "original",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let first = prepare_steer_batch(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            8,
+            100,
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let mut edited = first[0].message.clone();
+        edited.parts[0].content = "edited".into();
+        let key = keys::session_message("Tenant:acme:Ops", "agent", "session-1", &edited.id);
+        let raw = kv.get(&key).await.unwrap().unwrap();
+        assert!(crate::sessions::edit_admitted_session_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            &raw,
+            &edited
+        )
+        .await
+        .unwrap());
+        // A newer admission must not discard the entry's canonical mapping.
+        queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            "newer",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let retry = prepare_steer_batch(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            8,
+            100,
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(retry[0].message, edited);
+        assert_eq!(retry[0].message_id, first[0].message_id);
+    }
 
     async fn put_session(kv: &MockKvStore, status: &str) {
         kv.set_msg(
@@ -722,9 +797,13 @@ mod tests {
             .unwrap();
         assert_eq!(raw.id, batch[0].message_id);
 
+        assert!(receipt_exists(&kv, &batch[0].entry_id).await);
         commit_steer_batch(&kv, "Tenant:acme:Ops", "agent", "session-1", &batch)
             .await
             .unwrap();
+        for item in &batch {
+            assert!(!receipt_exists(&kv, &item.entry_id).await);
+        }
         assert_eq!(
             kv.list_keys(
                 &keys::session_queue_prefix("Tenant:acme:Ops", "agent", "session-1", STEER_QUEUE),
@@ -779,6 +858,8 @@ mod tests {
         .await
         .unwrap();
 
+        assert!(!receipt_exists(&kv, &batch[0].entry_id).await);
+        assert!(receipt_exists(&kv, &batch[1].entry_id).await);
         assert!(kv
             .get(&keys::session_queue_entry(
                 "Tenant:acme:Ops",
@@ -826,6 +907,13 @@ mod tests {
         )
         .await
         .unwrap();
+        let receipt_key = keys::ResourceKey::new(
+            "Tenant:acme:Ops",
+            &[("Agent", "agent"), ("Session", "session-1")],
+            "QueuedMessageAdmission",
+            malformed_id,
+        );
+        kv.set(&receipt_key, b"unused receipt").await.unwrap();
         queue_text_message(
             &kv,
             "Tenant:acme:Ops",
@@ -851,6 +939,7 @@ mod tests {
         .await
         .unwrap();
 
+        assert!(!receipt_exists(&kv, malformed_id).await);
         assert_eq!(batch.len(), 1);
         assert_eq!(batch[0].message.parts[0].content, "valid");
         assert!(kv
@@ -883,10 +972,12 @@ mod tests {
         .await
         .unwrap();
 
+        assert!(receipt_exists(&kv, &queued.entry_id).await);
         reclassify_steer_queue_to_next(&kv, "Tenant:acme:Ops", "agent", "session-1")
             .await
             .unwrap();
 
+        assert!(receipt_exists(&kv, &queued.entry_id).await);
         assert!(kv
             .get(&keys::session_queue_entry(
                 "Tenant:acme:Ops",
@@ -909,6 +1000,92 @@ mod tests {
             .await
             .unwrap()
             .is_some());
+    }
+
+    #[tokio::test]
+    async fn queued_dispatch_retry_executes_edited_canonical_payload() {
+        let kv = MockKvStore::new();
+        let pubsub = RecordingPubSub::default();
+        let queued = queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            "original",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let queue_key = keys::session_queue_entry(
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            &queued.entry_id,
+        );
+        let original: data_proto::SessionMessage = kv.get_msg(&queue_key).await.unwrap().unwrap();
+        let mut canonical = original.clone();
+        canonical.id = "canonical-before-retry".into();
+        crate::sessions::persist_promoted_session_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            &queued.entry_id,
+            &mut canonical,
+        )
+        .await
+        .unwrap();
+        let key = keys::session_message("Tenant:acme:Ops", "agent", "session-1", &canonical.id);
+        let raw = kv.get(&key).await.unwrap().unwrap();
+        canonical.parts[0].content = "edited".into();
+        assert!(crate::sessions::edit_admitted_session_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            &raw,
+            &canonical
+        )
+        .await
+        .unwrap());
+        queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            "newer",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let dispatched = publish_queued_message(
+            &kv,
+            &pubsub,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            &queued.entry_id,
+            original,
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(dispatched.message_id, canonical.id);
+        let published = pubsub.published.lock().await;
+        let (_, bytes) = published
+            .iter()
+            .find(|(topic, _)| topic == topics::SESSION_DISPATCH_TOPIC)
+            .unwrap();
+        let event = events::SessionDispatchEvent::decode(bytes.as_slice()).unwrap();
+        assert_eq!(event.message, "edited");
+        assert_eq!(event.message_id, canonical.id);
+        assert!(!receipt_exists(&kv, &queued.entry_id).await);
     }
 
     #[tokio::test]
@@ -944,6 +1121,7 @@ mod tests {
         .unwrap()
         .expect("queued message should dispatch");
 
+        assert!(!receipt_exists(kv.as_ref(), &queued.entry_id).await);
         assert!(queued.message_id.is_empty());
         assert!(!dispatched.message_id.is_empty());
         let stored_message = kv

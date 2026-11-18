@@ -6,6 +6,7 @@ use crate::talon;
 
 mod journal;
 mod message_order;
+pub(crate) use message_order::remove_queue_receipt;
 pub use message_order::{
     append_admitted_session_message, consume_user_confirmation, current_message_admission_order,
     edit_admitted_session_message, persist_admitted_session_message,

@@ -17,6 +17,13 @@ struct Receipt {
     order: u64,
     nonce: String,
 }
+#[derive(Serialize, Deserialize)]
+struct QueueReceipt {
+    #[serde(flatten)]
+    receipt: Receipt,
+    #[serde(default)]
+    canonical_id: Option<String>,
+}
 #[derive(Clone, Default, Serialize, Deserialize)]
 struct AdmissionState {
     order: u64,
@@ -284,7 +291,10 @@ pub async fn persist_queued_session_message(
     if let Some(write) = write.as_ref() {
         kv.set(
             &queue_receipt_key(ns, agent, session, entry),
-            &serde_json::to_vec(&write.receipt)?,
+            &serde_json::to_vec(&QueueReceipt {
+                receipt: write.receipt.clone(),
+                canonical_id: None,
+            })?,
         )
         .await?;
     }
@@ -304,20 +314,39 @@ pub async fn persist_promoted_session_message(
     entry: &str,
     message: &mut data_proto::SessionMessage,
 ) -> Result<()> {
-    let receipt = kv
-        .get(&queue_receipt_key(ns, agent, session, entry))
-        .await?
-        .map(|raw| serde_json::from_slice::<Receipt>(&raw))
-        .transpose()?;
+    // The per-entry mapping outlives the latest-input fence. Bind it first so
+    // retries after newer admissions still identify the same canonical input.
+    let receipt_key = queue_receipt_key(ns, agent, session, entry);
+    let mut receipt = None;
+    for attempt in 0..32 {
+        let Some(raw) = kv.get(&receipt_key).await? else {
+            break;
+        };
+        let mut queued: QueueReceipt = serde_json::from_slice(&raw)?;
+        if let Some(id) = queued.canonical_id.as_ref() {
+            message.id = id.clone();
+            receipt = Some(queued.receipt);
+            break;
+        }
+        queued.canonical_id = Some(message.id.clone());
+        if kv
+            .compare_and_swap(&receipt_key, Some(&raw), &serde_json::to_vec(&queued)?)
+            .await?
+        {
+            receipt = Some(queued.receipt);
+            break;
+        }
+        if attempt == 31 {
+            return Err(anyhow!("failed to bind queued message ID"));
+        }
+    }
     if let Some(receipt) = receipt {
         let key = state_key(ns, agent, session);
         for attempt in 0..32 {
             let (raw, mut state) = load(kv, &key).await?;
-            if state.latest.as_ref() != Some(&receipt) {
-                break;
-            }
-            if let Some(id) = state.canonical_id {
-                message.id = id;
+            if state.latest.as_ref() != Some(&receipt)
+                || state.canonical_id.as_deref() == Some(&message.id)
+            {
                 break;
             }
             state.canonical_id = Some(message.id.clone());
@@ -329,14 +358,33 @@ pub async fn persist_promoted_session_message(
             }
         }
     }
-    // Retries must not overwrite a user edit of an already materialized input.
-    kv.compare_and_swap(
-        &keys::session_message(ns, agent, session, &message.id),
-        None,
-        &message.encode_to_vec(),
-    )
-    .await?;
+    let key = keys::session_message(ns, agent, session, &message.id);
+    // The caller dispatches this value, so reusing only the ID is insufficient:
+    // a retry must execute the durable edited payload as well.
+    if !kv
+        .compare_and_swap(&key, None, &message.encode_to_vec())
+        .await?
+    {
+        *message = data_proto::SessionMessage::decode(
+            kv.get(&key)
+                .await?
+                .ok_or_else(|| anyhow!("canonical queued message disappeared"))?
+                .as_slice(),
+        )?;
+    }
     Ok(())
+}
+
+/// Call only on terminal queue removal, never when moving or retrying an entry.
+pub(crate) async fn remove_queue_receipt(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session: &str,
+    entry: &str,
+) -> Result<()> {
+    kv.delete(&queue_receipt_key(ns, agent, session, entry))
+        .await
 }
 
 /// One state read; no historical message/index scans or client timestamps.
@@ -586,7 +634,7 @@ mod tests {
         persist_promoted_session_message(&kv, "ns", "agent", "session", "entry", &mut retry)
             .await
             .unwrap();
-        assert_eq!(retry.id, "canonical");
+        assert_eq!(retry, edited);
         assert_eq!(
             kv.get_msg::<data_proto::SessionMessage>(&key)
                 .await
@@ -601,6 +649,47 @@ mod tests {
                 .is_err()
         );
         assert!(snapshot(&kv, 0).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn promotion_retry_after_newer_input_reuses_edited_canonical_payload() {
+        let kv = MockKvStore::default();
+        let mut queued = message("canonical", "original");
+        persist_queued_session_message(&kv, "ns", "agent", "session", "next", "entry", &queued)
+            .await
+            .unwrap();
+        persist_promoted_session_message(&kv, "ns", "agent", "session", "entry", &mut queued)
+            .await
+            .unwrap();
+        let key = keys::session_message("ns", "agent", "session", "canonical");
+        let edited = message("canonical", "edited");
+        let raw = kv.get(&key).await.unwrap().unwrap();
+        assert!(
+            edit_admitted_session_message(&kv, "ns", "agent", "session", &raw, &edited)
+                .await
+                .unwrap()
+        );
+        input(&kv, "newer", "cancel").await;
+        let before = kv.get(&state_key("ns", "agent", "session")).await.unwrap();
+        let mut retry = message("duplicate", "original");
+        persist_promoted_session_message(&kv, "ns", "agent", "session", "entry", &mut retry)
+            .await
+            .unwrap();
+        assert_eq!(retry, edited);
+        assert!(kv
+            .get(&keys::session_message(
+                "ns",
+                "agent",
+                "session",
+                "duplicate"
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        assert_eq!(
+            kv.get(&state_key("ns", "agent", "session")).await.unwrap(),
+            before
+        );
     }
 
     #[tokio::test]
