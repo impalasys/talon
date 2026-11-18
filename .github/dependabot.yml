@@ -1,0 +1,87 @@
+version: 2
+updates:
+  # One pnpm workspace, including ACP, docs, UI, chat, and JS SDK/examples.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      npm-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  # Workspace roots only. crates/*, tools/bazel, tools/install-hooks and the
+  # SDK workspace members must not get overlapping updater jobs.
+  - package-ecosystem: cargo
+    directories:
+      - /
+      - /sdk/rust
+      - /sdk/examples/rust
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      cargo-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: gomod
+    directories:
+      - /sdk/go/talon-client
+      - /sdk/go/talon-server
+      - /sdk/examples/go
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      go-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: pip
+    directories:
+      - /sdk/python/talon-client
+      - /sdk/python/talon-server
+      - /sdk/examples/python
+      - /tests
+      - /tools/bazel
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      python-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: gradle
+    directories:
+      - /sdk/java
+      - /sdk/examples/java
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      java-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: bazel
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      bazel-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      actions-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]

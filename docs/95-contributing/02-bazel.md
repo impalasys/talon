@@ -227,6 +227,42 @@ package assembly, and generic build actions come from `rules_pkg`, `rules_js`,
 `rules_distroless`, and `bazel_lib`. The Go gRPC generator is pinned directly in
 `MODULE.bazel`; it does not need a synthetic Go module.
 
+## Dependency update PRs
+
+Dependabot scans the root pnpm workspace, the three independent Cargo workspace
+roots, Go modules, Python SDK/example/test manifests and Bazel requirements,
+both Java Gradle projects, Bazel modules, and GitHub Actions. Workspace members
+are covered by their root job; do not add overlapping updater jobs for individual
+Rust crates or pnpm packages. Each ecosystem runs weekly with at most three open
+version-update PRs, grouping minor and patch updates. Major updates remain
+separate and require review; nothing is automatically merged.
+
+Dependabot does not run Talon's repository-specific generation steps. Before
+approving a dependency PR, inspect which manifest it changed and regenerate the
+corresponding Bazel inputs using the commands above:
+
+- Root Rust manifest changes: run `python3.11 scripts/sync_bazel_dependencies.py`,
+  then `bazel build //:binaries` and the metadata `--check` command. Commit the
+  generated `tools/bazel/Cargo.toml` and changed root/module locks. SDK workspace
+  dependency updates also require checking the SDK's Bazel dependency declarations.
+- Python requirements changes: recompile `tools/bazel/requirements.lock` with
+  the documented `uv pip compile` command. Keep `tests/requirements.txt` and the
+  Bazel requirements aligned when updating a dependency used by those tests.
+- Java changes: align the SDK Gradle versions and matching Maven artifacts in
+  `MODULE.bazel`, then repin `tools/bazel/maven_install.json`.
+- Bazel module changes: run `bazel build //:binaries` and commit any resulting
+  `MODULE.bazel.lock` changes. JavaScript updates use the root `pnpm-lock.yaml`;
+  the root updater includes workspace members such as `dockerfiles/acp`.
+
+Run `bazel test //...` and require Talon CI, including its Linux Docker/E2E tests,
+before merging. A generated-metadata freshness failure is a request to regenerate
+and commit those inputs, not to waive the check. Do not add a privileged workflow
+that executes dependency-PR code to commit lockfiles automatically.
+
+The supported ecosystem and directory behavior is documented in GitHub's
+[Dependabot ecosystem reference](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories)
+and [configuration reference](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference).
+
 ## BuildBuddy setup
 
 Create a BuildBuddy organization and an API key with cache write access. Add the
