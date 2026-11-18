@@ -4,7 +4,7 @@ sidebar:
   order: 2
 ---
 
-`cli` is the administrative entry point for common control-plane tasks.
+`talon-cli` is the administrative entry point for common control-plane tasks.
 
 ## Global flags
 

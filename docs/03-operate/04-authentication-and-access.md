@@ -101,7 +101,7 @@ TTLs and resource scopes.
 
 ## CLI auth
 
-`cli` supports:
+`talon-cli` supports:
 
 - `--token`
 - `--api-key`

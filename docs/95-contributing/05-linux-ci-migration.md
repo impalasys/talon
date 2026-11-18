@@ -131,7 +131,7 @@ keeps the legacy facade available; the final layer changes executable compositio
 | 2 | Storage and execution interfaces | `contracts` |
 | 3 | Pure manifests and workflow validation | `protocol` |
 | 4 | Configuration, security and fixtures | `config`, `security`, `test-support` |
-| 5 | Independent backend adapters | `talon-storage-*` |
+| 5 | Independent backend adapters | `storage-*` |
 | 6 | Shared control services and backend construction | `control`, `bootstrap`, `fanout` |
 | 7 | Shared authentication, sandbox and connector capabilities | `auth`, `sandbox`, `connectors` |
 | 8 | Execution/providers/tools and subprocess protocol | `harness`, `monty` |
@@ -234,7 +234,7 @@ isolation or measured build cost justifies it.
 | `identifiers` | Resource keys, paths and namespace helpers | Small leaf; no runtime, storage or generated RPC dependency |
 | `protocol` | Internal generated messages, event types and their serde hooks | No control, gateway, harness or worker implementation dependency |
 | `contracts` | Storage/pubsub interfaces, shared execution DTOs and capability interfaces | Depends on identifiers/protocol, not concrete backends or services |
-| `talon-storage-*` | SQLite/Postgres/RocksDB and cloud adapters | Depends on contracts; each backend owns only its required native/cloud dependencies |
+| `storage-*` | SQLite/Postgres/RocksDB and cloud adapters | Depends on contracts; each backend owns only its required native/cloud dependencies |
 | `harness` | Execution, providers, tools and knowledge integration | Depends on contracts/protocol; no concrete worker dependency |
 | `gateway` | RPC/HTTP serving and handlers | Uses contracts and injected capabilities instead of worker controllers |
 | `worker` | Controllers, scheduling and runtime orchestration | Uses harness/contracts/protocol; generated clients come from protocol, not gateway implementation |

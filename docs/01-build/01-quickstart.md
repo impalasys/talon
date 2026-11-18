@@ -9,7 +9,7 @@ Use this quickstart to run Talon locally with one `talon-node` process and send 
 ## Prerequisites
 
 - **[Git](https://git-scm.com/)**: clones the Talon repository and supports normal local development workflows.
-- **[Rust](https://www.rust-lang.org/tools/install)** toolchain: builds `talon-node` and `cli` from source.
+- **[Rust](https://www.rust-lang.org/tools/install)** toolchain: builds `talon-node` and `talon-cli` from source.
 - **[Protobuf](https://protobuf.dev/installation/)** compiler: compiles Talon's service, resource, event, and model definitions.
 - **[OpenAI](https://platform.openai.com/api-keys)** API key: gives the default local agent a provider to call.
 
@@ -120,7 +120,7 @@ export TALON_API_KEY="$(talon --token "$BOOTSTRAP_TOKEN" \
   | awk -F= '/^secret=/{print $2}')"
 ```
 
-`cli` reads `TALON_API_KEY` automatically.
+`talon-cli` reads `TALON_API_KEY` automatically.
 
 ## 7. Apply the default manifests
 
