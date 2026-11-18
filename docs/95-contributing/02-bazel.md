@@ -236,9 +236,10 @@ GitHub Actions, and Docker Compose images. Workspace members and included
 manifests are covered by one owner: the `/tools/bazel` pip job follows its
 `requirements.txt` include into `tests/requirements.txt`, and the Java example
 includes `../../java`. Do not add duplicate jobs for those children, individual
-Rust crates, or pnpm packages. Each ecosystem runs weekly with at most three
-open version-update PRs, grouping minor and patch updates (24 version PRs maximum
-across eight ecosystems). Major updates remain separate and require review;
+Rust crates, or pnpm packages. Each configured directory runs weekly with a
+three-PR limit for version updates, grouping minor and patch updates. A
+multi-directory block is not an ecosystem-wide PR budget: each directory can
+have its own update stream. Major updates remain separate and require review;
 nothing is automatically merged.
 
 Dependabot does not run Talon's repository-specific generation steps. Before
