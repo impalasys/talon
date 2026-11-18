@@ -285,6 +285,22 @@ impl KeyValueStore for RocksDbKvStore {
         .await
     }
 
+    async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> Result<bool> {
+        let encoded = key_bytes(key);
+        let expected = expected.to_vec();
+        let write_options = Arc::clone(&self.write_options);
+        let guard = Arc::clone(&self.write_lock).lock_owned().await;
+        self.spawn_blocking("compare_and_delete", move |db| {
+            let _guard = guard;
+            if db.get(&encoded)?.as_deref() != Some(expected.as_slice()) {
+                return Ok(false);
+            }
+            db.delete_opt(encoded, &write_options)?;
+            Ok(true)
+        })
+        .await
+    }
+
     async fn delete(&self, key: &ResourceKey) -> Result<()> {
         let encoded = key_bytes(key);
         let span = tracing::debug_span!(
@@ -537,6 +553,10 @@ mod tests {
             .await
             .unwrap());
         assert_eq!(store.get(&key).await.unwrap().as_deref(), Some(&b"v2"[..]));
+        assert!(!store.compare_and_delete(&key, b"v1").await.unwrap());
+        assert!(store.compare_and_delete(&key, b"v2").await.unwrap());
+        assert!(!store.compare_and_delete(&key, b"v2").await.unwrap());
+        assert!(store.get(&key).await.unwrap().is_none());
     }
 
     #[tokio::test]

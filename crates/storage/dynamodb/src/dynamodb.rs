@@ -227,6 +227,33 @@ impl KeyValueStore for DynamoDbKvStore {
         }
     }
 
+    async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> Result<bool> {
+        let result = self
+            .client
+            .delete_item()
+            .table_name(&self.table)
+            .set_key(Some(self.key_item(key)))
+            .condition_expression("#value = :expected")
+            .expression_attribute_names("#value", VALUE_ATTR)
+            .expression_attribute_values(
+                ":expected",
+                AttributeValue::B(Blob::new(expected.to_vec())),
+            )
+            .send()
+            .await;
+        match result {
+            Ok(_) => Ok(true),
+            Err(err)
+                if err
+                    .as_service_error()
+                    .is_some_and(|err| err.is_conditional_check_failed_exception()) =>
+            {
+                Ok(false)
+            }
+            Err(err) => Err(err.into()),
+        }
+    }
+
     async fn delete(&self, key: &ResourceKey) -> Result<()> {
         self.client
             .delete_item()

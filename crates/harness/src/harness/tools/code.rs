@@ -2471,10 +2471,7 @@ mod tests {
         .await
         .unwrap_err()
         .to_string();
-        assert!(
-            error.contains("outside the current namespace ancestry"),
-            "{error}"
-        );
+        assert!(error.contains("file namespace access denied"), "{error}");
     }
 
     #[tokio::test]

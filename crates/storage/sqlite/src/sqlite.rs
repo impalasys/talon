@@ -389,6 +389,20 @@ impl KeyValueStore for SqliteKvStore {
         Ok(rows_affected == 1)
     }
 
+    async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> Result<bool> {
+        let query = format!("{} AND value = ?5", delete_query(&self.table));
+        Ok(sqlx::query(&query)
+            .bind(&key.namespace)
+            .bind(&key.parent_path)
+            .bind(&key.kind)
+            .bind(&key.name)
+            .bind(expected)
+            .execute(&self.pool)
+            .await?
+            .rows_affected()
+            == 1)
+    }
+
     async fn delete(&self, key: &ResourceKey) -> Result<()> {
         let query = delete_query(&self.table);
         let span = tracing::debug_span!(
@@ -789,7 +803,19 @@ mod tests {
             .await
             .unwrap());
 
-        store.delete(&new_key).await.unwrap();
+        assert!(!store.compare_and_delete(&new_key, b"wrong").await.unwrap());
+        assert_eq!(
+            store.get(&new_key).await.unwrap().as_deref(),
+            Some(&b"created"[..])
+        );
+        assert!(store
+            .compare_and_delete(&new_key, b"created")
+            .await
+            .unwrap());
+        assert!(!store
+            .compare_and_delete(&new_key, b"created")
+            .await
+            .unwrap());
         assert!(store.get(&new_key).await.unwrap().is_none());
 
         store.delete(&a).await.unwrap();

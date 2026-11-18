@@ -163,6 +163,15 @@ impl KeyValueStore for MockKvStore {
         Ok(matches)
     }
 
+    async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> anyhow::Result<bool> {
+        let mut data = self.data.lock().await;
+        if data.get(key).map(Vec::as_slice) != Some(expected) {
+            return Ok(false);
+        }
+        data.remove(key);
+        Ok(true)
+    }
+
     async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
         self.data.lock().await.remove(key);
         Ok(())

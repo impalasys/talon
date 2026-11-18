@@ -452,6 +452,49 @@ impl ResourceStore {
         futures::future::try_join_all(status_fetches).await
     }
 
+    /// Delete exactly the approved resource version, without a read/delete race.
+    pub async fn delete_if_version(
+        &self,
+        namespace: &str,
+        kind: &str,
+        name: &str,
+        expected_version: &str,
+    ) -> Result<bool> {
+        let key = keys::ResourceKey::new(namespace, &[], kind, name);
+        let Some(current) = self.kv.get(&key).await? else {
+            return Ok(false);
+        };
+        let mut resource = Self::decode_stored_resource(kind, &current)?;
+        let meta = resource
+            .metadata
+            .as_mut()
+            .ok_or_else(|| anyhow!("resource metadata missing"))?;
+        if meta.resource_version != expected_version {
+            return Err(anyhow!("resourceVersion conflict for {}/{}", kind, name));
+        }
+        let change = if meta.finalizers.is_empty() {
+            if !self.kv.compare_and_delete(&key, &current).await? {
+                return Err(anyhow!("resourceVersion conflict for {}/{}", kind, name));
+            }
+            events::ResourceChangeType::Deleted
+        } else {
+            meta.deletion_timestamp = Some(chrono::Utc::now().timestamp_micros());
+            meta.resource_version = crate::control::uuid::resource_version();
+            if !self
+                .kv
+                .compare_and_swap(&key, Some(&current), &encode_stored_resource(&resource)?)
+                .await?
+            {
+                return Err(anyhow!("resourceVersion conflict for {}/{}", kind, name));
+            }
+            events::ResourceChangeType::Updated
+        };
+        self.publish_index_event(&resource, change, &key).await;
+        self.publish_changed(&resource, change, &["metadata"])
+            .await?;
+        Ok(true)
+    }
+
     pub async fn delete(&self, namespace: &str, kind: &str, name: &str) -> Result<bool> {
         let key = keys::ResourceKey::new(namespace, &[], kind, name);
         let Some(mut resource) = self.get_by_key(&key).await? else {

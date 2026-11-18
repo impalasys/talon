@@ -24,3 +24,21 @@ Prompt and message history are not a substitute for durable memory. [Skills](./s
 
 - [Skills](./skills)
 - [Sessions and Submissions](../execution-model/sessions-and-submissions)
+
+### File tool authorization and deletion
+
+The `files` capability grants actions (`read`/`inspect`, `create`, `update`,
+`delete`). File tools resolve the namespace from `uri` when supplied, otherwise
+from `namespace` (default: current). Reads also inherit access to ancestor
+namespaces. Mutations are scoped to the current namespace. Add exact namespace
+names in `capabilities.fileNamespaces` to permit additional namespaces for an
+already-granted action; wildcard strings do not grant wildcard access.
+
+`delete_file` covers all File purposes, including MEMORY. A session is required.
+The first call returns `status: confirmation_required`, `confirmationId`, and
+`requiredReply` without deleting anything. Ask the user to send that exact reply
+in a later message, then repeat the tool with `confirmation_id`. A confirmation
+expires after one hour, is single-use, and is bound to the requesting session,
+agent, namespace, path, and resource version. Any intervening File update requires
+a fresh confirmation. Deletion removes the resource metadata conditionally;
+it does not eagerly remove shared blobs or a potentially replaced latest alias.

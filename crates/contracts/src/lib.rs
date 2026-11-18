@@ -145,6 +145,16 @@ pub trait KeyValueStore: Send + Sync {
         value: &[u8],
     ) -> anyhow::Result<bool>;
 
+    /// Atomically delete a key only when its current bytes match `expected`.
+    /// Custom backends must implement this to support confirmed File deletion.
+    async fn compare_and_delete(
+        &self,
+        _key: &ResourceKey,
+        _expected: &[u8],
+    ) -> anyhow::Result<bool> {
+        anyhow::bail!("conditional deletion is unsupported by this storage backend")
+    }
+
     /// Delete a key.
     async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()>;
 

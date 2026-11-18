@@ -1251,6 +1251,414 @@ mod tests {
         namespace::skill_resource(ns, name, description)
     }
 
+    async fn append_delete_reply(
+        kv: &MockKvStore,
+        ns: &str,
+        agent: &str,
+        session: &str,
+        text: &str,
+        role: data_proto::MessageRole,
+    ) {
+        let id = talon::control::uuid::session_message_id();
+        let key = keys::ResourceKey::new(
+            ns,
+            &[("Agent", agent), ("Session", session)],
+            "SessionMessage",
+            &id,
+        );
+        kv.set_msg(
+            &key,
+            &data_proto::SessionMessage {
+                id,
+                role: role as i32,
+                created_at: chrono::Utc::now().timestamp_micros(),
+                parts: vec![data_proto::SessionMessagePart {
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
+                    content: text.to_string(),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    #[tokio::test]
+    async fn file_namespace_acl_checks_uri_and_list_before_access() {
+        let cp = control_plane(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockScheduler::default()),
+        );
+        let mut spec = file_spec(&["inspect", "read", "create", "update", "delete"]);
+        for namespace_grant in ["*", "Tenant:other:*"] {
+            spec.capabilities.insert(
+                "fileNamespaces".into(),
+                talon::protocol::protobuf_value::ListValue {
+                    values: vec![talon::protocol::protobuf_value::Value {
+                        kind: Some(ProtoValueKind::StringValue(namespace_grant.into())),
+                    }],
+                },
+            );
+            for tool in [
+                LIST_FILES_TOOL,
+                READ_FILE_TOOL,
+                GET_FILE_METADATA_TOOL,
+                CREATE_FILE_TOOL,
+                UPDATE_FILE_TOOL,
+                DELETE_FILE_TOOL,
+            ] {
+                let args = if tool == LIST_FILES_TOOL {
+                    json!({"namespace":"Tenant:other", "uri":"file://Tenant:own/ignored"})
+                } else {
+                    json!({"namespace":"Tenant:own", "uri":"file://Tenant:other/memory/test.md", "content":"denied"})
+                };
+                let error = execute_tool_for_session(
+                    &cp,
+                    "Tenant:own",
+                    "agent",
+                    "session",
+                    &spec,
+                    tool,
+                    &args,
+                    &Config::default(),
+                )
+                .await
+                .unwrap_err();
+                assert!(
+                    error.to_string().contains("file namespace access denied"),
+                    "{tool}: {error}"
+                );
+            }
+        }
+        let grant = file_spec(&["Tenant:other"])
+            .capabilities
+            .remove("files")
+            .unwrap();
+        spec.capabilities.insert("fileNamespaces".into(), grant);
+        execute_tool_for_session(&cp, "Tenant:own", "agent", "session", &spec, CREATE_FILE_TOOL,
+            &json!({"namespace":"Tenant:other", "path":"/memory/test.md", "content":"granted", "purpose":"MEMORY"}), &Config::default()).await.unwrap();
+        let read = execute_tool_for_session(
+            &cp,
+            "Tenant:own",
+            "agent",
+            "session",
+            &spec,
+            READ_FILE_TOOL,
+            &json!({"uri":"file://Tenant:other/memory/test.md"}),
+            &Config::default(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(read, "granted");
+        assert!(files::require_file_namespace_access(
+            &file_spec(&["read"]),
+            "Tenant:own:child",
+            &json!({"namespace":"Tenant:own"}),
+            true
+        )
+        .is_ok());
+        assert!(files::require_file_namespace_access(
+            &spec,
+            "Tenant:own:child",
+            &json!({"namespace":"Tenant:own"}),
+            false
+        )
+        .is_err());
+    }
+
+    #[tokio::test]
+    async fn delete_requires_later_user_reply_and_exact_version() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone(), Arc::new(MockScheduler::default()));
+        let spec = file_spec(&["create", "update", "read", "delete"]);
+        let cfg = Config::default();
+        let args = json!({"path":"/memory/test.md", "content":"first", "purpose":"MEMORY"});
+        execute_tool_for_session(
+            &cp,
+            "Tenant:own",
+            "agent",
+            "session",
+            &spec,
+            CREATE_FILE_TOOL,
+            &args,
+            &cfg,
+        )
+        .await
+        .unwrap();
+        assert!(execute_tool(
+            &cp,
+            "Tenant:own",
+            "agent",
+            &spec,
+            DELETE_FILE_TOOL,
+            &args,
+            &cfg
+        )
+        .await
+        .unwrap_err()
+        .to_string()
+        .contains("requires a session"));
+        let pending = execute_tool_for_session(
+            &cp,
+            "Tenant:own",
+            "agent",
+            "session",
+            &spec,
+            DELETE_FILE_TOOL,
+            &args,
+            &cfg,
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let pending: Value = serde_json::from_str(&pending).unwrap();
+        let confirmed =
+            json!({"path":"/memory/test.md", "confirmation_id":pending["confirmationId"]});
+        for reply in [
+            None,
+            Some(("yes", data_proto::MessageRole::RoleUser)),
+            Some((
+                pending["requiredReply"].as_str().unwrap(),
+                data_proto::MessageRole::RoleAssistant,
+            )),
+        ] {
+            if let Some((text, role)) = reply {
+                append_delete_reply(&kv, "Tenant:own", "agent", "session", text, role).await;
+            }
+            assert!(execute_tool_for_session(
+                &cp,
+                "Tenant:own",
+                "agent",
+                "session",
+                &spec,
+                DELETE_FILE_TOOL,
+                &confirmed,
+                &cfg
+            )
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("separate user message"));
+        }
+        append_delete_reply(
+            &kv,
+            "Tenant:own",
+            "agent",
+            "session",
+            pending["requiredReply"].as_str().unwrap(),
+            data_proto::MessageRole::RoleUser,
+        )
+        .await;
+        assert!(execute_tool_for_session(
+            &cp,
+            "Tenant:own",
+            "agent",
+            "other-session",
+            &spec,
+            DELETE_FILE_TOOL,
+            &confirmed,
+            &cfg
+        )
+        .await
+        .is_err());
+        execute_tool_for_session(
+            &cp,
+            "Tenant:own",
+            "agent",
+            "session",
+            &spec,
+            UPDATE_FILE_TOOL,
+            &json!({"path":"/memory/test.md", "content":"changed"}),
+            &cfg,
+        )
+        .await
+        .unwrap();
+        assert!(execute_tool_for_session(
+            &cp,
+            "Tenant:own",
+            "agent",
+            "session",
+            &spec,
+            DELETE_FILE_TOOL,
+            &confirmed,
+            &cfg
+        )
+        .await
+        .unwrap_err()
+        .to_string()
+        .contains("File version"));
+        let pending = execute_tool_for_session(
+            &cp,
+            "Tenant:own",
+            "agent",
+            "session",
+            &spec,
+            DELETE_FILE_TOOL,
+            &args,
+            &cfg,
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let pending: Value = serde_json::from_str(&pending).unwrap();
+        let confirmed =
+            json!({"path":"/memory/test.md", "confirmation_id":pending["confirmationId"]});
+        append_delete_reply(
+            &kv,
+            "Tenant:own",
+            "agent",
+            "session",
+            pending["requiredReply"].as_str().unwrap(),
+            data_proto::MessageRole::RoleUser,
+        )
+        .await;
+        let (a, b) = tokio::join!(
+            execute_tool_for_session(
+                &cp,
+                "Tenant:own",
+                "agent",
+                "session",
+                &spec,
+                DELETE_FILE_TOOL,
+                &confirmed,
+                &cfg
+            ),
+            execute_tool_for_session(
+                &cp,
+                "Tenant:own",
+                "agent",
+                "session",
+                &spec,
+                DELETE_FILE_TOOL,
+                &confirmed,
+                &cfg
+            )
+        );
+        assert_ne!(
+            a.is_ok(),
+            b.is_ok(),
+            "only one caller may consume confirmation"
+        );
+        execute_tool_for_session(
+            &cp,
+            "Tenant:own",
+            "agent",
+            "session",
+            &spec,
+            CREATE_FILE_TOOL,
+            &args,
+            &cfg,
+        )
+        .await
+        .unwrap();
+        assert!(execute_tool_for_session(
+            &cp,
+            "Tenant:own",
+            "agent",
+            "session",
+            &spec,
+            DELETE_FILE_TOOL,
+            &confirmed,
+            &cfg
+        )
+        .await
+        .is_err());
+    }
+
+    #[tokio::test]
+    async fn conditional_file_delete_preserves_replaced_version_and_expired_confirmation() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone(), Arc::new(MockScheduler::default()));
+        let spec = file_spec(&["create", "update", "delete"]);
+        let cfg = Config::default();
+        let args = json!({"path":"/test.md", "content":"one"});
+        execute_tool_for_session(
+            &cp,
+            "ns",
+            "agent",
+            "session",
+            &spec,
+            CREATE_FILE_TOOL,
+            &args,
+            &cfg,
+        )
+        .await
+        .unwrap();
+        let original = find_file_by_path(&cp, "ns", "/test.md")
+            .await
+            .unwrap()
+            .unwrap();
+        let pending = execute_tool_for_session(
+            &cp,
+            "ns",
+            "agent",
+            "session",
+            &spec,
+            DELETE_FILE_TOOL,
+            &args,
+            &cfg,
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let pending: Value = serde_json::from_str(&pending).unwrap();
+        let key = keys::ResourceKey::new(
+            "ns",
+            &[("Agent", "agent"), ("Session", "session")],
+            "DeleteConfirmation",
+            pending["confirmationId"].as_str().unwrap(),
+        );
+        let mut stored: Value =
+            serde_json::from_slice(&kv.get(&key).await.unwrap().unwrap()).unwrap();
+        stored["expires_at"] = json!(0);
+        kv.set(&key, &serde_json::to_vec(&stored).unwrap())
+            .await
+            .unwrap();
+        let err = execute_tool_for_session(
+            &cp,
+            "ns",
+            "agent",
+            "session",
+            &spec,
+            DELETE_FILE_TOOL,
+            &json!({"path":"/test.md", "confirmation_id":pending["confirmationId"]}),
+            &cfg,
+        )
+        .await
+        .unwrap_err();
+        assert!(err.to_string().contains("expired"));
+        execute_tool_for_session(
+            &cp,
+            "ns",
+            "agent",
+            "session",
+            &spec,
+            UPDATE_FILE_TOOL,
+            &json!({"path":"/test.md", "content":"two"}),
+            &cfg,
+        )
+        .await
+        .unwrap();
+        let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+        assert!(store
+            .delete_if_version(
+                "ns",
+                "File",
+                &file_name_from_file(&original),
+                &original.metadata.unwrap().resource_version
+            )
+            .await
+            .unwrap_err()
+            .to_string()
+            .contains("resourceVersion conflict"));
+        assert!(find_file_by_path(&cp, "ns", "/test.md")
+            .await
+            .unwrap()
+            .is_some());
+    }
+
     #[test]
     fn register_tools_respects_capabilities() {
         let mut registry = ToolRegistry::new();
@@ -1353,7 +1761,7 @@ mod tests {
     async fn file_tools_create_read_update_list_and_delete() {
         let kv = Arc::new(MockKvStore::default());
         let scheduler = Arc::new(MockScheduler::default());
-        let cp = control_plane(kv, scheduler);
+        let cp = control_plane(kv.clone(), scheduler);
         let spec = file_spec(&["inspect", "read", "create", "update", "delete"]);
         let namespace = "Tenant:conic:Customers:13";
         let path = "/content/pages/cGFnZToxNjY=/content.md";
@@ -1430,7 +1838,7 @@ mod tests {
         assert_eq!(list["entries"].as_array().unwrap().len(), 1);
         assert_eq!(list["entries"][0]["uri"], uri);
 
-        execute_tool_for_session(
+        let pending = execute_tool_for_session(
             &cp,
             namespace,
             "cmo",
@@ -1443,6 +1851,28 @@ mod tests {
         .await
         .expect("delete should execute")
         .expect("delete should return output");
+        let pending: Value = serde_json::from_str(&pending).unwrap();
+        append_delete_reply(
+            &kv,
+            namespace,
+            "cmo",
+            "session-1",
+            pending["requiredReply"].as_str().unwrap(),
+            data_proto::MessageRole::RoleUser,
+        )
+        .await;
+        execute_tool_for_session(
+            &cp,
+            namespace,
+            "cmo",
+            "session-1",
+            &spec,
+            DELETE_FILE_TOOL,
+            &json!({"uri": uri, "confirmation_id": pending["confirmationId"]}),
+            &Config::default(),
+        )
+        .await
+        .unwrap();
 
         let error = execute_tool_for_session(
             &cp,

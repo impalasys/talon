@@ -39,26 +39,24 @@ pub async fn list_files_tool(
     )?)
 }
 
-pub async fn read_file_tool(
+pub(super) async fn read_authorized_file_tool(
     cp: &ControlPlane,
     current_namespace: &str,
     args: &Value,
 ) -> Result<ToolOutput> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
-    ensure_file_read_namespace(current_namespace, &namespace)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
     read_file_output(cp, &file).await
 }
 
-pub async fn get_file_metadata_tool(
+pub(super) async fn get_authorized_file_metadata_tool(
     cp: &ControlPlane,
     current_namespace: &str,
     args: &Value,
 ) -> Result<String> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
-    ensure_file_read_namespace(current_namespace, &namespace)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
@@ -155,45 +153,220 @@ pub async fn update_file_tool(
 pub async fn delete_file_tool(
     cp: &ControlPlane,
     current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
     args: &Value,
 ) -> Result<String> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
-    let name = file_name_from_file(&file);
-    let latest_key = talon::control::cas::latest_file_object_key(&namespace, &path);
-    let object_key = file
-        .status
-        .as_ref()
-        .and_then(|status| status.object_ref.as_ref())
-        .map(|object| object.key.clone());
-    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
-    let deleted = store.delete(&namespace, "File", &name).await?;
-    if deleted {
-        let cas = talon::control::cas::CasStore::new(cp.objects.clone());
-        if let Err(error) = cas.delete_object(&latest_key).await {
-            tracing::warn!(
-                error = %error,
-                object_key = %latest_key,
-                "failed to delete latest File object from native tool"
-            );
-        }
-        if let Some(object_key) = object_key {
-            if let Err(error) = cas.delete_object(&object_key).await {
-                tracing::warn!(
-                    error = %error,
-                    object_key = %object_key,
-                    "failed to delete File CAS object from native tool"
-                );
-            }
-        }
+    if let Some(response) = require_delete_confirmation(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        args,
+        &namespace,
+        &path,
+        &file,
+    )
+    .await?
+    {
+        return Ok(response);
     }
+    let name = file_name_from_file(&file);
+    let version = &file
+        .metadata
+        .as_ref()
+        .ok_or_else(|| anyhow!("File metadata missing"))?
+        .resource_version;
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+    let deleted = store
+        .delete_if_version(&namespace, "File", &name, version)
+        .await?;
+    // Content-addressed blobs can be shared by readers, and the mutable latest
+    // alias can already belong to a concurrent replacement. Leave reclamation
+    // to storage retention rather than deleting either after this metadata CAS.
     Ok(serde_json::to_string_pretty(&json!({
-        "deleted": deleted,
-        "namespace": namespace,
-        "path": path,
+        "deleted": deleted, "namespace": namespace, "path": path,
     }))?)
+}
+
+const DELETE_CONFIRMATION_TTL_MICROS: i64 = 60 * 60 * 1_000_000;
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+struct PendingFileDelete {
+    target_namespace: String,
+    path: String,
+    resource_name: String,
+    resource_version: String,
+    requested_at: i64,
+    expires_at: i64,
+    required_reply: String,
+}
+
+async fn require_delete_confirmation(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+    target_namespace: &str,
+    path: &str,
+    file: &resources_proto::File,
+) -> Result<Option<String>> {
+    if current_session.trim().is_empty() {
+        return Err(anyhow!(
+            "file deletion requires a session so Talon can verify a later user confirmation"
+        ));
+    }
+    let resource_name = file_name_from_file(file);
+    let resource_version = file
+        .metadata
+        .as_ref()
+        .map(|meta| meta.resource_version.clone())
+        .unwrap_or_default();
+
+    let Some(confirmation_id) = opt_str(args, "confirmation_id") else {
+        let now = chrono::Utc::now().timestamp_micros();
+        let confirmation_id = talon::control::uuid::session_message_id();
+        let required_reply = format!(
+            "CONFIRM DELETE FILE {} [{}]",
+            file_uri(target_namespace, path),
+            confirmation_id
+        );
+        let pending = PendingFileDelete {
+            target_namespace: target_namespace.to_string(),
+            path: path.to_string(),
+            resource_name,
+            resource_version,
+            requested_at: now,
+            expires_at: now + DELETE_CONFIRMATION_TTL_MICROS,
+            required_reply: required_reply.clone(),
+        };
+        cp.kv
+            .set(
+                &delete_confirmation_key(
+                    current_namespace,
+                    current_agent,
+                    current_session,
+                    &confirmation_id,
+                ),
+                &serde_json::to_vec(&pending)?,
+            )
+            .await?;
+        return Ok(Some(serde_json::to_string_pretty(&json!({
+            "status": "confirmation_required",
+            "confirmationId": confirmation_id,
+            "namespace": target_namespace,
+            "path": path,
+            "requiredReply": required_reply,
+            "instruction": "Ask the user to send requiredReply exactly in a separate message. Do not call this delete tool again until that reply arrives."
+        }))?));
+    };
+
+    let key = delete_confirmation_key(
+        current_namespace,
+        current_agent,
+        current_session,
+        confirmation_id,
+    );
+    let pending_bytes = cp.kv.get(&key).await?.ok_or_else(|| {
+        anyhow!(
+            "delete confirmation '{}' is missing or already used",
+            confirmation_id
+        )
+    })?;
+    if pending_bytes == b"consumed" {
+        return Err(anyhow!("delete confirmation was already used"));
+    }
+    let pending: PendingFileDelete = serde_json::from_slice(&pending_bytes)?;
+    let now = chrono::Utc::now().timestamp_micros();
+    if now > pending.expires_at {
+        cp.kv.delete(&key).await?;
+        return Err(anyhow!(
+            "delete confirmation '{}' expired; start a new delete request",
+            confirmation_id
+        ));
+    }
+    if pending.target_namespace != target_namespace
+        || pending.path != path
+        || pending.resource_name != resource_name
+        || pending.resource_version != resource_version
+    {
+        return Err(anyhow!(
+            "delete confirmation '{}' does not match the exact current namespace, path, or File version",
+            confirmation_id
+        ));
+    }
+
+    let latest_user = latest_user_message(cp, current_namespace, current_agent, current_session)
+        .await?
+        .ok_or_else(|| {
+            anyhow!(
+                "delete requires a separate user message exactly: {}",
+                pending.required_reply
+            )
+        })?;
+    let latest_text = latest_user
+        .parts
+        .iter()
+        .filter(|part| part.part_type == data_proto::SessionMessagePartType::Text as i32)
+        .map(|part| part.content.as_str())
+        .collect::<String>();
+    if latest_user.created_at <= pending.requested_at
+        || latest_text.trim() != pending.required_reply
+    {
+        return Err(anyhow!(
+            "delete requires a separate user message exactly: {}",
+            pending.required_reply
+        ));
+    }
+    if !cp
+        .kv
+        .compare_and_swap(&key, Some(&pending_bytes), b"consumed")
+        .await?
+    {
+        return Err(anyhow!(
+            "delete confirmation '{}' was already used",
+            confirmation_id
+        ));
+    }
+    Ok(None)
+}
+
+fn delete_confirmation_key(
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    confirmation_id: &str,
+) -> keys::ResourceKey {
+    keys::ResourceKey::new(
+        current_namespace,
+        &[("Agent", current_agent), ("Session", current_session)],
+        "DeleteConfirmation",
+        confirmation_id,
+    )
+}
+
+async fn latest_user_message(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+) -> Result<Option<data_proto::SessionMessage>> {
+    let entries = cp
+        .kv
+        .list_entries(
+            &keys::session_message_prefix(current_namespace, current_agent, current_session),
+            None,
+        )
+        .await?;
+    Ok(entries
+        .into_iter()
+        .filter_map(|(_, bytes)| data_proto::SessionMessage::decode(bytes.as_slice()).ok())
+        .filter(|message| message.role == data_proto::MessageRole::RoleUser as i32)
+        .max_by_key(|message| message.created_at))
 }
 
 pub async fn list_files_by_filter(
@@ -618,4 +791,66 @@ pub fn parse_file_retention(value: &str) -> Result<i32> {
 
 pub fn normalize_enum_input(value: &str) -> String {
     value.trim().to_ascii_lowercase().replace(['_', ' '], "-")
+}
+
+/// Ancestry-scoped helper for internal callers without an AgentSpec.
+pub async fn read_file_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<ToolOutput> {
+    let (namespace, _) = file_location_from_args(current_namespace, args)?;
+    ensure_file_read_namespace(current_namespace, &namespace)?;
+    read_authorized_file_tool(cp, current_namespace, args).await
+}
+
+/// Ancestry-scoped helper for internal callers without an AgentSpec.
+pub async fn get_file_metadata_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<String> {
+    let (namespace, _) = file_location_from_args(current_namespace, args)?;
+    ensure_file_read_namespace(current_namespace, &namespace)?;
+    get_authorized_file_metadata_tool(cp, current_namespace, args).await
+}
+
+/// Reads retain namespace ancestry inheritance. Mutations require the current
+/// namespace or an exact explicit grant; grants never imply an action permission.
+pub(super) fn require_file_namespace_access(
+    spec: &manifests::AgentSpec,
+    current: &str,
+    args: &Value,
+    read: bool,
+) -> Result<()> {
+    let target = if opt_str(args, "uri").is_some() {
+        file_location_from_args(current, args)?.0
+    } else {
+        namespace_arg(current, args)
+    };
+    require_file_namespace(spec, current, &target, read)
+}
+
+pub(super) fn require_file_list_namespace_access(
+    spec: &manifests::AgentSpec,
+    current: &str,
+    args: &Value,
+) -> Result<()> {
+    require_file_namespace(spec, current, &namespace_arg(current, args), true)
+}
+
+fn require_file_namespace(
+    spec: &manifests::AgentSpec,
+    current: &str,
+    target: &str,
+    read: bool,
+) -> Result<()> {
+    if target == current
+        || has_capability_action(spec, "fileNamespaces", target)
+        || (read && ensure_file_read_namespace(current, target).is_ok())
+    {
+        Ok(())
+    } else {
+        Err(anyhow!("file namespace access denied for '{}'", target))
+    }
 }

@@ -137,6 +137,7 @@ pub async fn execute_tool_for_session_output(
             .map(Some)
         }
         LIST_FILES_TOOL => {
+            files::require_file_list_namespace_access(spec, current_namespace, args)?;
             require_file_read(spec)?;
             crate::harness::native_tools::files::list_files_tool(cp, current_namespace, args)
                 .await
@@ -144,19 +145,30 @@ pub async fn execute_tool_for_session_output(
                 .map(Some)
         }
         READ_FILE_TOOL => {
+            files::require_file_namespace_access(spec, current_namespace, args, true)?;
             require_file_read(spec)?;
-            crate::harness::native_tools::files::read_file_tool(cp, current_namespace, args)
-                .await
-                .map(Some)
+            crate::harness::native_tools::files::read_authorized_file_tool(
+                cp,
+                current_namespace,
+                args,
+            )
+            .await
+            .map(Some)
         }
         GET_FILE_METADATA_TOOL => {
+            files::require_file_namespace_access(spec, current_namespace, args, true)?;
             require_file_read(spec)?;
-            crate::harness::native_tools::files::get_file_metadata_tool(cp, current_namespace, args)
-                .await
-                .map(ToolOutput::text)
-                .map(Some)
+            crate::harness::native_tools::files::get_authorized_file_metadata_tool(
+                cp,
+                current_namespace,
+                args,
+            )
+            .await
+            .map(ToolOutput::text)
+            .map(Some)
         }
         CREATE_FILE_TOOL => {
+            files::require_file_namespace_access(spec, current_namespace, args, false)?;
             require_capability(spec, "files", "create")?;
             crate::harness::native_tools::files::create_file_tool(cp, current_namespace, args)
                 .await
@@ -164,6 +176,7 @@ pub async fn execute_tool_for_session_output(
                 .map(Some)
         }
         UPDATE_FILE_TOOL => {
+            files::require_file_namespace_access(spec, current_namespace, args, false)?;
             require_capability(spec, "files", "update")?;
             crate::harness::native_tools::files::update_file_tool(cp, current_namespace, args)
                 .await
@@ -171,11 +184,18 @@ pub async fn execute_tool_for_session_output(
                 .map(Some)
         }
         DELETE_FILE_TOOL => {
+            files::require_file_namespace_access(spec, current_namespace, args, false)?;
             require_capability(spec, "files", "delete")?;
-            crate::harness::native_tools::files::delete_file_tool(cp, current_namespace, args)
-                .await
-                .map(ToolOutput::text)
-                .map(Some)
+            crate::harness::native_tools::files::delete_file_tool(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                args,
+            )
+            .await
+            .map(ToolOutput::text)
+            .map(Some)
         }
         FETCH_URL_TOOL => {
             require_capability(spec, "research", "fetch_url")?;
