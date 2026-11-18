@@ -178,7 +178,7 @@ class RustIdeTest(unittest.TestCase):
         self.assertFalse((self.root / ide.STATE / 'settings-transition.json').exists())
 
     def test_interrupted_publication_restores_both_sides_of_transition(self):
-        for failure in ['settings.json', 'installed-settings.json']:
+        for failure in ['exchange', 'installed-settings.json']:
             with self.subTest(failure=failure):
                 self.prepare_restore({'existed': False, 'text': None, 'model': None})
                 settings = self.root / '.zed/settings.json'
@@ -190,7 +190,9 @@ class RustIdeTest(unittest.TestCase):
                         raise OSError('simulated interruption')
                     write_json(path, value)
 
-                with patch.object(ide, 'atomic_json', side_effect=interrupt):
+                with patch.object(ide, 'atomic_json', side_effect=interrupt), \
+                        patch.object(ide, 'exchange_files', wraps=ide.exchange_files,
+                                     side_effect=OSError('interrupted exchange') if failure == 'exchange' else None):
                     with self.assertRaises(OSError):
                         ide.publish_settings(self.root, previous, {'pilot': 'new revision'})
                 self.assertTrue((self.root / ide.STATE / 'settings-transition.json').exists())
@@ -267,6 +269,96 @@ class RustIdeTest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             ide.restore(self.root)
         self.assertEqual(settings.read_text(), '{"mine": true}')
+
+    def test_final_editor_save_is_retained_by_atomic_exchange(self):
+        self.prepare_restore({'existed': False, 'text': None, 'model': None})
+        settings = self.root / '.zed/settings.json'
+        previous = settings.read_text()
+        exchange = ide.exchange_files
+
+        def editor_save_then_exchange(first, second):
+            ide.atomic_text(second, '{"format_on_save": "on"}')
+            exchange(first, second)
+
+        with patch.object(ide, 'exchange_files', side_effect=editor_save_then_exchange):
+            with self.assertRaisesRegex(RuntimeError, 'Concurrent settings edit preserved'):
+                ide.publish_settings(self.root, previous, {'pilot': 'new'})
+        pending = json.loads((self.root / ide.STATE / 'settings-transition.json').read_text())
+        displaced = Path(pending['displaced'])
+        self.assertEqual(displaced.read_text(), '{"format_on_save": "on"}')
+        ide.restore(self.root)
+        self.assertEqual(displaced.read_text(), '{"format_on_save": "on"}')
+
+    def test_later_in_place_editor_writes_remain_in_displaced_inode(self):
+        self.prepare_restore({'existed': False, 'text': None, 'model': None})
+        settings = self.root / '.zed/settings.json'
+        with settings.open('r+') as editor:
+            ide.publish_settings(self.root, settings.read_text(), {'pilot': 'new'})
+            editor.seek(0)
+            editor.write('{"mine": true}')
+            editor.truncate()
+        displaced = list((self.root / ide.STATE).glob('replaced-settings-*.json'))
+        self.assertEqual(len(displaced), 1)
+        self.assertEqual(displaced[0].read_text(), '{"mine": true}')
+
+    def test_initial_publication_never_overwrites_new_editor_file(self):
+        self.prepare_restore({'existed': False, 'text': None, 'model': None})
+        settings = self.root / '.zed/settings.json'
+        settings.unlink()
+        link = ide.os.link
+
+        def editor_create_then_link(first, second):
+            ide.atomic_text(second, '{"mine": true}')
+            link(first, second)
+
+        with patch.object(ide.os, 'link', side_effect=editor_create_then_link):
+            with self.assertRaises(FileExistsError):
+                ide.publish_settings(self.root, None, {'pilot': True})
+        self.assertEqual(settings.read_text(), '{"mine": true}')
+
+    def test_restore_retains_editor_save_after_final_comparison(self):
+        self.prepare_restore({'existed': True, 'text': '{"original": true}', 'model': None})
+        settings = self.root / '.zed/settings.json'
+        exchange = ide.exchange_files
+
+        def editor_save_then_exchange(first, second):
+            ide.atomic_text(second, '{"mine": true}')
+            exchange(first, second)
+
+        with patch.object(ide, 'exchange_files', side_effect=editor_save_then_exchange):
+            with self.assertRaisesRegex(RuntimeError, 'Concurrent settings edit preserved'):
+                ide.restore(self.root)
+        self.assertTrue(any(p.read_text() == '{"mine": true}' for p in (self.root / ide.STATE).glob('replaced-settings-*.json')))
+
+    def test_sysroot_cache_fingerprint_invalidates_same_path_toolchain_changes(self):
+        (self.root / ide.STATE).mkdir()
+        (self.root / 'MODULE.bazel').write_text('rust 1.95.0')
+        (self.root / '.bazelversion').write_text('9.3.2')
+        library = self.root / 'library'
+        library.mkdir()
+        (library / 'Cargo.lock').write_text('old lockfile')
+        source = library / 'lib.rs'
+        source.touch()
+        project = {'sysroot': str(self.root), 'sysroot_src': str(library)}
+        model = {'crates': [{'root_module': str(source)}]}
+        with patch.object(ide, 'load_sysroot_metadata', return_value={}) as metadata, \
+                patch.object(ide, 'sysroot_model', return_value=model), \
+                patch.object(ide.subprocess, 'check_output', return_value='rustc 1.95.0') as version:
+            ide.add_sysroot(project, self.root, 'bazel', self.root)
+            ide.add_sysroot(project, self.root, 'bazel', self.root)
+            self.assertEqual(metadata.call_count, 1)
+            (self.root / 'MODULE.bazel').write_text('rust 1.96.0')
+            ide.add_sysroot(project, self.root, 'bazel', self.root)
+            self.assertEqual(metadata.call_count, 2)
+            version.return_value = 'rustc 1.96.0'
+            ide.add_sysroot(project, self.root, 'bazel', self.root)
+            self.assertEqual(metadata.call_count, 3)
+            (library / 'Cargo.lock').write_text('new lockfile')
+            ide.add_sysroot(project, self.root, 'bazel', self.root)
+            self.assertEqual(metadata.call_count, 4)
+            source.unlink()
+            ide.add_sysroot(project, self.root, 'bazel', self.root)
+            self.assertEqual(metadata.call_count, 5)
 
 
 if __name__ == '__main__':

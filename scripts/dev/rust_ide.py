@@ -2,6 +2,7 @@
 """Opt-in, machine-local Bazel project model for Zed. Cargo never compiles code."""
 import argparse
 from contextlib import contextmanager
+import ctypes
 import fcntl
 import hashlib
 import json
@@ -9,6 +10,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -50,6 +52,25 @@ def atomic_text(path, value):
 
 def atomic_json(path, value):
     atomic_text(path, json_text(value))
+
+
+def exchange_files(first, second):
+    """Atomically replace a file while retaining the exact displaced inode."""
+    libc = ctypes.CDLL(None, use_errno=True)
+    if sys.platform == 'darwin':
+        rename = libc.renamex_np
+        rename.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_uint]
+        arguments = [os.fsencode(first), os.fsencode(second), 2]  # RENAME_SWAP
+    elif sys.platform.startswith('linux'):
+        rename = libc.renameat2
+        rename.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+        arguments = [-100, os.fsencode(first), -100, os.fsencode(second), 2]  # AT_FDCWD, RENAME_EXCHANGE
+    else:
+        raise RuntimeError('Atomic settings publication requires macOS or Linux')
+    rename.restype = ctypes.c_int
+    if rename(*arguments):
+        error = ctypes.get_errno()
+        raise OSError(error, os.strerror(error), str(second))
 
 
 def read_optional(path):
@@ -172,10 +193,16 @@ def add_sysroot(project, workspace, bazel, execution_root):
     state = workspace / STATE / 'sysroot-project.json'
     root = project['sysroot_src']
     saved = json.loads(state.read_text()) if state.exists() else {}
-    if saved.get('source') != root or not saved.get('pinned_cargo'):
+    version = subprocess.check_output([str(Path(project['sysroot']) / 'bin/rustc'), '-vV'], text=True)
+    fingerprint = hashlib.sha256((workspace / 'MODULE.bazel').read_bytes() +
+                                 (workspace / '.bazelversion').read_bytes() +
+                                 (Path(root) / 'Cargo.lock').read_bytes() + version.encode()).hexdigest()
+    if (saved.get('source') != root or not saved.get('pinned_cargo') or
+            saved.get('fingerprint') != fingerprint or
+            any(not Path(c['root_module']).is_file() for c in saved.get('project', {}).get('crates', []))):
         print('Reading standard-library Cargo metadata once (no compilation)', flush=True)
         metadata = load_sysroot_metadata(project, workspace, bazel, execution_root)
-        saved = {'source': root, 'pinned_cargo': True, 'project': sysroot_model(metadata)}
+        saved = {'source': root, 'pinned_cargo': True, 'fingerprint': fingerprint, 'project': sysroot_model(metadata)}
         atomic_json(state, saved)
     project['sysroot_project'] = saved['project']
 
@@ -288,6 +315,32 @@ def check_settings(workspace, text):
         raise RuntimeError('Project settings changed since setup/refresh; save your edits and follow the documented rollback procedure')
 
 
+def settings_candidate(workspace, text):
+    with tempfile.NamedTemporaryFile('w', dir=workspace / STATE, prefix='replaced-settings-', suffix='.json', delete=False) as f:
+        replacement = Path(f.name)
+        f.write(text)
+    return replacement
+
+
+def replace_settings(settings, previous, replacement, remove=False):
+    if read_optional(settings) != previous:
+        raise RuntimeError('Project settings changed during generation; your edits were preserved')
+    settings.parent.mkdir(parents=True, exist_ok=True)
+    if remove:
+        if previous is None:
+            return
+        os.replace(settings, replacement)
+    elif previous is None:
+        # Exclusive creation cannot overwrite an editor-created settings file.
+        os.link(replacement, settings)
+    else:
+        # Never discard the exact displaced inode. Even an editor save after
+        # the comparison, or a later write via an open FD, stays recoverable.
+        exchange_files(replacement, settings)
+    if previous is not None and replacement.read_text() != previous:
+        raise RuntimeError(f'Concurrent settings edit preserved at {replacement}; follow the documented rollback procedure')
+
+
 def publish_settings(workspace, previous, configured):
     settings = workspace / '.zed/settings.json'
     state = workspace / STATE
@@ -296,10 +349,9 @@ def publish_settings(workspace, previous, configured):
         raise RuntimeError('Project settings changed during generation; your edits were preserved')
     # Journal both exact versions before either replacement. Interrupted setup or
     # refresh can then be restored even when the installed snapshot is stale.
-    atomic_json(pending, {'before': previous, 'after': json_text(configured)})
-    if read_optional(settings) != previous:
-        raise RuntimeError('Project settings changed during generation; your edits were preserved')
-    atomic_json(settings, configured)
+    replacement = settings_candidate(workspace, json_text(configured))
+    atomic_json(pending, {'before': previous, 'after': json_text(configured), 'displaced': str(replacement)})
+    replace_settings(settings, previous, replacement)
     atomic_json(state / 'installed-settings.json', configured)
     pending.unlink()
 
@@ -311,7 +363,8 @@ def restore(workspace):
     original = json.loads(backup.read_text())
     # Accept the original version too, so retrying after restoring settings but
     # before deleting the backup does not mistake our own work for a user edit.
-    if read_optional(settings) not in installed_versions(workspace) + [original['text']]:
+    previous = read_optional(settings)
+    if previous not in installed_versions(workspace) + [original['text']]:
         raise RuntimeError(f'Project settings changed since setup; save your edits and follow the documented rollback procedure (backup: {backup})')
     # Model failures must leave the settings and recovery metadata intact.
     model = workspace / 'rust-project.json'
@@ -320,10 +373,8 @@ def restore(workspace):
     else:
         model.unlink(missing_ok=True)
     (workspace / STATE / 'rust-project.json').unlink(missing_ok=True)
-    if original['existed']:
-        atomic_text(settings, original['text'])
-    else:
-        settings.unlink(missing_ok=True)
+    replacement = settings_candidate(workspace, original['text'] or '')
+    replace_settings(settings, previous, replacement, remove=not original['existed'])
     installed.unlink(missing_ok=True)
     (workspace / STATE / 'settings-transition.json').unlink(missing_ok=True)
     backup.unlink()

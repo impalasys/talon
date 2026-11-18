@@ -79,6 +79,13 @@ settings change while Bazel runs. Save those edits and use the conflict recovery
 procedure below before continuing. This prevents a later restore from silently
 discarding preferences added during the pilot.
 
+Publication uses an atomic file exchange on macOS/Linux and keeps the exact
+displaced file in `.rules_rust_analyzer/replaced-settings-*.json`. An editor save
+in the final comparison/replacement window therefore remains recoverable, as do
+later writes through an editor's already-open file descriptor. Settings and the
+state directory must share a filesystem supporting atomic exchange; unsupported
+filesystems fail without a non-atomic replacement fallback.
+
 ## Why the extra integration exists
 
 Upstream `rules_rust` setup does not provide Zed settings directly. The pilot
@@ -104,6 +111,9 @@ not needed. It caches a `sysroot_project` source graph
 and includes it in the IDE model. A toolchain change can require another explicit
 metadata query; Cargo may download missing standard-library dependency sources.
 No Cargo compilation cache is created for Talon.
+The cached graph is keyed by repository toolchain inputs, the actual Rust
+compiler version, and the standard-library lockfile. Refresh regenerates it if
+that fingerprint changes or cached dependency source files are missing.
 
 ## Validation and measurements
 
@@ -133,9 +143,10 @@ passed against the actual Zed checkout, where Zed's running server and macro
 server paths were confirmed to come from Bazel. Editor keystrokes could not be
 automated because the computer-use service could not access Zed's window.
 
-Twenty helper regression tests cover settings preservation, interrupted
+Twenty-five helper regression tests cover settings preservation, interrupted
 publication and restore retries, lifecycle locking, pinned Cargo selection,
-environment-file continuations, and unstaged BUILD-file deletions.
+environment-file continuations, unstaged BUILD-file deletions, final editor-save
+races, and same-path toolchain cache invalidation.
 
 ## Rollback
 
@@ -165,6 +176,12 @@ them. Finish rollback with these steps:
 4. Reapply only your non-pilot preferences from `edited-settings.json` to the
    restored settings, creating `.zed/settings.json` if it did not originally
    exist. Run setup again if you want to continue the pilot.
+
+If a final publication/restore race reports **Concurrent settings edit preserved
+at ...**, use that reported displaced file as your edited-settings copy in step
+1. The live file can already contain the CLI's settings. A pending transition's
+`displaced` field also identifies the captured file. Displaced snapshots remain
+after restore so your preferences can be reapplied safely.
 
 If initial setup failed before writing an installed snapshot, first reinstate
 the original settings stored in `zed-settings-backup.json`'s `text` field (or
