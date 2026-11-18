@@ -12,7 +12,7 @@ it does not provide the same automatic compiler diagnostics as `cargo check`.
 
 ## Setup and everyday use
 
-From this worktree's root, with Python 3, Bazelisk, and Cargo installed:
+From this worktree's root on macOS or Linux, with Python 3 and Bazelisk installed:
 
 ```sh
 python3 scripts/dev/rust_ide.py setup
@@ -72,6 +72,13 @@ Existing project settings must be plain JSON; unsupported JSONC fails before any
 build/model generation and is left untouched. Unrelated JSON preferences are
 preserved, and the original settings/model are backed up locally.
 
+Setup, refresh, and restore take a per-worktree lock; an overlapping command
+exits before reading or replacing the other invocation's state. Setup/refresh
+also stop if project settings differ from the last installed version, or if
+settings change while Bazel runs. Save those edits and use the conflict recovery
+procedure below before continuing. This prevents a later restore from silently
+discarding preferences added during the pilot.
+
 ## Why the extra integration exists
 
 Upstream `rules_rust` setup does not provide Zed settings directly. The pilot
@@ -91,7 +98,9 @@ macOS `-Cstrip=none` exec-Rust flag: stripped proc-macro dylibs fail to load.
 Even an explicit JSON project normally makes rust-analyzer invoke Cargo metadata
 for the standard library. To prevent this automatic call, manual setup reads
 **only the pinned standard library's metadata**, once per sysroot, without running
-Cargo build/check or build scripts. It caches a `sysroot_project` source graph
+Cargo build/check or build scripts. The helper resolves Cargo from Bazel's Rust
+toolchain and verifies that its version matches the IDE sysroot; host Cargo is
+not needed. It caches a `sysroot_project` source graph
 and includes it in the IDE model. A toolchain change can require another explicit
 metadata query; Cargo may download missing standard-library dependency sources.
 No Cargo compilation cache is created for Talon.
@@ -124,6 +133,10 @@ passed against the actual Zed checkout, where Zed's running server and macro
 server paths were confirmed to come from Bazel. Editor keystrokes could not be
 automated because the computer-use service could not access Zed's window.
 
+Twenty helper regression tests cover settings preservation, interrupted
+publication and restore retries, lifecycle locking, pinned Cargo selection,
+environment-file continuations, and unstaged BUILD-file deletions.
+
 ## Rollback
 
 ```sh
@@ -134,6 +147,27 @@ python3 .rules_rust_analyzer/rust_ide.py restore
 
 Run one command. Restore reinstates the original project settings and original
 root model (or removes the generated model if none existed), allowing normal
-Cargo discovery again. It refuses to overwrite project settings edited since
-the last setup/refresh; in that case merge the local backup manually. Bazel's
-cache and the machine-local state directory remain available for a later pilot.
+Cargo discovery again. Settings publication records a pending transition so
+restore can recognize either CLI-written version after interruption. Model
+cleanup happens before settings restoration; if cleanup fails, fix the reported
+filesystem problem and rerun restore. Bazel's cache and the machine-local state
+directory remain available for a later pilot.
+
+If project settings were edited after setup/refresh, restore refuses to overwrite
+them. Finish rollback with these steps:
+
+1. Save your edited settings separately:
+   `cp .zed/settings.json .rules_rust_analyzer/edited-settings.json`.
+2. Put the exact installed snapshot back:
+   `cp .rules_rust_analyzer/installed-settings.json .zed/settings.json`.
+3. Run `python3 scripts/dev/rust_ide.py restore` (or the installed helper above).
+   This also cleans up generated models so Cargo discovery can resume.
+4. Reapply only your non-pilot preferences from `edited-settings.json` to the
+   restored settings, creating `.zed/settings.json` if it did not originally
+   exist. Run setup again if you want to continue the pilot.
+
+If initial setup failed before writing an installed snapshot, first reinstate
+the original settings stored in `zed-settings-backup.json`'s `text` field (or
+remove `.zed/settings.json` if its `existed` field is false), then rerun restore
+and reapply your saved non-pilot preferences. Keep the original backup and any
+`settings-transition.json` until restore succeeds.

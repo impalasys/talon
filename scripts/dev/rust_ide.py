@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Opt-in, machine-local Bazel project model for Zed. Cargo never compiles code."""
 import argparse
+from contextlib import contextmanager
+import fcntl
 import hashlib
 import json
 import os
@@ -27,13 +29,46 @@ def run(command, workspace, capture=False):
                           stdout=subprocess.PIPE if capture else None).stdout
 
 
-def atomic_json(path, value):
+def json_text(value):
+    return json.dumps(value, indent=2) + '\n'
+
+
+def atomic_text(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile('w', dir=path.parent, delete=False) as f:
-        json.dump(value, f, indent=2)
-        f.write('\n')
         temporary = Path(f.name)
-    temporary.replace(path)
+        try:
+            f.write(value)
+        except BaseException:
+            temporary.unlink(missing_ok=True)
+            raise
+    try:
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def atomic_json(path, value):
+    atomic_text(path, json_text(value))
+
+
+def read_optional(path):
+    return path.read_text() if path.exists() else None
+
+
+@contextmanager
+def worktree_lock(workspace):
+    state = workspace / STATE
+    state.mkdir(exist_ok=True)
+    with (state / 'lifecycle.lock').open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise RuntimeError('Another Rust IDE command is running in this worktree') from None
+        try:
+            yield
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)
 
 
 def protect_generated(workspace):
@@ -51,13 +86,24 @@ def protect_generated(workspace):
 
 def parse_env(path):
     result = {}
+    record = ''
     for line in path.read_text().splitlines():
         if not line:
             continue
-        name, separator, value = line.partition('=')
+        # Match rules_rust's process wrapper: odd trailing backslashes retain a
+        # newline and continue; each pair becomes one literal backslash.
+        count = len(line) - len(line.rstrip('\\'))
+        record += line.rstrip('\\') + '\\' * (count // 2)
+        if count % 2:
+            record += '\n'
+            continue
+        name, separator, value = record.partition('=')
         if not separator:
             raise ValueError(f'Unsupported environment-file record in {path}')
         result[name] = value
+        record = ''
+    if record:
+        raise ValueError(f'Unterminated environment-file continuation in {path}')
     return result
 
 
@@ -66,7 +112,7 @@ def package_scope(workspace):
     files = run(['git', 'ls-files', '-co', '--exclude-standard', '-z', '--',
                  'BUILD', 'BUILD.bazel', '**/BUILD', '**/BUILD.bazel'], workspace, True)
     packages = sorted({'//' + (str(Path(p).parent) if Path(p).parent != Path('.') else '') + ':all'
-                       for p in files.split('\0') if p})
+                       for p in files.split('\0') if p and (workspace / p).is_file()})
     if not packages:
         raise RuntimeError('No Git-visible Bazel packages found')
     return 'set(' + ' '.join(json.dumps(p) for p in packages) + ')'
@@ -102,19 +148,34 @@ def sysroot_model(metadata):
     return {'crates': crates}
 
 
-def add_sysroot(project, workspace):
+def load_sysroot_metadata(project, workspace, bazel, execution_root):
+    # Resolve Cargo from the same Bazel Rust toolchain, never from the host PATH.
+    target = '@rules_rust//rust/toolchain:current_rust_toolchain'
+    run([bazel, 'build', target], workspace)
+    relative = run([bazel, 'cquery', target, '--output=starlark',
+                    '--starlark:expr=providers(target)["ToolchainInfo"].cargo.path'], workspace, True).strip()
+    cargo = str(execution_root / relative)
+    rustc = str(Path(project['sysroot']) / 'bin/rustc')
+    rust_version = subprocess.check_output([rustc, '-vV'], text=True)
+    cargo_version = subprocess.check_output([cargo, '--version'], text=True)
+    if rust_version.split()[1] != cargo_version.split()[1]:
+        raise RuntimeError('Bazel Cargo and Rust IDE sysroot versions must match')
+    host = rust_version.split('host: ')[1].splitlines()[0]
+    env = dict(os.environ, RUSTC=rustc, RUSTC_WRAPPER='', RUSTC_WORKSPACE_WRAPPER='', RUSTC_BOOTSTRAP='1')
+    return json.loads(subprocess.check_output(
+        [cargo, 'metadata', '--format-version=1', '--locked', '--filter-platform', host,
+         '--manifest-path', project['sysroot_src'] + '/Cargo.toml'],
+        cwd=workspace, env=env, text=True))
+
+
+def add_sysroot(project, workspace, bazel, execution_root):
     state = workspace / STATE / 'sysroot-project.json'
     root = project['sysroot_src']
     saved = json.loads(state.read_text()) if state.exists() else {}
-    if saved.get('source') != root:
-        rustc = str(Path(project['sysroot']) / 'bin/rustc')
-        host = subprocess.check_output([rustc, '-vV'], text=True).split('host: ')[1].splitlines()[0]
-        env = dict(os.environ, RUSTC=rustc, RUSTC_WRAPPER='', RUSTC_WORKSPACE_WRAPPER='', RUSTC_BOOTSTRAP='1')
+    if saved.get('source') != root or not saved.get('pinned_cargo'):
         print('Reading standard-library Cargo metadata once (no compilation)', flush=True)
-        metadata = subprocess.check_output(['cargo', 'metadata', '--format-version=1', '--locked',
-                                           '--filter-platform', host, '--manifest-path', root + '/Cargo.toml'],
-                                          cwd=workspace, env=env, text=True)
-        saved = {'source': root, 'project': sysroot_model(json.loads(metadata))}
+        metadata = load_sysroot_metadata(project, workspace, bazel, execution_root)
+        saved = {'source': root, 'pinned_cargo': True, 'project': sysroot_model(metadata)}
         atomic_json(state, saved)
     project['sysroot_project'] = saved['project']
 
@@ -197,7 +258,7 @@ def refresh(workspace, bazel, config, setup=False):
         raise RuntimeError('Environment files not materialized: ' + ', '.join(missing))
     path = workspace / 'rust-project.json'
     project = finish_model(json.loads(path.read_text()), records, workspace, execution_root)
-    add_sysroot(project, workspace)
+    add_sysroot(project, workspace, bazel, execution_root)
     atomic_json(path, project)
     atomic_json(state / 'rust-project.json', project)
     atomic_json(state / 'project-state.json', {'workspace': str(workspace), 'config': config, 'roots': labels,
@@ -205,25 +266,67 @@ def refresh(workspace, bazel, config, setup=False):
     return json.loads(tools_path.read_text())
 
 
+def installed_versions(workspace):
+    state = workspace / STATE
+    versions = []
+    installed = state / 'installed-settings.json'
+    if installed.exists():
+        versions.append(installed.read_text())
+    pending = state / 'settings-transition.json'
+    if pending.exists():
+        transition = json.loads(pending.read_text())
+        versions.extend([transition['before'], transition['after']])
+    return versions
+
+
+def check_settings(workspace, text):
+    versions = installed_versions(workspace)
+    backup = workspace / STATE / 'zed-settings-backup.json'
+    if not versions and backup.exists():
+        versions.append(json.loads(backup.read_text())['text'])
+    if versions and text not in versions:
+        raise RuntimeError('Project settings changed since setup/refresh; save your edits and follow the documented rollback procedure')
+
+
+def publish_settings(workspace, previous, configured):
+    settings = workspace / '.zed/settings.json'
+    state = workspace / STATE
+    pending = state / 'settings-transition.json'
+    if read_optional(settings) != previous:
+        raise RuntimeError('Project settings changed during generation; your edits were preserved')
+    # Journal both exact versions before either replacement. Interrupted setup or
+    # refresh can then be restored even when the installed snapshot is stale.
+    atomic_json(pending, {'before': previous, 'after': json_text(configured)})
+    if read_optional(settings) != previous:
+        raise RuntimeError('Project settings changed during generation; your edits were preserved')
+    atomic_json(settings, configured)
+    atomic_json(state / 'installed-settings.json', configured)
+    pending.unlink()
+
+
 def restore(workspace):
     settings = workspace / '.zed/settings.json'
     backup = workspace / STATE / 'zed-settings-backup.json'
     installed = workspace / STATE / 'installed-settings.json'
-    if installed.exists() and (not settings.exists() or settings.read_text() != installed.read_text()):
-        raise RuntimeError(f'Project settings changed since setup; merge the backup at {backup} manually')
     original = json.loads(backup.read_text())
-    if original['existed']:
-        settings.write_text(original['text'])
-    else:
-        settings.unlink(missing_ok=True)
+    # Accept the original version too, so retrying after restoring settings but
+    # before deleting the backup does not mistake our own work for a user edit.
+    if read_optional(settings) not in installed_versions(workspace) + [original['text']]:
+        raise RuntimeError(f'Project settings changed since setup; save your edits and follow the documented rollback procedure (backup: {backup})')
+    # Model failures must leave the settings and recovery metadata intact.
     model = workspace / 'rust-project.json'
     if original.get('model') is not None:
-        model.write_text(original['model'])
+        atomic_text(model, original['model'])
     else:
         model.unlink(missing_ok=True)
     (workspace / STATE / 'rust-project.json').unlink(missing_ok=True)
-    backup.unlink()
+    if original['existed']:
+        atomic_text(settings, original['text'])
+    else:
+        settings.unlink(missing_ok=True)
     installed.unlink(missing_ok=True)
+    (workspace / STATE / 'settings-transition.json').unlink(missing_ok=True)
+    backup.unlink()
 
 
 def main():
@@ -234,6 +337,12 @@ def main():
     parser.add_argument('--config', help='One Bazel configuration; define a combined config in .bazelrc.local if needed')
     args = parser.parse_args()
     workspace = (args.workspace or Path(run(['git', 'rev-parse', '--show-toplevel'], Path.cwd(), True).strip())).resolve()
+    protect_generated(workspace)
+    with worktree_lock(workspace):
+        execute(args, workspace)
+
+
+def execute(args, workspace):
     settings = workspace / '.zed/settings.json'
     backup = workspace / STATE / 'zed-settings-backup.json'
     if args.command == 'restore':
@@ -243,8 +352,9 @@ def main():
     if args.command == 'refresh' and not backup.exists():
         raise RuntimeError('Run setup before refresh')
     # Refuse an unsupported settings format before doing any generation.
-    existing_text = settings.read_text() if settings.exists() else None
+    existing_text = read_optional(settings)
     existing = json.loads(existing_text) if existing_text is not None else {}
+    check_settings(workspace, existing_text)
     if args.command == 'setup' and not backup.exists():
         protect_generated(workspace)
         model = workspace / 'rust-project.json'
@@ -260,15 +370,14 @@ def main():
     # loading the newly published graph without an extra editor command.
     log_file = workspace / STATE / 'logs' / f'{time.time_ns()}.log'
     log_file.parent.mkdir(exist_ok=True)
+    configured = zed_settings(existing, workspace, tools, log_file)
+    publish_settings(workspace, existing_text, configured)
     latest = workspace / STATE / 'zed-rust-analyzer.log'
     latest.unlink(missing_ok=True)
     latest.symlink_to(Path('logs') / log_file.name)
-    configured = zed_settings(existing, workspace, tools, log_file)
-    atomic_json(settings, configured)
-    atomic_json(workspace / STATE / 'installed-settings.json', configured)
     local_helper = workspace / STATE / 'rust_ide.py'
     if Path(__file__).resolve() != local_helper.resolve():
-        shutil.copyfile(__file__, local_helper)
+        atomic_text(local_helper, Path(__file__).read_text())
     print('Installed Talon-only Bazel-backed Zed settings; compiler checks are explicit Bazel commands')
 
 
