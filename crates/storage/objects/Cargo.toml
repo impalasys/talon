@@ -17,13 +17,13 @@ serde_json =  "1.0"
 time =  "0.3"
 tokio =  { version = "1.0", features = ["full"] }
 urlencoding =  "2.1"
-contracts = { path = "../contracts" }
-protocol = { path = "../protocol" }
-storage-memory = { path = "../storage-memory" }
+contracts = { path = "../../contracts" }
+protocol = { path = "../../protocol" }
+storage-memory = { path = "../memory" }
 
 [dev-dependencies]
 aws-smithy-runtime-api =  "1.11"
 aws-smithy-types =  "1.4"
-test-support = { path = "../test-support" }
+test-support = { path = "../../test-support" }
 tempfile =  "3.0"
 tokio =  { version = "1.0", features = ["test-util"] }

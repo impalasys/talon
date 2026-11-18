@@ -1,12 +1,12 @@
 load("//crates:defs.bzl", "talon_crate")
 
 talon_crate(
-    name = "storage_objects",
+    name = "storage_sqlite",
     test_deps = ["//crates/test-support:test_support"],
     unit_tests = True,
     deps = [
         "//crates/contracts:contracts",
         "//crates/protocol:protocol",
-        "//crates/storage-memory:storage_memory",
+        "//crates/storage/common:storage_common",
     ],
 )

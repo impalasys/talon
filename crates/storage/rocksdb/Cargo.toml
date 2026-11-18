@@ -12,10 +12,10 @@ rocksdb =  { version = "0.24", default-features = false, features = ["lz4", "bin
 time =  "0.3"
 tokio =  { version = "1.0", features = ["full"] }
 tracing =  "0.1"
-contracts = { path = "../contracts" }
-storage-common = { path = "../storage-common" }
+contracts = { path = "../../contracts" }
+storage-common = { path = "../common" }
 
 [dev-dependencies]
-test-support = { path = "../test-support" }
+test-support = { path = "../../test-support" }
 tempfile =  "3.0"
 tokio =  { version = "1.0", features = ["test-util"] }

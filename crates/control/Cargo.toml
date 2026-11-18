@@ -33,7 +33,7 @@ fanout = { path = "../fanout" }
 identifiers = { path = "../identifiers" }
 protocol = { path = "../protocol" }
 security = { path = "../security" }
-storage-memory = { path = "../storage-memory" }
+storage-memory = { path = "../storage/memory" }
 
 [dev-dependencies]
 rand =  "0.10"

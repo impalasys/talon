@@ -11,8 +11,8 @@ async-trait =  "0.1"
 aws-config =  "1.8"
 aws-sdk-dynamodb =  { version = "1.103" }
 urlencoding =  "2.1"
-contracts = { path = "../contracts" }
-storage-common = { path = "../storage-common" }
+contracts = { path = "../../contracts" }
+storage-common = { path = "../common" }
 
 [dev-dependencies]
-test-support = { path = "../test-support" }
+test-support = { path = "../../test-support" }

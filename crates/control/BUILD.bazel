@@ -16,6 +16,6 @@ talon_crate(
         "//crates/identifiers:identifiers",
         "//crates/protocol:protocol",
         "//crates/security:security",
-        "//crates/storage-memory:storage_memory",
+        "//crates/storage/memory:storage_memory",
     ],
 )
