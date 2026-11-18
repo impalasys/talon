@@ -10,6 +10,8 @@
 //! argument. This module must therefore be runnable before any host runtime,
 //! configuration, telemetry, or secret initialization happens.
 
+pub(crate) mod talon;
+
 use std::{env, ffi::OsStr, io, panic};
 
 use monty_proto::{

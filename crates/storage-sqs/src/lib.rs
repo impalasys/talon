@@ -1,16 +1,18 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::contracts::MessagePublisher;
+pub(crate) mod talon;
+
 use anyhow::{anyhow, Result};
 use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_sqs::{config::Credentials, types::MessageAttributeValue, Client};
 use base64::{engine::general_purpose, Engine as _};
 use std::pin::Pin;
 use std::sync::Arc;
+use talon::contracts::MessagePublisher;
 use tokio::sync::RwLock;
 
-pub use ::contracts::pubsub::TALON_TOPIC_ATTRIBUTE;
+pub use talon::contracts::pubsub::TALON_TOPIC_ATTRIBUTE;
 
 // Default SQS queue name for all durable Talon worker-delivered messages.
 const DEFAULT_QUEUE_NAME: &str = "talon";
@@ -196,6 +198,9 @@ fn queue_name_for_config(value: String) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{configured_i32, queue_name_for_config};
 
     #[test]

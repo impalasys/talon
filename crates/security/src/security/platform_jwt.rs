@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
 use jsonwebtoken::{
@@ -185,6 +188,9 @@ fn validate_rsa_modulus_bits(jwk: &Jwk) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use serde::{Deserialize, Serialize};
 
@@ -326,4 +332,4 @@ GstIYNA4dYolNw==
     }
 }
 
-pub use ::contracts::auth::*;
+pub use talon::contracts::auth::*;

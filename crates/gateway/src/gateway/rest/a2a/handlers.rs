@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use std::convert::Infallible;
 use std::sync::Arc;
 
@@ -19,11 +22,11 @@ use crate::gateway::auth;
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::rpc::sessions::watcher::SessionStreamTarget;
 use crate::gateway::server::Gateway;
-use ::control::control::events::SessionMessagePartEventKind;
-use ::control::control::keys;
-use ::control::control::scheduling;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::data_proto;
+use talon::control::events::SessionMessagePartEventKind;
+use talon::control::keys;
+use talon::control::scheduling;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::data_proto;
 
 use super::card::{
     agent_card_json, external_host_from_headers, resolve_agent_card_route, scheme_from_headers,
@@ -456,7 +459,7 @@ pub async fn list_tasks(
         };
         let Ok(Some(session)) = gateway
             .kv
-            .get_msg::<::protocol::data_proto::Session>(&key)
+            .get_msg::<talon::protocol::data_proto::Session>(&key)
             .await
         else {
             continue;
@@ -715,7 +718,7 @@ fn a2a_stream_status_update_value(
                 "status": {
                     "state": state,
                     "message": {
-                        "messageId": ::control::control::uuid::session_message_id(),
+                        "messageId": talon::control::uuid::session_message_id(),
                         "contextId": context_id,
                         "taskId": task_id,
                         "role": "ROLE_AGENT",

@@ -1,15 +1,17 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::contracts::keys::ResourceKey;
+#[allow(unused_imports)]
+use crate::talon;
 
-use ::contracts::keys::ResourceList;
+use talon::contracts::keys::ResourceKey;
 
-use ::contracts::KeyValueStore;
+use talon::contracts::keys::ResourceList;
 
-use ::contracts::ListOptions;
+use talon::contracts::KeyValueStore;
 
-use ::contracts::Order;
+use talon::contracts::ListOptions;
+
 use anyhow::{anyhow, bail, Context, Result};
 use async_trait::async_trait;
 use sqlx::{
@@ -23,13 +25,14 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+use talon::contracts::Order;
 use tokio_util::task::AbortOnDropHandle;
 use tracing::{field, Instrument, Span};
 
 use super::shared::{quoted_identifier, validate_identifier};
 
 pub fn postgres_credential_provider(
-    config: &::config::proto::DatabaseConfig,
+    config: &talon::config::proto::DatabaseConfig,
 ) -> anyhow::Result<Arc<dyn CredentialProvider>> {
     match config.auth_mode.as_str() {
         "" | AUTH_MODE_PASSWORD => Ok(Arc::new(PasswordCredentialProvider)),
@@ -896,6 +899,9 @@ impl KeyValueStore for PostgresKvStore {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         compare_and_swap_query, connect_postgres_pool, create_table_statement, delete_query,
         get_query, iam_options, list_entries_query, list_keys_query, next_refresh_retry,
@@ -903,12 +909,6 @@ mod tests {
         spawn_credential_refresh, CredentialProvider, DatabaseCredential, PostgresKvStore,
         IAM_TOKEN_REFRESH, REFRESH_RETRY_INITIAL,
     };
-    use ::config::proto;
-    use ::contracts::keys;
-    use ::contracts::KeyValueStore;
-    use ::contracts::ListOptions;
-    use ::test_support::docker_test_guard;
-    use ::test_support::PostgresContainer;
     use anyhow::{anyhow, Result};
     use async_trait::async_trait;
     use sqlx::postgres::{PgConnectOptions, PgPoolOptions, PgSslMode};
@@ -918,6 +918,12 @@ mod tests {
         Arc,
     };
     use std::time::Duration;
+    use talon::config::proto;
+    use talon::contracts::keys;
+    use talon::contracts::KeyValueStore;
+    use talon::contracts::ListOptions;
+    use talon::test_support::docker_test_guard;
+    use talon::test_support::PostgresContainer;
 
     #[test]
     fn sql_builders_use_expected_table_and_clauses() {
@@ -954,7 +960,7 @@ mod tests {
         assert_eq!(
             super::super::legacy::namespaced_key("talon-system:ns", "Namespace/quickstart")
                 .unwrap(),
-            ::contracts::keys::namespace_metadata("quickstart").canonical()
+            talon::contracts::keys::namespace_metadata("quickstart").canonical()
         );
         assert_eq!(
             super::super::legacy::namespaced_key(
@@ -962,7 +968,7 @@ mod tests {
                 "NamespaceRef/quickstart"
             )
             .unwrap(),
-            ::contracts::keys::namespace_ref(None, "quickstart").canonical()
+            talon::contracts::keys::namespace_ref(None, "quickstart").canonical()
         );
     }
 

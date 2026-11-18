@@ -1,16 +1,19 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::harness::memory::context::MemoryContext;
 use anyhow::Result;
 use std::sync::Arc;
 
 pub struct KvMemoryStore {
-    pub kv: Arc<dyn ::control::control::KeyValueStore>,
+    pub kv: Arc<dyn talon::control::KeyValueStore>,
 }
 
 impl KvMemoryStore {
-    pub fn new(kv: Arc<dyn ::control::control::KeyValueStore>) -> Self {
+    pub fn new(kv: Arc<dyn talon::control::KeyValueStore>) -> Self {
         Self { kv }
     }
 }
@@ -70,7 +73,7 @@ impl MemoryStore for KvMemoryStore {
 
     async fn save_memory(&self, ns: &str, agent: &str, path: &str, content: &str) -> Result<()> {
         // Unify with the Gateway's layout structure defined by 'keys::agent_memory'
-        let key = ::control::control::keys::agent_memory(ns, agent, path);
+        let key = talon::control::keys::agent_memory(ns, agent, path);
         self.kv.set(&key, content.as_bytes()).await?;
         Ok(())
     }

@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{Context, Result};
 use serde_json::json;
 
@@ -8,7 +11,7 @@ use super::Cli;
 use crate::cli::connect_gateway;
 use crate::cli::resource_lookup_target;
 use crate::cli::to_internal_resource;
-use ::protocol::resources_proto;
+use talon::protocol::resources_proto;
 use talon_client::v1::{GetResourceRequest, ListNamespacesRequest, ListResourcesRequest};
 
 #[derive(clap::Args)]
@@ -80,7 +83,7 @@ enum ResourceListTarget {
 
 fn resource_list_target(kind: &str, namespace: Option<&String>) -> Result<ResourceListTarget> {
     let ns_or_default = || namespace.cloned().unwrap_or_else(|| "default".to_string());
-    let system_ns = || ::identifiers::ns::TALON_SYSTEM.to_string();
+    let system_ns = || talon::identifiers::ns::TALON_SYSTEM.to_string();
     match kind.to_lowercase().as_str() {
         "resource" | "resources" | "all" => Ok(ResourceListTarget::Resources {
             ns: ns_or_default(),
@@ -135,7 +138,7 @@ async fn get_yaml(cli: &Cli, kind: &str, name: &str, namespace: Option<&String>)
         })?;
     let resource = resp.into_inner().resource.context("Resource not found.")?;
     let resource = to_internal_resource(&resource)?;
-    ::protocol::manifest::render_resource_yaml(&resource)
+    talon::protocol::manifest::render_resource_yaml(&resource)
 }
 
 async fn get_json(
@@ -380,7 +383,7 @@ fn resources_list_json(resources: Vec<resources_proto::Resource>) -> Result<serd
 }
 
 fn resource_manifest_json(resource: &resources_proto::Resource) -> Result<serde_json::Value> {
-    let yaml = ::protocol::manifest::render_resource_yaml(resource)?;
+    let yaml = talon::protocol::manifest::render_resource_yaml(resource)?;
     let yaml_value: serde_yaml::Value =
         serde_yaml::from_str(&yaml).context("Failed to parse rendered resource YAML")?;
     serde_json::to_value(yaml_value).context("Failed to convert rendered resource YAML to JSON")
@@ -487,6 +490,9 @@ fn render_table(rows: Vec<Vec<String>>) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use std::collections::HashMap;
 

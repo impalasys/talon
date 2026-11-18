@@ -1,16 +1,19 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::sandbox::ResourceRefJson;
 use crate::sandbox::SandboxBackend;
 use crate::sandbox::SandboxClassSpecJson;
 use crate::sandbox::SandboxPolicySpecJson;
 use crate::sandbox::SandboxPolicyTemplateJson;
 use crate::sandbox::SandboxQuotaJson;
-use ::control::control::ns;
-use ::control::control::resources::ResourceStore;
-use ::protocol::resources_proto;
 use anyhow::{anyhow, Result};
+use talon::control::ns;
+use talon::control::resources::ResourceStore;
+use talon::protocol::resources_proto;
 
 pub struct SandboxController<B> {
     store: ResourceStore,
@@ -122,7 +125,7 @@ impl<B: SandboxBackend> SandboxLeaseService<B> {
         namespace: &str,
         policy_name: &str,
     ) -> Result<resources_proto::Resource> {
-        for candidate in ::control::control::ns::ancestry(namespace) {
+        for candidate in talon::control::ns::ancestry(namespace) {
             if let Some(policy) = self
                 .store
                 .get(&candidate, "SandboxPolicy", policy_name)
@@ -189,7 +192,7 @@ impl<B: SandboxBackend> SandboxLeaseService<B> {
         agent: &str,
         session_id: &str,
     ) -> Result<LeasedSandbox> {
-        let token = ::control::control::uuid::v7();
+        let token = talon::control::uuid::v7();
         let leased = self
             .update_sandbox_status(&sandbox, |status| {
                 let now = chrono::Utc::now().timestamp_micros();
@@ -352,7 +355,7 @@ impl<B: SandboxBackend> SandboxController<B> {
             .metadata
             .as_ref()
             .ok_or_else(|| anyhow!("SandboxPolicy metadata is required"))?;
-        let name = ::control::control::uuid::unique_name(&policy_meta.name);
+        let name = talon::control::uuid::unique_name(&policy_meta.name);
         let sandbox = resources_proto::Resource {
             api_version: policy.api_version.clone(),
             kind: "Sandbox".to_string(),
@@ -510,6 +513,9 @@ fn sandbox_runtime_template_value(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{SandboxController, SandboxLeaseService};
     use crate::sandbox::DockerSandboxBackend;
     use crate::sandbox::MockSandboxBackend;
@@ -517,10 +523,10 @@ mod tests {
     use crate::test_support::docker_test_guard;
     use crate::test_support::MockKvStore;
     use crate::test_support::RecordingPubSub;
-    use ::control::control::resources::ResourceStore;
-    use ::protocol::resources_proto;
     use anyhow::Result;
     use std::sync::Arc;
+    use talon::control::resources::ResourceStore;
+    use talon::protocol::resources_proto;
 
     fn resource(
         kind: &str,
@@ -544,7 +550,7 @@ mod tests {
                 deletion_timestamp: None,
             }),
             spec: Some(
-                ::control::control::manifest::resource_spec_status_from_json(
+                talon::control::manifest::resource_spec_status_from_json(
                     kind,
                     &spec.to_string(),
                     "{}",
@@ -553,7 +559,7 @@ mod tests {
                 .0,
             ),
             status: Some(
-                ::control::control::manifest::resource_spec_status_from_json(
+                talon::control::manifest::resource_spec_status_from_json(
                     kind,
                     &spec.to_string(),
                     "{}",

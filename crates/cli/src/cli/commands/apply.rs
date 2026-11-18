@@ -1,15 +1,18 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use ::identifiers::ns;
-use ::protocol::resource_model::TypedResource;
-use ::protocol::resources_proto;
+use talon::identifiers::ns;
+use talon::protocol::resource_model::TypedResource;
+use talon::protocol::resources_proto;
 use talon_client::v1::{CreateNamespaceRequest, CreateResourceRequest};
 
 use super::Cli;
@@ -82,7 +85,7 @@ fn is_yaml_file(path: &Path) -> bool {
 }
 
 fn resource_manifest_from_manifest(
-    raw: &::protocol::manifest::RawManifest,
+    raw: &talon::protocol::manifest::RawManifest,
     content: &str,
 ) -> Result<(String, String, String, resources_proto::ResourceManifest)> {
     use resources_proto::resource_spec::Kind as SpecKind;
@@ -93,7 +96,7 @@ fn resource_manifest_from_manifest(
 
     let mut manifest = match resource.apply_route.as_str() {
         "legacy" if canonical_kind == "McpServer" => {
-            let server = ::protocol::manifest::parse_mcp_server(content)?;
+            let server = talon::protocol::manifest::parse_mcp_server(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "McpServer".to_string(),
@@ -106,7 +109,7 @@ fn resource_manifest_from_manifest(
             }
         }
         "legacy" if canonical_kind == "Agent" => {
-            let agent = ::protocol::manifest::parse_agent(content)?;
+            let agent = talon::protocol::manifest::parse_agent(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "Agent".to_string(),
@@ -119,7 +122,7 @@ fn resource_manifest_from_manifest(
             }
         }
         "legacy" if canonical_kind == "Knowledge" => {
-            let knowledge = ::protocol::manifest::parse_knowledge(content)?;
+            let knowledge = talon::protocol::manifest::parse_knowledge(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "Knowledge".to_string(),
@@ -134,7 +137,7 @@ fn resource_manifest_from_manifest(
         // File packages (including Skills) deliberately omit legacy-only
         // metadata labels, so parse their resource envelope directly.
         "legacy" if canonical_kind == "File" => {
-            ::protocol::manifest::parse_resource_manifest(content)?
+            talon::protocol::manifest::parse_resource_manifest(content)?
         }
         "legacy" if canonical_kind == "Task" => {
             let task: resources_proto::Task =
@@ -151,7 +154,7 @@ fn resource_manifest_from_manifest(
             }
         }
         "legacy" if canonical_kind == "Channel" => {
-            let channel = ::protocol::manifest::parse_channel(content)?;
+            let channel = talon::protocol::manifest::parse_channel(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "Channel".to_string(),
@@ -164,7 +167,7 @@ fn resource_manifest_from_manifest(
             }
         }
         "legacy" if canonical_kind == "ChannelSubscription" => {
-            let subscription = ::protocol::manifest::parse_channel_subscription(content)?;
+            let subscription = talon::protocol::manifest::parse_channel_subscription(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "ChannelSubscription".to_string(),
@@ -180,7 +183,7 @@ fn resource_manifest_from_manifest(
             }
         }
         "legacy" if canonical_kind == "Workflow" => {
-            let workflow = ::protocol::manifest::parse_workflow(content)?;
+            let workflow = talon::protocol::manifest::parse_workflow(content)?;
             resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "Workflow".to_string(),
@@ -192,7 +195,7 @@ fn resource_manifest_from_manifest(
                 }),
             }
         }
-        "generic" => ::protocol::manifest::parse_resource_manifest(content)?,
+        "generic" => talon::protocol::manifest::parse_resource_manifest(content)?,
         "namespace" => {
             anyhow::bail!("Namespace manifests must be applied through the namespace path")
         }
@@ -245,12 +248,12 @@ enum ApplyPlan {
 
 fn build_apply_plan_from_value(value: serde_yaml::Value) -> Result<ApplyPlan> {
     reject_status_field_in_value(&value)?;
-    let raw: ::protocol::manifest::RawManifest =
+    let raw: talon::protocol::manifest::RawManifest =
         serde_yaml::from_value(value.clone()).context("Failed to parse manifest YAML")?;
     let document = serde_yaml::to_string(&value).context("Failed to serialize YAML document")?;
     match raw.kind.as_str() {
         "Namespace" => {
-            let namespace = ::protocol::manifest::parse_namespace(&document)?;
+            let namespace = talon::protocol::manifest::parse_namespace(&document)?;
             Ok(ApplyPlan::Namespace {
                 name: namespace.name().to_string(),
                 labels: namespace.labels().clone(),
@@ -285,7 +288,7 @@ fn plan_namespace_to_ensure(plan: &ApplyPlan) -> Option<&str> {
     match plan {
         ApplyPlan::Resource { ns, .. } => Some(ns.as_str())
             .filter(|ns| !ns.is_empty())
-            .filter(|ns| *ns != ::identifiers::ns::TALON_SYSTEM),
+            .filter(|ns| *ns != talon::identifiers::ns::TALON_SYSTEM),
         ApplyPlan::Namespace { .. } => None,
     }
 }
@@ -344,6 +347,9 @@ pub async fn apply_manifest(cli: &Cli, content: &str) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use std::io::Write;
     use tempfile::tempdir;

@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
@@ -33,7 +36,7 @@ impl SandboxBackend for DockerSandboxBackend {
         policy: &SandboxPolicySpecJson,
     ) -> Result<SandboxHandle> {
         let image = docker_image(class, policy);
-        let container_name = ::control::control::uuid::unique_name("talon-sandbox");
+        let container_name = talon::control::uuid::unique_name("talon-sandbox");
         let mut args = vec![
             "run".to_string(),
             "-d".to_string(),
@@ -113,7 +116,7 @@ impl SandboxBackend for DockerSandboxBackend {
         args.extend(spec.args.clone());
 
         let output = Command::new("docker").args(&args).output().await?;
-        let process_id = ::control::control::uuid::process_id();
+        let process_id = talon::control::uuid::process_id();
         self.processes.lock().await.insert(
             process_id.clone(),
             ProcessOutput {

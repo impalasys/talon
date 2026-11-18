@@ -1,17 +1,20 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{data_proto, proto, GrpcGatewayHandler};
-use ::contracts::knowledge::KnowledgeEntry;
-use ::control::control::keys;
-use ::control::control::ns;
-use ::control::control::resources::ResourceStore;
-use ::control::control::search::DOCUMENT_KIND_CONTENT;
-use ::control::control::search::KIND_KNOWLEDGE;
-use ::protocol::resources_proto;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::sync::Arc;
+use talon::contracts::knowledge::KnowledgeEntry;
+use talon::control::keys;
+use talon::control::ns;
+use talon::control::resources::ResourceStore;
+use talon::control::search::DOCUMENT_KIND_CONTENT;
+use talon::control::search::KIND_KNOWLEDGE;
+use talon::protocol::resources_proto;
 
 fn decode_entry(namespace: &str, path: &str, bytes: &[u8]) -> KnowledgeEntry {
     serde_json::from_slice(bytes).unwrap_or_else(|_| KnowledgeEntry {
@@ -24,8 +27,8 @@ fn decode_entry(namespace: &str, path: &str, bytes: &[u8]) -> KnowledgeEntry {
 }
 
 async fn list_namespace_knowledge(
-    kv: Arc<dyn ::control::control::KeyValueStore>,
-    pubsub: Arc<dyn ::control::control::MessagePublisher>,
+    kv: Arc<dyn talon::control::KeyValueStore>,
+    pubsub: Arc<dyn talon::control::MessagePublisher>,
     namespace: &str,
 ) -> std::result::Result<Vec<data_proto::Knowledge>, tonic::Status> {
     let mut modules = Vec::new();
@@ -305,23 +308,26 @@ impl GrpcGatewayHandler {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{decode_entry, list_namespace_knowledge};
     use crate::gateway::rpc::GrpcGatewayHandler;
     use crate::gateway::server::Gateway;
     use crate::test_support::MockKvStore;
-    use ::control::control::keys;
-    use ::control::control::KeyValueStore;
-    use ::protocol::proto;
     use async_trait::async_trait;
     use futures::stream;
     use std::pin::Pin;
     use std::sync::Arc;
+    use talon::control::keys;
+    use talon::control::KeyValueStore;
+    use talon::protocol::proto;
 
     #[derive(Default)]
     struct MockPubSub;
 
     #[async_trait]
-    impl ::control::control::MessagePublisher for MockPubSub {
+    impl talon::control::MessagePublisher for MockPubSub {
         async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
             Ok(())
         }
@@ -336,7 +342,7 @@ mod tests {
 
     fn handler(kv: Arc<MockKvStore>) -> GrpcGatewayHandler {
         let pubsub = Arc::new(MockPubSub);
-        let control_plane = ::control::control::ControlPlane::builder(kv, pubsub).build();
+        let control_plane = talon::control::ControlPlane::builder(kv, pubsub).build();
         GrpcGatewayHandler {
             gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
         }
@@ -344,10 +350,10 @@ mod tests {
 
     fn handler_with_documents(
         kv: Arc<MockKvStore>,
-        documents: Arc<dyn ::control::control::search::DocumentStore + Send + Sync>,
+        documents: Arc<dyn talon::control::search::DocumentStore + Send + Sync>,
     ) -> GrpcGatewayHandler {
         let pubsub = Arc::new(MockPubSub);
-        let control_plane = ::control::control::ControlPlane::builder(kv, pubsub)
+        let control_plane = talon::control::ControlPlane::builder(kv, pubsub)
             .documents(documents)
             .build();
         GrpcGatewayHandler {
@@ -368,21 +374,21 @@ mod tests {
     #[tokio::test]
     async fn list_namespace_knowledge_prefers_local_entries_and_skips_duplicates() {
         let kv = Arc::new(MockKvStore::default());
-        let root_entry = ::contracts::knowledge::KnowledgeEntry {
+        let root_entry = talon::contracts::knowledge::KnowledgeEntry {
             namespace: "acme".to_string(),
             name: "guide.md".to_string(),
             path: "guide.md".to_string(),
             content: "root guide".to_string(),
             updated_at: 1,
         };
-        let child_entry = ::contracts::knowledge::KnowledgeEntry {
+        let child_entry = talon::contracts::knowledge::KnowledgeEntry {
             namespace: "acme:child".to_string(),
             name: "guide.md".to_string(),
             path: "guide.md".to_string(),
             content: "child guide".to_string(),
             updated_at: 2,
         };
-        let unique_entry = ::contracts::knowledge::KnowledgeEntry {
+        let unique_entry = talon::contracts::knowledge::KnowledgeEntry {
             namespace: "acme".to_string(),
             name: "shared.md".to_string(),
             path: "shared.md".to_string(),
@@ -436,7 +442,7 @@ mod tests {
     #[tokio::test]
     async fn handle_search_knowledge_returns_matches_with_paths() {
         let kv = Arc::new(MockKvStore::default());
-        let entry = ::contracts::knowledge::KnowledgeEntry {
+        let entry = talon::contracts::knowledge::KnowledgeEntry {
             namespace: "acme".to_string(),
             name: "guide.md".to_string(),
             path: "guide.md".to_string(),
@@ -471,7 +477,7 @@ mod tests {
     #[tokio::test]
     async fn handle_search_knowledge_falls_back_when_document_store_is_disabled() {
         let kv = Arc::new(MockKvStore::default());
-        let entry = ::contracts::knowledge::KnowledgeEntry {
+        let entry = talon::contracts::knowledge::KnowledgeEntry {
             namespace: "acme".to_string(),
             name: "guide.md".to_string(),
             path: "guide.md".to_string(),
@@ -486,7 +492,7 @@ mod tests {
         .unwrap();
 
         let response =
-            handler_with_documents(kv, ::control::control::search::disabled_document_store())
+            handler_with_documents(kv, talon::control::search::disabled_document_store())
                 .handle_search_knowledge(tonic::Request::new(proto::SearchKnowledgeRequest {
                     agent: "agent".to_string(),
                     ns: "acme".to_string(),

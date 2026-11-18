@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
@@ -110,7 +113,7 @@ impl SandboxBackend for E2bSandboxBackend {
 
     async fn exec(&self, backend_id: &str, spec: ExecSpec) -> Result<ProcessHandle> {
         let output = e2b_run_command(backend_id, spec).await?;
-        let process_id = ::control::control::uuid::process_id();
+        let process_id = talon::control::uuid::process_id();
         e2b_process_outputs()
             .lock()
             .await
@@ -398,6 +401,9 @@ fn process_text(value: &Value) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     #[test]

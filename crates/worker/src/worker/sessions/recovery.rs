@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use prost::Message;
 use serde_json::Value;
@@ -8,21 +11,21 @@ use std::collections::{BTreeMap, HashSet};
 
 use super::super::runtime::AgentRuntime;
 use super::super::sink::PubSubSessionSink;
-use ::control::control::cas::decode_stored_object_bytes;
-use ::control::control::cas::CasStore;
-use ::control::control::tool_output::ToolOutputExt;
-use ::control::control::ControlPlane;
-use ::harness::executor::tool_output_loop_message;
-use ::harness::executor::LoopMessage;
-use ::harness::llm::ToolOutput;
-use ::harness::sessions;
-use ::harness::sessions::latest_submission_projection_message_id;
-use ::harness::sessions::plan_journal_recovery;
-use ::harness::sessions::JournalRecoveryPlan;
-use ::harness::sessions::SessionJournalEntryExt;
-use ::protocol::data_proto;
-use ::protocol::data_proto::session_journal_entry_payload;
-use ::protocol::data_proto::SessionExecutionPhase;
+use talon::control::cas::decode_stored_object_bytes;
+use talon::control::cas::CasStore;
+use talon::control::tool_output::ToolOutputExt;
+use talon::control::ControlPlane;
+use talon::harness::executor::tool_output_loop_message;
+use talon::harness::executor::LoopMessage;
+use talon::harness::llm::ToolOutput;
+use talon::harness::sessions;
+use talon::harness::sessions::latest_submission_projection_message_id;
+use talon::harness::sessions::plan_journal_recovery;
+use talon::harness::sessions::JournalRecoveryPlan;
+use talon::harness::sessions::SessionJournalEntryExt;
+use talon::protocol::data_proto;
+use talon::protocol::data_proto::session_journal_entry_payload;
+use talon::protocol::data_proto::SessionExecutionPhase;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum PreparedSubmissionState {
@@ -116,7 +119,7 @@ pub async fn prepare_recovery_plan(
         .filter_map(SessionJournalEntryExt::as_steer_input)
         .flat_map(|payload| payload.message_ids.iter().cloned())
         .collect::<HashSet<_>>();
-    ::control::control::session_queue::commit_journaled_steer_queue_entries(
+    talon::control::session_queue::commit_journaled_steer_queue_entries(
         cp.kv.as_ref(),
         ns,
         agent,
@@ -125,7 +128,7 @@ pub async fn prepare_recovery_plan(
     )
     .await?;
     recovery_plan.excluded_history_message_ids.extend(
-        ::control::control::session_queue::list_prepared_steer_message_ids(
+        talon::control::session_queue::list_prepared_steer_message_ids(
             cp.kv.as_ref(),
             ns,
             agent,
@@ -278,7 +281,7 @@ async fn replay_claimed_submission_journal(
             if !hydrated_message_ids.insert(message_id.clone()) {
                 continue;
             }
-            let key = ::control::control::keys::session_message(ns, agent, session_id, message_id);
+            let key = talon::control::keys::session_message(ns, agent, session_id, message_id);
             let bytes =
                 cp.kv.get(&key).await?.ok_or_else(|| {
                     anyhow!("STEER_INPUT references missing message '{message_id}'")
@@ -286,7 +289,7 @@ async fn replay_claimed_submission_journal(
             let message = data_proto::SessionMessage::decode(bytes.as_slice())?;
             runtime.context.push(LoopMessage::text(
                 "user",
-                ::control::control::scheduling::session_message_text_projection(&message),
+                talon::control::scheduling::session_message_text_projection(&message),
             ));
         }
         Ok(())
@@ -536,7 +539,7 @@ async fn replay_claimed_submission_journal(
                 .context
                 .push(tool_output_loop_message(&tool.id, &result_output));
             stop_after_tool_results |=
-                ::harness::native_tools::tool_requests_worker_stop(&tool.name);
+                talon::harness::native_tools::tool_requests_worker_stop(&tool.name);
         }
         for entry in steering_entries {
             hydrate_steering_input(
@@ -584,18 +587,21 @@ fn next_recovered_part_id(next_projection_part_index: &mut usize) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::MockKvStore;
     use crate::test_support::RecordingPubSub;
-    use ::control::control::session_queue;
-    use ::control::control::session_queue::STEER_QUEUE;
-    use ::control::control::KeyValueStore;
-    use ::control::control::ProtoKeyValueStoreExt;
-    use ::harness::sessions;
-    use ::protocol::data_proto::SessionSubmissionStatus;
     use chrono::Utc;
     use std::collections::HashMap;
     use std::sync::Arc;
+    use talon::control::session_queue;
+    use talon::control::session_queue::STEER_QUEUE;
+    use talon::control::KeyValueStore;
+    use talon::control::ProtoKeyValueStoreExt;
+    use talon::harness::sessions;
+    use talon::protocol::data_proto::SessionSubmissionStatus;
 
     fn llm_entry(assistant_message_id: &str) -> sessions::SessionJournalEntry {
         sessions::SessionJournalEntry {
@@ -603,7 +609,7 @@ mod tests {
             payload: Some(data_proto::SessionJournalEntryPayload {
                 payload: Some(session_journal_entry_payload::Payload::LlmResponse(
                     data_proto::SessionJournalEntryPayloadLlmResponse {
-                        response: Some(::harness::llm::ChatResponse::default()),
+                        response: Some(talon::harness::llm::ChatResponse::default()),
                         assistant_message_id: assistant_message_id.to_string(),
                     },
                 )),
@@ -629,7 +635,7 @@ mod tests {
 
     #[tokio::test]
     async fn latest_journaled_assistant_or_continuation_id_wins() {
-        let cp = ::control::control::ControlPlane::builder(
+        let cp = talon::control::ControlPlane::builder(
             Arc::new(MockKvStore::default()),
             Arc::new(RecordingPubSub::default()),
         )
@@ -654,13 +660,11 @@ mod tests {
     #[tokio::test]
     async fn uncommitted_submission_projection_is_the_id_fallback() {
         let kv = Arc::new(MockKvStore::default());
-        let cp = ::control::control::ControlPlane::builder(
-            kv.clone(),
-            Arc::new(RecordingPubSub::default()),
-        )
-        .build();
+        let cp =
+            talon::control::ControlPlane::builder(kv.clone(), Arc::new(RecordingPubSub::default()))
+                .build();
         kv.set_msg(
-            &::control::control::keys::session_message("ns", "agent", "session-1", "projection-1"),
+            &talon::control::keys::session_message("ns", "agent", "session-1", "projection-1"),
             &data_proto::SessionMessage {
                 id: "projection-1".to_string(),
                 role: data_proto::MessageRole::RoleAssistant as i32,
@@ -698,11 +702,9 @@ mod tests {
     #[tokio::test]
     async fn recovery_reconciles_journaled_and_prepared_steer_queue_entries() {
         let kv = Arc::new(MockKvStore::default());
-        let cp = ::control::control::ControlPlane::builder(
-            kv.clone(),
-            Arc::new(RecordingPubSub::default()),
-        )
-        .build();
+        let cp =
+            talon::control::ControlPlane::builder(kv.clone(), Arc::new(RecordingPubSub::default()))
+                .build();
         let mut submission = sessions::pending_submission("submission-1", "session-1", "user-1", 1);
         submission.status = SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
@@ -788,7 +790,7 @@ mod tests {
             .unwrap();
 
         assert!(kv
-            .get(&::control::control::keys::session_queue_entry(
+            .get(&talon::control::keys::session_queue_entry(
                 "ns",
                 "agent",
                 "session-1",
@@ -799,7 +801,7 @@ mod tests {
             .unwrap()
             .is_none());
         assert!(kv
-            .get(&::control::control::keys::session_queue_entry(
+            .get(&talon::control::keys::session_queue_entry(
                 "ns",
                 "agent",
                 "session-1",
@@ -816,9 +818,9 @@ mod tests {
 
     #[tokio::test]
     async fn recorded_image_object_recovery_preserves_object_ref() {
-        use ::control::control::object_store::ObjectMetadata;
+        use talon::control::object_store::ObjectMetadata;
 
-        let cp = ::control::control::ControlPlane::builder(
+        let cp = talon::control::ControlPlane::builder(
             Arc::new(MockKvStore::default()),
             Arc::new(RecordingPubSub::default()),
         )
@@ -841,7 +843,7 @@ mod tests {
         let parts = output.content_parts();
         assert_eq!(parts.len(), 1);
         assert_eq!(
-            ::harness::llm::content_part_object_ref(&parts[0])
+            talon::harness::llm::content_part_object_ref(&parts[0])
                 .unwrap()
                 .media_type,
             "image/png"
@@ -851,23 +853,21 @@ mod tests {
     #[tokio::test]
     async fn prepare_context_hydrates_compaction_summary_without_tail_replay() {
         use crate::worker::runtime::AgentRuntime;
-        use ::control::control::cas::CasStore;
-        use ::harness::executor::AgentExecutor;
-        use ::harness::executor::ContextAssembler;
-        use ::harness::executor::ExecutionContext;
-        use ::harness::llm::ChatResponse;
-        use ::harness::llm::MockLlmProvider;
-        use ::harness::llm::ToolCall;
-        use ::harness::skills::registry::ToolRegistry;
-        use ::protocol::data_proto::SessionExecutionPhase as DataPhase;
-        use ::protocol::data_proto::SessionSubmissionStatus;
+        use talon::control::cas::CasStore;
+        use talon::harness::executor::AgentExecutor;
+        use talon::harness::executor::ContextAssembler;
+        use talon::harness::executor::ExecutionContext;
+        use talon::harness::llm::ChatResponse;
+        use talon::harness::llm::MockLlmProvider;
+        use talon::harness::llm::ToolCall;
+        use talon::harness::skills::registry::ToolRegistry;
+        use talon::protocol::data_proto::SessionExecutionPhase as DataPhase;
+        use talon::protocol::data_proto::SessionSubmissionStatus;
 
         let kv = Arc::new(MockKvStore::default());
-        let cp = ::control::control::ControlPlane::builder(
-            kv.clone(),
-            Arc::new(RecordingPubSub::default()),
-        )
-        .build();
+        let cp =
+            talon::control::ControlPlane::builder(kv.clone(), Arc::new(RecordingPubSub::default()))
+                .build();
 
         let mut submission = sessions::pending_submission("submission-1", "session-1", "user-1", 1);
         submission.status = SessionSubmissionStatus::Claimed as i32;
@@ -884,13 +884,13 @@ mod tests {
                 "test-model".to_string(),
                 ContextAssembler::new("."),
                 registry,
-                Arc::new(::control::control::config::Config::default()),
+                Arc::new(talon::control::config::Config::default()),
                 "ns".to_string(),
                 "agent".to_string(),
                 "session-1".to_string(),
                 None,
                 cp.clone(),
-                ::protocol::manifests::AgentSpec::default(),
+                talon::protocol::manifests::AgentSpec::default(),
                 HashMap::new(),
             ),
             context: ExecutionContext::new("agent"),
@@ -937,7 +937,7 @@ mod tests {
             "attempt-1",
             "tool-1",
             "lookup",
-            &::harness::llm::ToolOutput::text("lookup result"),
+            &talon::harness::llm::ToolOutput::text("lookup result"),
             30,
         )
         .await
@@ -1024,24 +1024,22 @@ mod tests {
     #[tokio::test]
     async fn prepare_context_preserves_projection_parts_for_legacy_steer_input() {
         use crate::worker::runtime::AgentRuntime;
-        use ::control::control::cas::CasStore;
-        use ::harness::executor::AgentExecutor;
-        use ::harness::executor::ContextAssembler;
-        use ::harness::executor::ExecutionContext;
-        use ::harness::llm::ChatResponse;
-        use ::harness::llm::MockLlmProvider;
-        use ::harness::llm::ToolCall;
-        use ::harness::llm::ToolOutput;
-        use ::harness::skills::registry::ToolRegistry;
-        use ::protocol::data_proto::SessionExecutionPhase as DataPhase;
-        use ::protocol::data_proto::SessionSubmissionStatus;
+        use talon::control::cas::CasStore;
+        use talon::harness::executor::AgentExecutor;
+        use talon::harness::executor::ContextAssembler;
+        use talon::harness::executor::ExecutionContext;
+        use talon::harness::llm::ChatResponse;
+        use talon::harness::llm::MockLlmProvider;
+        use talon::harness::llm::ToolCall;
+        use talon::harness::llm::ToolOutput;
+        use talon::harness::skills::registry::ToolRegistry;
+        use talon::protocol::data_proto::SessionExecutionPhase as DataPhase;
+        use talon::protocol::data_proto::SessionSubmissionStatus;
 
         let kv = Arc::new(MockKvStore::default());
-        let cp = ::control::control::ControlPlane::builder(
-            kv.clone(),
-            Arc::new(RecordingPubSub::default()),
-        )
-        .build();
+        let cp =
+            talon::control::ControlPlane::builder(kv.clone(), Arc::new(RecordingPubSub::default()))
+                .build();
         let mut submission = sessions::pending_submission("submission-1", "session-1", "user-1", 1);
         submission.status = SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
@@ -1050,7 +1048,7 @@ mod tests {
             .unwrap();
 
         kv.set_msg(
-            &::control::control::keys::session_message("ns", "agent", "session-1", "user-steer"),
+            &talon::control::keys::session_message("ns", "agent", "session-1", "user-steer"),
             &data_proto::SessionMessage {
                 id: "user-steer".to_string(),
                 role: data_proto::MessageRole::RoleUser as i32,
@@ -1077,13 +1075,13 @@ mod tests {
                 "test-model".to_string(),
                 ContextAssembler::new("."),
                 Arc::new(tokio::sync::RwLock::new(ToolRegistry::new())),
-                Arc::new(::control::control::config::Config::default()),
+                Arc::new(talon::control::config::Config::default()),
                 "ns".to_string(),
                 "agent".to_string(),
                 "session-1".to_string(),
                 None,
                 cp.clone(),
-                ::protocol::manifests::AgentSpec::default(),
+                talon::protocol::manifests::AgentSpec::default(),
                 HashMap::new(),
             ),
             context: ExecutionContext::new("agent"),
@@ -1184,21 +1182,19 @@ mod tests {
     #[tokio::test]
     async fn recovery_reports_the_watermark_of_a_recreated_tool_result() {
         use crate::worker::runtime::AgentRuntime;
-        use ::harness::executor::AgentExecutor;
-        use ::harness::executor::ContextAssembler;
-        use ::harness::executor::ExecutionContext;
-        use ::harness::llm::ChatResponse;
-        use ::harness::llm::MockLlmProvider;
-        use ::harness::llm::ToolCall;
-        use ::harness::skills::registry::ToolRegistry;
-        use ::protocol::data_proto::SessionSubmissionStatus;
+        use talon::harness::executor::AgentExecutor;
+        use talon::harness::executor::ContextAssembler;
+        use talon::harness::executor::ExecutionContext;
+        use talon::harness::llm::ChatResponse;
+        use talon::harness::llm::MockLlmProvider;
+        use talon::harness::llm::ToolCall;
+        use talon::harness::skills::registry::ToolRegistry;
+        use talon::protocol::data_proto::SessionSubmissionStatus;
 
         let kv = Arc::new(MockKvStore::default());
-        let cp = ::control::control::ControlPlane::builder(
-            kv.clone(),
-            Arc::new(RecordingPubSub::default()),
-        )
-        .build();
+        let cp =
+            talon::control::ControlPlane::builder(kv.clone(), Arc::new(RecordingPubSub::default()))
+                .build();
         let mut submission = sessions::pending_submission("submission-1", "session-1", "user-1", 1);
         submission.status = SessionSubmissionStatus::Claimed as i32;
         submission.attempt_id = "attempt-1".to_string();
@@ -1238,13 +1234,13 @@ mod tests {
                 "test-model".to_string(),
                 ContextAssembler::new("."),
                 Arc::new(tokio::sync::RwLock::new(ToolRegistry::new())),
-                Arc::new(::control::control::config::Config::default()),
+                Arc::new(talon::control::config::Config::default()),
                 "ns".to_string(),
                 "agent".to_string(),
                 "session-1".to_string(),
                 None,
                 cp.clone(),
-                ::protocol::manifests::AgentSpec::default(),
+                talon::protocol::manifests::AgentSpec::default(),
                 HashMap::new(),
             ),
             context: ExecutionContext::new("agent"),

@@ -1,22 +1,25 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{data_proto, external_proto, resources_proto, GrpcGatewayHandler};
-use ::connectors::controller as connectors;
-use ::control::control::keys;
-use ::control::control::resource_model::ChannelResourceExt;
-use ::control::control::resources::ResourceStore;
-use ::control::control::scheduling;
-use ::control::control::ControlPlane;
-use ::control::control::ProtoKeyValueStoreExt;
 use anyhow::Context;
 use serde_json::json;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
+use talon::connectors::controller as connectors;
+use talon::control::keys;
+use talon::control::resource_model::ChannelResourceExt;
+use talon::control::resources::ResourceStore;
+use talon::control::scheduling;
+use talon::control::ControlPlane;
+use talon::control::ProtoKeyValueStoreExt;
 
-pub use ::connectors::rpc::*;
-pub use ::control::connector_runtime::*;
+pub use talon::connectors::rpc::*;
+pub use talon::control::connector_runtime::*;
 
 impl GrpcGatewayHandler {
     pub async fn handle_ingest_connector_message_event(
@@ -340,16 +343,19 @@ impl GrpcGatewayHandler {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::MockKvStore;
     use crate::test_support::RecordingPubSub;
-    use ::control::control::keys;
-    use ::control::control::ControlPlane;
-    use ::control::control::KeyValueStore;
-    use ::control::control::ProtoKeyValueStoreExt;
     use chrono::Utc;
     use prost::Message;
     use std::sync::Arc;
+    use talon::control::keys;
+    use talon::control::ControlPlane;
+    use talon::control::KeyValueStore;
+    use talon::control::ProtoKeyValueStoreExt;
 
     const TEST_NAMESPACE: &str = "acme:test";
     const TEST_AGENT: &str = "connector-agent";
@@ -428,7 +434,7 @@ mod tests {
                     TEST_NAMESPACE,
                     TEST_AGENT,
                     TEST_SESSION,
-                    ::control::control::session_queue::STEER_QUEUE,
+                    talon::control::session_queue::STEER_QUEUE,
                 ),
                 None,
             )
@@ -527,7 +533,7 @@ mod tests {
             .lock()
             .await
             .iter()
-            .all(|(topic, _)| { topic != ::control::control::topics::SESSION_DISPATCH_TOPIC }));
+            .all(|(topic, _)| { topic != talon::control::topics::SESSION_DISPATCH_TOPIC }));
     }
 
     #[tokio::test]
@@ -550,9 +556,9 @@ mod tests {
         let published = pubsub.published.lock().await;
         let dispatches = published
             .iter()
-            .filter(|(topic, _)| topic == ::control::control::topics::SESSION_DISPATCH_TOPIC)
+            .filter(|(topic, _)| topic == talon::control::topics::SESSION_DISPATCH_TOPIC)
             .map(|(_, bytes)| {
-                ::control::control::events::SessionDispatchEvent::decode(bytes.as_slice()).unwrap()
+                talon::control::events::SessionDispatchEvent::decode(bytes.as_slice()).unwrap()
             })
             .collect::<Vec<_>>();
         assert_eq!(dispatches.len(), 1);
@@ -618,4 +624,4 @@ mod tests {
     }
 }
 
-pub use ::control::connector_runtime::*;
+pub use talon::control::connector_runtime::*;

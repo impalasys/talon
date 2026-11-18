@@ -1,7 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::contracts::MessagePublisher;
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Context, Result};
 use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
@@ -10,6 +12,7 @@ use std::os::unix::fs::FileTypeExt;
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
 use std::sync::{Arc, OnceLock};
+use talon::contracts::MessagePublisher;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::{mpsc, Mutex, OnceCell};
@@ -191,7 +194,7 @@ impl MessagePublisher for LocalSocketMessagePublisher {
         topic: &str,
     ) -> Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
         self.ensure_server().await?;
-        let subscription = format!("local-sub-{}", ::contracts::uuid::v7());
+        let subscription = format!("local-sub-{}", talon::contracts::uuid::v7());
         self.subscriber()
             .subscribe_named(topic, &subscription)
             .await
@@ -463,13 +466,16 @@ async fn read_frame<R: AsyncReadExt + Unpin, T: for<'de> Deserialize<'de>>(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         read_frame, remove_stale_socket, write_frame, ClientFrame, LocalSocketMessagePublisher,
         LocalSocketSubscriber, MAX_FRAME_SIZE,
     };
-    use ::contracts::MessagePublisher;
     use base64::{engine::general_purpose, Engine as _};
     use futures::StreamExt;
+    use talon::contracts::MessagePublisher;
     use tempfile::tempdir;
     use tokio::io::{duplex, AsyncWriteExt};
 

@@ -1,14 +1,17 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::control::ns;
 
 use crate::control::ControlPlane;
-use ::protocol::resources_proto;
 use anyhow::{Context, Result};
 use serde_json::Value;
 use std::net::Ipv4Addr;
 use std::sync::{Arc, OnceLock};
+use talon::protocol::resources_proto;
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
@@ -364,6 +367,9 @@ async fn patch_ready_with_registration_retry(cp: &ControlPlane, registration: &W
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::EmptyPubSub;
     use crate::test_support::MockKvStore;

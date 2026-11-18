@@ -1,19 +1,21 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::protocol::events::SessionMessagePartEvent;
+pub(crate) mod talon;
 
-use ::protocol::data_proto::WorkflowRunEvent;
-use ::protocol::events::SessionMessagePartEventKind;
-use ::protocol::worker_proto::fanout_service_server::FanoutService;
-use ::protocol::worker_proto::StreamSessionPartsBatchRequest;
-use ::protocol::worker_proto::StreamSessionPartsRequest;
-use ::protocol::worker_proto::StreamSessionPartsResponse;
-use ::protocol::worker_proto::StreamWorkflowEventsRequest;
-use ::protocol::worker_proto::StreamWorkflowEventsResponse;
+use talon::protocol::events::SessionMessagePartEvent;
+
 use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::Arc;
+use talon::protocol::data_proto::WorkflowRunEvent;
+use talon::protocol::events::SessionMessagePartEventKind;
+use talon::protocol::worker_proto::fanout_service_server::FanoutService;
+use talon::protocol::worker_proto::StreamSessionPartsBatchRequest;
+use talon::protocol::worker_proto::StreamSessionPartsRequest;
+use talon::protocol::worker_proto::StreamSessionPartsResponse;
+use talon::protocol::worker_proto::StreamWorkflowEventsRequest;
+use talon::protocol::worker_proto::StreamWorkflowEventsResponse;
 use tokio::sync::{
     mpsc::{self, error::TrySendError},
     Mutex, Notify,
@@ -681,9 +683,12 @@ fn workflow_event_is_terminal(event: &WorkflowRunEvent) -> bool {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
-    use ::protocol::events::SessionMessagePartEventKind;
     use futures::StreamExt;
+    use talon::protocol::events::SessionMessagePartEventKind;
 
     fn event(kind: SessionMessagePartEventKind, content: &str) -> SessionMessagePartEvent {
         event_for_session("session-1", kind, content)
@@ -697,7 +702,7 @@ mod tests {
         SessionMessagePartEvent {
             session_id: session_id.to_string(),
             kind: kind as i32,
-            part: Some(::protocol::data_proto::SessionMessagePart {
+            part: Some(talon::protocol::data_proto::SessionMessagePart {
                 content: content.to_string(),
                 ..Default::default()
             }),

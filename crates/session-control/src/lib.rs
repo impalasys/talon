@@ -1,12 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::protocol::worker_proto::session_control_service_server::SessionControlService;
+pub(crate) mod talon;
 
-use ::protocol::worker_proto::CancelSessionGenerationRequest;
+use talon::protocol::worker_proto::session_control_service_server::SessionControlService;
 
-use ::protocol::worker_proto::CancelSessionGenerationResponse;
+use talon::protocol::worker_proto::CancelSessionGenerationRequest;
+
 use std::collections::HashMap;
+use talon::protocol::worker_proto::CancelSessionGenerationResponse;
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
 use tonic::{Request, Response, Status};
@@ -97,6 +99,9 @@ impl SessionControlService for SessionControlServiceImpl {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     #[tokio::test]

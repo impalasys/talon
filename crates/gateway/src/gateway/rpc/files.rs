@@ -1,22 +1,25 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::gateway::auth::Claims;
 use crate::require_auth;
-use ::control::control::cas::latest_file_object_key;
-use ::control::control::cas::CasStore;
-use ::control::control::keys;
-use ::control::control::resource_model;
-use ::control::control::resources::ResourceStore;
-use ::control::control::ListOptions;
-use ::control::control::ProtoKeyValueStoreExt;
 use anyhow::{anyhow, Context, Result};
 use prost::Message;
 use std::collections::HashMap;
 use std::error::Error as StdError;
 use std::fmt;
 use std::time::Duration;
+use talon::control::cas::latest_file_object_key;
+use talon::control::cas::CasStore;
+use talon::control::keys;
+use talon::control::resource_model;
+use talon::control::resources::ResourceStore;
+use talon::control::ListOptions;
+use talon::control::ProtoKeyValueStoreExt;
 use tonic::{metadata::MetadataMap, Request, Response, Status};
 
 const OP_READ: &str = "read";
@@ -527,10 +530,9 @@ impl GrpcGatewayHandler {
                 "configured object store does not support signed File upload URLs",
             ));
         };
-        let id = ::control::control::uuid::unique_name("upl");
+        let id = talon::control::uuid::unique_name("upl");
         let now = chrono::Utc::now().timestamp_micros();
-        let object_key =
-            ::control::control::cas::file_object_key(&namespace, &file_uid, &expected_sha);
+        let object_key = talon::control::cas::file_object_key(&namespace, &file_uid, &expected_sha);
         let pending_upload = resources_proto::PendingFileUpload {
             id: id.clone(),
             object_key: object_key.clone(),
@@ -1634,7 +1636,7 @@ fn validate_file_spec(path: &str, purpose: i32, index_policy: i32, retention: i3
     if resources_proto::FileRetention::try_from(retention).is_err() || retention == 0 {
         return Err(invalid_argument("File retention is required"));
     }
-    ::control::control::skills::validate_skill_file_spec(&resources_proto::FileSpec {
+    talon::control::skills::validate_skill_file_spec(&resources_proto::FileSpec {
         path: path.to_string(),
         media_type: String::new(),
         purpose,
@@ -1727,7 +1729,7 @@ fn validate_uploaded_file_metadata(
     file_uid: &str,
     spec: &resources_proto::FileSpec,
     pending_upload: &resources_proto::PendingFileUpload,
-    metadata: &::control::control::object_store::ObjectMetadata,
+    metadata: &talon::control::object_store::ObjectMetadata,
 ) -> Result<()> {
     if pending_upload.expected_size_bytes > 0
         && metadata.size_bytes != pending_upload.expected_size_bytes
@@ -1770,10 +1772,8 @@ fn validate_uploaded_file_metadata(
             "uploaded File path metadata does not match",
         ));
     }
-    let object_kind = metadata
-        .metadata
-        .get(::control::control::cas::METADATA_KIND);
-    if object_kind.map(String::as_str) != Some(::control::control::cas::METADATA_KIND_FILE) {
+    let object_kind = metadata.metadata.get(talon::control::cas::METADATA_KIND);
+    if object_kind.map(String::as_str) != Some(talon::control::cas::METADATA_KIND_FILE) {
         return Err(invalid_argument("uploaded object is not File CAS content"));
     }
     Ok(())
@@ -1889,22 +1889,25 @@ fn to_status(error: anyhow::Error) -> Status {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::gateway::auth::AuthConfig;
     use crate::gateway::Gateway;
     use crate::test_support::MockKvStore;
     use crate::test_support::RecordingPubSub;
     use crate::test_support::TEST_RSA_PRIVATE_KEY;
-    use ::control::control::object_store::InMemoryObjectStore;
-    use ::control::control::object_store::ObjectMetadata;
-    use ::control::control::object_store::ObjectStore;
-    use ::control::control::object_store::SignedObjectUrl;
-    use ::control::control::object_store::StoredObject;
-    use ::control::control::ControlPlane;
     use async_trait::async_trait;
     use sha2::{Digest, Sha256};
     use std::sync::Arc;
     use std::time::Duration as StdDuration;
+    use talon::control::object_store::InMemoryObjectStore;
+    use talon::control::object_store::ObjectMetadata;
+    use talon::control::object_store::ObjectStore;
+    use talon::control::object_store::SignedObjectUrl;
+    use talon::control::object_store::StoredObject;
+    use talon::control::ControlPlane;
 
     struct SignedUrlOnlyObjectStore;
 
@@ -2323,7 +2326,7 @@ mod tests {
         use crate::gateway::auth::TalonGrantClaim;
         use crate::test_support::PlatformJwtEnvGuard;
         use crate::test_support::TEST_PLATFORM_JWT_ISSUER;
-        use ::control::control::security::platform_jwt;
+        use talon::control::security::platform_jwt;
 
         let _guard = PlatformJwtEnvGuard::acquire().await;
         let objects = Arc::new(InMemoryObjectStore::default());

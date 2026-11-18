@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use base64::{engine::general_purpose, Engine as _};
 use prost::Message;
@@ -12,28 +15,28 @@ use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 
-use ::control::control::config::global_capability_allowed;
+use talon::control::config::global_capability_allowed;
 
 use crate::harness::llm::ToolOutput;
 use crate::harness::skills::namespace;
 use crate::harness::skills::namespace::NamespaceSkill;
 use crate::harness::skills::registry::ToolRegistry;
 use crate::harness::skills::render::format_active_skill_context;
-use ::control::control::config::Config;
-use ::control::control::delegation;
-use ::control::control::keys;
-use ::control::control::resource_model;
-use ::control::control::resource_model::TypedResource;
-use ::control::control::resources::ResourceStore;
-use ::control::control::scheduling;
-use ::control::control::tool_output::ToolOutputExt;
-use ::control::control::ControlPlane;
-use ::control::control::ListOptions;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::data_proto;
-use ::protocol::manifests;
-use ::protocol::protobuf_value::value::Kind as ProtoValueKind;
-use ::protocol::resources_proto;
+use talon::control::config::Config;
+use talon::control::delegation;
+use talon::control::keys;
+use talon::control::resource_model;
+use talon::control::resource_model::TypedResource;
+use talon::control::resources::ResourceStore;
+use talon::control::scheduling;
+use talon::control::tool_output::ToolOutputExt;
+use talon::control::ControlPlane;
+use talon::control::ListOptions;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::data_proto;
+use talon::protocol::manifests;
+use talon::protocol::protobuf_value::value::Kind as ProtoValueKind;
+use talon::protocol::resources_proto;
 
 pub mod artifacts;
 mod common;
@@ -181,7 +184,7 @@ pub fn artifact_uris_from_message_text(text: &str) -> Vec<String> {
 // moved find_file_by_path -> files.rs
 
 struct ReadFileObject {
-    object: ::control::control::object_store::StoredObject,
+    object: talon::control::object_store::StoredObject,
     object_ref: data_proto::ObjectRef,
 }
 
@@ -740,7 +743,7 @@ fn resource_ref_json(reference: Option<&resources_proto::ResourceRef>) -> Value 
 
 fn unique_task_name(title: &str) -> String {
     let slug = task_name_slug(title, 48);
-    format!("{slug}-{}", ::control::control::uuid::unique_name("tsk"))
+    format!("{slug}-{}", talon::control::uuid::unique_name("tsk"))
 }
 
 fn task_name_slug(title: &str, max_chars: usize) -> String {
@@ -911,14 +914,17 @@ struct ValidatedHttpUrl {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::EmptyPubSub;
     use crate::test_support::MockKvStore;
-    use ::control::control::scheduler::ScheduleWakeupRequest;
-    use ::control::control::scheduler::ScheduledWakeup;
-    use ::control::control::scheduler::SchedulerBackend;
-    use ::control::control::KeyValueStore;
     use std::sync::Arc;
+    use talon::control::scheduler::ScheduleWakeupRequest;
+    use talon::control::scheduler::ScheduledWakeup;
+    use talon::control::scheduler::SchedulerBackend;
+    use talon::control::KeyValueStore;
     use tokio::sync::Mutex;
 
     #[derive(Default)]
@@ -952,10 +958,10 @@ mod tests {
             mcp_server_refs: Vec::new(),
             capabilities: HashMap::from([(
                 "schedules".to_string(),
-                ::protocol::protobuf_value::ListValue {
+                talon::protocol::protobuf_value::ListValue {
                     values: capabilities
                         .iter()
-                        .map(|action| ::protocol::protobuf_value::Value {
+                        .map(|action| talon::protocol::protobuf_value::Value {
                             kind: Some(ProtoValueKind::StringValue((*action).to_string())),
                         })
                         .collect(),
@@ -970,10 +976,10 @@ mod tests {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
                 "code".to_string(),
-                ::protocol::protobuf_value::ListValue {
+                talon::protocol::protobuf_value::ListValue {
                     values: capabilities
                         .iter()
-                        .map(|action| ::protocol::protobuf_value::Value {
+                        .map(|action| talon::protocol::protobuf_value::Value {
                             kind: Some(ProtoValueKind::StringValue((*action).to_string())),
                         })
                         .collect(),
@@ -987,10 +993,10 @@ mod tests {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
                 "research".to_string(),
-                ::protocol::protobuf_value::ListValue {
+                talon::protocol::protobuf_value::ListValue {
                     values: capabilities
                         .iter()
-                        .map(|action| ::protocol::protobuf_value::Value {
+                        .map(|action| talon::protocol::protobuf_value::Value {
                             kind: Some(ProtoValueKind::StringValue((*action).to_string())),
                         })
                         .collect(),
@@ -1004,10 +1010,10 @@ mod tests {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
                 "files".to_string(),
-                ::protocol::protobuf_value::ListValue {
+                talon::protocol::protobuf_value::ListValue {
                     values: capabilities
                         .iter()
-                        .map(|action| ::protocol::protobuf_value::Value {
+                        .map(|action| talon::protocol::protobuf_value::Value {
                             kind: Some(ProtoValueKind::StringValue((*action).to_string())),
                         })
                         .collect(),
@@ -1021,10 +1027,10 @@ mod tests {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
                 "tasks".to_string(),
-                ::protocol::protobuf_value::ListValue {
+                talon::protocol::protobuf_value::ListValue {
                     values: capabilities
                         .iter()
-                        .map(|action| ::protocol::protobuf_value::Value {
+                        .map(|action| talon::protocol::protobuf_value::Value {
                             kind: Some(ProtoValueKind::StringValue((*action).to_string())),
                         })
                         .collect(),
@@ -1083,10 +1089,10 @@ mod tests {
         manifests::AgentSpec {
             capabilities: HashMap::from([(
                 "goals".to_string(),
-                ::protocol::protobuf_value::ListValue {
+                talon::protocol::protobuf_value::ListValue {
                     values: capabilities
                         .iter()
-                        .map(|action| ::protocol::protobuf_value::Value {
+                        .map(|action| talon::protocol::protobuf_value::Value {
                             kind: Some(ProtoValueKind::StringValue((*action).to_string())),
                         })
                         .collect(),
@@ -1158,7 +1164,7 @@ mod tests {
         output: &ToolOutput,
     ) -> data_proto::ObjectRef {
         seed_claimed_submission(kv, ns, agent, session_id).await;
-        let cas = ::control::control::cas::CasStore::new(cp.objects.clone());
+        let cas = talon::control::cas::CasStore::new(cp.objects.clone());
         let entry = crate::harness::sessions::append_tool_result(
             kv,
             &cas,
@@ -1185,7 +1191,7 @@ mod tests {
             data_proto::session_journal_entry_payload::Payload::ToolResult(result) => result
                 .tool_output
                 .as_ref()
-                .and_then(::control::control::tool_output::first_object_ref)
+                .and_then(talon::control::tool_output::first_object_ref)
                 .cloned()
                 .expect("journaled object ref"),
             other => panic!("expected tool result payload, got {other:?}"),
@@ -1266,7 +1272,7 @@ mod tests {
         let mut disabled = Config::default();
         disabled.capabilities.insert(
             "code".to_string(),
-            ::control::control::config::CapabilityGate {
+            talon::control::config::CapabilityGate {
                 actions: HashMap::from([(String::from("run"), false)]),
             },
         );
@@ -1277,7 +1283,7 @@ mod tests {
         let mut enabled = Config::default();
         enabled.capabilities.insert(
             "code".to_string(),
-            ::control::control::config::CapabilityGate {
+            talon::control::config::CapabilityGate {
                 actions: HashMap::from([(String::from("run"), true)]),
             },
         );
@@ -1753,7 +1759,7 @@ mod tests {
         assert!(object_key.starts_with("cas/Tenant%3Aacme%3AWorkspace%3Amain/artifacts/"));
         assert!(object_key.contains(artifact_id));
 
-        let stored = ::control::control::cas::CasStore::new(cp.objects.clone())
+        let stored = talon::control::cas::CasStore::new(cp.objects.clone())
             .get_object_decoded(object_key)
             .await
             .unwrap()
@@ -1761,11 +1767,11 @@ mod tests {
         assert_eq!(stored.bytes, b"draft body");
         assert_eq!(stored.metadata.filename, "");
         assert_eq!(
-            stored.metadata.metadata[::control::control::cas::METADATA_KIND],
-            ::control::control::cas::METADATA_KIND_ARTIFACT
+            stored.metadata.metadata[talon::control::cas::METADATA_KIND],
+            talon::control::cas::METADATA_KIND_ARTIFACT
         );
         assert_eq!(
-            stored.metadata.metadata[::control::control::cas::METADATA_AGENT],
+            stored.metadata.metadata[talon::control::cas::METADATA_AGENT],
             "writer"
         );
         assert_eq!(stored.metadata.metadata["session_id"], "session-1");
@@ -1834,7 +1840,7 @@ mod tests {
             .as_str()
             .unwrap();
         assert_ne!(updated_object_key, object_key);
-        assert!(::control::control::cas::CasStore::new(cp.objects.clone())
+        assert!(talon::control::cas::CasStore::new(cp.objects.clone())
             .get_object_decoded(object_key)
             .await
             .unwrap()
@@ -1894,7 +1900,7 @@ mod tests {
         .unwrap()
         .unwrap();
         let stored_access = kv
-            .get_msg::<::protocol::data_proto::ArtifactAccess>(&keys::artifact_access(
+            .get_msg::<talon::protocol::data_proto::ArtifactAccess>(&keys::artifact_access(
                 "Tenant:acme:Workspace:main",
                 "writer",
                 "session-1",
@@ -2274,7 +2280,7 @@ mod tests {
             .unwrap()
             .expect("large artifact object should exist");
         let actual_content = String::from_utf8(
-            ::control::control::cas::decode_stored_object_bytes(&stored, &read_object.key).unwrap(),
+            talon::control::cas::decode_stored_object_bytes(&stored, &read_object.key).unwrap(),
         )
         .unwrap();
         assert_eq!(actual_content, large_content);
@@ -2324,8 +2330,7 @@ mod tests {
             .unwrap()
             .expect("large artifact revision object should exist");
         let actual_revision = String::from_utf8(
-            ::control::control::cas::decode_stored_object_bytes(&stored, &revision_object.key)
-                .unwrap(),
+            talon::control::cas::decode_stored_object_bytes(&stored, &revision_object.key).unwrap(),
         )
         .unwrap();
         assert_eq!(actual_revision, large_revision);
@@ -3412,7 +3417,7 @@ mod tests {
         assert_eq!(child_status.output_artifact_uris, vec![artifact_uri]);
 
         let router_access = kv
-            .get_msg::<::protocol::data_proto::ArtifactAccess>(&keys::artifact_access(
+            .get_msg::<talon::protocol::data_proto::ArtifactAccess>(&keys::artifact_access(
                 namespace,
                 "writer",
                 writer_session_id,
@@ -3504,7 +3509,7 @@ mod tests {
         assert_eq!(parent_status.output_artifact_uris, vec![artifact_uri]);
 
         let owner_access = kv
-            .get_msg::<::protocol::data_proto::ArtifactAccess>(&keys::artifact_access(
+            .get_msg::<talon::protocol::data_proto::ArtifactAccess>(&keys::artifact_access(
                 namespace,
                 "writer",
                 writer_session_id,
@@ -3544,7 +3549,7 @@ mod tests {
         );
 
         let unrelated_owner_access = kv
-            .get_msg::<::protocol::data_proto::ArtifactAccess>(&keys::artifact_access(
+            .get_msg::<talon::protocol::data_proto::ArtifactAccess>(&keys::artifact_access(
                 namespace,
                 "router",
                 router_session_id,
@@ -3560,13 +3565,13 @@ mod tests {
         );
 
         set_session_status(kv.as_ref(), namespace, "owner", "owner-session", "IDLE").await;
-        let dispatched = ::control::control::session_queue::dispatch_next_queued_message(
+        let dispatched = talon::control::session_queue::dispatch_next_queued_message(
             kv.as_ref(),
             cp.pubsub.as_ref(),
             namespace,
             "owner",
             "owner-session",
-            ::control::control::session_queue::NEXT_QUEUE,
+            talon::control::session_queue::NEXT_QUEUE,
             chrono::Utc::now(),
         )
         .await

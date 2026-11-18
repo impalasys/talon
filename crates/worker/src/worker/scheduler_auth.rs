@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use axum::http::{header, HeaderMap};
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
@@ -27,17 +30,17 @@ pub enum SchedulerRequestAuthenticator {
 }
 
 impl SchedulerRequestAuthenticator {
-    pub async fn from_config(config: &::control::control::config::Config) -> Result<Self> {
+    pub async fn from_config(config: &talon::control::config::Config) -> Result<Self> {
         if let Some(cfg) = config
             .control_plane
             .as_ref()
             .and_then(|cp| cp.scheduler.as_ref())
             .and_then(|scheduler| match scheduler.backend.as_ref() {
-                Some(::control::control::config::proto::scheduler_config::Backend::CloudTasks(
+                Some(talon::control::config::proto::scheduler_config::Backend::CloudTasks(
                     cloud_tasks,
                 )) => cloud_tasks.callback_auth.as_ref(),
                 Some(
-                    ::control::control::config::proto::scheduler_config::Backend::AwsEventbridgeScheduler(
+                    talon::control::config::proto::scheduler_config::Backend::AwsEventbridgeScheduler(
                         _,
                     ),
                 ) => None,
@@ -45,12 +48,12 @@ impl SchedulerRequestAuthenticator {
             })
         {
             return match cfg.auth.as_ref() {
-                Some(::control::control::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
+                Some(talon::control::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
                     secret,
                 )) => Ok(Self::shared_secret(
-                    ::control::control::config::SecretExt::resolve(secret).await?,
+                    talon::control::config::SecretExt::resolve(secret).await?,
                 )),
-                Some(::control::control::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
+                Some(talon::control::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
                     oidc,
                 )) => Ok(Self::google_oidc(
                     oidc.audience.clone(),
@@ -126,7 +129,7 @@ fn authorize_shared_secret(headers: &HeaderMap, expected_token: &str) -> Result<
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "));
     let scheduler_header = headers
-        .get(::control::control::scheduler::SCHEDULER_AUTH_HEADER)
+        .get(talon::control::scheduler::SCHEDULER_AUTH_HEADER)
         .and_then(|v| v.to_str().ok());
 
     if auth_header == Some(expected_token) || scheduler_header == Some(expected_token) {
@@ -238,7 +241,7 @@ async fn verify_google_oidc_token(
     audience: &str,
     expected_email: Option<&str>,
 ) -> Result<()> {
-    ::control::control::security::install_jwt_crypto_provider();
+    talon::control::security::install_jwt_crypto_provider();
     let header = decode_header(token)?;
     let kid = header
         .kid
@@ -264,6 +267,9 @@ async fn verify_google_oidc_token(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         authorize_shared_secret, google_oidc_certs_cache, load_google_oidc_decoding_key, non_empty,
         CachedGoogleOidcCerts, SchedulerRequestAuthenticator,
@@ -312,7 +318,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
     }
 
     async fn seed_google_oidc_cache(kid: &str) {
-        ::control::control::security::install_jwt_crypto_provider();
+        talon::control::security::install_jwt_crypto_provider();
         let mut keys = HashMap::new();
         keys.insert(
             kid.to_string(),
@@ -334,7 +340,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
         email: Option<&str>,
         email_verified: Option<bool>,
     ) -> String {
-        ::control::control::security::install_jwt_crypto_provider();
+        talon::control::security::install_jwt_crypto_provider();
         let mut header = Header::new(Algorithm::RS256);
         header.kid = Some(kid.to_string());
         encode(
@@ -390,7 +396,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
     fn authorize_shared_secret_accepts_scheduler_header() {
         let mut headers = HeaderMap::new();
         headers.insert(
-            ::control::control::scheduler::SCHEDULER_AUTH_HEADER,
+            talon::control::scheduler::SCHEDULER_AUTH_HEADER,
             HeaderValue::from_static("test-token"),
         );
 
@@ -418,11 +424,10 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
             std::env::remove_var("TALON_SCHEDULER_SERVICE_ACCOUNT_EMAIL");
         }
 
-        let authenticator = SchedulerRequestAuthenticator::from_config(
-            &::control::control::config::Config::default(),
-        )
-        .await
-        .expect("authenticator should resolve");
+        let authenticator =
+            SchedulerRequestAuthenticator::from_config(&talon::control::config::Config::default())
+                .await
+                .expect("authenticator should resolve");
 
         match authenticator {
             SchedulerRequestAuthenticator::SharedSecret { token } => {
@@ -451,11 +456,10 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
             );
         }
 
-        let authenticator = SchedulerRequestAuthenticator::from_config(
-            &::control::control::config::Config::default(),
-        )
-        .await
-        .expect("authenticator should resolve");
+        let authenticator =
+            SchedulerRequestAuthenticator::from_config(&talon::control::config::Config::default())
+                .await
+                .expect("authenticator should resolve");
 
         match authenticator {
             SchedulerRequestAuthenticator::GoogleOidc {

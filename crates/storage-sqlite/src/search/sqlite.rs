@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::store::{sort_results, DocumentStore};
 use super::{
     document_attributes, document_ref, document_source, next_page_token, page_offset, query_terms,
@@ -8,7 +11,6 @@ use super::{
     ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID, ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE,
     ATTR_RUN_ID, ATTR_SESSION_ID,
 };
-use ::protocol::proto;
 use anyhow::Result;
 use sqlx::{
     sqlite::{
@@ -17,6 +19,7 @@ use sqlx::{
     QueryBuilder, Row, Sqlite, SqlitePool,
 };
 use std::{collections::HashMap, str::FromStr};
+use talon::protocol::proto;
 
 pub struct SqliteDocumentStore {
     pool: SqlitePool,
@@ -436,7 +439,7 @@ fn document_from_sqlite_row(row: &SqliteRow) -> Result<Document> {
     let labels_json: String = row.try_get("labels_json")?;
     let part_id: String = row.try_get("part_id")?;
     Ok(Document {
-        r#ref: Some(::protocol::data_proto::DocumentRef {
+        r#ref: Some(talon::protocol::data_proto::DocumentRef {
             attributes: document_attributes([
                 (ATTR_AGENT, row.try_get("agent")?),
                 (ATTR_SESSION_ID, row.try_get("session_id")?),
@@ -500,18 +503,21 @@ fn json_or_empty_object(value: &str) -> &str {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
-    use ::contracts::search::DOCUMENT_KIND_MESSAGE_PART;
-    use ::storage_common::sqlite_url_for_path;
+    use talon::contracts::search::DOCUMENT_KIND_MESSAGE_PART;
+    use talon::storage::common::sqlite_url_for_path;
 
     fn test_document(
         id: String,
-        source: ::contracts::search::DocumentSource,
+        source: talon::contracts::search::DocumentSource,
         document_kind: String,
         text: String,
     ) -> Document {
         Document {
-            r#ref: Some(::contracts::search::DocumentRef {
+            r#ref: Some(talon::contracts::search::DocumentRef {
                 id,
                 source: Some(source),
                 document_kind,

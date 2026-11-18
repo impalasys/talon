@@ -1,19 +1,22 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use std::sync::Arc;
 
 use anyhow::Result;
 
-use ::control::control::config::Config;
-use ::control::control::events::ResourceChangedEvent;
-use ::control::control::keys;
-use ::control::control::resource_model::NamespaceResourceExt;
-use ::control::control::resource_model::TypedResource;
-use ::control::control::resources::ResourceStore;
-use ::control::control::ControlPlane;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::resources_proto;
+use talon::control::config::Config;
+use talon::control::events::ResourceChangedEvent;
+use talon::control::keys;
+use talon::control::resource_model::NamespaceResourceExt;
+use talon::control::resource_model::TypedResource;
+use talon::control::resources::ResourceStore;
+use talon::control::ControlPlane;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::resources_proto;
 
 #[derive(Clone)]
 pub struct ControllerHost {
@@ -104,7 +107,7 @@ impl ControllerHost {
                                     .await?;
                             }
                         } else if event.change_type
-                            == ::control::control::events::ResourceChangeType::Deleted as i32
+                            == talon::control::events::ResourceChangeType::Deleted as i32
                         {
                             crate::worker::controllers::connectors::delete_connector_class_entries(
                                 self.cp.kv.as_ref(),
@@ -138,15 +141,12 @@ impl ControllerHost {
                                     .await?;
                             }
                         } else if event.change_type
-                            == ::control::control::events::ResourceChangeType::Deleted as i32
+                            == talon::control::events::ResourceChangeType::Deleted as i32
                         {
                             for namespace_key in self
                                 .cp
                                 .kv
-                                .list_keys(
-                                    &::control::control::keys::namespace_metadata_prefix(),
-                                    None,
-                                )
+                                .list_keys(&talon::control::keys::namespace_metadata_prefix(), None)
                                 .await?
                             {
                                 for class in store
@@ -230,7 +230,7 @@ impl ControllerHost {
 }
 
 fn is_status_only_update(event: &ResourceChangedEvent) -> bool {
-    event.change_type == ::control::control::events::ResourceChangeType::Updated as i32
+    event.change_type == talon::control::events::ResourceChangeType::Updated as i32
         && !event.changed_sections.is_empty()
         && event
             .changed_sections

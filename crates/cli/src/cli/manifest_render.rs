@@ -1,9 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::protocol::manifest::templating::render_cli_manifest_template;
+use talon::protocol::manifest::templating::render_cli_manifest_template;
 
-pub fn parse_raw_manifest(content: &str) -> Result<::protocol::manifest::RawManifest> {
+pub fn parse_raw_manifest(content: &str) -> Result<talon::protocol::manifest::RawManifest> {
     serde_yaml::from_str(content).context("Failed to parse manifest YAML")
 }
 
@@ -43,7 +43,7 @@ fn resolve_manifest_sources(file: &str, rendered: &str) -> Result<String> {
         }
 
         if manifest.is_mapping() {
-            let raw: ::protocol::manifest::RawManifest =
+            let raw: talon::protocol::manifest::RawManifest =
                 serde_yaml::from_value(manifest.clone())
                     .context("Failed to parse manifest YAML")?;
             if raw.kind == "Knowledge" {

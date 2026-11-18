@@ -1,14 +1,17 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{Context, Result};
 use serde_json::json;
 
 use super::{Cli, RunOutcome};
 use crate::cli::parse_raw_manifest;
 use crate::cli::render_manifest_file;
-use ::protocol::resource_model::ChannelSubscriptionResourceExt;
-use ::protocol::resource_model::TypedResource;
+use talon::protocol::resource_model::ChannelSubscriptionResourceExt;
+use talon::protocol::resource_model::TypedResource;
 
 #[derive(clap::Args)]
 pub struct RenderCommand {
@@ -23,6 +26,9 @@ pub struct RenderCommand {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     #[test]
@@ -70,7 +76,7 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
         "McpServer" => Ok(json!({ "server": manifest_value })),
         "Agent" => Ok(json!({ "agent": manifest_value })),
         "Namespace" => {
-            let namespace = ::protocol::manifest::parse_namespace(content)?;
+            let namespace = talon::protocol::manifest::parse_namespace(content)?;
             Ok(json!({
                 "name": namespace.name(),
                 "recursive": true,
@@ -79,11 +85,11 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
         }
         "Knowledge" => Ok(json!({ "knowledge": manifest_value })),
         "Channel" => {
-            let channel = ::protocol::manifest::parse_channel(content)?;
+            let channel = talon::protocol::manifest::parse_channel(content)?;
             Ok(json!({ "ns": channel.namespace(), "channel": channel }))
         }
         "ChannelSubscription" => {
-            let subscription = ::protocol::manifest::parse_channel_subscription(content)?;
+            let subscription = talon::protocol::manifest::parse_channel_subscription(content)?;
             Ok(json!({
                 "ns": subscription.namespace(),
                 "channel": subscription.channel(),
@@ -91,7 +97,7 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
             }))
         }
         "Workflow" => {
-            let workflow = ::protocol::manifest::parse_workflow(content)?;
+            let workflow = talon::protocol::manifest::parse_workflow(content)?;
             Ok(json!({ "ns": workflow.namespace(), "workflow": workflow }))
         }
         kind if crate::cli::resource_kind(kind)

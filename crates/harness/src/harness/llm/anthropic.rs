@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::harness::llm::provider::chat_content_part;
 use crate::harness::llm::provider::chat_message_text;
 use crate::harness::llm::provider::chat_stream_event;
@@ -17,13 +20,13 @@ use crate::harness::llm::provider::ChatStreamEvent;
 use crate::harness::llm::provider::LlmProvider;
 use crate::harness::llm::provider::TokenCounter;
 use crate::harness::memory::Embedding;
-use ::control::control::cas::CasStore;
-use ::protocol::manifests;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
 use futures::{stream, StreamExt};
 use serde_json::json;
+use talon::control::cas::CasStore;
+use talon::protocol::manifests;
 
 const DEFAULT_MAX_TOKENS: u64 = 1024;
 const DEFAULT_THINKING_BUDGET_TOKENS: u64 = 1024;
@@ -153,7 +156,7 @@ impl AnthropicProvider {
     }
 }
 
-fn object_ref_text(object_ref: &::protocol::data_proto::ObjectRef) -> serde_json::Value {
+fn object_ref_text(object_ref: &talon::protocol::data_proto::ObjectRef) -> serde_json::Value {
     json!({
         "type": "text",
         "text": object_ref_fallback_text(object_ref),
@@ -474,16 +477,19 @@ fn extract_usage(result: &serde_json::Value) -> Option<TokenCounter> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::harness::llm::chat_message_text;
     use crate::harness::llm::object_ref_part;
-    use ::control::control::object_store::InMemoryObjectStore;
-    use ::control::control::object_store::ObjectMetadata;
-    use ::control::control::object_store::ObjectStore;
-    use ::protocol::manifests::ThinkingConfig;
     use axum::{routing::post, Json, Router};
     use serde_json::json;
     use std::sync::Arc;
+    use talon::control::object_store::InMemoryObjectStore;
+    use talon::control::object_store::ObjectMetadata;
+    use talon::control::object_store::ObjectStore;
+    use talon::protocol::manifests::ThinkingConfig;
     use tokio::net::TcpListener;
 
     fn test_cas_store() -> CasStore {
@@ -551,7 +557,7 @@ mod tests {
         assert_eq!(
             anthropic_content_part(
                 &test_cas_store(),
-                &object_ref_part(::protocol::data_proto::ObjectRef {
+                &object_ref_part(talon::protocol::data_proto::ObjectRef {
                     key: "cas/acme/files/file-1/report.pdf".to_string(),
                     media_type: "application/pdf".to_string(),
                     size_bytes: 3,

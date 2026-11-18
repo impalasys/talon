@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -15,11 +18,11 @@ use crate::harness::executor::ExecutionSink;
 use crate::harness::sandbox::DispatchingSandboxBackend;
 use crate::harness::sandbox::ExecSpec;
 use crate::harness::sandbox::SandboxBackend;
-use ::control::control::config::Config;
-use ::control::control::ControlPlane;
-use ::protocol::manifests;
-use ::protocol::resources_proto;
-use ::sandbox::lease::SandboxLeaseService;
+use talon::control::config::Config;
+use talon::control::ControlPlane;
+use talon::protocol::manifests;
+use talon::protocol::resources_proto;
+use talon::sandbox::lease::SandboxLeaseService;
 
 #[derive(Debug, Serialize)]
 struct JsonRpcRequest {
@@ -62,8 +65,7 @@ impl AcpAgentRuntime {
         cp: &ControlPlane,
         config: &Arc<Config>,
     ) -> Result<Self> {
-        let store =
-            ::control::control::resources::ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+        let store = talon::control::resources::ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
         let agent = store
             .get_agent(ns, agent_id)
             .await?
@@ -111,7 +113,7 @@ impl AcpAgentRuntime {
         sink: &dyn ExecutionSink,
         cancellation_token: Option<&CancellationToken>,
     ) -> Result<String> {
-        let store = ::control::control::resources::ResourceStore::new(
+        let store = talon::control::resources::ResourceStore::new(
             self.cp.kv.clone(),
             self.cp.pubsub.clone(),
         );
@@ -502,7 +504,7 @@ impl AcpAgentRuntime {
             .metadata
             .as_ref()
             .ok_or_else(|| anyhow!("Sandbox metadata is required"))?;
-        let store = ::control::control::resources::ResourceStore::new(
+        let store = talon::control::resources::ResourceStore::new(
             self.cp.kv.clone(),
             self.cp.pubsub.clone(),
         );
@@ -582,7 +584,7 @@ impl AcpAgentRuntime {
         params: &Value,
         sink: &dyn ExecutionSink,
     ) -> Result<Value> {
-        let request_id = ::control::control::uuid::request_id();
+        let request_id = talon::control::uuid::request_id();
         let payload = json!({
             "requestId": request_id,
             "protocol": "acp",
@@ -612,7 +614,7 @@ impl AcpAgentRuntime {
     }
 
     async fn wait_for_permission_decision(&self, request_id: &str) -> Result<Value> {
-        let key = ::control::control::keys::session_permission_decision(
+        let key = talon::control::keys::session_permission_decision(
             &self.ns,
             &self.agent_id,
             &self.session_id,
@@ -987,7 +989,7 @@ fn session_prompt_params(
 ) -> Result<Value> {
     let text = if include_system_prompt && !system_prompt.trim().is_empty() {
         let system_prompt =
-            ::control::control::manifest::templating::render_runtime_system_prompt_template(
+            talon::control::manifest::templating::render_runtime_system_prompt_template(
                 system_prompt.trim(),
             )?;
         format!(
@@ -1132,6 +1134,9 @@ fn extract_text(value: &Value) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::harness::sandbox::DockerSandboxBackend;
     use crate::harness::sandbox::SandboxClassSpecJson;

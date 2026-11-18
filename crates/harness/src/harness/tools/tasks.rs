@@ -1,19 +1,22 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use serde_json::{json, Value};
 
 use crate::harness::native_tools::delegation;
 use crate::harness::skills::registry::ToolRegistry;
-use ::control::control::keys;
-use ::control::control::resource_model::TypedResource;
-use ::control::control::resources::ResourceStore;
-use ::control::control::ControlPlane;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::protocol::data_proto;
-use ::protocol::manifests;
-use ::protocol::resources_proto;
+use talon::control::keys;
+use talon::control::resource_model::TypedResource;
+use talon::control::resources::ResourceStore;
+use talon::control::ControlPlane;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::protocol::data_proto;
+use talon::protocol::manifests;
+use talon::protocol::resources_proto;
 
 fn task_namespace<'a>(args: &'a Value, current_namespace: &'a str) -> Result<&'a str> {
     let namespace = super::opt_str(args, "namespace").unwrap_or(current_namespace);
@@ -77,16 +80,16 @@ async fn authorized_update_task_namespace(
     if let Some(session) = session {
         let delegated = session
             .labels
-            .get(::control::control::delegation::LABEL_TASK_ROLE)
+            .get(talon::control::delegation::LABEL_TASK_ROLE)
             .map(String::as_str)
             == Some("delegate");
         let assigned_namespace = session
             .labels
-            .get(::control::control::delegation::LABEL_TASK_NAMESPACE)
+            .get(talon::control::delegation::LABEL_TASK_NAMESPACE)
             .map(String::as_str);
         let assigned_name = session
             .labels
-            .get(::control::control::delegation::LABEL_TASK_NAME)
+            .get(talon::control::delegation::LABEL_TASK_NAME)
             .map(String::as_str);
         if delegated {
             if assigned_namespace == Some(namespace) && assigned_name == Some(name) {
@@ -132,7 +135,7 @@ async fn grant_task_output_artifacts_to_owner(
     }
     let labels = task.labels();
     let Some(owner_session_id) = labels
-        .get(::control::control::delegation::LABEL_OWNER_SESSION_ID)
+        .get(talon::control::delegation::LABEL_OWNER_SESSION_ID)
         .map(String::as_str)
     else {
         return Ok(());

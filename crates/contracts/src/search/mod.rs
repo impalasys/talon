@@ -1,13 +1,16 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 pub mod store;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 pub use store::{DocumentStore, DocumentStoreCapabilities};
 
-use ::identifiers::keys;
-use ::protocol::{data_proto, proto};
+use talon::identifiers::keys;
+use talon::protocol::{data_proto, proto};
 
 pub const KIND_SESSION_MESSAGE: &str = "SessionMessage";
 pub const KIND_KNOWLEDGE: &str = "Knowledge";
@@ -213,6 +216,9 @@ pub fn unique_namespaces(namespaces: impl IntoIterator<Item = String>) -> Vec<St
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     #[test]

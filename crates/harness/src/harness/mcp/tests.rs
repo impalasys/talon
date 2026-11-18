@@ -1,8 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use crate::harness::mcp::authorization_bearer_token;
     use crate::harness::mcp::authorization_header;
     use crate::harness::mcp::call_tool_for_config;
@@ -21,8 +27,6 @@ mod tests {
     use crate::test_support::PlatformJwtEnvGuard;
     use crate::test_support::TEST_PLATFORM_JWT_ISSUER;
     use crate::test_support::TEST_RSA_PRIVATE_KEY;
-    use ::control::control::security::platform_jwt;
-    use ::protocol::manifests;
     use axum::{
         extract::State,
         http::{HeaderMap, StatusCode},
@@ -44,6 +48,8 @@ mod tests {
         Arc,
     };
     use std::time::Duration;
+    use talon::control::security::platform_jwt;
+    use talon::protocol::manifests;
     use tokio::net::TcpListener;
     use tokio::sync::Barrier;
 
@@ -511,9 +517,7 @@ mod tests {
                 auth_broker: None,
                 policy: None,
             }),
-            status: Some(::control::control::resource_model::common_status(
-                String::new(),
-            )),
+            status: Some(talon::control::resource_model::common_status(String::new())),
         };
 
         let config = McpConnectionConfig::try_from(&server).unwrap();

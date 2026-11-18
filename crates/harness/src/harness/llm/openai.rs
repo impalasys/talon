@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::harness::llm::credentials::LlmCredentialProvider;
 use crate::harness::llm::credentials::StaticApiKey;
 use crate::harness::llm::provider::chat_content_part;
@@ -23,7 +26,6 @@ use crate::harness::llm::provider::LlmProvider;
 use crate::harness::llm::provider::TokenCounter;
 use crate::harness::llm::provider::ToolCallDelta;
 use crate::harness::memory::Embedding;
-use ::control::control::cas::CasStore;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine as _};
@@ -35,8 +37,9 @@ use std::{
     sync::{Arc, OnceLock},
     task::{Context, Poll},
 };
+use talon::control::cas::CasStore;
 
-fn object_ref_text(object_ref: &::protocol::data_proto::ObjectRef) -> serde_json::Value {
+fn object_ref_text(object_ref: &talon::protocol::data_proto::ObjectRef) -> serde_json::Value {
     serde_json::json!({
         "type": "text",
         "text": object_ref_fallback_text(object_ref),
@@ -89,7 +92,7 @@ async fn openai_content_part(cas: &CasStore, part: &ChatContentPart) -> Result<s
 
 async fn openai_encrypted_reasoning_input(
     cas: &CasStore,
-    object_ref: &::protocol::data_proto::ObjectRef,
+    object_ref: &talon::protocol::data_proto::ObjectRef,
     expected_provider: &str,
     expected_model: &str,
 ) -> Option<serde_json::Value> {
@@ -1738,13 +1741,12 @@ fn extract_usage(value: &serde_json::Value) -> Option<TokenCounter> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::harness::llm::object_ref_part;
     use crate::harness::llm::text_part;
-    use ::control::control::object_store::InMemoryObjectStore;
-    use ::control::control::object_store::ObjectMetadata;
-    use ::control::control::object_store::ObjectStore;
-    use ::protocol::manifests::ThinkingConfig;
     use axum::{extract::State, routing::post, Json, Router};
     use std::{
         net::SocketAddr,
@@ -1753,6 +1755,10 @@ mod tests {
             Arc,
         },
     };
+    use talon::control::object_store::InMemoryObjectStore;
+    use talon::control::object_store::ObjectMetadata;
+    use talon::control::object_store::ObjectStore;
+    use talon::protocol::manifests::ThinkingConfig;
     use tokio::net::TcpListener;
 
     fn assistant_tool_call_message(name: &str, arguments: &str) -> ChatMessage {
@@ -2089,7 +2095,7 @@ mod tests {
         let serialized = test_provider()
             .serialize_messages(vec![ChatMessage {
                 role: "tool".to_string(),
-                content_parts: vec![object_ref_part(::protocol::data_proto::ObjectRef {
+                content_parts: vec![object_ref_part(talon::protocol::data_proto::ObjectRef {
                     key: "cas/acme/files/file-1/report.pdf".to_string(),
                     media_type: "application/pdf".to_string(),
                     size_bytes: 3,

@@ -1,11 +1,13 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::config::proto::AwsEventBridgeSchedulerConfig;
+#[allow(unused_imports)]
+use crate::talon;
 
-use ::contracts::pubsub::TALON_TOPIC_ATTRIBUTE;
+use talon::config::proto::AwsEventBridgeSchedulerConfig;
 
-use ::contracts::topics;
+use talon::contracts::pubsub::TALON_TOPIC_ATTRIBUTE;
+
 use anyhow::{anyhow, Context, Result};
 use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_scheduler::{
@@ -18,6 +20,7 @@ use aws_sdk_scheduler::{
 };
 use base64::{engine::general_purpose, Engine as _};
 use serde::Serialize;
+use talon::contracts::topics;
 
 use super::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend};
 
@@ -291,6 +294,9 @@ fn non_negative_i32(config_value: Option<u32>, env_name: &str, default_value: i3
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use serde_json::Value;
 

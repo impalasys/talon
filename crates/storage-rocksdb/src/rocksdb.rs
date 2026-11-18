@@ -1,20 +1,23 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::contracts::keys::ResourceKey;
+#[allow(unused_imports)]
+use crate::talon;
 
-use ::contracts::keys::ResourceList;
+use talon::contracts::keys::ResourceKey;
 
-use ::contracts::KeyValueStore;
+use talon::contracts::keys::ResourceList;
 
-use ::contracts::ListOptions;
+use talon::contracts::KeyValueStore;
 
-use ::contracts::Order;
+use talon::contracts::ListOptions;
+
 use anyhow::{anyhow, bail, Result};
 use rocksdb::{
     BlockBasedOptions, Cache, DBCompressionType, IteratorMode, Options, WriteOptions, DB,
 };
 use std::{path::Path, sync::Arc, time::Instant};
+use talon::contracts::Order;
 use tokio::sync::Mutex;
 use tracing::{field, Instrument, Span};
 
@@ -488,11 +491,14 @@ impl KeyValueStore for RocksDbKvStore {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::RocksDbKvStore;
-    use ::contracts::keys;
-    use ::contracts::KeyValueStore;
-    use ::contracts::ListOptions;
-    use ::contracts::Order;
+    use talon::contracts::keys;
+    use talon::contracts::KeyValueStore;
+    use talon::contracts::ListOptions;
+    use talon::contracts::Order;
     use tempfile::{tempdir, TempDir};
 
     async fn test_store() -> (TempDir, RocksDbKvStore) {

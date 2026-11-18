@@ -1,9 +1,12 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::shared::quoted_identifier;
-use ::contracts::ListOptions;
-use ::contracts::Order;
+use talon::contracts::ListOptions;
+use talon::contracts::Order;
 
 pub fn create_table_statement(table: &str) -> String {
     let table = quoted_identifier(table);

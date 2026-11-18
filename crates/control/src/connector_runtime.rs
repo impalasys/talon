@@ -1,9 +1,12 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::control::{keys, resources::ResourceStore, ControlPlane};
-use ::protocol::resources_proto;
 use anyhow::Context;
+use talon::protocol::resources_proto;
 pub struct ConnectorClassRegistration {
     pub namespace: String,
     pub name: String,

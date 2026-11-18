@@ -98,6 +98,16 @@ rust_library(
     ),
     rustc_env_files = [":cargo_env"],
     deps = [
+        "//crates/auth:auth",
+        "//crates/config:config",
+        "//crates/connectors:connectors",
+        "//crates/fanout:fanout",
+        "//crates/identifiers:identifiers",
+        "//crates/protocol:protocol",
+        "//crates/sandbox:sandbox",
+        "//crates/security:security",
+        "//crates/session-control:session_control",
+        "//crates/workflows:workflows",
         "//crates/bootstrap:bootstrap",
         "//crates/cli:cli",
         "//crates/contracts:contracts",
@@ -300,6 +310,7 @@ filegroup(
 
 rust_test(
     name = "identifiers_compat_test",
+    crate_features = _FEATURES,
     srcs = ["//tests:identifiers_compat.rs"],
     edition = "2021",
     deps = [

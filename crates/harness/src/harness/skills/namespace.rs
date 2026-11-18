@@ -3,13 +3,16 @@
 
 //! Namespace-inherited Skill discovery and package loading.
 
-use ::control::control::keys;
-use ::control::control::resources::ResourceStore;
-use ::protocol::resources_proto;
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use prost::Message;
 use std::collections::HashSet;
 use std::sync::Arc;
+use talon::control::keys;
+use talon::control::resources::ResourceStore;
+use talon::protocol::resources_proto;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NamespaceSkill {
@@ -20,12 +23,12 @@ pub struct NamespaceSkill {
 
 /// Load the effective declared Skills, applying child-over-parent shadowing.
 pub async fn load_effective_skills(
-    kv: Arc<dyn ::control::control::KeyValueStore>,
+    kv: Arc<dyn talon::control::KeyValueStore>,
     namespace: &str,
 ) -> Result<Vec<NamespaceSkill>> {
     let mut seen_names = HashSet::new();
     let mut keys_to_fetch = Vec::new();
-    for candidate_ns in ::control::control::ns::ancestry(namespace) {
+    for candidate_ns in talon::control::ns::ancestry(namespace) {
         for key in kv
             .list_keys(&keys::skill_prefix(&candidate_ns), None)
             .await?
@@ -71,7 +74,7 @@ pub async fn load_effective_skills(
 /// Return only Skills whose current package entrypoint is a readable markdown
 /// Skill File. Declared-but-incomplete packages are intentionally omitted.
 pub async fn load_available_skills(
-    cp: &::control::control::ControlPlane,
+    cp: &talon::control::ControlPlane,
     namespace: &str,
 ) -> Result<Vec<NamespaceSkill>> {
     let skills = load_effective_skills(cp.kv.clone(), namespace).await?;
@@ -95,7 +98,7 @@ pub async fn load_available_skills(
 }
 
 pub async fn load_skill_instructions(
-    cp: &::control::control::ControlPlane,
+    cp: &talon::control::ControlPlane,
     skill: &NamespaceSkill,
 ) -> Result<String> {
     let file = entrypoint_file(cp, skill)
@@ -111,7 +114,7 @@ pub async fn load_skill_instructions(
         .get(&object.key)
         .await?
         .ok_or_else(|| anyhow!("Skill package entrypoint object is missing"))?;
-    let bytes = ::control::control::cas::decode_stored_object_bytes(&stored, &object.key)?;
+    let bytes = talon::control::cas::decode_stored_object_bytes(&stored, &object.key)?;
     let instructions =
         String::from_utf8(bytes).map_err(|_| anyhow!("Skill package entrypoint is not UTF-8"))?;
     if instructions.trim().is_empty() {
@@ -155,7 +158,7 @@ pub fn skill_resource(ns: &str, name: &str, description: &str) -> resources_prot
 fn parse_skill(skill: resources_proto::Skill) -> Option<NamespaceSkill> {
     let metadata = skill.metadata?;
     let spec = skill.spec?;
-    if ::control::control::skills::validate_skill_id(&metadata.name).is_err()
+    if talon::control::skills::validate_skill_id(&metadata.name).is_err()
         || spec.description.trim().is_empty()
     {
         return None;
@@ -168,10 +171,10 @@ fn parse_skill(skill: resources_proto::Skill) -> Option<NamespaceSkill> {
 }
 
 async fn entrypoint_file(
-    cp: &::control::control::ControlPlane,
+    cp: &talon::control::ControlPlane,
     skill: &NamespaceSkill,
 ) -> Result<Option<resources_proto::File>> {
-    let expected_path = ::control::control::skills::entrypoint_path(&skill.name);
+    let expected_path = talon::control::skills::entrypoint_path(&skill.name);
     let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
     for resource in store.list(&skill.namespace, Some("File")).await? {
         let Some(spec) = resource
@@ -221,13 +224,16 @@ fn is_markdown_media_type(media_type: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::EmptyPubSub;
     use crate::test_support::MockKvStore;
-    use ::control::control::cas::CasStore;
-    use ::control::control::keys;
-    use ::control::control::ControlPlane;
-    use ::control::control::ProtoKeyValueStoreExt;
+    use talon::control::cas::CasStore;
+    use talon::control::keys;
+    use talon::control::ControlPlane;
+    use talon::control::ProtoKeyValueStoreExt;
 
     fn file_resource(
         namespace: &str,
@@ -235,7 +241,7 @@ mod tests {
         media_type: &str,
         object_ref: resources_proto::FileObjectRef,
     ) -> resources_proto::File {
-        let path = ::control::control::skills::entrypoint_path(skill_name);
+        let path = talon::control::skills::entrypoint_path(skill_name);
         resources_proto::File {
             metadata: Some(resources_proto::ResourceMeta {
                 name: keys::file_name_for_path(&path),
@@ -283,7 +289,7 @@ mod tests {
         .await
         .unwrap();
 
-        let path = ::control::control::skills::entrypoint_path("release");
+        let path = talon::control::skills::entrypoint_path("release");
         let object = CasStore::new(cp.objects.clone())
             .put_file(
                 parent_namespace,
@@ -331,7 +337,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let cp = ControlPlane::builder(kv.clone(), Arc::new(EmptyPubSub)).build();
         let namespace = "tenant";
-        let path = ::control::control::skills::entrypoint_path("review");
+        let path = talon::control::skills::entrypoint_path("review");
         kv.set_msg(
             &keys::skill(namespace, "review"),
             &skill_resource(namespace, "review", "Review code"),
@@ -364,7 +370,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         let cp = ControlPlane::builder(kv.clone(), Arc::new(EmptyPubSub)).build();
         let namespace = "tenant";
-        let path = ::control::control::skills::entrypoint_path("review");
+        let path = talon::control::skills::entrypoint_path("review");
         kv.set_msg(
             &keys::skill(namespace, "review"),
             &skill_resource(namespace, "review", "Review code"),

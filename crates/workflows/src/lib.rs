@@ -1,6 +1,8 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+pub(crate) mod talon;
+
 use anyhow::{anyhow, bail, Result};
 use chrono::{DateTime, Utc};
 use prost::Message;
@@ -9,20 +11,20 @@ use serde_json::{json, Map, Value};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
-use ::control::control::events;
-use ::control::control::keys;
-use ::control::control::resource_model::TypedResource;
-use ::control::control::topics;
-use ::control::control::ControlPlane;
-use ::control::control::KeyValueStore;
-use ::control::control::ListOptions;
-use ::control::control::MessagePublisher;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::fanout::FanoutHub;
-use ::fanout::WorkflowFanoutKey;
-use ::harness::knowledge::KvKnowledgeBook;
-use ::protocol::data_proto;
-use ::protocol::resources_proto;
+use talon::control::events;
+use talon::control::keys;
+use talon::control::resource_model::TypedResource;
+use talon::control::topics;
+use talon::control::ControlPlane;
+use talon::control::KeyValueStore;
+use talon::control::ListOptions;
+use talon::control::MessagePublisher;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::fanout::FanoutHub;
+use talon::fanout::WorkflowFanoutKey;
+use talon::harness::knowledge::KvKnowledgeBook;
+use talon::protocol::data_proto;
+use talon::protocol::resources_proto;
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
@@ -32,7 +34,7 @@ struct WorkflowReplyOutput {
     attachments: Vec<data_proto::ObjectRef>,
 }
 
-pub use ::control::workflow_state::*;
+pub use talon::control::workflow_state::*;
 
 pub fn workflow_claim_timeout_micros() -> i64 {
     std::env::var("TALON_WORKFLOW_CLAIM_TIMEOUT_SECONDS")
@@ -478,7 +480,8 @@ async fn execute_tool_step(
 ) -> Result<StepStartOutcome> {
     let book = KvKnowledgeBook::new(cp.kv.clone());
     let result =
-        ::harness::knowledge::execute_tool(&book, &run.ns, &step.tool, &rendered_input).await?;
+        talon::harness::knowledge::execute_tool(&book, &run.ns, &step.tool, &rendered_input)
+            .await?;
     let Some(output) = result else {
         let mut step_run = new_step_run(
             step,
@@ -519,14 +522,10 @@ async fn start_agent_step(
     labels.insert(LABEL_WORKFLOW_RUN.to_string(), run.id.clone());
     labels.insert(LABEL_WORKFLOW_STEP.to_string(), step.id.clone());
     labels.insert(LABEL_WORKFLOW_ATTEMPT.to_string(), attempt.to_string());
-    let session_id = ::control::control::scheduling::create_session_with_labels(
-        cp,
-        &run.ns,
-        &step.agent,
-        labels,
-    )
-    .await?;
-    ::control::control::scheduling::send_message(
+    let session_id =
+        talon::control::scheduling::create_session_with_labels(cp, &run.ns, &step.agent, labels)
+            .await?;
+    talon::control::scheduling::send_message(
         cp.kv.as_ref(),
         cp.pubsub.as_ref(),
         &run.ns,
@@ -600,14 +599,14 @@ async fn dispatch_workflow_reply(
     let delivery_id = format!("workflow-reply-{}", run.id);
     let reply_mode = run
         .labels
-        .get(::harness::connector::LABEL_CONNECTOR_REPLY_MODE)
+        .get(talon::harness::connector::LABEL_CONNECTOR_REPLY_MODE)
         .map(|value| value.as_str())
         .unwrap_or_default();
     let result = if run
         .labels
-        .contains_key(::harness::connector::LABEL_CONNECTOR_REGISTRATION)
+        .contains_key(talon::harness::connector::LABEL_CONNECTOR_REGISTRATION)
     {
-        ::harness::connector::deliver_connector_reply_from_labels(
+        talon::harness::connector::deliver_connector_reply_from_labels(
             cp,
             &run.labels,
             &run.ns,
@@ -952,7 +951,7 @@ async fn persist_claimed_run(
 }
 
 fn workflow_claim_owner() -> String {
-    ::control::registration::worker_id()
+    talon::control::registration::worker_id()
 }
 
 fn workflow_concurrency(spec: &resources_proto::WorkflowSpec) -> usize {
@@ -1183,7 +1182,7 @@ async fn schedule_workflow_wakeup(
     attempt: u32,
     fire_at_micros: i64,
     reason: &str,
-) -> Result<::control::control::scheduler::ScheduledWakeup> {
+) -> Result<talon::control::scheduler::ScheduledWakeup> {
     let fire_at = DateTime::from_timestamp_micros(fire_at_micros)
         .ok_or_else(|| anyhow!("invalid workflow wakeup timestamp {}", fire_at_micros))?;
     let payload = WorkflowWakeupPayload {
@@ -1196,13 +1195,13 @@ async fn schedule_workflow_wakeup(
         reason: reason.to_string(),
     };
     cp.scheduler
-        .schedule(::control::control::scheduler::ScheduleWakeupRequest {
+        .schedule(talon::control::scheduler::ScheduleWakeupRequest {
             namespace: run.ns.clone(),
             schedule_id: format!("workflow/{}/{}/{}", run.workflow, run.id, step.id),
             revision: attempt as u64,
             fire_at,
             payload: serde_json::to_vec(
-                &::control::control::scheduling::SchedulerFirePayload::Workflow(payload),
+                &talon::control::scheduling::SchedulerFirePayload::Workflow(payload),
             )?,
         })
         .await
@@ -1684,29 +1683,32 @@ async fn latest_assistant_text(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
-    use ::control::control::config::proto;
-    use ::control::control::config::Config;
-    use ::control::control::config::ProviderConfig;
-    use ::control::control::config::Secret;
-    use ::control::control::events::MessageDirection;
-    use ::control::control::events::SessionDispatchEvent;
-    use ::control::control::events::WorkflowDispatchEvent;
-    use ::control::control::scheduler::ScheduleWakeupRequest;
-    use ::control::control::scheduler::ScheduledWakeup;
-    use ::control::control::scheduler::SchedulerBackend;
-    use ::control::control::ProtoKeyValueStoreExt;
-    use ::harness::knowledge::KnowledgeBook;
-    use ::harness::knowledge::KvKnowledgeBook;
-    use ::protocol::manifests;
-    use ::test_support::workflows::*;
-    use ::test_support::MockKvStore;
-    use ::test_support::RecordingPubSub;
     use async_trait::async_trait;
     use axum::{routing::post, Json, Router};
     use prost::Message;
     use serde_json::json;
     use std::sync::Arc;
+    use talon::control::config::proto;
+    use talon::control::config::Config;
+    use talon::control::config::ProviderConfig;
+    use talon::control::config::Secret;
+    use talon::control::events::MessageDirection;
+    use talon::control::events::SessionDispatchEvent;
+    use talon::control::events::WorkflowDispatchEvent;
+    use talon::control::scheduler::ScheduleWakeupRequest;
+    use talon::control::scheduler::ScheduledWakeup;
+    use talon::control::scheduler::SchedulerBackend;
+    use talon::control::ProtoKeyValueStoreExt;
+    use talon::harness::knowledge::KnowledgeBook;
+    use talon::harness::knowledge::KvKnowledgeBook;
+    use talon::protocol::manifests;
+    use talon::test_support::workflows::*;
+    use talon::test_support::MockKvStore;
+    use talon::test_support::RecordingPubSub;
     use tokio::net::TcpListener;
 
     #[derive(Default)]
@@ -1975,7 +1977,7 @@ Done."#,
                 steps: vec![resources_proto::WorkflowStep {
                     id: "searchKnowledge".to_string(),
                     r#type: "tool".to_string(),
-                    tool: ::harness::knowledge::KNOWLEDGE_SEARCH_TOOL.to_string(),
+                    tool: talon::harness::knowledge::KNOWLEDGE_SEARCH_TOOL.to_string(),
                     input_json: r#"{"query":"ship"}"#.to_string(),
                     ..Default::default()
                 }],
@@ -2012,7 +2014,7 @@ Done."#,
                 steps: vec![resources_proto::WorkflowStep {
                     id: "searchKnowledge".to_string(),
                     r#type: "tool".to_string(),
-                    tool: ::harness::knowledge::KNOWLEDGE_SEARCH_TOOL.to_string(),
+                    tool: talon::harness::knowledge::KNOWLEDGE_SEARCH_TOOL.to_string(),
                     input_json: r#"{"query":"ship"}"#.to_string(),
                     output: Some(resources_proto::WorkflowStepOutputPolicy {
                         format: "json".to_string(),
@@ -2308,4 +2310,4 @@ Done."#,
 }
 
 // The parser and runtime share the same pure validation rules.
-pub use ::protocol::workflow_validation::*;
+pub use talon::protocol::workflow_validation::*;

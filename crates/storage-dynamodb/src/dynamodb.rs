@@ -1,19 +1,22 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::contracts::keys::ResourceKey;
+#[allow(unused_imports)]
+use crate::talon;
 
-use ::contracts::keys::ResourceList;
+use talon::contracts::keys::ResourceKey;
 
-use ::contracts::KeyValueStore;
+use talon::contracts::keys::ResourceList;
 
-use ::contracts::ListOptions;
+use talon::contracts::KeyValueStore;
 
-use ::contracts::Order;
+use talon::contracts::ListOptions;
+
 use anyhow::{anyhow, Result};
 use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_dynamodb::{config::Credentials, primitives::Blob, types::AttributeValue, Client};
 use std::collections::HashMap;
+use talon::contracts::Order;
 
 // DynamoDB table keys. `PK` encodes the Talon namespace/resource parent, while
 // `SK` encodes the direct child's kind/name. Together they are enough to
@@ -341,11 +344,14 @@ fn decode_part(value: &str) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     #[test]
     fn session_keys_project_resource_parent_into_partition_key() {
-        let key = ::contracts::keys::session("acme:team", "agent-1", "session-1");
+        let key = talon::contracts::keys::session("acme:team", "agent-1", "session-1");
 
         assert_eq!(
             pk_for_key(&key),
@@ -356,7 +362,7 @@ mod tests {
 
     #[test]
     fn journal_keys_group_under_submission_parent() {
-        let key = ::contracts::keys::session_journal_entry(
+        let key = talon::contracts::keys::session_journal_entry(
             "acme:team",
             "agent-1",
             "session-1",
@@ -382,7 +388,7 @@ mod tests {
 
     #[test]
     fn resource_key_round_trips_through_pk_and_sk() {
-        let key = ::contracts::keys::session("acme:team", "agent-1", "session-1");
+        let key = talon::contracts::keys::session("acme:team", "agent-1", "session-1");
 
         assert_eq!(
             resource_key_from_pk_sk(&pk_for_key(&key), &sk_for_key(&key)).unwrap(),

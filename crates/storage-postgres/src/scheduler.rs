@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::postgres::connect_postgres_pool;
 
 use crate::postgres::CredentialRefresh;
@@ -367,7 +370,7 @@ fn compute_retry_delay_seconds(attempts: i32) -> i64 {
 #[async_trait::async_trait]
 impl SchedulerBackend for LocalPostgresSchedulerBackend {
     async fn schedule(&self, req: ScheduleWakeupRequest) -> Result<ScheduledWakeup> {
-        let handle = ::contracts::uuid::scheduler_handle();
+        let handle = talon::contracts::uuid::scheduler_handle();
         let query = format!(
             "INSERT INTO {} (handle, namespace, schedule_id, revision, fire_at_micros, payload, created_at_micros)
              VALUES ($1, $2, $3, $4, $5, $6, $7)",
@@ -405,10 +408,13 @@ impl SchedulerBackend for LocalPostgresSchedulerBackend {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
-    use ::test_support::docker_test_guard;
-    use ::test_support::PostgresContainer;
     use std::sync::Arc;
+    use talon::test_support::docker_test_guard;
+    use talon::test_support::PostgresContainer;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::sync::{oneshot, Mutex};
 

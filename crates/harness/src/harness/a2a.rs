@@ -1,9 +1,12 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 
-use ::protocol::manifests;
+use talon::protocol::manifests;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ResolvedInternalConnection {
@@ -87,6 +90,9 @@ pub fn resolve_internal_connection(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     fn connection(name: &str, target: manifests::ConnectionRef) -> manifests::Connection {

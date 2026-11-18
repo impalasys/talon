@@ -1,20 +1,23 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-use ::control::control::keys;
-use ::control::control::ns;
-use ::control::control::security::platform_jwt;
-use ::control::control::ControlPlane;
-use ::control::control::ProtoKeyValueStoreExt;
-use ::harness::mcp::list_tools_for_config;
-use ::harness::mcp::McpConnectionConfig;
-use ::harness::mcp::McpTool;
-use ::protocol::manifests;
+use talon::control::keys;
+use talon::control::ns;
+use talon::control::security::platform_jwt;
+use talon::control::ControlPlane;
+use talon::control::ProtoKeyValueStoreExt;
+use talon::harness::mcp::list_tools_for_config;
+use talon::harness::mcp::McpConnectionConfig;
+use talon::harness::mcp::McpTool;
+use talon::protocol::manifests;
 
 #[derive(Debug, Clone)]
 pub struct ResolvedMcpServer {
@@ -137,20 +140,23 @@ fn config_for_resolution_namespace(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{config_for_resolution_namespace, filter_allowed_tools, McpRegistry};
-    use ::control::control::keys::ResourceKey;
-    use ::control::control::keys::ResourceList;
-    use ::control::control::security::platform_jwt;
-    use ::control::control::ControlPlane;
-    use ::control::control::KeyValueStore;
-    use ::control::control::MessagePublisher;
-    use ::control::control::ProtoKeyValueStoreExt;
-    use ::harness::mcp::McpTool;
-    use ::protocol::manifests;
     use serde_json::json;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
+    use talon::control::keys::ResourceKey;
+    use talon::control::keys::ResourceList;
+    use talon::control::security::platform_jwt;
+    use talon::control::ControlPlane;
+    use talon::control::KeyValueStore;
+    use talon::control::MessagePublisher;
+    use talon::control::ProtoKeyValueStoreExt;
+    use talon::harness::mcp::McpTool;
+    use talon::protocol::manifests;
     use tokio::sync::Mutex;
 
     #[derive(Default)]
@@ -186,7 +192,7 @@ mod tests {
         async fn list_keys(
             &self,
             list: &ResourceList,
-            options: Option<::control::control::ListOptions<'_>>,
+            options: Option<talon::control::ListOptions<'_>>,
         ) -> anyhow::Result<Vec<ResourceKey>> {
             let keys = self
                 .data
@@ -195,7 +201,7 @@ mod tests {
                 .keys()
                 .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
-            Ok(::control::control::apply_list_options_to_keys(
+            Ok(talon::control::apply_list_options_to_keys(
                 keys,
                 options.unwrap_or_default(),
             ))
@@ -229,7 +235,7 @@ mod tests {
 
     async fn seed_server(kv: &MockKvStore, namespace: &str, name: &str, target: &str) {
         kv.set_msg(
-            &::control::control::keys::mcp_server(namespace, name),
+            &talon::control::keys::mcp_server(namespace, name),
             &manifests::McpServer {
                 metadata: Some(manifests::ObjectMeta {
                     name: name.to_string(),
@@ -247,9 +253,7 @@ mod tests {
                     auth_broker: None,
                     policy: None,
                 }),
-                status: Some(::control::control::resource_model::common_status(
-                    String::new(),
-                )),
+                status: Some(talon::control::resource_model::common_status(String::new())),
             },
         )
         .await
@@ -291,7 +295,7 @@ mod tests {
 
     #[test]
     fn config_for_resolution_namespace_uses_calling_namespace_for_inherited_server() {
-        let config = ::harness::mcp::McpConnectionConfig {
+        let config = talon::harness::mcp::McpConnectionConfig {
             server_name: "acme".to_string(),
             server_ref: "acme".to_string(),
             transport: "http".to_string(),
@@ -327,7 +331,7 @@ mod tests {
             HashMap::from([(
                 "github".to_string(),
                 Arc::new(super::ResolvedMcpServer {
-                    config: ::harness::mcp::McpConnectionConfig {
+                    config: talon::harness::mcp::McpConnectionConfig {
                         server_name: "github".to_string(),
                         server_ref: "github".to_string(),
                         transport: "http".to_string(),
@@ -355,7 +359,7 @@ mod tests {
             HashMap::from([(
                 "docs".to_string(),
                 Arc::new(super::ResolvedMcpServer {
-                    config: ::harness::mcp::McpConnectionConfig {
+                    config: talon::harness::mcp::McpConnectionConfig {
                         server_name: "docs".to_string(),
                         server_ref: "docs".to_string(),
                         transport: "http".to_string(),
@@ -473,7 +477,7 @@ mod tests {
         let registry = McpRegistry::new();
 
         kv.set_msg(
-            &::control::control::keys::mcp_server("acme", "docs"),
+            &talon::control::keys::mcp_server("acme", "docs"),
             &manifests::McpServer {
                 metadata: Some(manifests::ObjectMeta {
                     name: "docs".to_string(),
@@ -503,9 +507,7 @@ mod tests {
                         }),
                     }),
                 }),
-                status: Some(::control::control::resource_model::common_status(
-                    String::new(),
-                )),
+                status: Some(talon::control::resource_model::common_status(String::new())),
             },
         )
         .await

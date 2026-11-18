@@ -3,12 +3,15 @@
 
 //! Workload identity acquisition, independent of the destination LLM service.
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
 use std::{path::PathBuf, sync::Arc, time::Duration};
 use tokio::sync::OnceCell;
 
-use ::control::control::config::proto;
+use talon::control::config::proto;
 
 const GOOGLE_IDENTITY_ENDPOINT: &str =
     "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity";
@@ -146,6 +149,9 @@ fn nonempty_token(token: String, source: &str) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     #[tokio::test]

@@ -1,4 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-pub use ::protocol::manifest::*;
+#[allow(unused_imports)]
+use crate::talon;
+
+pub use talon::protocol::manifest::*;

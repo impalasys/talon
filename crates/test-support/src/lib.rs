@@ -3,20 +3,22 @@
 
 //! Shared fixtures and environment guards for Talon tests.
 
+pub(crate) mod talon;
+
 pub const TEST_RSA_PRIVATE_KEY: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../src/control/security/test_rsa_private_key.pem"
 ));
 
-use ::contracts::auth as platform_jwt;
-use ::contracts::{KeyValueStore, ListOptions, MessagePublisher};
-use ::identifiers::keys::{ResourceKey, ResourceList};
 use futures::stream;
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::pin::Pin;
 use std::process::Command;
 use std::sync::{Mutex, OnceLock};
+use talon::contracts::auth as platform_jwt;
+use talon::contracts::{KeyValueStore, ListOptions, MessagePublisher};
+use talon::identifiers::keys::{ResourceKey, ResourceList};
 use tokio::sync::Mutex as AsyncMutex;
 
 pub fn async_env_mutex() -> &'static AsyncMutex<()> {
@@ -178,7 +180,7 @@ impl KeyValueStore for MockKvStore {
             .keys()
             .filter_map(|key| list.matches(key).then(|| key.clone()))
             .collect::<Vec<_>>();
-        Ok(::contracts::apply_list_options_to_keys(
+        Ok(talon::contracts::apply_list_options_to_keys(
             keys,
             options.unwrap_or_default(),
         ))
@@ -251,7 +253,7 @@ pub struct PostgresContainer {
 
 impl PostgresContainer {
     pub fn start(prefix: &str) -> Self {
-        let name = ::contracts::uuid::unique_name(prefix);
+        let name = talon::contracts::uuid::unique_name(prefix);
         let run = Command::new("docker")
             .args([
                 "run",

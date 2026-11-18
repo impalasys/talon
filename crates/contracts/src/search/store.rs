@@ -1,9 +1,12 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{search_mode_name, DeleteScope, Document};
-use ::protocol::proto;
 use anyhow::{anyhow, Result};
+use talon::protocol::proto;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DocumentStoreCapabilities {

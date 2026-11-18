@@ -1,16 +1,19 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::control::keys;
 
 use crate::control::KeyValueStore;
-use ::protocol::data_proto;
-use ::protocol::resources_proto;
 use anyhow::{anyhow, bail, Context, Result};
 use prost::Message;
 use std::error::Error;
 use std::fmt;
 use std::time::Duration;
+use talon::protocol::data_proto;
+use talon::protocol::resources_proto;
 
 const MAX_CAS_RETRIES: usize = 16;
 
@@ -783,6 +786,9 @@ fn decode_counter(bytes: &[u8]) -> Result<u64> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::test_support::MockKvStore;

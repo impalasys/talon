@@ -1,12 +1,15 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::Result;
 use std::fs;
 
 use super::{Cli, RunOutcome};
 use crate::cli::parse_raw_manifest;
-use ::protocol::resource_model::TypedResource;
+use talon::protocol::resource_model::TypedResource;
 
 #[derive(clap::Args)]
 pub struct GenCommand {
@@ -64,7 +67,7 @@ fn sdk_methods_from_dir(dir: &str) -> Result<Vec<String>> {
         let content = fs::read_to_string(&path)?;
         let raw = parse_raw_manifest(&content)?;
         if raw.kind == "Agent" {
-            let agent = ::protocol::manifest::parse_agent(&content)?;
+            let agent = talon::protocol::manifest::parse_agent(&content)?;
             let method_name = format!("create{}", to_camel_case(&agent.name()));
             class_methods.push(format!(
                 r#"  async {method_name}(workspaceId: string): Promise<any> {{
@@ -84,6 +87,9 @@ fn sdk_methods_from_dir(dir: &str) -> Result<Vec<String>> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     #[test]

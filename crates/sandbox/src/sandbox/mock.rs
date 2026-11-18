@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use std::collections::HashMap;
@@ -35,7 +38,7 @@ impl SandboxBackend for MockSandboxBackend {
         _policy: &SandboxPolicySpecJson,
     ) -> Result<SandboxHandle> {
         Ok(SandboxHandle {
-            backend_id: ::control::control::uuid::unique_name(&format!("mock-{}", class.provider)),
+            backend_id: talon::control::uuid::unique_name(&format!("mock-{}", class.provider)),
         })
     }
 
@@ -44,7 +47,7 @@ impl SandboxBackend for MockSandboxBackend {
     }
 
     async fn exec(&self, _backend_id: &str, spec: ExecSpec) -> Result<ProcessHandle> {
-        let process_id = ::control::control::uuid::process_id();
+        let process_id = talon::control::uuid::process_id();
         mock_sandbox_state()
             .lock()
             .await

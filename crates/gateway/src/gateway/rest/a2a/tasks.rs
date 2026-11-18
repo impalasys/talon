@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
@@ -12,16 +15,16 @@ use prost::Message;
 use serde_json::{json, Value};
 use uuid::Uuid;
 
-use ::control::control::events;
+use talon::control::events;
 
-use ::control::control::keys;
+use talon::control::keys;
 
-use ::control::control::keys::ResourceKey;
+use talon::control::keys::ResourceKey;
 
-use ::control::control::topics;
+use talon::control::topics;
 
 use crate::gateway::server::Gateway;
-use ::control::control::ProtoKeyValueStoreExt;
+use talon::control::ProtoKeyValueStoreExt;
 
 use super::card::AgentCardRoute;
 use super::types::{A2aArtifactJson, A2aMessageJson, A2aPartJson, A2aTaskJson, A2aTaskStatusJson};
@@ -36,6 +39,10 @@ struct A2ATaskKey {
 }
 
 mod a2a_task_key {
+
+    #[allow(unused_imports)]
+    use crate::talon;
+
     #[derive(Clone, PartialEq, prost::Oneof)]
     pub enum Kind {
         #[prost(message, tag = "1")]
@@ -61,7 +68,7 @@ fn a2a_context_id(message: &A2aMessageJson) -> String {
         .context_id
         .clone()
         .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(::control::control::uuid::session_id)
+        .unwrap_or_else(talon::control::uuid::session_id)
 }
 
 pub fn a2a_session_hint(message: &A2aMessageJson) -> Result<Option<String>, Response> {
@@ -85,7 +92,7 @@ pub fn a2a_session_hint(message: &A2aMessageJson) -> Result<Option<String>, Resp
 pub fn prepare_a2a_session_message(
     message: &A2aMessageJson,
     timestamp: i64,
-) -> Result<(String, String, ::protocol::data_proto::SessionMessage), Response> {
+) -> Result<(String, String, talon::protocol::data_proto::SessionMessage), Response> {
     let mut session_message = a2a_message_to_session_message(message, timestamp)?;
     let (context_id, task_id) = if let Some(task_id) = message
         .task_id
@@ -197,7 +204,7 @@ pub async fn ensure_a2a_session(
     let session_key = keys::session(&route.ns, &route.agent, context_id);
     if let Some(session) = gateway
         .kv
-        .get_msg::<::protocol::data_proto::Session>(&session_key)
+        .get_msg::<talon::protocol::data_proto::Session>(&session_key)
         .await
         .map_err(|err| {
             tracing::error!(%err, "Failed to fetch A2A session");
@@ -223,10 +230,8 @@ pub async fn ensure_a2a_session(
         return Ok(());
     }
 
-    let store = ::control::control::resources::ResourceStore::new(
-        gateway.kv.clone(),
-        gateway.pubsub.clone(),
-    );
+    let store =
+        talon::control::resources::ResourceStore::new(gateway.kv.clone(), gateway.pubsub.clone());
     if store
         .get_agent(&route.ns, &route.agent)
         .await
@@ -248,7 +253,7 @@ pub async fn ensure_a2a_session(
     labels.insert("a2a.context_id".to_string(), context_id.to_string());
     labels.insert("a2a.task_id".to_string(), task_id.to_string());
     labels.insert("a2a.agent".to_string(), route.agent.clone());
-    let session = ::protocol::data_proto::Session {
+    let session = talon::protocol::data_proto::Session {
         id: context_id.to_string(),
         agent: route.agent.clone(),
         ns: route.ns.clone(),
@@ -292,14 +297,14 @@ pub async fn ensure_a2a_session(
 
 pub struct A2aTaskSession {
     pub session_id: String,
-    pub session: ::protocol::data_proto::Session,
+    pub session: talon::protocol::data_proto::Session,
 }
 
 pub async fn list_a2a_session_task_ids(
     gateway: &Arc<Gateway>,
     route: &AgentCardRoute,
     session_id: &str,
-    session: &::protocol::data_proto::Session,
+    session: &talon::protocol::data_proto::Session,
 ) -> Result<Vec<String>, Response> {
     let message_keys = gateway
         .kv
@@ -320,7 +325,7 @@ pub async fn list_a2a_session_task_ids(
     for key in message_keys {
         let Some(message) = gateway
             .kv
-            .get_msg::<::protocol::data_proto::SessionMessage>(&key)
+            .get_msg::<talon::protocol::data_proto::SessionMessage>(&key)
             .await
             .map_err(|err| {
                 tracing::error!(%err, "Failed to fetch A2A task message");
@@ -357,7 +362,7 @@ pub async fn find_a2a_task_session(
         let session_key = keys::session(&route.ns, &route.agent, &decoded.session_id);
         let Some(session) = gateway
             .kv
-            .get_msg::<::protocol::data_proto::Session>(&session_key)
+            .get_msg::<talon::protocol::data_proto::Session>(&session_key)
             .await
             .map_err(|err| {
                 tracing::error!(%err, "Failed to fetch A2A task session");
@@ -381,7 +386,7 @@ pub async fn find_a2a_task_session(
         );
         let has_anchor = gateway
             .kv
-            .get_msg::<::protocol::data_proto::SessionMessage>(&message_key)
+            .get_msg::<talon::protocol::data_proto::SessionMessage>(&message_key)
             .await
             .map_err(|err| {
                 tracing::error!(%err, "Failed to fetch A2A task anchor message");
@@ -415,7 +420,7 @@ pub async fn find_a2a_task_session(
         };
         let Some(session) = gateway
             .kv
-            .get_msg::<::protocol::data_proto::Session>(&key)
+            .get_msg::<talon::protocol::data_proto::Session>(&key)
             .await
             .map_err(|err| {
                 tracing::error!(%err, "Failed to fetch A2A session");
@@ -478,7 +483,7 @@ async fn session_contains_a2a_task_message(
     for key in message_keys {
         let Some(message) = gateway
             .kv
-            .get_msg::<::protocol::data_proto::SessionMessage>(&key)
+            .get_msg::<talon::protocol::data_proto::SessionMessage>(&key)
             .await
             .map_err(|err| {
                 tracing::error!(%err, "Failed to fetch A2A task message");
@@ -510,7 +515,7 @@ pub async fn load_a2a_task_for_session(
     let session_key = keys::session(&route.ns, &route.agent, session_id);
     let session = gateway
         .kv
-        .get_msg::<::protocol::data_proto::Session>(&session_key)
+        .get_msg::<talon::protocol::data_proto::Session>(&session_key)
         .await
         .map_err(|err| {
             tracing::error!(%err, "Failed to fetch A2A task");
@@ -562,7 +567,7 @@ pub async fn load_a2a_task_from_session(
     for key in message_keys {
         let Some(message) = gateway
             .kv
-            .get_msg::<::protocol::data_proto::SessionMessage>(&key)
+            .get_msg::<talon::protocol::data_proto::SessionMessage>(&key)
             .await
             .map_err(|err| {
                 tracing::error!(%err, "Failed to fetch A2A task message");
@@ -594,7 +599,9 @@ pub async fn load_a2a_task_from_session(
     let mut latest_message_has_error = false;
     let mut has_agent_response = false;
     for message in messages {
-        if has_task_anchor && message.role == ::protocol::data_proto::MessageRole::RoleUser as i32 {
+        if has_task_anchor
+            && message.role == talon::protocol::data_proto::MessageRole::RoleUser as i32
+        {
             include_task_messages = message
                 .labels
                 .get("a2a.task_id")
@@ -604,10 +611,10 @@ pub async fn load_a2a_task_from_session(
             continue;
         }
         latest_message_has_error = message.parts.iter().any(|part| {
-            part.part_type == ::protocol::data_proto::SessionMessagePartType::Error as i32
+            part.part_type == talon::protocol::data_proto::SessionMessagePartType::Error as i32
         });
         let a2a_message = session_message_to_a2a_message(&message, task_id, &session);
-        if message.role == ::protocol::data_proto::MessageRole::RoleAssistant as i32 {
+        if message.role == talon::protocol::data_proto::MessageRole::RoleAssistant as i32 {
             has_agent_response = true;
             if let Some(artifact) = session_message_to_a2a_artifact(&message) {
                 artifacts.push(artifact);
@@ -661,9 +668,9 @@ pub async fn wait_for_a2a_task(
 }
 
 async fn update_session(
-    kv: &Arc<dyn ::control::control::KeyValueStore + Send + Sync>,
+    kv: &Arc<dyn talon::control::KeyValueStore + Send + Sync>,
     key: &ResourceKey,
-    mut update: impl FnMut(&mut ::protocol::data_proto::Session),
+    mut update: impl FnMut(&mut talon::protocol::data_proto::Session),
 ) -> Result<(), Response> {
     for _ in 0..SESSION_UPDATE_RETRIES {
         let Some(current) = kv.get(key).await.map_err(|err| {
@@ -673,8 +680,8 @@ async fn update_session(
         else {
             return Err(a2a_error(StatusCode::NOT_FOUND, "task not found"));
         };
-        let mut session =
-            ::protocol::data_proto::Session::decode(current.as_slice()).map_err(|err| {
+        let mut session = talon::protocol::data_proto::Session::decode(current.as_slice())
+            .map_err(|err| {
                 tracing::error!(%err, "Failed to decode session for update");
                 a2a_error(StatusCode::INTERNAL_SERVER_ERROR, "failed to update task")
             })?;
@@ -707,7 +714,7 @@ async fn update_session(
 fn a2a_message_to_session_message(
     message: &A2aMessageJson,
     timestamp: i64,
-) -> Result<::protocol::data_proto::SessionMessage, Response> {
+) -> Result<talon::protocol::data_proto::SessionMessage, Response> {
     let parts = message
         .parts
         .iter()
@@ -725,9 +732,9 @@ fn a2a_message_to_session_message(
         labels.insert("a2a.message_id".to_string(), message.message_id.clone());
     }
 
-    Ok(::protocol::data_proto::SessionMessage {
-        id: ::control::control::uuid::session_message_id(),
-        role: ::protocol::data_proto::MessageRole::RoleUser as i32,
+    Ok(talon::protocol::data_proto::SessionMessage {
+        id: talon::control::uuid::session_message_id(),
+        role: talon::protocol::data_proto::MessageRole::RoleUser as i32,
         created_at: timestamp,
         labels,
         parts,
@@ -738,11 +745,11 @@ fn session_part_from_a2a_part(
     index: usize,
     part: &A2aPartJson,
     timestamp: i64,
-) -> Option<::protocol::data_proto::SessionMessagePart> {
+) -> Option<talon::protocol::data_proto::SessionMessagePart> {
     if let Some(text) = part.text.as_deref().filter(|text| !text.trim().is_empty()) {
         return Some(session_part(
             index,
-            ::protocol::data_proto::SessionMessagePartType::Text,
+            talon::protocol::data_proto::SessionMessagePartType::Text,
             text.to_string(),
             String::new(),
             String::new(),
@@ -752,7 +759,7 @@ fn session_part_from_a2a_part(
     if let Some(data) = &part.data {
         return Some(session_part(
             index,
-            ::protocol::data_proto::SessionMessagePartType::Text,
+            talon::protocol::data_proto::SessionMessagePartType::Text,
             data.to_string(),
             "data".to_string(),
             data.to_string(),
@@ -762,7 +769,7 @@ fn session_part_from_a2a_part(
     if let Some(file) = &part.file {
         return Some(session_part(
             index,
-            ::protocol::data_proto::SessionMessagePartType::File,
+            talon::protocol::data_proto::SessionMessagePartType::File,
             String::new(),
             "file".to_string(),
             file.to_string(),
@@ -774,13 +781,13 @@ fn session_part_from_a2a_part(
 
 fn session_part(
     index: usize,
-    part_type: ::protocol::data_proto::SessionMessagePartType,
+    part_type: talon::protocol::data_proto::SessionMessagePartType,
     content: String,
     name: String,
     payload_json: String,
     timestamp: i64,
-) -> ::protocol::data_proto::SessionMessagePart {
-    ::protocol::data_proto::SessionMessagePart {
+) -> talon::protocol::data_proto::SessionMessagePart {
+    talon::protocol::data_proto::SessionMessagePart {
         id: format!("{index:06}"),
         part_type: part_type as i32,
         content,
@@ -792,13 +799,13 @@ fn session_part(
 }
 
 fn session_message_to_a2a_message(
-    message: &::protocol::data_proto::SessionMessage,
+    message: &talon::protocol::data_proto::SessionMessage,
     task_id: &str,
-    session: &::protocol::data_proto::Session,
+    session: &talon::protocol::data_proto::Session,
 ) -> A2aMessageJson {
     A2aMessageJson {
         message_id: message.id.clone(),
-        role: if message.role == ::protocol::data_proto::MessageRole::RoleUser as i32 {
+        role: if message.role == talon::protocol::data_proto::MessageRole::RoleUser as i32 {
             "ROLE_USER".to_string()
         } else {
             "ROLE_AGENT".to_string()
@@ -826,7 +833,7 @@ fn session_message_to_a2a_message(
     }
 }
 
-fn session_context_id(session: &::protocol::data_proto::Session) -> String {
+fn session_context_id(session: &talon::protocol::data_proto::Session) -> String {
     session
         .labels
         .get("a2a.context_id")
@@ -835,7 +842,7 @@ fn session_context_id(session: &::protocol::data_proto::Session) -> String {
 }
 
 fn session_message_to_a2a_artifact(
-    message: &::protocol::data_proto::SessionMessage,
+    message: &talon::protocol::data_proto::SessionMessage,
 ) -> Option<A2aArtifactJson> {
     let parts = message
         .parts
@@ -854,12 +861,12 @@ fn session_message_to_a2a_artifact(
 }
 
 fn session_part_to_a2a_part(
-    part: &::protocol::data_proto::SessionMessagePart,
+    part: &talon::protocol::data_proto::SessionMessagePart,
 ) -> Option<A2aPartJson> {
-    if part.part_type == ::protocol::data_proto::SessionMessagePartType::Usage as i32 {
+    if part.part_type == talon::protocol::data_proto::SessionMessagePartType::Usage as i32 {
         return None;
     }
-    if part.part_type == ::protocol::data_proto::SessionMessagePartType::Text as i32 {
+    if part.part_type == talon::protocol::data_proto::SessionMessagePartType::Text as i32 {
         if part.content.is_empty() {
             None
         } else {
@@ -869,7 +876,7 @@ fn session_part_to_a2a_part(
                 file: None,
             })
         }
-    } else if part.part_type == ::protocol::data_proto::SessionMessagePartType::File as i32 {
+    } else if part.part_type == talon::protocol::data_proto::SessionMessagePartType::File as i32 {
         Some(A2aPartJson {
             text: None,
             data: None,
@@ -897,7 +904,7 @@ fn session_part_to_a2a_part(
 }
 
 fn a2a_task_state(
-    session: &::protocol::data_proto::Session,
+    session: &talon::protocol::data_proto::Session,
     latest_message_has_error: bool,
     has_agent_response: bool,
 ) -> &'static str {

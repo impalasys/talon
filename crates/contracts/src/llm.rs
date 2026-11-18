@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 pub type Embedding = Vec<f32>;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -8,9 +11,9 @@ use futures::Stream;
 use std::pin::Pin;
 use std::{error::Error, fmt};
 
-use ::protocol::data_proto;
-pub use ::protocol::data_proto::TokenCounter;
-pub use ::protocol::harness_proto::{
+use talon::protocol::data_proto;
+pub use talon::protocol::data_proto::TokenCounter;
+pub use talon::protocol::harness_proto::{
     chat_content_part, chat_stream_event, ChatContentPart, ChatMessage, ChatRequest, ChatResponse,
     ChatStreamEvent, Tool, ToolCall, ToolCallDelta, ToolOutput,
 };

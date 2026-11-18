@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{
     document_id, document_ref, Document, DocumentSource, ATTR_AGENT, ATTR_CHANNEL, ATTR_MESSAGE_ID,
     ATTR_PART_ID, ATTR_PART_TYPE, ATTR_ROLE, ATTR_SESSION_ID, DOCUMENT_KIND_CONTENT,
@@ -9,13 +12,13 @@ use super::{
 use crate::control::keys;
 use crate::control::resources::ResourceStore;
 use crate::control::ControlPlane;
-use ::protocol::data_proto;
-use ::protocol::resources_proto;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use prost::Message;
 use serde_json::json;
 use std::{collections::HashMap, sync::Arc};
+use talon::protocol::data_proto;
+use talon::protocol::resources_proto;
 
 const MAX_INDEXED_FILE_BYTES: u64 = 2 * 1024 * 1024;
 
@@ -727,6 +730,9 @@ fn parent_segment(key: &keys::ResourceKey, kind: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::control::object_store::ObjectMetadata;
     use crate::control::search::KIND_KNOWLEDGE;

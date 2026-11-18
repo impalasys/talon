@@ -1,14 +1,17 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use std::{pin::Pin, sync::Arc};
 pub mod cas;
 pub mod config;
 pub mod delegation;
 pub mod events;
-pub use ::identifiers::keys;
+pub use talon::identifiers::keys;
 pub mod manifest;
-pub use ::identifiers::ns;
+pub use talon::identifiers::ns;
 pub mod object_store;
 pub mod resource_model;
 pub mod resources;
@@ -27,7 +30,7 @@ use std::path::PathBuf;
 
 use keys::{ResourceKey, ResourceList};
 
-pub use ::contracts::{
+pub use talon::contracts::{
     apply_list_options_to_entries, apply_list_options_to_keys, KeyValueStore, ListOptions,
     MessagePublisher, Order, ProtoKeyValueStoreExt,
 };

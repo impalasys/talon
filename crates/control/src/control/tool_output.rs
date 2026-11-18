@@ -1,17 +1,20 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::control::cas::CasStore;
-use ::contracts::llm::chat_content_part;
-use ::contracts::llm::object_ref_part;
-use ::contracts::llm::text_part;
-use ::contracts::llm::ChatContentPart;
-use ::contracts::llm::ToolOutput;
-use ::protocol::data_proto;
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use talon::contracts::llm::chat_content_part;
+use talon::contracts::llm::object_ref_part;
+use talon::contracts::llm::text_part;
+use talon::contracts::llm::ChatContentPart;
+use talon::contracts::llm::ToolOutput;
+use talon::protocol::data_proto;
 
 pub const TOOL_RESULT_OBJECT_THRESHOLD_BYTES: usize = 2 * 1024;
 
@@ -430,6 +433,9 @@ pub fn object_ref_summary(media_type: &str, filename: &str, size_bytes: u64) -> 
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::control::object_store::InMemoryObjectStore;
     use crate::control::object_store::ObjectStore;

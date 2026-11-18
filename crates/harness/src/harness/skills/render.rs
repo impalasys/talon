@@ -3,8 +3,11 @@
 
 //! Model-facing rendering for Skill catalogs and active workflow guidance.
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::namespace::NamespaceSkill;
-use ::control::control::skills::package_root;
+use talon::control::skills::package_root;
 
 pub fn format_skill_catalog(skills: &[NamespaceSkill]) -> String {
     if skills.is_empty() {
@@ -48,6 +51,9 @@ pub fn format_active_skill_context(skills: &[(NamespaceSkill, String)]) -> Strin
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     fn skill() -> NamespaceSkill {

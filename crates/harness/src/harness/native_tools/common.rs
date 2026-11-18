@@ -1,10 +1,13 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
-use ::protocol::manifests;
-use ::protocol::protobuf_value::value::Kind as ProtoValueKind;
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use serde_json::Value;
 use std::collections::HashMap;
+use talon::protocol::manifests;
+use talon::protocol::protobuf_value::value::Kind as ProtoValueKind;
 
 pub fn req_str<'a>(args: &'a Value, key: &str) -> Result<&'a str> {
     args.get(key)

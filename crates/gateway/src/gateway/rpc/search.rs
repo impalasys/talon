@@ -1,18 +1,21 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::gateway::auth;
 use crate::gateway::auth::AuthMode;
 use crate::gateway::auth::Claims;
-use ::control::control::keys;
-use ::control::control::ns;
-use ::control::control::search;
-use ::control::control::search::Document;
-use ::control::control::search::ATTR_AGENT;
-use ::control::control::search::ATTR_CHANNEL;
-use ::control::control::search::ATTR_SESSION_ID;
-use ::control::control::ProtoKeyValueStoreExt;
+use talon::control::keys;
+use talon::control::ns;
+use talon::control::search;
+use talon::control::search::Document;
+use talon::control::search::ATTR_AGENT;
+use talon::control::search::ATTR_CHANNEL;
+use talon::control::search::ATTR_SESSION_ID;
+use talon::control::ProtoKeyValueStoreExt;
 
 impl GrpcGatewayHandler {
     pub async fn handle_search(
@@ -372,7 +375,7 @@ async fn canonical_content(
                 .map_err(|error| tonic::Status::internal(error.to_string()))
         }
         _ => {
-            let store = ::control::control::resources::ResourceStore::new(
+            let store = talon::control::resources::ResourceStore::new(
                 handler.gateway.kv.clone(),
                 handler.gateway.pubsub.clone(),
             );

@@ -1,26 +1,29 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{data_proto, external_proto, proto, resources_proto, GrpcGatewayHandler};
-use ::control::control::events;
-use ::control::control::keys;
-use ::control::control::resource_model::ChannelResourceExt;
-use ::control::control::resource_model::ChannelSubscriptionResourceExt;
-use ::control::control::resource_model::TypedResource;
-use ::control::control::scheduling;
-use ::control::control::topics;
-use ::control::control::ControlPlane;
-use ::control::control::KeyValueStore;
-use ::control::control::ListOptions;
-use ::control::control::MessagePublisher;
-use ::control::control::ProtoKeyValueStoreExt;
 use anyhow::Context;
 use futures::StreamExt;
 use prost::Message;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
+use talon::control::events;
+use talon::control::keys;
+use talon::control::resource_model::ChannelResourceExt;
+use talon::control::resource_model::ChannelSubscriptionResourceExt;
+use talon::control::resource_model::TypedResource;
+use talon::control::scheduling;
+use talon::control::topics;
+use talon::control::ControlPlane;
+use talon::control::KeyValueStore;
+use talon::control::ListOptions;
+use talon::control::MessagePublisher;
+use talon::control::ProtoKeyValueStoreExt;
 
-pub use ::control::channels::*;
+pub use talon::control::channels::*;
 
 impl GrpcGatewayHandler {
     pub async fn handle_post_channel_message(
@@ -54,7 +57,7 @@ impl GrpcGatewayHandler {
         let message = persist_channel_message(
             &cp,
             data_proto::ChannelMessage {
-                id: ::control::control::uuid::channel_message_id(),
+                id: talon::control::uuid::channel_message_id(),
                 ns: req.ns.clone(),
                 channel: req.channel.clone(),
                 author_kind: if req.author_kind.is_empty() {
@@ -224,6 +227,9 @@ impl GrpcGatewayHandler {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::contains_mention;
 
     #[test]

@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use chrono::{DateTime, Utc};
 use prost::Message;
@@ -22,7 +25,7 @@ use crate::control::ListOptions;
 use crate::control::MessagePublisher;
 
 use crate::control::ProtoKeyValueStoreExt;
-use ::protocol::data_proto;
+use talon::protocol::data_proto;
 
 pub const A2A_QUEUE: &str = "a2a";
 pub const NEXT_QUEUE: &str = "next";
@@ -544,12 +547,15 @@ async fn release_session_lock_after_queue_dispatch_failure(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::control::topics;
     use crate::test_support::MockKvStore;
     use crate::test_support::RecordingPubSub;
-    use ::protocol::data_proto::SessionSubmission;
     use std::sync::Arc;
+    use talon::protocol::data_proto::SessionSubmission;
 
     async fn put_session(kv: &MockKvStore, status: &str) {
         kv.set_msg(

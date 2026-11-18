@@ -1,6 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Result};
 use prost::Message;
 
@@ -12,16 +15,16 @@ use crate::control::tool_output;
 use crate::control::tool_output::ToolOutputStorageContext;
 use crate::control::KeyValueStore;
 use crate::control::ListOptions;
-use ::contracts::llm::ChatResponse;
-use ::contracts::llm::ToolOutput;
-use ::protocol::data_proto::session_journal_entry_payload;
-use ::protocol::data_proto::SessionExecutionPhase;
-use ::protocol::data_proto::SessionJournalEntryPayload;
-use ::protocol::data_proto::SessionJournalEntryPayloadCommit;
-use ::protocol::data_proto::SessionJournalEntryPayloadCompaction;
-use ::protocol::data_proto::SessionJournalEntryPayloadLlmResponse;
-use ::protocol::data_proto::SessionJournalEntryPayloadSteerInput;
-use ::protocol::data_proto::SessionJournalEntryPayloadToolResult;
+use talon::contracts::llm::ChatResponse;
+use talon::contracts::llm::ToolOutput;
+use talon::protocol::data_proto::session_journal_entry_payload;
+use talon::protocol::data_proto::SessionExecutionPhase;
+use talon::protocol::data_proto::SessionJournalEntryPayload;
+use talon::protocol::data_proto::SessionJournalEntryPayloadCommit;
+use talon::protocol::data_proto::SessionJournalEntryPayloadCompaction;
+use talon::protocol::data_proto::SessionJournalEntryPayloadLlmResponse;
+use talon::protocol::data_proto::SessionJournalEntryPayloadSteerInput;
+use talon::protocol::data_proto::SessionJournalEntryPayloadToolResult;
 
 // Typed payload accessors
 
@@ -73,7 +76,7 @@ pub async fn append_compaction(
     attempt_id: &str,
     summary: &str,
     now_micros: i64,
-) -> Result<(SessionJournalEntry, ::protocol::data_proto::ObjectRef)> {
+) -> Result<(SessionJournalEntry, talon::protocol::data_proto::ObjectRef)> {
     // Allocate the entry id before writing CAS so the immutable object key is
     // shared by the journal and the canonical internal message marker. A
     // contested append may leave an unreachable object, which session GC can
@@ -144,7 +147,7 @@ pub async fn append_compaction(
 }
 
 fn compaction_payload(
-    summary_object: ::protocol::data_proto::ObjectRef,
+    summary_object: talon::protocol::data_proto::ObjectRef,
 ) -> SessionJournalEntryPayloadCompaction {
     SessionJournalEntryPayloadCompaction {
         summary: Some(summary_object),
@@ -549,16 +552,19 @@ fn journal_entry_order(journal_entry_id: &str) -> u64 {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::control::tool_output::ToolOutputExt;
     use crate::control::ProtoKeyValueStoreExt;
     use crate::sessions::create_submission_if_absent;
     use crate::sessions::pending_submission;
     use crate::sessions::SessionSubmission;
-    use ::contracts::llm::ChatResponse;
-    use ::contracts::llm::ToolCall;
-    use ::protocol::data_proto::SessionExecutionPhase;
-    use ::protocol::data_proto::SessionSubmissionStatus;
+    use talon::contracts::llm::ChatResponse;
+    use talon::contracts::llm::ToolCall;
+    use talon::protocol::data_proto::SessionExecutionPhase;
+    use talon::protocol::data_proto::SessionSubmissionStatus;
 
     async fn load_submission(kv: &crate::test_support::MockKvStore) -> Option<SessionSubmission> {
         kv.get_msg::<SessionSubmission>(&keys::session_submission(
@@ -855,8 +861,9 @@ mod tests {
             .payload
             .as_ref()
             .unwrap();
-        let ::protocol::data_proto::session_journal_entry_payload::Payload::Compaction(payload) =
-            payload
+        let talon::protocol::data_proto::session_journal_entry_payload::Payload::Compaction(
+            payload,
+        ) = payload
         else {
             panic!("expected compaction payload")
         };

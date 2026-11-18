@@ -1,11 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::gateway::server::Gateway;
-use ::control::control::security::platform_jwt;
 use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::get, Json, Router};
 use serde_json::json;
 use std::sync::Arc;
+use talon::control::security::platform_jwt;
 use url::Url;
 
 const TALON_GATEWAY_BASE_URL_ENV: &str = "TALON_GATEWAY_BASE_URL";
@@ -134,6 +137,9 @@ fn external_base_url(issuer: &str) -> anyhow::Result<String> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use crate::test_support::EmptyPubSub;
     use crate::test_support::EnvVarGuard;
@@ -145,7 +151,7 @@ mod tests {
     use tower::ServiceExt;
 
     fn gateway_with_platform_jwt() -> Arc<Gateway> {
-        let cp = ::control::control::ControlPlane::builder(
+        let cp = talon::control::ControlPlane::builder(
             Arc::new(MockKvStore::default()),
             Arc::new(EmptyPubSub),
         )

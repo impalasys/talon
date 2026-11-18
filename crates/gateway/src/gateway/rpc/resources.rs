@@ -1,8 +1,11 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::{proto, GrpcGatewayHandler};
-use ::control::control::resources::ResourceStore;
+use talon::control::resources::ResourceStore;
 
 impl GrpcGatewayHandler {
     pub async fn handle_create_resource(

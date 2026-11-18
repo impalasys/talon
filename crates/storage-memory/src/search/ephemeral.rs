@@ -1,14 +1,17 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use super::store::{sort_results, DocumentStore};
 use super::{
     next_page_token, page_offset, query_terms, search_limit, search_mode, search_namespaces,
     search_sort, snippet, DeleteScope, Document, ATTR_AGENT, ATTR_CHANNEL, ATTR_SESSION_ID,
 };
-use ::protocol::proto;
 use anyhow::Result;
 use std::sync::Arc;
+use talon::protocol::proto;
 use tokio::sync::RwLock;
 
 #[derive(Default)]
@@ -235,18 +238,21 @@ fn delete_matches(scope: &DeleteScope, document: &Document) -> bool {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
-    use ::contracts::search::document_attributes;
-    use ::contracts::search::document_source;
-    use ::contracts::search::DocumentRef;
-    use ::contracts::search::DOCUMENT_KIND_MESSAGE_PART;
-    use ::contracts::search::DOCUMENT_KIND_METADATA;
-    use ::contracts::search::KIND_KNOWLEDGE;
-    use ::contracts::search::KIND_SESSION_MESSAGE;
+    use talon::contracts::search::document_attributes;
+    use talon::contracts::search::document_source;
+    use talon::contracts::search::DocumentRef;
+    use talon::contracts::search::DOCUMENT_KIND_MESSAGE_PART;
+    use talon::contracts::search::DOCUMENT_KIND_METADATA;
+    use talon::contracts::search::KIND_KNOWLEDGE;
+    use talon::contracts::search::KIND_SESSION_MESSAGE;
 
     fn test_document(
         id: String,
-        source: ::contracts::search::DocumentSource,
+        source: talon::contracts::search::DocumentSource,
         document_kind: String,
         text: String,
     ) -> Document {

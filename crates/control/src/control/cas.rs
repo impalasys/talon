@@ -1,12 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use crate::control::object_store::ObjectMetadata;
 
 use crate::control::object_store::ObjectStore;
 
 use crate::control::object_store::StoredObject;
-use ::protocol::data_proto;
 use anyhow::{anyhow, Result};
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use sha2::{Digest, Sha256};
@@ -15,6 +17,7 @@ use std::collections::HashMap;
 use std::io::{Cursor, Read, Write};
 use std::sync::Arc;
 use std::time::Duration;
+use talon::protocol::data_proto;
 
 pub const TOOL_RESULT_MEDIA_TYPE: &str = "text/plain; charset=utf-8";
 
@@ -869,6 +872,9 @@ fn sha256_hex(bytes: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         compaction_summary_object_key, parse_session_object_key, CasStore, SessionCasScope,
         SessionObjectIdentity, CONTENT_ENCODING_GZIP, CONTENT_ENCODING_ZSTD,

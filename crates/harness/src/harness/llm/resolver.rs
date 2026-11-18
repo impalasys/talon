@@ -1,21 +1,24 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+#[allow(unused_imports)]
+use crate::talon;
+
 use anyhow::{anyhow, Context, Result};
 use std::sync::Arc;
 
 use crate::harness::executor::compaction::ModelContextLimits;
 use crate::harness::llm::LlmProvider;
-use ::control::control::cas::CasStore;
-use ::control::control::config::proto;
-use ::control::control::config::secrets::SecretExt;
-use ::control::control::config::Config;
-use ::control::control::config::Secret;
-use ::control::control::object_store::ObjectStore;
-use ::control::control::ControlPlane;
-use ::protocol::manifests;
-use ::protocol::manifests::AgentSpec;
 use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
+use talon::control::cas::CasStore;
+use talon::control::config::proto;
+use talon::control::config::secrets::SecretExt;
+use talon::control::config::Config;
+use talon::control::config::Secret;
+use talon::control::object_store::ObjectStore;
+use talon::control::ControlPlane;
+use talon::protocol::manifests;
+use talon::protocol::manifests::AgentSpec;
 
 pub struct ResolvedLlm {
     pub provider: Arc<dyn LlmProvider + Send + Sync>,
@@ -297,7 +300,7 @@ async fn resolve_tenant_provider_api_key(
     tenant_namespace: &str,
     provider_name: &str,
 ) -> Result<Option<String>> {
-    let store = ::control::control::resources::ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+    let store = talon::control::resources::ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
     let Some(secret) = store
         .get_secret(tenant_namespace, API_KEYS_SECRET_NAME)
         .await?
@@ -360,23 +363,26 @@ fn provider_api_key_value<'a>(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::{
         model_context_limits, resolve_llm, resolve_llm_for_namespace, resolve_model_profile,
         API_KEYS_SECRET_NAME,
     };
-    use ::control::control::config::proto;
-    use ::control::control::config::Config;
-    use ::control::control::config::ProviderConfig;
-    use ::control::control::config::Secret;
-    use ::control::control::object_store::InMemoryObjectStore;
-    use ::control::control::ControlPlane;
-    use ::protocol::manifests;
-    use ::protocol::resources_proto;
     use axum::{http::HeaderMap, routing::post, Json, Router};
     use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
     use serde_json::json;
     use std::collections::HashMap;
     use std::sync::Arc;
+    use talon::control::config::proto;
+    use talon::control::config::Config;
+    use talon::control::config::ProviderConfig;
+    use talon::control::config::Secret;
+    use talon::control::object_store::InMemoryObjectStore;
+    use talon::control::ControlPlane;
+    use talon::protocol::manifests;
+    use talon::protocol::resources_proto;
     use tokio::net::TcpListener;
 
     fn config_with_provider(name: &str, provider: ProviderConfig) -> Config {
@@ -462,8 +468,7 @@ mod tests {
         provider: &str,
         api_key: &str,
     ) {
-        let store =
-            ::control::control::resources::ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+        let store = talon::control::resources::ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
         store
             .upsert(
                 namespace,
@@ -494,7 +499,7 @@ mod tests {
             .unwrap();
     }
 
-    fn test_object_store() -> Arc<dyn ::control::control::object_store::ObjectStore + Send + Sync> {
+    fn test_object_store() -> Arc<dyn talon::control::object_store::ObjectStore + Send + Sync> {
         Arc::new(InMemoryObjectStore::default())
     }
 

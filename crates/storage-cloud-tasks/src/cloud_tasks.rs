@@ -1,15 +1,18 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use ::config::proto::CloudTasksSchedulerConfig;
+#[allow(unused_imports)]
+use crate::talon;
 
-use ::config::SecretExt;
+use talon::config::proto::CloudTasksSchedulerConfig;
+
 use anyhow::{anyhow, Context, Result};
 use base64::Engine as _;
 use chrono::{DateTime, Utc};
 use google_cloud_auth::credentials::{AccessTokenCredentials, Builder as CredentialsBuilder};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
+use talon::config::SecretExt;
 
 use super::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend, SCHEDULER_AUTH_HEADER};
 
@@ -94,18 +97,20 @@ fn compute_cloud_tasks_schedule_at(
 }
 
 async fn resolve_callback_auth(
-    cfg: Option<&::config::proto::SchedulerCallbackAuthConfig>,
+    cfg: Option<&talon::config::proto::SchedulerCallbackAuthConfig>,
 ) -> Result<(Option<String>, Option<String>, Option<String>)> {
     if let Some(cfg) = cfg {
         return match cfg.auth.as_ref() {
-            Some(::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(secret)) => {
-                Ok((Some(secret.resolve().await?), None, None))
+            Some(talon::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
+                secret,
+            )) => Ok((Some(secret.resolve().await?), None, None)),
+            Some(talon::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(oidc)) => {
+                Ok((
+                    None,
+                    non_empty(oidc.service_account_email.clone()),
+                    non_empty(oidc.audience.clone()),
+                ))
             }
-            Some(::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(oidc)) => Ok((
-                None,
-                non_empty(oidc.service_account_email.clone()),
-                non_empty(oidc.audience.clone()),
-            )),
             None => Ok((None, None, None)),
         };
     }
@@ -264,6 +269,9 @@ fn non_empty(value: String) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
     use axum::extract::{Path, State};
     use axum::routing::{delete, post};
@@ -388,7 +396,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_callback_auth_prefers_explicit_google_oidc_over_env_secret() {
-        let _guard = ::test_support::async_env_mutex().lock().await;
+        let _guard = talon::test_support::async_env_mutex().lock().await;
         clear_scheduler_auth_env();
         unsafe {
             std::env::set_var("TALON_SCHEDULER_AUTH_TOKEN", "stale-secret");
@@ -396,10 +404,10 @@ mod tests {
             std::env::set_var("TALON_SCHEDULER_AUDIENCE", "https://stale.example.com");
         }
 
-        let cfg = ::config::proto::SchedulerCallbackAuthConfig {
+        let cfg = talon::config::proto::SchedulerCallbackAuthConfig {
             auth: Some(
-                ::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
-                    ::config::proto::GoogleOidcAuthConfig {
+                talon::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
+                    talon::config::proto::GoogleOidcAuthConfig {
                         service_account_email: "scheduler@example.com".to_string(),
                         audience: "https://worker.example.com".to_string(),
                     },
@@ -422,7 +430,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_callback_auth_uses_env_when_config_absent() {
-        let _guard = ::test_support::async_env_mutex().lock().await;
+        let _guard = talon::test_support::async_env_mutex().lock().await;
         clear_scheduler_auth_env();
         unsafe {
             std::env::set_var("TALON_SCHEDULER_AUTH_TOKEN", "shared-secret");
@@ -448,13 +456,13 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_callback_auth_handles_blank_and_shared_secret_config() {
-        let _guard = ::test_support::async_env_mutex().lock().await;
+        let _guard = talon::test_support::async_env_mutex().lock().await;
         clear_scheduler_auth_env();
 
-        let blank_cfg = ::config::proto::SchedulerCallbackAuthConfig {
+        let blank_cfg = talon::config::proto::SchedulerCallbackAuthConfig {
             auth: Some(
-                ::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
-                    ::config::proto::GoogleOidcAuthConfig {
+                talon::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
+                    talon::config::proto::GoogleOidcAuthConfig {
                         service_account_email: "   ".to_string(),
                         audience: "".to_string(),
                     },
@@ -467,13 +475,13 @@ mod tests {
         assert!(service_account_email.is_none());
         assert!(audience.is_none());
 
-        let shared_cfg = ::config::proto::SchedulerCallbackAuthConfig {
+        let shared_cfg = talon::config::proto::SchedulerCallbackAuthConfig {
             auth: Some(
-                ::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
-                    ::config::proto::Secret {
-                        source: Some(::config::proto::secret::Source::Ref(
-                            ::config::proto::SecretRef {
-                                source: ::config::proto::secret_ref::Source::Env as i32,
+                talon::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
+                    talon::config::proto::Secret {
+                        source: Some(talon::config::proto::secret::Source::Ref(
+                            talon::config::proto::SecretRef {
+                                source: talon::config::proto::secret_ref::Source::Env as i32,
                                 key: "TALON_SCHEDULER_AUTH_TOKEN".to_string(),
                             },
                         )),
@@ -495,7 +503,7 @@ mod tests {
 
     #[tokio::test]
     async fn new_requires_scheduler_fields_and_reads_env_fallbacks() {
-        let _guard = ::test_support::async_env_mutex().lock().await;
+        let _guard = talon::test_support::async_env_mutex().lock().await;
         clear_scheduler_auth_env();
         unsafe {
             std::env::remove_var("TALON_SCHEDULER_PROJECT_ID");
@@ -562,7 +570,7 @@ mod tests {
 
     #[tokio::test]
     async fn new_prefers_trimmed_config_values_over_env() {
-        let _guard = ::test_support::async_env_mutex().lock().await;
+        let _guard = talon::test_support::async_env_mutex().lock().await;
         clear_scheduler_auth_env();
         unsafe {
             std::env::set_var("GCP_PROJECT_ID", "env-project");
@@ -577,13 +585,13 @@ mod tests {
             location: " us-west1 ".to_string(),
             queue: " main ".to_string(),
             target_url: " https://cfg.example.com/fire ".to_string(),
-            callback_auth: Some(::config::proto::SchedulerCallbackAuthConfig {
+            callback_auth: Some(talon::config::proto::SchedulerCallbackAuthConfig {
                 auth: Some(
-                    ::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
-                        ::config::proto::Secret {
-                            source: Some(::config::proto::secret::Source::Ref(
-                                ::config::proto::SecretRef {
-                                    source: ::config::proto::secret_ref::Source::Env as i32,
+                    talon::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
+                        talon::config::proto::Secret {
+                            source: Some(talon::config::proto::secret::Source::Ref(
+                                talon::config::proto::SecretRef {
+                                    source: talon::config::proto::secret_ref::Source::Env as i32,
                                     key: "TALON_SCHEDULER_AUTH_TOKEN".to_string(),
                                 },
                             )),

@@ -35,8 +35,8 @@ pub fn resource_lookup_target(
             .with_context(|| format!("{} requires --namespace", resource.kind))?,
         "system" => namespace
             .cloned()
-            .unwrap_or_else(|| ::identifiers::ns::TALON_SYSTEM.to_string()),
-        "system_fixed" => ::identifiers::ns::TALON_SYSTEM.to_string(),
+            .unwrap_or_else(|| talon::identifiers::ns::TALON_SYSTEM.to_string()),
+        "system_fixed" => talon::identifiers::ns::TALON_SYSTEM.to_string(),
         policy => anyhow::bail!(
             "Unsupported lookup namespace policy '{}'; check resource registry",
             policy
@@ -62,6 +62,9 @@ pub fn resource_lookup_target(
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused_imports)]
+    use crate::talon;
+
     use super::*;
 
     #[test]

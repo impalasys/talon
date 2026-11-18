@@ -3,8 +3,10 @@
 
 //! Shared storage, messaging and execution interfaces.
 
-use ::identifiers::keys::{ResourceKey, ResourceList};
+pub(crate) mod talon;
+
 use std::{pin::Pin, sync::Arc};
+use talon::identifiers::keys::{ResourceKey, ResourceList};
 pub mod llm;
 pub mod object_store;
 pub mod rpc;
@@ -219,7 +221,7 @@ pub trait MessagePublisher: Send + Sync {
 pub mod auth;
 pub mod uuid;
 
-pub use ::identifiers::{keys, ns};
+pub use talon::identifiers::{keys, ns};
 pub mod pubsub;
 pub mod topics;
 
