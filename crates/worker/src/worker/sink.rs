@@ -413,6 +413,7 @@ pub struct PubSubSessionSink {
     steer_drains: Mutex<u8>,
     message_max_bytes: usize, // Captured once per sink, never read per streamed token.
     terminal_cutover: AtomicBool,
+    cutover_release_authority: AtomicBool,
     persist_lock: Arc<AsyncMutex<()>>, // Serializes projection writes with final message commit.
 
     // Run summary counters for logs/telemetry.
@@ -579,6 +580,7 @@ impl PubSubSessionSink {
             steer_drains: Mutex::new(0),
             message_max_bytes: session_message_max_bytes(),
             terminal_cutover: AtomicBool::new(false),
+            cutover_release_authority: AtomicBool::new(false),
             persist_lock: Arc::new(AsyncMutex::new(())),
             input_token_chunks: Mutex::new(0),
             input_token_chars: Mutex::new(0),
@@ -1210,6 +1212,10 @@ impl PubSubSessionSink {
         self.terminal_cutover.load(Ordering::Acquire)
     }
 
+    pub(crate) fn has_cutover_release_authority(&self) -> bool {
+        self.cutover_release_authority.load(Ordering::Acquire)
+    }
+
     fn ensure_not_cutover(&self) -> Result<()> {
         if self.is_cutover_terminal() {
             return Err(anyhow!("session persistence failed; execution is terminal"));
@@ -1239,6 +1245,18 @@ impl PubSubSessionSink {
                 false
             }
         };
+        let owns_committed_submission = if owns_failure {
+            false
+        } else {
+            matches!(self.kv.get_msg::<SessionSubmission>(&keys::session_submission(
+                &self.ns, &self.agent_id, &self.session_id, &self.submission_id)).await,
+                Ok(Some(submission)) if submission.attempt_id == self.attempt_id
+                    && submission.status == SessionSubmissionStatus::Committed as i32)
+        };
+        // Only an owned terminal state excludes reclaim. A stale/expired sink
+        // may stop itself, but cannot release the live session or its queues.
+        self.cutover_release_authority
+            .store(owns_failure || owns_committed_submission, Ordering::Release);
         if owns_failure {
             let msg = data_proto::SessionMessage {
                 id: self.current_reply_msg_id(),
@@ -2550,6 +2568,7 @@ mod tests {
             kv.set_msg(&reply_key(), &original).await.unwrap();
             sink.cutover_to_failed("late error").await;
             assert!(sink.is_cutover_terminal());
+            assert_eq!(sink.has_cutover_release_authority(), !expired);
             assert_eq!(latest_reply_message(&kv).await, original);
         }
     }
@@ -2652,6 +2671,7 @@ mod tests {
         sink.on_token(&"x".repeat(5000)).await;
         sink.on_done().await;
         assert!(sink.is_cutover_terminal());
+        assert!(!sink.has_cutover_release_authority());
         assert_eq!(*kv.reply_set_count.lock().await, 0);
         assert_eq!(
             kv.get_msg::<data_proto::SessionSubmission>(&key)
