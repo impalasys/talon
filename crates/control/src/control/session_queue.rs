@@ -174,7 +174,13 @@ async fn remove_queue_entry(
     // still retry using the original canonical message.
     kv.delete(&keys::session_queue_entry(ns, agent, session, queue, entry))
         .await?;
-    crate::sessions::remove_queue_receipt(kv, ns, agent, session, entry).await
+    // Once the primary entry is gone, auxiliary cleanup must not prevent its
+    // dispatch (or turn a durable steering commit into an apparent failure).
+    if let Err(error) = crate::sessions::remove_queue_receipt(kv, ns, agent, session, entry).await {
+        tracing::warn!(%error, namespace = %ns, agent = %agent, session_id = %session,
+            entry_id = %entry, "failed to remove terminal queue receipt");
+    }
+    Ok(())
 }
 
 pub async fn commit_steer_batch(
@@ -563,6 +569,110 @@ mod tests {
     use crate::test_support::RecordingPubSub;
     use std::sync::Arc;
     use talon::protocol::data_proto::SessionSubmission;
+
+    #[derive(Default)]
+    struct ReceiptDeleteFailureKv(MockKvStore);
+    #[async_trait::async_trait]
+    impl KeyValueStore for ReceiptDeleteFailureKv {
+        async fn get(&self, key: &keys::ResourceKey) -> Result<Option<Vec<u8>>> {
+            self.0.get(key).await
+        }
+        async fn set(&self, key: &keys::ResourceKey, value: &[u8]) -> Result<()> {
+            self.0.set(key, value).await
+        }
+        async fn compare_and_swap(
+            &self,
+            key: &keys::ResourceKey,
+            expected: Option<&[u8]>,
+            value: &[u8],
+        ) -> Result<bool> {
+            self.0.compare_and_swap(key, expected, value).await
+        }
+        async fn compare_and_delete(
+            &self,
+            key: &keys::ResourceKey,
+            expected: &[u8],
+        ) -> Result<bool> {
+            self.0.compare_and_delete(key, expected).await
+        }
+        async fn delete(&self, key: &keys::ResourceKey) -> Result<()> {
+            if key.kind == "QueuedMessageAdmission" {
+                return Err(anyhow!("injected receipt cleanup failure"));
+            }
+            self.0.delete(key).await
+        }
+        async fn list_keys(
+            &self,
+            list: &keys::ResourceList,
+            options: Option<ListOptions<'_>>,
+        ) -> Result<Vec<keys::ResourceKey>> {
+            self.0.list_keys(list, options).await
+        }
+    }
+
+    #[tokio::test]
+    async fn receipt_cleanup_failure_does_not_lose_queued_dispatch() {
+        let kv = ReceiptDeleteFailureKv::default();
+        let pubsub = RecordingPubSub::default();
+        put_session(&kv.0, "IDLE").await;
+        let queued = queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            "dispatch despite cleanup failure",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let dispatched = dispatch_next_queued_message(
+            &kv,
+            &pubsub,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            Utc::now(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(dispatched.entry_id, queued.entry_id);
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                NEXT_QUEUE,
+                &queued.entry_id
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(receipt_exists(&kv.0, &queued.entry_id).await);
+        let published = pubsub.published.lock().await;
+        let (_, bytes) = published
+            .iter()
+            .find(|(topic, _)| topic == topics::SESSION_DISPATCH_TOPIC)
+            .unwrap();
+        let event = events::SessionDispatchEvent::decode(bytes.as_slice()).unwrap();
+        assert_eq!(event.message, "dispatch despite cleanup failure");
+        assert_eq!(event.submission_id, dispatched.submission_id);
+        assert_eq!(
+            kv.get_msg::<data_proto::Session>(&keys::session(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1"
+            ))
+            .await
+            .unwrap()
+            .unwrap()
+            .status,
+            "PROCESSING"
+        );
+    }
 
     async fn receipt_exists(kv: &MockKvStore, entry: &str) -> bool {
         kv.get(&keys::ResourceKey::new(

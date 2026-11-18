@@ -1565,6 +1565,16 @@ mod tests {
             b.is_ok(),
             "only one caller may consume confirmation"
         );
+        assert!(kv
+            .get(&keys::ResourceKey::new(
+                "Tenant:own",
+                &[("Agent", "agent"), ("Session", "session")],
+                "DeleteConfirmation",
+                "active"
+            ))
+            .await
+            .unwrap()
+            .is_none());
         execute_tool_for_session(
             &cp,
             "Tenant:own",
@@ -1628,11 +1638,60 @@ mod tests {
         .unwrap()
         .unwrap();
         let pending: Value = serde_json::from_str(&pending).unwrap();
+        // Repeated abandoned requests replace one bounded active slot, and an
+        // older nonce cannot consume or remove its replacement.
+        for _ in 0..5 {
+            execute_tool_for_session(
+                &cp,
+                "ns",
+                "agent",
+                "session",
+                &spec,
+                DELETE_FILE_TOOL,
+                &args,
+                &cfg,
+            )
+            .await
+            .unwrap();
+        }
+        let active_key = keys::ResourceKey::new(
+            "ns",
+            &[("Agent", "agent"), ("Session", "session")],
+            "DeleteConfirmation",
+            "active",
+        );
+        let replacement = kv.get(&active_key).await.unwrap().unwrap();
+        let old_err = execute_tool_for_session(
+            &cp,
+            "ns",
+            "agent",
+            "session",
+            &spec,
+            DELETE_FILE_TOOL,
+            &json!({"path":"/test.md", "confirmation_id":pending["confirmationId"]}),
+            &cfg,
+        )
+        .await
+        .unwrap_err();
+        assert!(old_err.to_string().contains("superseded"));
+        assert_eq!(kv.get(&active_key).await.unwrap().unwrap(), replacement);
+        let entries = kv
+            .list_keys(
+                &keys::session("ns", "agent", "session")
+                    .as_parent()
+                    .list(Some("DeleteConfirmation")),
+                None,
+            )
+            .await
+            .unwrap();
+        assert_eq!(entries.len(), 1);
+        let pending: Value = serde_json::from_slice(&replacement).unwrap();
+        let pending = json!({"confirmationId":pending["confirmation_id"]});
         let key = keys::ResourceKey::new(
             "ns",
             &[("Agent", "agent"), ("Session", "session")],
             "DeleteConfirmation",
-            pending["confirmationId"].as_str().unwrap(),
+            "active",
         );
         let mut stored: Value =
             serde_json::from_slice(&kv.get(&key).await.unwrap().unwrap()).unwrap();

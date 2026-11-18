@@ -410,7 +410,7 @@ pub async fn validate_user_confirmation(
     })
 }
 
-/// Token single-use and session-state CAS jointly fence consumption. If a newer
+/// Atomic token removal and session-state CAS jointly fence consumption. If a newer
 /// input/edit wins, consume fails closed and the caller must request a new token.
 pub async fn consume_user_confirmation(
     kv: &dyn KeyValueStore,
@@ -428,10 +428,7 @@ pub async fn consume_user_confirmation(
         Ok(())
     };
     check_expiry()?;
-    if !kv
-        .compare_and_swap(confirmation_key, Some(pending), b"consumed")
-        .await?
-    {
+    if !kv.compare_and_delete(confirmation_key, pending).await? {
         return Err(anyhow!("delete confirmation is missing or already used"));
     }
     check_expiry()?;
@@ -709,6 +706,18 @@ mod tests {
         .to_string()
         .contains("expired"));
         assert_eq!(kv.get(&expired).await.unwrap().unwrap(), b"pending");
+        let replaced = pending(&kv, "replaced").await;
+        kv.set(&replaced, b"new request").await.unwrap();
+        assert!(consume_user_confirmation(
+            &kv,
+            snapshot(&kv, 0).await.unwrap(),
+            &replaced,
+            b"pending",
+            deadline()
+        )
+        .await
+        .is_err());
+        assert_eq!(kv.get(&replaced).await.unwrap().unwrap(), b"new request");
         let key = pending(&kv, "token").await;
         let first = snapshot(&kv, 0).await.unwrap();
         let second = snapshot(&kv, 0).await.unwrap();
@@ -717,5 +726,6 @@ mod tests {
             consume_user_confirmation(&kv, second, &key, b"pending", deadline())
         );
         assert_ne!(a.is_ok(), b.is_ok());
+        assert!(kv.get(&key).await.unwrap().is_none());
     }
 }

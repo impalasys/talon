@@ -40,7 +40,10 @@ The first call returns `status: confirmation_required`, `confirmationId`, and
 in a later message, then repeat the tool with `confirmation_id`. A confirmation
 expires after one hour, is single-use, and is bound to the requesting session,
 agent, namespace, path, and resource version. Any intervening File update requires
-a fresh confirmation. Confirmation ordering uses a server-owned, versioned
+a fresh confirmation. Each session keeps at most one active pending deletion;
+a new request supersedes the previous confirmation ID, and successful consumption
+atomically removes the pending record. Abandoned requests occupy at most that
+single slot until replaced or checked after expiry. Confirmation ordering uses a server-owned, versioned
 admission state, recorded when input is accepted (including queued replies),
 not client timestamps or IDs. Pending inputs and edits fence consumption;
 editing an old message does not make it a later confirmation. If input changes

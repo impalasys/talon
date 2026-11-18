@@ -205,6 +205,7 @@ pub async fn delete_file_tool(
 const DELETE_CONFIRMATION_TTL_MICROS: i64 = 60 * 60 * 1_000_000;
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 struct PendingFileDelete {
+    confirmation_id: String,
     target_namespace: String,
     path: String,
     resource_name: String,
@@ -245,6 +246,7 @@ async fn require_delete_confirmation(
             confirmation_id
         );
         let pending = PendingFileDelete {
+            confirmation_id: confirmation_id.clone(),
             target_namespace: target_namespace.to_string(),
             path: path.to_string(),
             resource_name,
@@ -261,12 +263,7 @@ async fn require_delete_confirmation(
         };
         cp.kv
             .set(
-                &delete_confirmation_key(
-                    current_namespace,
-                    current_agent,
-                    current_session,
-                    &confirmation_id,
-                ),
+                &delete_confirmation_key(current_namespace, current_agent, current_session),
                 &serde_json::to_vec(&pending)?,
             )
             .await?;
@@ -276,29 +273,26 @@ async fn require_delete_confirmation(
             "namespace": target_namespace,
             "path": path,
             "requiredReply": required_reply,
-            "instruction": "Ask the user to send requiredReply exactly in a separate message. Do not call this delete tool again until that reply arrives."
+            "instruction": "This request supersedes any earlier pending File deletion in this session. Ask the user to send requiredReply exactly in a separate message. Do not call this delete tool again until that reply arrives."
         }))?));
     };
 
-    let key = delete_confirmation_key(
-        current_namespace,
-        current_agent,
-        current_session,
-        confirmation_id,
-    );
+    let key = delete_confirmation_key(current_namespace, current_agent, current_session);
     let pending_bytes = cp.kv.get(&key).await?.ok_or_else(|| {
         anyhow!(
             "delete confirmation '{}' is missing or already used",
             confirmation_id
         )
     })?;
-    if pending_bytes == b"consumed" {
-        return Err(anyhow!("delete confirmation was already used"));
-    }
     let pending: PendingFileDelete = serde_json::from_slice(&pending_bytes)?;
+    if pending.confirmation_id != confirmation_id {
+        return Err(anyhow!(
+            "delete confirmation was superseded; start a new delete request"
+        ));
+    }
     let now = chrono::Utc::now().timestamp_micros();
     if now > pending.expires_at {
-        cp.kv.delete(&key).await?;
+        cp.kv.compare_and_delete(&key, &pending_bytes).await?;
         return Err(anyhow!(
             "delete confirmation '{}' expired; start a new delete request",
             confirmation_id
@@ -339,13 +333,14 @@ fn delete_confirmation_key(
     current_namespace: &str,
     current_agent: &str,
     current_session: &str,
-    confirmation_id: &str,
 ) -> keys::ResourceKey {
     keys::ResourceKey::new(
         current_namespace,
         &[("Agent", current_agent), ("Session", current_session)],
         "DeleteConfirmation",
-        confirmation_id,
+        // One active request per session bounds abandoned tokens without a
+        // background collector. A new request supersedes the previous nonce.
+        "active",
     )
 }
 
