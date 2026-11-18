@@ -23,3 +23,39 @@ actions:
           set -euo pipefail
           bash scripts/ci/linux-build-setup.sh
           python3 scripts/ci/linux_build.py --output "$BUILDBUDDY_ARTIFACTS_DIRECTORY"
+  - name: Crate split benchmark AB (16 CPUs)
+    os: linux
+    arch: amd64
+    container_image: ubuntu-24.04
+    bazel_use_cli: false
+    resource_requests:
+      cpu: 16
+      memory: 32GB
+      disk: 80GB
+    timeout: 59m
+    triggers:
+      push:
+        branches: [codex/measure-crate-split-16]
+    steps:
+      - run: |
+          set -euo pipefail
+          bash scripts/ci/linux-pilot-setup.sh
+          python3 scripts/ci/crate_split_benchmark.py --round AB --output "$BUILDBUDDY_ARTIFACTS_DIRECTORY"
+  - name: Crate split benchmark BA (16 CPUs)
+    os: linux
+    arch: amd64
+    container_image: ubuntu-24.04
+    bazel_use_cli: false
+    resource_requests:
+      cpu: 16
+      memory: 32GB
+      disk: 80GB
+    timeout: 59m
+    triggers:
+      push:
+        branches: [codex/measure-crate-split-16]
+    steps:
+      - run: |
+          set -euo pipefail
+          bash scripts/ci/linux-pilot-setup.sh
+          python3 scripts/ci/crate_split_benchmark.py --round BA --output "$BUILDBUDDY_ARTIFACTS_DIRECTORY"
