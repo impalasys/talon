@@ -12,9 +12,7 @@ pub use message_order::{
     persist_promoted_session_message, persist_queued_session_message, validate_user_confirmation,
     SessionMessageAlreadyExistsError, UserConfirmationSnapshot,
 };
-pub(crate) use message_order::{
-    load_promoted_session_message, queued_message_is_accepted, remove_queue_receipt,
-};
+pub(crate) use message_order::{load_promoted_session_message, remove_queue_receipt};
 mod lease;
 mod recovery;
 mod session;

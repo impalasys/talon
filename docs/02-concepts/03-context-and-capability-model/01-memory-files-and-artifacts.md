@@ -49,8 +49,10 @@ admission state. Overlapping inputs are ordered at the server's reservation CAS
 (including queued replies), not by client timestamps, IDs, or the order database
 acknowledgements finish. The latest reserved input must finish its durable write
 before it can confirm a deletion. An older overlapping write finishing late does
-not supersede a newer input. Staged queue entries cannot dispatch until their
-admission receipt commits. New turns require fresh message IDs and User-role
+not supersede a newer input. The durable queue write commits acceptance. Its receipt is written first and
+carries the original reservation so dispatch or an exact enqueue retry can
+recover confirmation-state finalization without readmitting the input. A
+receipt without a committed queue payload is never dispatched. New turns require fresh message IDs and User-role
 messages; explicit transcript edits use the update-message API. Pending inputs and edits fence consumption;
 editing an old message does not make it a later confirmation. If input changes
 during confirmation, request a new delete token. Exact namespace grants also

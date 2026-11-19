@@ -109,11 +109,6 @@ pub async fn prepare_steer_batch(
                 continue;
             }
         };
-        if !crate::sessions::queued_message_is_accepted(kv, ns, agent, session_id, &entry_id)
-            .await?
-        {
-            break;
-        }
         crate::sessions::load_promoted_session_message(
             kv,
             ns,
@@ -240,9 +235,6 @@ pub async fn list_prepared_steer_message_ids(
         let Some(entry) = keys::direct_child_name(&prefix, &key) else {
             continue;
         };
-        if !crate::sessions::queued_message_is_accepted(kv, ns, agent, session_id, &entry).await? {
-            continue;
-        }
         if let Ok(message) = data_proto::SessionMessage::decode(bytes.as_slice()) {
             if !message.id.is_empty() {
                 ids.insert(message.id);
@@ -373,11 +365,6 @@ pub async fn reclassify_steer_queue_to_next(
         let Some(entry_id) = keys::direct_child_name(&steer_prefix, &entry_key) else {
             continue;
         };
-        if !crate::sessions::queued_message_is_accepted(kv, ns, agent, session_id, &entry_id)
-            .await?
-        {
-            continue;
-        }
         let next_key = keys::session_queue_entry(ns, agent, session_id, NEXT_QUEUE, &entry_id);
         kv.compare_and_swap(&next_key, None, &bytes).await?;
         kv.delete(&entry_key).await?;
@@ -407,9 +394,6 @@ pub async fn dispatch_next_queued_message(
     let Some(entry_id) = keys::direct_child_name(&prefix, &entry_key) else {
         return Ok(None);
     };
-    if !crate::sessions::queued_message_is_accepted(kv, ns, agent, session_id, &entry_id).await? {
-        return Ok(None);
-    }
     let Some(message_bytes) = kv.get(&entry_key).await? else {
         return Ok(None);
     };

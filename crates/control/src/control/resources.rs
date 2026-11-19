@@ -481,8 +481,19 @@ impl ResourceStore {
                 name
             ));
         }
-        if !self.kv.compare_and_delete(&key, &current).await? {
-            return Err(anyhow!("resourceVersion conflict for {}/{}", kind, name));
+        match self.kv.compare_and_delete(&key, &current).await {
+            Ok(true) => {}
+            Ok(false) => return Err(anyhow!("resourceVersion conflict for {}/{}", kind, name)),
+            Err(error) => {
+                // A remote store can commit before losing its response. Absence
+                // is authoritative; preserve replacements and report uncertainty
+                // when the read cannot establish the outcome.
+                match self.kv.get(&key).await {
+                    Ok(None) => {},
+                    Ok(Some(_)) => return Err(error),
+                    Err(read_error) => return Err(error.context(format!("conditional delete outcome unknown; verification read failed: {read_error}"))),
+                }
+            }
         }
         let change = events::ResourceChangeType::Deleted;
         self.publish_index_event(&resource, change, &key).await;
@@ -1607,6 +1618,117 @@ mod tests {
             event.change_type,
             events::ResourceChangeType::Created as i32
         );
+    }
+
+    #[derive(Default)]
+    struct DeleteResponseFailureKv {
+        inner: MockKvStore,
+        mode: std::sync::atomic::AtomicUsize,
+    }
+    #[async_trait::async_trait]
+    impl KeyValueStore for DeleteResponseFailureKv {
+        async fn get(&self, key: &keys::ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+            self.inner.get(key).await
+        }
+        async fn set(&self, key: &keys::ResourceKey, value: &[u8]) -> anyhow::Result<()> {
+            self.inner.set(key, value).await
+        }
+        async fn compare_and_swap(
+            &self,
+            key: &keys::ResourceKey,
+            expected: Option<&[u8]>,
+            value: &[u8],
+        ) -> anyhow::Result<bool> {
+            self.inner.compare_and_swap(key, expected, value).await
+        }
+        async fn compare_and_delete(
+            &self,
+            key: &keys::ResourceKey,
+            expected: &[u8],
+        ) -> anyhow::Result<bool> {
+            let mode = self.mode.swap(0, std::sync::atomic::Ordering::SeqCst);
+            if mode == 1 {
+                anyhow::bail!("injected delete failure before commit");
+            }
+            let deleted = self.inner.compare_and_delete(key, expected).await?;
+            if mode == 2 {
+                anyhow::bail!("injected delete response failure after commit");
+            }
+            Ok(deleted)
+        }
+        async fn delete(&self, key: &keys::ResourceKey) -> anyhow::Result<()> {
+            self.inner.delete(key).await
+        }
+        async fn list_keys(
+            &self,
+            list: &keys::ResourceList,
+            options: Option<crate::control::ListOptions<'_>>,
+        ) -> anyhow::Result<Vec<keys::ResourceKey>> {
+            self.inner.list_keys(list, options).await
+        }
+    }
+
+    #[tokio::test]
+    async fn conditional_delete_reconciles_remote_errors_before_and_after_commit() {
+        use std::sync::atomic::Ordering::SeqCst;
+        for mode in [1, 2] {
+            let kv = Arc::new(DeleteResponseFailureKv::default());
+            let pubsub = Arc::new(RecordingPubSub::default());
+            let store = ResourceStore::new(kv.clone(), pubsub.clone());
+            let path = "/memory/delete-ack.md";
+            let name = keys::file_name_for_path(path);
+            let resource = store
+                .upsert(
+                    "ns",
+                    resources_proto::Resource {
+                        kind: "File".into(),
+                        metadata: Some(resources_proto::ResourceMeta {
+                            name: name.clone(),
+                            namespace: "ns".into(),
+                            ..Default::default()
+                        }),
+                        spec: Some(resources_proto::ResourceSpec {
+                            kind: Some(resources_proto::resource_spec::Kind::File(
+                                resources_proto::FileSpec {
+                                    path: path.into(),
+                                    media_type: "text/plain".into(),
+                                    purpose: resources_proto::FilePurpose::Memory as i32,
+                                    index_policy: resources_proto::FileIndexPolicy::None as i32,
+                                    retention: resources_proto::FileRetention::Retained as i32,
+                                },
+                            )),
+                        }),
+                        ..Default::default()
+                    },
+                )
+                .await
+                .unwrap();
+            pubsub.published.lock().await.clear();
+            kv.mode.store(mode, SeqCst);
+            let deleted = store
+                .delete_if_version(
+                    "ns",
+                    "File",
+                    &name,
+                    &resource.metadata.unwrap().resource_version,
+                )
+                .await;
+            if mode == 1 {
+                assert!(deleted.is_err());
+                assert!(store.get("ns", "File", &name).await.unwrap().is_some());
+                assert!(pubsub.published.lock().await.is_empty());
+            } else {
+                assert!(deleted.unwrap());
+                assert!(store.get("ns", "File", &name).await.unwrap().is_none());
+                let published = pubsub.published.lock().await;
+                assert!(published.iter().any(|(topic, bytes)| topic
+                    == topics::RESOURCE_LIFECYCLE_TOPIC
+                    && events::ResourceChangedEvent::decode(bytes.as_slice())
+                        .unwrap()
+                        .change_type
+                        == events::ResourceChangeType::Deleted as i32));
+            }
+        }
     }
 
     struct FailingDeleteNotifications {
