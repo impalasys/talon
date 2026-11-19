@@ -3038,11 +3038,12 @@ describe('TalonCopilot', () => {
     const submitTurn = jest.fn(async function* (request: any) {
       requests.push(request);
       if (requests.length === 1) throw new Error('dispatch unavailable');
+      if (requests.length === 2) throw Object.assign(new Error('Session is currently generating a response.'), { code: 8 });
       yield { kind: 'SESSION_MESSAGE_PART_EVENT_KIND_DONE', messageId: `assistant-retry-${requests.length}` };
     });
     const gatewayClient = {
       createSession: jest.fn(), submitTurn,
-      listSessionMessages: jest.fn(async () => ({ sessionId: 'sess-retry', state: 'IDLE', messages: requests.length > 1 ? [{ id: `assistant-retry-${requests.length}`, role: 'ROLE_ASSISTANT', content: 'Recovered answer', createdAt: String(Date.now() * 1000) }] : [], steps: [] })),
+      listSessionMessages: jest.fn(async () => ({ sessionId: 'sess-retry', state: 'IDLE', messages: requests.length > 2 ? [{ id: `assistant-retry-${requests.length}`, role: 'ROLE_ASSISTANT', content: 'Recovered answer', createdAt: String(Date.now() * 1000) }] : [], steps: [] })),
       streamParts: jest.fn(async function* () {}), stopGeneration: jest.fn(),
     };
     const { unmount } = render(<TalonCopilot namespace="ops" agent="copilot" sessionId="sess-retry" gatewayClient={gatewayClient} submissionTransformer={transform} />);
@@ -3057,12 +3058,16 @@ describe('TalonCopilot', () => {
     await act(async () => { await jest.advanceTimersByTimeAsync(1000); });
     expect(requests).toHaveLength(2);
     expect(requests[1]).toEqual(requests[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Retry this turn' }));
+    await act(async () => { await jest.advanceTimersByTimeAsync(1000); });
+    expect(requests).toHaveLength(3);
+    expect(requests[2]).toEqual(requests[0]);
     expect(transform).toHaveBeenCalledTimes(1);
     expect(input).toHaveValue('new draft');
     fireEvent.click(screen.getByRole('button', { name: /send message/i }));
     await act(async () => { await jest.advanceTimersByTimeAsync(1000); });
-    expect(requests).toHaveLength(3);
-    expect(requests[2].message.id).not.toBe(requests[0].message.id);
+    expect(requests).toHaveLength(4);
+    expect(requests[3].message.id).not.toBe(requests[0].message.id);
     unmount(); jest.useRealTimers();
   });
 

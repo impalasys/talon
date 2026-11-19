@@ -348,6 +348,13 @@ export function useSessionActions({
       const nextError = err instanceof Error ? err : new Error(String(err));
       const session = submittedSession && sameSession(currentSessionRef.current, submittedSession) ? submittedSession : null;
       if (controller?.signal.aborted || (submittedSession && !session)) return;
+      if (session && retry && isBusyError(nextError)) {
+        // Keep the captured request retryable while its original dispatch is
+        // still pending. Do not restore it over a newer composer draft.
+        setFailedTurn({ ...retry, failure: nextError });
+        setError(nextError);
+        return;
+      }
       if (session && isBusyError(nextError)) {
         if (optimisticMessageId) {
           messagesRef.current = messagesRef.current.filter((message) => message.id !== optimisticMessageId);
