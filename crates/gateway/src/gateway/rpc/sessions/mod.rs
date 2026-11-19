@@ -2064,6 +2064,11 @@ impl GrpcGatewayHandler {
         let mut message = req
             .message
             .ok_or_else(|| tonic::Status::invalid_argument("message is required"))?;
+        if message.id.trim().is_empty() {
+            return Err(tonic::Status::invalid_argument(
+                "message.id is required; reuse the same client-generated ID when retrying a turn",
+            ));
+        }
         message.labels.extend(req.labels);
         let message = normalize_appended_session_message(message);
         let now = chrono::Utc::now();
@@ -2154,6 +2159,48 @@ mod tests {
         GrpcGatewayHandler {
             gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
         }
+    }
+
+    #[tokio::test]
+    async fn submit_turn_requires_client_id_before_any_admission() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+        for id in ["", "   "] {
+            let result = handler
+                .handle_submit_session_turn(tonic::Request::new(proto::SubmitSessionTurnRequest {
+                    ns: "ns".into(),
+                    agent: "agent".into(),
+                    session_id: "session".into(),
+                    message: Some(data_proto::SessionMessage {
+                        id: id.into(),
+                        parts: vec![data_proto::SessionMessagePart {
+                            content: "hello".into(),
+                            ..Default::default()
+                        }],
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }))
+                .await;
+            assert_eq!(
+                result
+                    .err()
+                    .expect("missing client ID must be rejected")
+                    .code(),
+                tonic::Code::InvalidArgument
+            );
+        }
+        assert_eq!(
+            talon::control::sessions::current_message_admission_order(
+                kv.as_ref(),
+                "ns",
+                "agent",
+                "session"
+            )
+            .await
+            .unwrap(),
+            0
+        );
     }
 
     #[tokio::test]

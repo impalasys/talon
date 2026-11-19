@@ -3118,6 +3118,9 @@ describe('TalonCopilot', () => {
     expect(screen.getByPlaceholderText('Ask Talon to perform a task...')).toHaveValue('new request');
     expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
     expect(submitTurn).toHaveBeenCalledTimes(1);
+    expect(submitTurn).toHaveBeenCalledWith(expect.objectContaining({
+      message: expect.objectContaining({ id: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/) }),
+    }), expect.anything());
 
     resumeFinished.resolve();
     await waitFor(() => expect(screen.queryByText(/Working for/)).not.toBeInTheDocument());

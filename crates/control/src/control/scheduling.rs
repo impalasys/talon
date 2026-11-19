@@ -1806,6 +1806,67 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn pending_turn_recovery_reloads_edits_without_readmitting() {
+        for retry_edited in [false, true] {
+            let kv = MockKvStore::default();
+            let bus = FailDispatchOnce::default();
+            kv.set_msg(
+                &keys::session("ns", "agent", "session"),
+                &data_proto::Session {
+                    id: "session".into(),
+                    status: "IDLE".into(),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap();
+            let input = input_message("client-id", "original");
+            assert!(send_session_message(
+                &kv,
+                &bus,
+                "ns",
+                "agent",
+                "session",
+                input.clone(),
+                Utc::now()
+            )
+            .await
+            .is_err());
+            let key = keys::session_message("ns", "agent", "session", "client-id");
+            let raw = kv.get(&key).await.unwrap().unwrap();
+            let mut edited = data_proto::SessionMessage::decode(raw.as_slice()).unwrap();
+            edited.parts[0].content = "edited".into();
+            crate::sessions::edit_admitted_session_message(
+                &kv, "ns", "agent", "session", &raw, &edited,
+            )
+            .await
+            .unwrap();
+            let retry = if retry_edited { edited.clone() } else { input };
+            let admitted = crate::sessions::lookup_admitted_turn(&kv, "ns", "agent", "session", &{
+                let mut msg = retry.clone();
+                normalize_session_input(&mut msg, Utc::now().timestamp_micros());
+                msg
+            })
+            .await
+            .unwrap()
+            .unwrap();
+            assert_eq!(admitted.message.parts[0].content, "edited");
+            assert_eq!(
+                send_session_message(&kv, &bus, "ns", "agent", "session", retry, Utc::now())
+                    .await
+                    .unwrap(),
+                admitted.submission_id
+            );
+            assert_eq!(
+                crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                    .await
+                    .unwrap(),
+                1
+            );
+        }
+    }
+
+    #[tokio::test]
     async fn new_turns_reject_reused_ids_without_editing_or_dispatching() {
         let kv = MockKvStore::default();
         let pubsub = MockPubSub::default();

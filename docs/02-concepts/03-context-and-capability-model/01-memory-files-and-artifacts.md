@@ -54,13 +54,16 @@ confirmation. Consuming a confirmation atomically updates the consumed-order
 watermark and removes the pending token. If input changes during confirmation,
 request a new delete token.
 
-New turns require User-role messages. Fresh turns require fresh message IDs;
+New turns require User-role messages. `SubmitTurn` requires a nonempty, client-generated
+message ID so a failed response can be retried with the same ID. Fresh turns require fresh message IDs;
 exact retries resume the original submission, including after dispatch failures,
 and cannot start a second turn. The payload, admission state, idempotency receipt,
-and pending submission commit together. Queue acceptance similarly commits the
+and pending submission commit together. Recovery reloads the current canonical
+payload after explicit transcript edits. Queue acceptance similarly commits the
 payload, receipt, and admission state together. Queue receipts preallocate stable
 canonical message and submission IDs. Stable client IDs map to the original queue
-entry across timestamp changes and cannot be admitted again through the direct
+entry across timestamp changes; new queue keys sort by committed admission
+order, after any legacy backlog. These IDs cannot be admitted again through the direct
 turn path. Promotion preserves canonical edits;
 reclassification and terminal cleanup atomically guard all channel copies.
 Compact terminal receipts remain with the session transcript so a delayed retry

@@ -74,17 +74,21 @@ Use this path when Talon is one service inside a larger typed system. Browser cl
 
 ## Option 2: send a turn through the SDK
 
-For chat-style UX, send a user message with `SessionService.SubmitTurn`. The method returns a stream of `SessionMessagePartEvent` values.
+For chat-style UX, send a user message with `SessionService.SubmitTurn`. The method returns a stream of `SessionMessagePartEvent` values. Supply a client-generated message ID and reuse it when retrying the same turn. Prefer a UUIDv7 to preserve chronological message-key ordering; this example uses the `uuid` package.
 
 ```ts
 import { data } from "@impalasys/talon-client";
+import { v7 as uuidv7 } from "uuid";
 
+// Allocate once per logical turn and reuse this ID when retrying the request.
+const messageId = uuidv7();
 let assistantText = "";
 for await (const event of talon.sessions.submitTurn({
   ns: "client-demo",
   agent: "docs-agent",
   sessionId: session.sessionId,
   message: new data.SessionMessage({
+    id: messageId,
     role: data.MessageRole.ROLE_USER,
     parts: [
       new data.SessionMessagePart({

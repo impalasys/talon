@@ -354,7 +354,7 @@ pub async fn lookup_admitted_turn(
     };
     let message = data_proto::SessionMessage::decode(message.as_slice())?;
     if receipt.payload_digest != payload_digest(desired)
-        || receipt.payload_digest != payload_digest(&message)
+        && payload_digest(&message) != payload_digest(desired)
     {
         return Err(SessionMessageAlreadyExistsError.into());
     }
@@ -515,7 +515,6 @@ pub(crate) async fn persist_queued_session_message_with_identity(
             None => candidate_entry.as_str(),
         };
         let receipt_key = queue_receipt_key(ns, agent, session, entry);
-        let message_key = keys::session_queue_entry(ns, agent, session, queue, entry);
         if let Some(existing) = queue_receipt(kv, ns, agent, session, entry).await? {
             anyhow::ensure!(
                 !existing.rejected && existing.payload_digest == payload_hash,
@@ -537,6 +536,14 @@ pub(crate) async fn persist_queued_session_message_with_identity(
         let (raw, mut state) = load(kv, &key).await?;
         admit(&mut state, message, &receipt.canonical_id, &receipt.nonce)?;
         receipt.order = state.order;
+        // Keep existing timestamp-based backlog ahead of new v2 entries, then
+        // sort new inputs by the transaction's authoritative admission order.
+        let entry = match client_id {
+            Some(id) => format!("v2-{:020}-{id}", state.order),
+            None => entry.to_string(),
+        };
+        let receipt_key = queue_receipt_key(ns, agent, session, &entry);
+        let message_key = keys::session_queue_entry(ns, agent, session, queue, &entry);
         let next = encode_state(&mut state)?;
         let encoded = serde_json::to_vec(&receipt)?;
         let mut ops = vec![

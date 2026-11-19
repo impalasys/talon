@@ -305,7 +305,7 @@ pub async fn queue_session_message(
     // Queue order is the order Talon admitted messages, not a producer supplied
     // timestamp. Connector event times may arrive out of order, and using them
     // here would allow a later accepted message to overtake an earlier one.
-    let entry_id = format!("{now_micros:020}-{queue_entry_suffix}");
+    let entry_id = queue_entry_suffix.clone();
     let entry_id = crate::sessions::persist_queued_session_message_with_identity(
         kv,
         ns,
@@ -777,6 +777,39 @@ mod tests {
             .await
             .unwrap()
             .is_some_and(|receipt| !receipt.terminal)
+    }
+
+    #[tokio::test]
+    async fn queue_dispatch_order_uses_committed_admission_not_wall_clock() {
+        let kv = MockKvStore::default();
+        let now = Utc::now();
+        for (text, timestamp) in [
+            ("first accepted", now + chrono::Duration::days(1)),
+            ("second accepted", now),
+        ] {
+            queue_text_message(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                STEER_QUEUE,
+                text,
+                Default::default(),
+                timestamp,
+            )
+            .await
+            .unwrap();
+        }
+        let prepared = prepare_steer_batch(&kv, "ns", "agent", "session", 8, 100, now)
+            .await
+            .unwrap();
+        assert_eq!(
+            prepared
+                .iter()
+                .map(|item| item.message.parts[0].content.as_str())
+                .collect::<Vec<_>>(),
+            ["first accepted", "second accepted"]
+        );
     }
 
     #[tokio::test]

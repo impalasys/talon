@@ -14,7 +14,13 @@ use talon::contracts::ListOptions;
 
 use anyhow::{anyhow, Result};
 use aws_config::meta::region::RegionProviderChain;
-use aws_sdk_dynamodb::{config::Credentials, primitives::Blob, types::AttributeValue, Client};
+use aws_sdk_dynamodb::operation::transact_write_items::TransactWriteItemsError;
+use aws_sdk_dynamodb::{
+    config::{AsyncSleep, Credentials},
+    primitives::Blob,
+    types::AttributeValue,
+    Client,
+};
 use std::collections::HashMap;
 use talon::contracts::Order;
 
@@ -26,6 +32,26 @@ const SK_ATTR: &str = "SK";
 
 // Serialized protobuf payload for the resource.
 const VALUE_ATTR: &str = "Value";
+
+fn conditional_cancellation(reasons: &[aws_sdk_dynamodb::types::CancellationReason]) -> bool {
+    reasons
+        .iter()
+        .any(|reason| reason.code() == Some("ConditionalCheckFailed"))
+        && reasons.iter().all(|reason| {
+            matches!(
+                reason.code(),
+                None | Some("None" | "ConditionalCheckFailed")
+            )
+        })
+}
+fn transaction_conflict(reasons: &[aws_sdk_dynamodb::types::CancellationReason]) -> bool {
+    reasons
+        .iter()
+        .any(|reason| reason.code() == Some("TransactionConflict"))
+        && reasons
+            .iter()
+            .all(|reason| matches!(reason.code(), None | Some("None" | "TransactionConflict")))
+}
 
 #[derive(Clone)]
 pub struct DynamoDbKvStore {
@@ -292,24 +318,37 @@ impl KeyValueStore for DynamoDbKvStore {
             };
             items.push(item);
         }
-        match self
-            .client
-            .transact_write_items()
-            .set_transact_items(Some(items))
-            .client_request_token(talon::contracts::uuid::resource_version())
-            .send()
-            .await
-        {
-            Ok(_) => Ok(true),
-            Err(error)
-                if error
-                    .as_service_error()
-                    .is_some_and(|error| error.is_transaction_canceled_exception()) =>
+        for attempt in 0..5 {
+            match self
+                .client
+                .transact_write_items()
+                .set_transact_items(Some(items.clone()))
+                .client_request_token(talon::contracts::uuid::resource_version())
+                .send()
+                .await
             {
-                Ok(false)
+                Ok(_) => return Ok(true),
+                Err(error) => {
+                    if let Some(TransactWriteItemsError::TransactionCanceledException(canceled)) =
+                        error.as_service_error()
+                    {
+                        if conditional_cancellation(canceled.cancellation_reasons()) {
+                            return Ok(false);
+                        }
+                        if attempt < 4 && transaction_conflict(canceled.cancellation_reasons()) {
+                            if let Some(sleep) = self.client.config().sleep_impl() {
+                                sleep
+                                    .sleep(std::time::Duration::from_millis(5 << attempt))
+                                    .await;
+                                continue;
+                            }
+                        }
+                    }
+                    return Err(error.into());
+                }
             }
-            Err(error) => Err(error.into()),
         }
+        unreachable!("each transaction attempt returns or retries")
     }
 
     async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> Result<bool> {
@@ -460,6 +499,34 @@ mod tests {
     use crate::talon;
 
     use super::*;
+
+    #[test]
+    fn cancellation_errors_are_not_misreported_as_condition_conflicts() {
+        use aws_sdk_dynamodb::types::CancellationReason;
+        let reason = |code: &str| CancellationReason::builder().code(code).build();
+        assert!(conditional_cancellation(&[
+            reason("None"),
+            reason("ConditionalCheckFailed")
+        ]));
+        for code in [
+            "TransactionConflict",
+            "ThrottlingError",
+            "ProvisionedThroughputExceeded",
+            "ValidationError",
+            "ItemCollectionSizeLimitExceeded",
+        ] {
+            assert!(!conditional_cancellation(&[reason(code)]));
+            assert!(!conditional_cancellation(&[
+                reason("ConditionalCheckFailed"),
+                reason(code)
+            ]));
+        }
+        assert!(!conditional_cancellation(&[]));
+        assert!(transaction_conflict(&[
+            reason("None"),
+            reason("TransactionConflict")
+        ]));
+    }
 
     #[test]
     fn dynamodb_local_atomic_batch_conformance() {
