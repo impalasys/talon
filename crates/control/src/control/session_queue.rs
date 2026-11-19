@@ -354,48 +354,46 @@ pub async fn dispatch_next_queued_message(
 ) -> Result<Option<DispatchedQueuedSessionMessage>> {
     validate_queue_name(queue)?;
     let prefix = keys::session_queue_prefix(ns, agent, session_id, queue);
-    let Some(entry_key) = kv
-        .list_keys(&prefix, Some(ListOptions::default().limit(1)))
-        .await?
-        .into_iter()
-        .next()
-    else {
-        return Ok(None);
-    };
-    let Some(entry_id) = keys::direct_child_name(&prefix, &entry_key) else {
-        return Ok(None);
-    };
-    let Some(message_bytes) = kv.get(&entry_key).await? else {
-        return Ok(None);
-    };
-    if let Some(receipt) =
-        crate::sessions::queue_receipt(kv, ns, agent, session_id, &entry_id).await?
-    {
-        let submission = kv
-            .get(&keys::session_submission(
-                ns,
-                agent,
-                session_id,
-                &receipt.submission_id,
-            ))
+    let (entry_id, message_bytes) = loop {
+        let Some(entry_key) = kv
+            .list_keys(&prefix, Some(ListOptions::default().limit(1)))
             .await?
-            .map(|raw| data_proto::SessionSubmission::decode(raw.as_slice()))
-            .transpose()?;
-        if receipt.terminal
-            || submission.is_some_and(|submission| {
-                submission.status != data_proto::SessionSubmissionStatus::Pending as i32
-            })
+            .into_iter()
+            .next()
+        else {
+            return Ok(None);
+        };
+        let Some(entry_id) = keys::direct_child_name(&prefix, &entry_key) else {
+            return Ok(None);
+        };
+        let Some(message_bytes) = kv.get(&entry_key).await? else {
+            return Ok(None);
+        };
+        if let Some(receipt) =
+            crate::sessions::queue_receipt(kv, ns, agent, session_id, &entry_id).await?
         {
-            crate::sessions::terminal_queue_entry(kv, ns, agent, session_id, &entry_id, false)
-                .await?;
-            return Ok(Some(DispatchedQueuedSessionMessage {
-                queue: queue.to_string(),
-                entry_id,
-                message_id: receipt.canonical_id,
-                submission_id: receipt.submission_id,
-            }));
+            let submission = kv
+                .get(&keys::session_submission(
+                    ns,
+                    agent,
+                    session_id,
+                    &receipt.submission_id,
+                ))
+                .await?
+                .map(|raw| data_proto::SessionSubmission::decode(raw.as_slice()))
+                .transpose()?;
+            if receipt.terminal
+                || submission.is_some_and(|submission| {
+                    submission.status != data_proto::SessionSubmissionStatus::Pending as i32
+                })
+            {
+                crate::sessions::terminal_queue_entry(kv, ns, agent, session_id, &entry_id, false)
+                    .await?;
+                continue;
+            }
         }
-    }
+        break (entry_id, message_bytes);
+    };
     let message = data_proto::SessionMessage::decode(message_bytes.as_slice())?;
     let session_key = keys::session(ns, agent, session_id);
     let now_micros = now.timestamp_micros();
@@ -737,6 +735,18 @@ mod tests {
         submission.status = data_proto::SessionSubmissionStatus::Committed as i32;
         kv.0.set_msg(&submission_key, &submission).await.unwrap();
         put_session(&kv.0, "IDLE").await;
+        let next = queue_text_message(
+            &kv.0,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            "next input",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
         let retried = dispatch_next_queued_message(
             &kv.0,
             &pubsub,
@@ -749,30 +759,17 @@ mod tests {
         .await
         .unwrap()
         .unwrap();
-        assert_eq!(retried.submission_id, dispatched.submission_id);
+        assert_eq!(retried.entry_id, next.entry_id);
+        assert_ne!(retried.submission_id, dispatched.submission_id);
         assert!(!receipt_exists(&kv.0, &queued.entry_id).await);
-        assert_eq!(
-            kv.0.get_msg::<data_proto::Session>(&keys::session(
-                "Tenant:acme:Ops",
-                "agent",
-                "session-1"
-            ))
-            .await
-            .unwrap()
-            .unwrap()
-            .status,
-            "IDLE"
-        );
-        assert_eq!(
-            pubsub
-                .published
-                .lock()
-                .await
-                .iter()
-                .filter(|(topic, _)| topic == topics::SESSION_DISPATCH_TOPIC)
-                .count(),
-            1
-        );
+        let events = pubsub.published.lock().await;
+        let events = events
+            .iter()
+            .filter(|(topic, _)| topic == topics::SESSION_DISPATCH_TOPIC)
+            .map(|(_, bytes)| events::SessionDispatchEvent::decode(bytes.as_slice()).unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[1].message, "next input");
     }
 
     async fn receipt_exists(kv: &MockKvStore, entry: &str) -> bool {
