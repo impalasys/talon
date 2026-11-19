@@ -6,6 +6,7 @@ use crate::talon;
 
 mod journal;
 mod message_order;
+pub(crate) use message_order::queued_input_entry;
 pub use message_order::{
     admit_session_turn, append_admitted_session_message, consume_user_confirmation,
     current_message_admission_order, edit_admitted_session_message, lookup_admitted_turn,
@@ -14,7 +15,8 @@ pub use message_order::{
     SessionMessageAlreadyExistsError, UserConfirmationSnapshot,
 };
 pub(crate) use message_order::{
-    load_promoted_session_message, move_steer_entry_to_next, queue_receipt, terminal_queue_entry,
+    load_promoted_session_message, move_steer_entry_to_next,
+    persist_queued_session_message_with_identity, queue_receipt, terminal_queue_entry,
 };
 mod lease;
 mod recovery;

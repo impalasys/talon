@@ -740,6 +740,26 @@ pub async fn enqueue_message_without_dispatch(
     enqueue_session_message_without_dispatch(kv, pubsub, ns, agent, session_id, user_msg, now).await
 }
 
+fn normalize_session_input(message: &mut data_proto::SessionMessage, now_micros: i64) {
+    if message.id.is_empty() {
+        message.id = crate::control::uuid::session_message_id();
+    }
+    if message.role == data_proto::MessageRole::RoleUnspecified as i32 {
+        message.role = data_proto::MessageRole::RoleUser as i32;
+    }
+    if message.created_at == 0 {
+        message.created_at = now_micros;
+    }
+    for (index, part) in message.parts.iter_mut().enumerate() {
+        if part.id.is_empty() {
+            part.id = format!("{index:06}");
+        }
+        if part.created_at == 0 {
+            part.created_at = message.created_at;
+        }
+    }
+}
+
 pub async fn enqueue_session_message_without_dispatch(
     kv: &dyn KeyValueStore,
     pubsub: &dyn MessagePublisher,
@@ -752,23 +772,7 @@ pub async fn enqueue_session_message_without_dispatch(
     validate_session_input(&user_msg)?;
 
     let now_micros = now.timestamp_micros();
-    if user_msg.id.is_empty() {
-        user_msg.id = crate::control::uuid::session_message_id();
-    }
-    if user_msg.role == data_proto::MessageRole::RoleUnspecified as i32 {
-        user_msg.role = data_proto::MessageRole::RoleUser as i32;
-    }
-    if user_msg.created_at == 0 {
-        user_msg.created_at = now_micros;
-    }
-    for (index, part) in user_msg.parts.iter_mut().enumerate() {
-        if part.id.is_empty() {
-            part.id = format!("{index:06}");
-        }
-        if part.created_at == 0 {
-            part.created_at = user_msg.created_at;
-        }
-    }
+    normalize_session_input(&mut user_msg, now_micros);
 
     let admitted =
         crate::sessions::admit_session_turn(kv, ns, agent, session_id, &user_msg, now_micros)
@@ -823,23 +827,7 @@ pub async fn send_session_message(
 
     let key = keys::session(ns, agent, session_id);
     let now_micros = now.timestamp_micros();
-    if user_msg.id.is_empty() {
-        user_msg.id = crate::control::uuid::session_message_id();
-    }
-    if user_msg.role == data_proto::MessageRole::RoleUnspecified as i32 {
-        user_msg.role = data_proto::MessageRole::RoleUser as i32;
-    }
-    if user_msg.created_at == 0 {
-        user_msg.created_at = now_micros;
-    }
-    for (index, part) in user_msg.parts.iter_mut().enumerate() {
-        if part.id.is_empty() {
-            part.id = format!("{index:06}");
-        }
-        if part.created_at == 0 {
-            part.created_at = user_msg.created_at;
-        }
-    }
+    normalize_session_input(&mut user_msg, now_micros);
 
     if let Some(existing) =
         crate::sessions::lookup_admitted_turn(kv, ns, agent, session_id, &user_msg).await?
@@ -987,6 +975,26 @@ pub async fn send_or_queue_a2a_session_message(
     user_msg: data_proto::SessionMessage,
     now: DateTime<Utc>,
 ) -> Result<(String, A2aSessionMessageDisposition)> {
+    validate_session_input(&user_msg)?;
+    if !user_msg.id.is_empty()
+        && crate::sessions::queued_input_entry(kv, ns, agent, session_id, &user_msg.id)
+            .await?
+            .is_some()
+    {
+        // Keep the same durable queue outcome even when a retry reaches an idle
+        // session after promotion/dispatch. Never switch it into a new direct turn.
+        crate::control::session_queue::queue_session_message(
+            kv,
+            ns,
+            agent,
+            session_id,
+            crate::control::session_queue::NEXT_QUEUE,
+            user_msg.clone(),
+            now,
+        )
+        .await?;
+        return Ok((user_msg.id, A2aSessionMessageDisposition::Queued));
+    }
     match send_session_message(kv, pubsub, ns, agent, session_id, user_msg.clone(), now).await {
         Ok(submission_id) => Ok((submission_id, A2aSessionMessageDisposition::Submitted)),
         Err(err)
@@ -994,6 +1002,16 @@ pub async fn send_or_queue_a2a_session_message(
                 .downcast_ref::<SessionCurrentlyProcessingError>()
                 .is_some() =>
         {
+            // Busy is not permission to readmit an already accepted turn in NEXT.
+            // Recover its original dispatch when the lock releases or expires.
+            let mut normalized = user_msg.clone();
+            normalize_session_input(&mut normalized, now.timestamp_micros());
+            if crate::sessions::lookup_admitted_turn(kv, ns, agent, session_id, &normalized)
+                .await?
+                .is_some()
+            {
+                return Err(err);
+            }
             let mut queued = user_msg;
             if queued.id.is_empty() {
                 queued.id = crate::control::uuid::session_message_id();
@@ -1646,6 +1664,64 @@ mod tests {
             Ok(Box::pin(futures::stream::empty()))
         }
     }
+    #[tokio::test]
+    async fn busy_a2a_retry_does_not_queue_a_second_copy_of_a_pending_turn() {
+        let kv = MockKvStore::default();
+        let pubsub = MockPubSub::default();
+        let now = Utc::now();
+        kv.set_msg(
+            &keys::session("ns", "agent", "session"),
+            &data_proto::Session {
+                id: "session".into(),
+                status: "PROCESSING".into(),
+                last_active: now.timestamp_micros(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        let original = input_message("stable-client-id", "hello");
+        let mut normalized = original.clone();
+        normalize_session_input(&mut normalized, now.timestamp_micros());
+        crate::sessions::admit_session_turn(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            &normalized,
+            now.timestamp_micros(),
+        )
+        .await
+        .unwrap();
+        let error = send_or_queue_a2a_session_message(
+            &kv, &pubsub, "ns", "agent", "session", original, now,
+        )
+        .await
+        .unwrap_err();
+        assert!(error
+            .downcast_ref::<SessionCurrentlyProcessingError>()
+            .is_some());
+        assert!(kv
+            .list_keys(
+                &keys::session_queue_prefix(
+                    "ns",
+                    "agent",
+                    "session",
+                    crate::control::session_queue::NEXT_QUEUE
+                ),
+                None
+            )
+            .await
+            .unwrap()
+            .is_empty());
+        assert_eq!(
+            crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            1
+        );
+    }
+
     #[tokio::test]
     async fn exact_turn_retry_recovers_failed_dispatch_without_duplicate_admission() {
         let kv = MockKvStore::default();

@@ -306,8 +306,15 @@ pub async fn queue_session_message(
     // timestamp. Connector event times may arrive out of order, and using them
     // here would allow a later accepted message to overtake an earlier one.
     let entry_id = format!("{now_micros:020}-{queue_entry_suffix}");
-    crate::sessions::persist_queued_session_message(
-        kv, ns, agent, session_id, queue, &entry_id, &message,
+    let entry_id = crate::sessions::persist_queued_session_message_with_identity(
+        kv,
+        ns,
+        agent,
+        session_id,
+        queue,
+        &entry_id,
+        &message,
+        Some(&queue_entry_suffix),
     )
     .await?;
 
@@ -773,6 +780,126 @@ mod tests {
             .await
             .unwrap()
             .is_some_and(|receipt| !receipt.terminal)
+    }
+
+    #[tokio::test]
+    async fn queue_api_retries_with_new_timestamps_keep_one_entry_and_terminal_outcome() {
+        let kv = MockKvStore::default();
+        let input = data_proto::SessionMessage {
+            id: "client-id".into(),
+            role: data_proto::MessageRole::RoleUser as i32,
+            parts: vec![data_proto::SessionMessagePart {
+                part_type: data_proto::SessionMessagePartType::Text as i32,
+                content: "hello".into(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let now = Utc::now();
+        let first = queue_session_message(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            STEER_QUEUE,
+            input.clone(),
+            now,
+        )
+        .await
+        .unwrap();
+        let second = queue_session_message(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            STEER_QUEUE,
+            input.clone(),
+            now + chrono::Duration::seconds(1),
+        )
+        .await
+        .unwrap();
+        assert_eq!(first.entry_id, second.entry_id);
+        assert_eq!(
+            crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            1
+        );
+        crate::sessions::terminal_queue_entry(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            &first.entry_id,
+            false,
+        )
+        .await
+        .unwrap();
+        let third = queue_session_message(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            NEXT_QUEUE,
+            input.clone(),
+            now + chrono::Duration::seconds(2),
+        )
+        .await
+        .unwrap();
+        assert_eq!(third.entry_id, first.entry_id);
+        for queue in [STEER_QUEUE, NEXT_QUEUE] {
+            assert!(kv
+                .list_keys(
+                    &keys::session_queue_prefix("ns", "agent", "session", queue),
+                    None
+                )
+                .await
+                .unwrap()
+                .is_empty());
+        }
+        kv.set_msg(
+            &keys::session("ns", "agent", "session"),
+            &data_proto::Session {
+                id: "session".into(),
+                status: "IDLE".into(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        let bus = RecordingPubSub::default();
+        let (_, disposition) = scheduling::send_or_queue_a2a_session_message(
+            &kv,
+            &bus,
+            "ns",
+            "agent",
+            "session",
+            input.clone(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(
+            disposition,
+            scheduling::A2aSessionMessageDisposition::Queued
+        );
+        assert!(scheduling::send_session_message(
+            &kv,
+            &bus,
+            "ns",
+            "agent",
+            "session",
+            input,
+            Utc::now()
+        )
+        .await
+        .is_err());
+        assert_eq!(
+            crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            1
+        );
     }
 
     #[tokio::test]

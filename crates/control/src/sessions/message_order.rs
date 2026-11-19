@@ -98,6 +98,32 @@ fn turn_key(ns: &str, agent: &str, session: &str, message: &str) -> keys::Resour
         message,
     )
 }
+pub(crate) fn queued_input_identity_key(
+    ns: &str,
+    agent: &str,
+    session: &str,
+    client_id: &str,
+) -> keys::ResourceKey {
+    keys::ResourceKey::new(
+        ns,
+        &[("Agent", agent), ("Session", session)],
+        "QueuedInputIdentity",
+        client_id,
+    )
+}
+pub(crate) async fn queued_input_entry(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session: &str,
+    client_id: &str,
+) -> Result<Option<String>> {
+    kv.get(&queued_input_identity_key(ns, agent, session, client_id))
+        .await?
+        .map(String::from_utf8)
+        .transpose()
+        .map_err(Into::into)
+}
 fn nonce() -> String {
     crate::control::uuid::session_message_id()
 }
@@ -379,7 +405,11 @@ pub async fn admit_session_turn(
         if let Some(existing) = lookup_admitted_turn(kv, ns, agent, session, message).await? {
             return Ok(existing);
         }
-        if kv.get(&message_key).await?.is_some() {
+        if kv.get(&message_key).await?.is_some()
+            || queued_input_entry(kv, ns, agent, session, &message.id)
+                .await?
+                .is_some()
+        {
             return Err(SessionMessageAlreadyExistsError.into());
         }
         let (raw, mut state) = load(kv, &key).await?;
@@ -390,6 +420,11 @@ pub async fn admit_session_turn(
             Op::new(message_key.clone(), None, Some(&payload)),
             Op::new(receipt_key.clone(), None, Some(&receipt)),
             Op::new(submission_key.clone(), None, Some(&submission)),
+            Op::new(
+                queued_input_identity_key(ns, agent, session, &message.id),
+                None,
+                None,
+            ),
         ];
         match commit(kv, &ops, &receipt_key, &receipt).await {
             Ok(true) => {
@@ -436,9 +471,26 @@ pub async fn persist_queued_session_message(
     entry: &str,
     message: &data_proto::SessionMessage,
 ) -> Result<()> {
+    persist_queued_session_message_with_identity(
+        kv, ns, agent, session, queue, entry, message, None,
+    )
+    .await
+    .map(|_| ())
+}
+
+pub(crate) async fn persist_queued_session_message_with_identity(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session: &str,
+    queue: &str,
+    entry: &str,
+    message: &data_proto::SessionMessage,
+    client_id: Option<&str>,
+) -> Result<String> {
     anyhow::ensure!(is_user(message), "queued inputs must be User messages");
-    let receipt_key = queue_receipt_key(ns, agent, session, entry);
-    let message_key = keys::session_queue_entry(ns, agent, session, queue, entry);
+    let candidate_entry = entry.to_string();
+    let identity_key = client_id.map(|id| queued_input_identity_key(ns, agent, session, id));
     let key = state_key(ns, agent, session);
     let payload = message.encode_to_vec();
     let payload_hash = payload_digest(message);
@@ -454,25 +506,56 @@ pub async fn persist_queued_session_message(
         rejected: false,
     };
     for _ in 0..32 {
+        let identity = match &identity_key {
+            Some(key) => kv.get(key).await?,
+            None => None,
+        };
+        let entry = match &identity {
+            Some(bytes) => std::str::from_utf8(bytes)?,
+            None => candidate_entry.as_str(),
+        };
+        let receipt_key = queue_receipt_key(ns, agent, session, entry);
+        let message_key = keys::session_queue_entry(ns, agent, session, queue, entry);
         if let Some(existing) = queue_receipt(kv, ns, agent, session, entry).await? {
             anyhow::ensure!(
                 !existing.rejected && existing.payload_digest == payload_hash,
                 "queued message entry already exists with different or rejected content"
             );
-            return Ok(());
+            return Ok(entry.to_string());
+        }
+        anyhow::ensure!(identity.is_none(), "queue idempotency outcome is missing");
+        if let Some(id) = client_id {
+            if kv.get(&turn_key(ns, agent, session, id)).await?.is_some()
+                || kv
+                    .get(&keys::session_message(ns, agent, session, id))
+                    .await?
+                    .is_some()
+            {
+                return Err(SessionMessageAlreadyExistsError.into());
+            }
         }
         let (raw, mut state) = load(kv, &key).await?;
         admit(&mut state, message, &receipt.canonical_id, &receipt.nonce)?;
         receipt.order = state.order;
         let next = encode_state(&mut state)?;
         let encoded = serde_json::to_vec(&receipt)?;
-        let ops = [
+        let mut ops = vec![
             Op::new(key.clone(), raw.as_deref(), Some(&next)),
             Op::new(receipt_key.clone(), None, Some(&encoded)),
             Op::new(message_key.clone(), None, Some(&payload)),
         ];
+        if let Some(key) = &identity_key {
+            ops.push(Op::new(key.clone(), None, Some(entry.as_bytes())));
+            let id = client_id.expect("identity key requires a client ID");
+            ops.push(Op::new(turn_key(ns, agent, session, id), None, None));
+            ops.push(Op::new(
+                keys::session_message(ns, agent, session, id),
+                None,
+                None,
+            ));
+        }
         if commit(kv, &ops, &receipt_key, &encoded).await? {
-            return Ok(());
+            return Ok(entry.to_string());
         }
     }
     Err(anyhow!("failed to atomically enqueue session input"))
@@ -773,6 +856,7 @@ mod tests {
     #[async_trait::async_trait]
     impl KeyValueStore for FaultKv {
         async fn get(&self, key: &keys::ResourceKey) -> Result<Option<Vec<u8>>> {
+            tokio::task::yield_now().await;
             self.inner.get(key).await
         }
         async fn set(&self, key: &keys::ResourceKey, value: &[u8]) -> Result<()> {
@@ -923,8 +1007,36 @@ mod tests {
         );
     }
     #[tokio::test]
+    async fn direct_and_queued_admission_cannot_accept_the_same_client_id_twice() {
+        let kv = FaultKv::default();
+        let direct = message("client-id", "hello");
+        let mut queued = direct.clone();
+        queued.id.clear();
+        let (direct, queued) = tokio::join!(
+            admit_session_turn(&kv, "ns", "agent", "session", &direct, 1),
+            persist_queued_session_message_with_identity(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                "next",
+                "entry",
+                &queued,
+                Some("client-id")
+            )
+        );
+        assert_ne!(direct.is_ok(), queued.is_ok());
+        assert_eq!(
+            current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            1
+        );
+    }
+
+    #[tokio::test]
     async fn concurrent_duplicate_enqueue_admits_exactly_once() {
-        let kv = MockKvStore::default();
+        let kv = FaultKv::default();
         let input = message("", "approve");
         let (left, right) = tokio::join!(
             persist_queued_session_message(&kv, "ns", "agent", "session", "steer", "entry", &input),
@@ -945,7 +1057,7 @@ mod tests {
     #[tokio::test]
     async fn moving_and_finishing_queue_input_cannot_resurrect_it() {
         for _ in 0..16 {
-            let kv = MockKvStore::default();
+            let kv = FaultKv::default();
             let input = message("", "hello");
             persist_queued_session_message(&kv, "ns", "agent", "session", "steer", "entry", &input)
                 .await

@@ -59,7 +59,9 @@ exact retries resume the original submission, including after dispatch failures,
 and cannot start a second turn. The payload, admission state, idempotency receipt,
 and pending submission commit together. Queue acceptance similarly commits the
 payload, receipt, and admission state together. Queue receipts preallocate stable
-canonical message and submission IDs. Promotion preserves canonical edits;
+canonical message and submission IDs. Stable client IDs map to the original queue
+entry across timestamp changes and cannot be admitted again through the direct
+turn path. Promotion preserves canonical edits;
 reclassification and terminal cleanup atomically guard all channel copies.
 Compact terminal receipts remain with the session transcript so a delayed retry
 cannot recreate an already dispatched input. Session clear/delete removes this
