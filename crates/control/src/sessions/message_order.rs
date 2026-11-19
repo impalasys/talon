@@ -190,7 +190,7 @@ fn text_digest(message: &data_proto::SessionMessage) -> String {
     digest(&text)
 }
 fn digest(text: &str) -> String {
-    format!("{:x}", Sha256::digest(text.trim().as_bytes()))
+    format!("{:x}", Sha256::digest(text.as_bytes()))
 }
 
 async fn load(
@@ -306,7 +306,7 @@ pub async fn edit_admitted_session_message(
         };
         if current != expected {
             let current = data_proto::SessionMessage::decode(current.as_slice())?;
-            return Ok(payload_digest(&current) == payload_digest(message));
+            return Ok(current == *message);
         }
         let (raw, mut state) = load(kv, &key).await?;
         if state.latest_id.as_deref() == Some(message.id.as_str()) {
@@ -417,9 +417,9 @@ pub async fn admit_session_turn(
             return Err(SessionMessageAlreadyExistsError.into());
         }
         let (raw, mut state) = load(kv, &key).await?;
-        // Allocate after reading the shared state; a lost CAS discards this ID.
-        // The committed transcript key therefore follows server acceptance order,
-        // independently of client IDs and clocks.
+        // Discard the candidate if the admission-state CAS loses. Client IDs
+        // and client timestamps never select transcript keys; generated UUIDv7s
+        // retain the existing deployment's synchronized-server-clock model.
         let mut canonical = message.clone();
         canonical.id = nonce();
         let message_key = keys::session_message(ns, agent, session, &canonical.id);
@@ -1330,6 +1330,59 @@ mod tests {
         .expect("cleanup is bounded")
         .unwrap();
         assert!(kv.get(&token).await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn confirmation_matching_does_not_trim_whitespace() {
+        let kv = MockKvStore::default();
+        for (index, text) in [" approve", "approve ", "approve\n", "approve"]
+            .into_iter()
+            .enumerate()
+        {
+            append_admitted_session_message(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                &message(&index.to_string(), text),
+            )
+            .await
+            .unwrap();
+            assert_eq!(
+                validate_user_confirmation(&kv, "ns", "agent", "session", 0, "approve")
+                    .await
+                    .is_ok(),
+                text == "approve"
+            );
+        }
+    }
+    #[tokio::test]
+    async fn stale_edit_cannot_acknowledge_a_different_timestamp() {
+        let kv = MockKvStore::default();
+        let original = message("message", "original");
+        append_admitted_session_message(&kv, "ns", "agent", "session", &original)
+            .await
+            .unwrap();
+        let raw = original.encode_to_vec();
+        let mut first = message("message", "edited");
+        first.parts[0].created_at = 100;
+        let mut second = first.clone();
+        second.parts[0].created_at = 200;
+        assert!(
+            edit_admitted_session_message(&kv, "ns", "agent", "session", &raw, &first)
+                .await
+                .unwrap()
+        );
+        assert!(
+            !edit_admitted_session_message(&kv, "ns", "agent", "session", &raw, &second)
+                .await
+                .unwrap()
+        );
+        assert!(
+            edit_admitted_session_message(&kv, "ns", "agent", "session", &raw, &first)
+                .await
+                .unwrap()
+        );
     }
 
     #[tokio::test]

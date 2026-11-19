@@ -10,6 +10,8 @@ export type SessionTranscriptProps = {
   workingLabel?: string | null;
   loadingIndicator?: React.ReactNode;
   error: Error | null;
+  onRetry?: () => void;
+  retryDisabled?: boolean;
   incident?: string | null;
   notice?: string | null;
   scrollThumb: SessionScrollThumb;
@@ -29,6 +31,8 @@ export function SessionTranscript({
   workingLabel,
   loadingIndicator,
   error,
+  onRetry,
+  retryDisabled,
   incident,
   notice,
   scrollThumb,
@@ -68,6 +72,11 @@ export function SessionTranscript({
                 <div style={{ fontSize: 13, borderRadius: 10, background: "rgba(254,242,242,1)", border: border("rgba(252,165,165,0.6)"), color: "rgba(220,38,38,1)", padding: 12, fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>
                   {error?.message || incident || "An error occurred while connecting to the agent."}
                 </div>
+                {error && onRetry ? (
+                  <button type="button" onClick={onRetry} disabled={retryDisabled} style={{ alignSelf: "flex-start", borderRadius: 8, padding: "6px 10px", border: border("rgba(252,165,165,0.8)"), background: "var(--talon-chat-bg, transparent)", color: "inherit", cursor: retryDisabled ? "default" : "pointer" }}>
+                    Retry this turn
+                  </button>
+                ) : null}
               </div>
             </div>
           ) : null}

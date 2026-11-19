@@ -5,6 +5,8 @@
 use crate::talon;
 
 use std::{pin::Pin, sync::Arc};
+#[cfg(test)]
+pub(crate) mod admission_race_test_support;
 pub mod cas;
 pub mod config;
 pub mod delegation;

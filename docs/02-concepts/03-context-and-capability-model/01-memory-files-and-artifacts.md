@@ -63,7 +63,9 @@ message ID so a failed response can be retried with the same ID. Fresh turns req
 exact retries resume the original submission, including after dispatch failures,
 and cannot start a second turn. The payload, admission state, idempotency receipt,
 and pending submission commit together. Client IDs are idempotency keys; Talon
-allocates separate server-ordered canonical transcript IDs. Recovery reloads the current canonical
+allocates separate canonical UUIDv7 transcript IDs. These retain the existing
+synchronized-server-clock ordering model; the confirmation admission counter
+itself does not depend on clocks. Recovery reloads the current canonical
 payload after explicit transcript edits. Queue acceptance similarly commits the
 payload, receipt, and admission state together. Queue receipts preallocate stable submission IDs. Canonical message IDs bind
 during ordered promotion and remain stable across retries. Stable client IDs map to the original queue

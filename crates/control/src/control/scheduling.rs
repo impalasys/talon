@@ -849,6 +849,7 @@ pub async fn send_session_message(
     let timeout_micros = session_processing_timeout_micros();
 
     let mut acquired = false;
+    let mut acquired_bytes = None;
     for _ in 0..MAX_CAS_RETRIES {
         let current = kv.get(&key).await?;
         let Some(current_bytes) = current.as_ref() else {
@@ -870,6 +871,7 @@ pub async fn send_session_message(
             .await?
         {
             acquired = true;
+            acquired_bytes = Some(updated);
             break;
         }
     }
@@ -894,6 +896,23 @@ pub async fn send_session_message(
         };
     let user_msg = admitted.message;
     let submission_id = admitted.submission_id;
+    let submission_key = keys::session_submission(ns, agent, session_id, &submission_id);
+    let current = kv
+        .get(&submission_key)
+        .await?
+        .ok_or_else(|| anyhow!("admitted submission missing"))?;
+    let submission = data_proto::SessionSubmission::decode(current.as_slice())?;
+    if submission.status != data_proto::SessionSubmissionStatus::Pending as i32 {
+        if crate::sessions::submission_is_terminal(&submission) {
+            release_acquired_session_lock(
+                kv,
+                &key,
+                acquired_bytes.as_deref().expect("acquired lock bytes"),
+            )
+            .await?;
+        }
+        return Ok(submission_id);
+    }
     let message_id = user_msg.id.clone();
     let message_key = keys::session_message(ns, agent, session_id, &message_id);
     if let Err(error) = crate::control::search::publish_index_event(
@@ -1156,6 +1175,19 @@ fn log_session_release_failure(result: Result<()>, namespace: &str, key: &Resour
     if let Err(err) = result {
         tracing::warn!(namespace = %namespace, key = %key, error = %err, "failed to release session lock after send_message error");
     }
+}
+
+pub(crate) async fn release_acquired_session_lock(
+    kv: &dyn KeyValueStore,
+    key: &ResourceKey,
+    acquired: &[u8],
+) -> Result<()> {
+    let mut session = data_proto::Session::decode(acquired)?;
+    session.status = "IDLE".into();
+    // A worker heartbeat or successor changes these bytes; preserve that lock.
+    kv.compare_and_swap(key, Some(acquired), &session.encode_to_vec())
+        .await?;
+    Ok(())
 }
 
 pub(crate) async fn release_session_lock_if_submission_pending(
@@ -1664,6 +1696,65 @@ mod tests {
             Ok(Box::pin(futures::stream::empty()))
         }
     }
+    #[tokio::test]
+    async fn retry_rechecks_completion_after_acquiring_idle_session() {
+        use crate::control::admission_race_test_support::CompleteBeforeSessionRead;
+        let inner = std::sync::Arc::new(MockKvStore::default());
+        let session_key = keys::session("ns", "agent", "session");
+        inner
+            .set_msg(
+                &session_key,
+                &data_proto::Session {
+                    id: "session".into(),
+                    status: "PROCESSING".into(),
+                    last_active: Utc::now().timestamp_micros(),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap();
+        let mut input = input_message("client-id", "hello");
+        normalize_session_input(&mut input, Utc::now().timestamp_micros());
+        let admitted = crate::sessions::admit_session_turn(
+            inner.as_ref(),
+            "ns",
+            "agent",
+            "session",
+            &input,
+            Utc::now().timestamp_micros(),
+        )
+        .await
+        .unwrap();
+        let kv = CompleteBeforeSessionRead {
+            inner: inner.clone(),
+            session: session_key.clone(),
+            submission: keys::session_submission("ns", "agent", "session", &admitted.submission_id),
+            armed: true.into(),
+        };
+        let bus = crate::test_support::RecordingPubSub::default();
+        assert_eq!(
+            send_session_message(&kv, &bus, "ns", "agent", "session", input, Utc::now())
+                .await
+                .unwrap(),
+            admitted.submission_id
+        );
+        assert_eq!(
+            inner
+                .get_msg::<data_proto::Session>(&session_key)
+                .await
+                .unwrap()
+                .unwrap()
+                .status,
+            "IDLE"
+        );
+        assert!(!bus
+            .published
+            .lock()
+            .await
+            .iter()
+            .any(|(topic, _)| topic == crate::control::topics::SESSION_DISPATCH_TOPIC));
+    }
+
     #[tokio::test]
     async fn busy_a2a_retry_does_not_queue_a_second_copy_of_a_pending_turn() {
         let kv = MockKvStore::default();

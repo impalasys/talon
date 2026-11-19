@@ -69,6 +69,24 @@ pub struct SteeredQueuedSessionMessage {
     pub message: data_proto::SessionMessage,
 }
 
+async fn queue_submission_started(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session: &str,
+    submission_id: &str,
+) -> Result<Option<data_proto::SessionSubmission>> {
+    kv.get(&keys::session_submission(ns, agent, session, submission_id))
+        .await?
+        .map(|raw| data_proto::SessionSubmission::decode(raw.as_slice()))
+        .transpose()
+        .map(|submission| {
+            submission
+                .filter(|value| value.status != data_proto::SessionSubmissionStatus::Pending as i32)
+        })
+        .map_err(Into::into)
+}
+
 /// Materialize a bounded, ordered batch of interactive messages for the
 /// active worker. Queue entries remain present until the caller has written
 /// the steering journal boundary, so a crash cannot lose an input between
@@ -126,13 +144,23 @@ pub async fn prepare_steer_batch(
         if !prepared.is_empty() && total_chars.saturating_add(text_chars) > max_chars {
             break;
         }
-        if crate::sessions::queue_receipt(kv, ns, agent, session_id, &entry_id)
-            .await?
-            .is_some_and(|receipt| receipt.terminal)
+        if let Some(receipt) =
+            crate::sessions::queue_receipt(kv, ns, agent, session_id, &entry_id).await?
         {
-            crate::sessions::terminal_queue_entry(kv, ns, agent, session_id, &entry_id, false)
-                .await?;
-            continue;
+            if receipt.terminal
+                || queue_submission_started(kv, ns, agent, session_id, &receipt.submission_id)
+                    .await?
+                    .is_some()
+            {
+                if let Err(error) = crate::sessions::terminal_queue_entry(
+                    kv, ns, agent, session_id, &entry_id, false,
+                )
+                .await
+                {
+                    tracing::warn!(%error, entry_id = %entry_id, "dispatched steer input excluded; queue cleanup will retry");
+                }
+                continue;
+            }
         }
         if !crate::sessions::persist_promoted_session_message(
             kv,
@@ -354,127 +382,170 @@ pub async fn dispatch_next_queued_message(
 ) -> Result<Option<DispatchedQueuedSessionMessage>> {
     validate_queue_name(queue)?;
     let prefix = keys::session_queue_prefix(ns, agent, session_id, queue);
-    let (entry_id, message_bytes) = loop {
-        let Some(entry_key) = kv
-            .list_keys(&prefix, Some(ListOptions::default().limit(1)))
-            .await?
-            .into_iter()
-            .next()
-        else {
-            return Ok(None);
+    'next_entry: loop {
+        let (entry_id, message_bytes) = loop {
+            let Some(entry_key) = kv
+                .list_keys(&prefix, Some(ListOptions::default().limit(1)))
+                .await?
+                .into_iter()
+                .next()
+            else {
+                return Ok(None);
+            };
+            let Some(entry_id) = keys::direct_child_name(&prefix, &entry_key) else {
+                return Ok(None);
+            };
+            let Some(message_bytes) = kv.get(&entry_key).await? else {
+                return Ok(None);
+            };
+            if let Some(receipt) =
+                crate::sessions::queue_receipt(kv, ns, agent, session_id, &entry_id).await?
+            {
+                let submission = kv
+                    .get(&keys::session_submission(
+                        ns,
+                        agent,
+                        session_id,
+                        &receipt.submission_id,
+                    ))
+                    .await?
+                    .map(|raw| data_proto::SessionSubmission::decode(raw.as_slice()))
+                    .transpose()?;
+                if receipt.terminal
+                    || submission.is_some_and(|submission| {
+                        submission.status != data_proto::SessionSubmissionStatus::Pending as i32
+                    })
+                {
+                    crate::sessions::terminal_queue_entry(
+                        kv, ns, agent, session_id, &entry_id, false,
+                    )
+                    .await?;
+                    continue;
+                }
+            }
+            break (entry_id, message_bytes);
         };
-        let Some(entry_id) = keys::direct_child_name(&prefix, &entry_key) else {
-            return Ok(None);
-        };
-        let Some(message_bytes) = kv.get(&entry_key).await? else {
-            return Ok(None);
-        };
+        let message = data_proto::SessionMessage::decode(message_bytes.as_slice())?;
+        let session_key = keys::session(ns, agent, session_id);
+        let now_micros = now.timestamp_micros();
+        let timeout_micros = scheduling::session_processing_timeout_micros();
+
+        let mut acquired = false;
+        let mut acquired_bytes = None;
+        for attempt in 0..MAX_QUEUE_DISPATCH_CAS_RETRIES {
+            let current = kv.get(&session_key).await?;
+            let Some(current_bytes) = current.as_ref() else {
+                return Err(scheduling::SessionNotFoundError.into());
+            };
+            let mut session = data_proto::Session::decode(current_bytes.as_slice())?;
+            if session.status == "PROCESSING"
+                && now_micros.saturating_sub(session.last_active) <= timeout_micros
+            {
+                return Ok(None);
+            }
+            // An errored session has no active worker, so a fresh interactive
+            // message in STEER should retain send_session_message's restart
+            // behavior. Keep NEXT/A2A entries blocked so a failed turn's backlog
+            // is not retried implicitly.
+            let can_restart_error = session.status == "ERROR" && queue == STEER_QUEUE;
+            if session.status != "IDLE" && session.status != "PROCESSING" && !can_restart_error {
+                return Ok(None);
+            }
+            session.status = "PROCESSING".to_string();
+            session.last_active = now_micros;
+            let updated = session.encode_to_vec();
+            if kv
+                .compare_and_swap(&session_key, Some(current_bytes.as_slice()), &updated)
+                .await?
+            {
+                acquired = true;
+                acquired_bytes = Some(updated);
+                break;
+            }
+            if attempt + 1 < MAX_QUEUE_DISPATCH_CAS_RETRIES {
+                sleep_after_cas_retry(attempt).await;
+            }
+        }
+        if !acquired {
+            return Err(anyhow!("failed to atomically acquire session lock"));
+        }
+
         if let Some(receipt) =
             crate::sessions::queue_receipt(kv, ns, agent, session_id, &entry_id).await?
         {
-            let submission = kv
-                .get(&keys::session_submission(
-                    ns,
-                    agent,
-                    session_id,
-                    &receipt.submission_id,
-                ))
-                .await?
-                .map(|raw| data_proto::SessionSubmission::decode(raw.as_slice()))
-                .transpose()?;
-            if receipt.terminal
-                || submission.is_some_and(|submission| {
-                    submission.status != data_proto::SessionSubmissionStatus::Pending as i32
-                })
+            if let Some(submission) =
+                queue_submission_started(kv, ns, agent, session_id, &receipt.submission_id).await?
             {
-                crate::sessions::terminal_queue_entry(kv, ns, agent, session_id, &entry_id, false)
-                    .await?;
-                continue;
-            }
-        }
-        break (entry_id, message_bytes);
-    };
-    let message = data_proto::SessionMessage::decode(message_bytes.as_slice())?;
-    let session_key = keys::session(ns, agent, session_id);
-    let now_micros = now.timestamp_micros();
-    let timeout_micros = scheduling::session_processing_timeout_micros();
-
-    let mut acquired = false;
-    for attempt in 0..MAX_QUEUE_DISPATCH_CAS_RETRIES {
-        let current = kv.get(&session_key).await?;
-        let Some(current_bytes) = current.as_ref() else {
-            return Err(scheduling::SessionNotFoundError.into());
-        };
-        let mut session = data_proto::Session::decode(current_bytes.as_slice())?;
-        if session.status == "PROCESSING"
-            && now_micros.saturating_sub(session.last_active) <= timeout_micros
-        {
-            return Ok(None);
-        }
-        // An errored session has no active worker, so a fresh interactive
-        // message in STEER should retain send_session_message's restart
-        // behavior. Keep NEXT/A2A entries blocked so a failed turn's backlog
-        // is not retried implicitly.
-        let can_restart_error = session.status == "ERROR" && queue == STEER_QUEUE;
-        if session.status != "IDLE" && session.status != "PROCESSING" && !can_restart_error {
-            return Ok(None);
-        }
-        session.status = "PROCESSING".to_string();
-        session.last_active = now_micros;
-        if kv
-            .compare_and_swap(
-                &session_key,
-                Some(current_bytes.as_slice()),
-                &session.encode_to_vec(),
-            )
-            .await?
-        {
-            acquired = true;
-            break;
-        }
-        if attempt + 1 < MAX_QUEUE_DISPATCH_CAS_RETRIES {
-            sleep_after_cas_retry(attempt).await;
-        }
-    }
-    if !acquired {
-        return Err(anyhow!("failed to atomically acquire session lock"));
-    }
-
-    match publish_queued_message(
-        kv, pubsub, ns, agent, session_id, queue, &entry_id, message, now,
-    )
-    .await
-    {
-        Ok(dispatched) => Ok(Some(dispatched)),
-        Err(err) => {
-            let receipt =
-                crate::sessions::queue_receipt(kv, ns, agent, session_id, &entry_id).await;
-            let release = match receipt {
-                Ok(Some(receipt)) => {
-                    scheduling::release_session_lock_if_submission_pending(
+                if crate::sessions::submission_is_terminal(&submission) {
+                    scheduling::release_acquired_session_lock(
                         kv,
                         &session_key,
-                        &keys::session_submission(ns, agent, session_id, &receipt.submission_id),
-                        now_micros,
+                        acquired_bytes.as_deref().expect("acquired lock bytes"),
                     )
-                    .await
+                    .await?;
+                    crate::sessions::terminal_queue_entry(
+                        kv, ns, agent, session_id, &entry_id, false,
+                    )
+                    .await?;
+                    continue 'next_entry;
                 }
-                Ok(None) => {
-                    release_session_lock_after_queue_dispatch_failure(kv, &session_key, now_micros)
-                        .await
+                // A claimed worker still needs its processing lock. Do not publish
+                // another event or feed its input back as steering.
+                if let Err(error) = crate::sessions::terminal_queue_entry(
+                    kv, ns, agent, session_id, &entry_id, false,
+                )
+                .await
+                {
+                    tracing::warn!(%error, "claimed queue input cleanup will retry");
                 }
-                Err(error) => Err(error), // Unknown publication state must not release a worker's lock.
-            };
-            if let Err(release_err) = release {
-                tracing::warn!(
-                    namespace = %ns,
-                    key = %session_key,
-                    error = %release_err,
-                    "failed to release session lock after queued dispatch error"
-                );
+                return Ok(None);
             }
-            Err(err)
         }
+        return match publish_queued_message(
+            kv, pubsub, ns, agent, session_id, queue, &entry_id, message, now,
+        )
+        .await
+        {
+            Ok(dispatched) => Ok(Some(dispatched)),
+            Err(err) => {
+                let receipt =
+                    crate::sessions::queue_receipt(kv, ns, agent, session_id, &entry_id).await;
+                let release = match receipt {
+                    Ok(Some(receipt)) => {
+                        scheduling::release_session_lock_if_submission_pending(
+                            kv,
+                            &session_key,
+                            &keys::session_submission(
+                                ns,
+                                agent,
+                                session_id,
+                                &receipt.submission_id,
+                            ),
+                            now_micros,
+                        )
+                        .await
+                    }
+                    Ok(None) => {
+                        release_session_lock_after_queue_dispatch_failure(
+                            kv,
+                            &session_key,
+                            now_micros,
+                        )
+                        .await
+                    }
+                    Err(error) => Err(error), // Unknown publication state must not release a worker's lock.
+                };
+                if let Err(release_err) = release {
+                    tracing::warn!(
+                        namespace = %ns,
+                        key = %session_key,
+                        error = %release_err,
+                        "failed to release session lock after queued dispatch error"
+                    );
+                }
+                Err(err)
+            }
+        };
     }
 }
 
@@ -777,6 +848,175 @@ mod tests {
             .await
             .unwrap()
             .is_some_and(|receipt| !receipt.terminal)
+    }
+
+    #[tokio::test]
+    async fn completed_queue_retry_releases_own_lock_and_dispatches_next_input() {
+        use crate::control::admission_race_test_support::CompleteBeforeSessionRead;
+        let inner = Arc::new(MockKvStore::default());
+        put_session(inner.as_ref(), "PROCESSING").await;
+        let first = queue_text_message(
+            inner.as_ref(),
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            "first",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let mut message = data_proto::SessionMessage::default();
+        crate::sessions::persist_promoted_session_message(
+            inner.as_ref(),
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            &first.entry_id,
+            &mut message,
+        )
+        .await
+        .unwrap();
+        let receipt = crate::sessions::queue_receipt(
+            inner.as_ref(),
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            &first.entry_id,
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        crate::sessions::create_submission_if_absent(
+            inner.as_ref(),
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            &crate::sessions::pending_submission(
+                receipt.submission_id.clone(),
+                "session-1",
+                message.id,
+                Utc::now().timestamp_micros(),
+            ),
+        )
+        .await
+        .unwrap();
+        let next = queue_text_message(
+            inner.as_ref(),
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            "next",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let kv = CompleteBeforeSessionRead {
+            inner: inner.clone(),
+            session: keys::session("Tenant:acme:Ops", "agent", "session-1"),
+            submission: keys::session_submission(
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                &receipt.submission_id,
+            ),
+            armed: true.into(),
+        };
+        let bus = RecordingPubSub::default();
+        let dispatched = dispatch_next_queued_message(
+            &kv,
+            &bus,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            Utc::now(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(dispatched.entry_id, next.entry_id);
+        let events = bus.published.lock().await;
+        let events = events
+            .iter()
+            .filter(|(topic, _)| topic == topics::SESSION_DISPATCH_TOPIC)
+            .map(|(_, bytes)| events::SessionDispatchEvent::decode(bytes.as_slice()).unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].message, "next");
+    }
+    #[tokio::test]
+    async fn dispatched_steer_source_is_excluded_when_terminal_cleanup_fails() {
+        let kv = ReceiptDeleteFailureKv::default();
+        put_session(&kv.0, "IDLE").await;
+        let first = queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            "already dispatched",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let bus = RecordingPubSub::default();
+        let dispatched = dispatch_next_queued_message(
+            &kv,
+            &bus,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            Utc::now(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let key = keys::session_submission(
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            &dispatched.submission_id,
+        );
+        let mut submission: data_proto::SessionSubmission =
+            kv.0.get_msg(&key).await.unwrap().unwrap();
+        submission.status = data_proto::SessionSubmissionStatus::Claimed as i32;
+        kv.0.set_msg(&key, &submission).await.unwrap();
+        queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            "new steering",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let batch = prepare_steer_batch(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            8,
+            100,
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(batch.len(), 1);
+        assert_eq!(batch[0].message.parts[0].content, "new steering");
+        assert!(
+            receipt_exists(&kv.0, &first.entry_id).await,
+            "failed cleanup leaves evidence for a later retry"
+        );
     }
 
     #[tokio::test]
