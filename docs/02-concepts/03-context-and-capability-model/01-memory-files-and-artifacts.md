@@ -53,7 +53,9 @@ not supersede a newer input. The durable queue write commits acceptance. Its rec
 carries the original reservation so dispatch or an exact enqueue retry can
 recover confirmation-state finalization without readmitting the input. A
 receipt without a committed queue payload is never dispatched. New turns require fresh message IDs and User-role
-messages; explicit transcript edits use the update-message API. Pending inputs and edits fence consumption;
+messages; explicit transcript edits use the update-message API. Exact retries of
+unfinished appends or edits reuse their original reservation. A completed message
+ID cannot start a new turn, and each approval reply can be consumed only once. Pending inputs and edits fence consumption;
 editing an old message does not make it a later confirmation. If input changes
 during confirmation, request a new delete token. Exact namespace grants also
 apply to File mounts in `run_python_code`. Deletion removes the resource metadata conditionally;

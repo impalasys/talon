@@ -42,9 +42,13 @@ struct QueueReceipt {
 #[derive(Clone, Default, Serialize, Deserialize)]
 struct AdmissionState {
     order: u64,
+    #[serde(default)]
+    consumed_through_order: u64,
     revision: String,
     latest: Option<Receipt>,
     pending_write: Option<String>,
+    #[serde(default)]
+    pending_kind: String,
     #[serde(default)]
     pending_digest: String,
     #[serde(default)]
@@ -59,12 +63,14 @@ struct AdmissionWrite {
     nonce: String,
     completion: String,
     payload_committed: bool,
+    retry: bool,
 }
 
 #[derive(Debug)]
 pub struct UserConfirmationSnapshot {
     key: keys::ResourceKey,
     bytes: Vec<u8>,
+    requested_after: u64,
 }
 
 fn state_key(ns: &str, agent: &str, session: &str) -> keys::ResourceKey {
@@ -90,14 +96,41 @@ fn is_user(message: &data_proto::SessionMessage) -> bool {
     message.role == data_proto::MessageRole::RoleUser as i32
 }
 fn payload_digest(message: &data_proto::SessionMessage) -> String {
+    fn hash_map(hasher: &mut Sha256, map: &std::collections::HashMap<String, String>) {
+        let mut entries = map.iter().collect::<Vec<_>>();
+        entries.sort_by(|a, b| a.0.cmp(b.0));
+        hasher.update((entries.len() as u64).to_le_bytes());
+        for (key, value) in entries {
+            hasher.update((key.len() as u64).to_le_bytes());
+            hasher.update(key.as_bytes());
+            hasher.update((value.len() as u64).to_le_bytes());
+            hasher.update(value.as_bytes());
+        }
+    }
     let mut payload = message.clone();
-    // Automatic server timestamps can differ on an otherwise exact RPC retry.
-    // Preserve IDs, role, labels, part kinds, content and structured payloads.
     payload.created_at = 0;
+    let labels = std::mem::take(&mut payload.labels);
+    let mut metadata = Vec::with_capacity(payload.parts.len());
     for part in &mut payload.parts {
         part.created_at = 0;
+        metadata.push(
+            part.object
+                .as_mut()
+                .map(|object| std::mem::take(&mut object.metadata)),
+        );
     }
-    format!("{:x}", Sha256::digest(payload.encode_to_vec()))
+    let bytes = payload.encode_to_vec();
+    let mut hasher = Sha256::new();
+    hasher.update((bytes.len() as u64).to_le_bytes());
+    hasher.update(bytes);
+    hash_map(&mut hasher, &labels);
+    for map in metadata {
+        hasher.update([u8::from(map.is_some())]);
+        if let Some(map) = map {
+            hash_map(&mut hasher, &map);
+        }
+    }
+    format!("{:x}", hasher.finalize())
 }
 fn text_digest(message: &data_proto::SessionMessage) -> String {
     if message
@@ -137,8 +170,17 @@ async fn save(
     state: &mut AdmissionState,
 ) -> Result<bool> {
     state.revision = nonce();
-    kv.compare_and_swap(key, expected, &serde_json::to_vec(state)?)
-        .await
+    let bytes = serde_json::to_vec(state)?;
+    match kv.compare_and_swap(key, expected, &bytes).await {
+        Ok(changed) => Ok(changed),
+        Err(error) => match kv.get(key).await {
+            Ok(Some(current)) if current == bytes => Ok(true),
+            Ok(_) => Err(error),
+            Err(read_error) => Err(error.context(format!(
+                "admission CAS outcome unknown; verification failed: {read_error}"
+            ))),
+        },
+    }
 }
 
 pub async fn current_message_admission_order(
@@ -178,7 +220,9 @@ async fn begin_input(
             if state.canonical_id.as_deref() == Some(message.id.as_str())
                 && state.pending_write.is_some()
             {
-                if state.pending_payload_digest == payload_digest(message) {
+                if state.pending_kind == "append"
+                    && state.pending_payload_digest == payload_digest(message)
+                {
                     return Ok(Some(AdmissionWrite {
                         receipt: state
                             .latest
@@ -187,6 +231,7 @@ async fn begin_input(
                         nonce: state.pending_write.clone().unwrap(),
                         completion: nonce(),
                         payload_committed: false,
+                        retry: true,
                     }));
                 }
                 return Err(anyhow!(
@@ -205,6 +250,7 @@ async fn begin_input(
         let write_nonce = nonce();
         state.latest = Some(receipt.clone());
         state.pending_write = Some(write_nonce.clone());
+        state.pending_kind = if canonical { "append" } else { "queue" }.into();
         state.pending_digest = text_digest(message);
         state.pending_payload_digest = payload_digest(message);
         state.completed_by.clear();
@@ -216,6 +262,7 @@ async fn begin_input(
                 nonce: write_nonce,
                 completion: nonce(),
                 payload_committed: false,
+                retry: false,
             }));
         }
     }
@@ -241,13 +288,23 @@ async fn begin_edit(
         let Some(receipt) = state.latest.clone() else {
             return Ok(None);
         };
-        if state.pending_write.is_some() {
-            return Err(anyhow!(
-                "latest user message update is pending; retry or send a fresh reply"
-            ));
+        if let Some(pending) = state.pending_write.as_ref() {
+            if state.pending_kind == "edit"
+                && state.pending_payload_digest == payload_digest(message)
+            {
+                return Ok(Some(AdmissionWrite {
+                    receipt,
+                    nonce: pending.clone(),
+                    completion: nonce(),
+                    payload_committed: false,
+                    retry: true,
+                }));
+            }
+            return Err(anyhow!("latest user message update is pending; retry the same update or send a fresh reply"));
         }
         let write_nonce = nonce();
         state.pending_write = Some(write_nonce.clone());
+        state.pending_kind = "edit".into();
         state.pending_digest = text_digest(message);
         state.pending_payload_digest = payload_digest(message);
         state.completed_by.clear();
@@ -257,6 +314,7 @@ async fn begin_edit(
                 nonce: write_nonce,
                 completion: nonce(),
                 payload_committed: false,
+                retry: false,
             }));
         }
     }
@@ -284,6 +342,7 @@ async fn finish(
             return Ok(state.completed_by == write.completion);
         }
         state.pending_write = None;
+        state.pending_kind.clear();
         state.pending_digest.clear();
         state.pending_payload_digest.clear();
         state.completed_by = write.completion.clone();
@@ -315,6 +374,7 @@ async fn abandon_insert(
             return Ok(());
         }
         state.pending_write = None;
+        state.pending_kind.clear();
         state.pending_digest.clear();
         state.pending_payload_digest.clear();
         state.completed_by.clear();
@@ -352,7 +412,7 @@ async fn reconcile_write(
 }
 
 /// Transcript append retries can recover an input whose payload committed before
-/// admission completion failed. Explicit new turns always reject existing IDs.
+/// admission completion failed. Completed IDs always remain append-only.
 pub async fn append_admitted_session_message(
     kv: &dyn KeyValueStore,
     ns: &str,
@@ -380,6 +440,7 @@ async fn append_session_message(
         {
             let (_, state) = load(kv, &state_key(ns, agent, session)).await?;
             if state.canonical_id.as_deref() == Some(message.id.as_str())
+                && state.pending_kind == "append"
                 && state.pending_payload_digest == payload_digest(message)
             {
                 if let (Some(receipt), Some(nonce)) = (state.latest, state.pending_write) {
@@ -393,6 +454,7 @@ async fn append_session_message(
                             nonce,
                             completion: self::nonce(),
                             payload_committed: false,
+                            retry: true,
                         }),
                         &current,
                     )
@@ -459,8 +521,9 @@ pub async fn edit_admitted_session_message(
             }
         }
         Ok(false) => {
-            reconcile_write(kv, ns, agent, session, write.as_ref(), message).await?;
-            return Ok(false);
+            let recovered =
+                reconcile_write(kv, ns, agent, session, write.as_ref(), message).await?;
+            return Ok(recovered && write.as_ref().is_some_and(|write| write.retry));
         }
         Err(error) => {
             if reconcile_write(kv, ns, agent, session, write.as_ref(), message).await? {
@@ -487,9 +550,9 @@ pub async fn persist_admitted_session_message(
     session: &str,
     message: &data_proto::SessionMessage,
 ) -> Result<()> {
-    // New-turn persistence must never silently become a transcript edit.
-    // Explicit edits use edit_admitted_session_message with expected bytes.
-    if !append_session_message(kv, ns, agent, session, message, false).await? {
+    // Completed IDs cannot become a new turn. An exact unfinished append may
+    // recover its original reservation, without editing or readmitting it.
+    if !append_session_message(kv, ns, agent, session, message, true).await? {
         return Err(SessionMessageAlreadyExistsError.into());
     }
     Ok(())
@@ -518,6 +581,7 @@ async fn finish_queued_admission(
             }
             state.latest = Some(queued.receipt.clone());
             state.pending_write = Some(queued.write_nonce.clone());
+            state.pending_kind = "queue".into();
             state.pending_digest = queued.reply_digest.clone();
             state.pending_payload_digest = payload_digest(message);
             state.completed_by.clear();
@@ -547,6 +611,7 @@ async fn finish_queued_admission(
                 nonce: queued.write_nonce.clone(),
                 completion: nonce(),
                 payload_committed: true,
+                retry: true,
             }),
             message,
         )
@@ -570,7 +635,7 @@ pub async fn persist_queued_session_message(
     let receipt_key = queue_receipt_key(ns, agent, session, entry);
     let payload_key = keys::session_queue_entry(ns, agent, session, queue, entry);
     let payload = message.encode_to_vec();
-    let payload_digest = format!("{:x}", Sha256::digest(&payload));
+    let payload_digest = self::payload_digest(message);
     let (queued, receipt_bytes) = if let Some(raw) = kv.get(&receipt_key).await? {
         let queued: QueueReceipt = serde_json::from_slice(&raw)?;
         if queued.payload_digest != payload_digest {
@@ -623,7 +688,13 @@ pub async fn persist_queued_session_message(
         // An exact retry can arrive after a previous payload commit. If it was
         // already canonicalized, the original digest in the receipt is stable.
         Ok(false) | Err(_) => match kv.get(&payload_key).await? {
-            Some(current) if current == payload => true,
+            Some(current)
+                if self::payload_digest(&data_proto::SessionMessage::decode(
+                    current.as_slice(),
+                )?) == queued.payload_digest =>
+            {
+                true
+            }
             Some(_) => kv
                 .get(&receipt_key)
                 .await?
@@ -645,6 +716,7 @@ pub async fn persist_queued_session_message(
             nonce: queued.write_nonce.clone(),
             completion: nonce(),
             payload_committed: false,
+            retry: false,
         };
         let _ = abandon_insert(kv, ns, agent, session, Some(&write)).await;
         return Err(inserted.err().unwrap_or_else(|| {
@@ -779,6 +851,8 @@ pub async fn validate_user_confirmation(
     let key = state_key(ns, agent, session);
     let (raw, state) = load(kv, &key).await?;
     if state.order <= after
+        || state.order <= state.consumed_through_order
+        || state.consumed_through_order > after
         || state.pending_write.is_some()
         || state.text_digest != digest(required_reply)
     {
@@ -786,6 +860,7 @@ pub async fn validate_user_confirmation(
     }
     Ok(UserConfirmationSnapshot {
         key,
+        requested_after: after,
         bytes: raw.ok_or_else(|| anyhow!("user confirmation state missing"))?,
     })
 }
@@ -808,11 +883,29 @@ pub async fn consume_user_confirmation(
         Ok(())
     };
     check_expiry()?;
-    if !kv.compare_and_delete(confirmation_key, pending).await? {
+    let mut state: AdmissionState = serde_json::from_slice(&snapshot.bytes)?;
+    if state.order <= state.consumed_through_order
+        || state.consumed_through_order > snapshot.requested_after
+    {
+        return Err(anyhow!("user approval has already been consumed"));
+    }
+    let removed = match kv.compare_and_delete(confirmation_key, pending).await {
+        Ok(removed) => removed,
+        Err(error) => match kv.get(confirmation_key).await {
+            Ok(None) => true,
+            Ok(Some(_)) => return Err(error),
+            Err(read_error) => {
+                return Err(error.context(format!(
+                    "confirmation consumption outcome unknown; verification failed: {read_error}"
+                )))
+            }
+        },
+    };
+    if !removed {
         return Err(anyhow!("delete confirmation is missing or already used"));
     }
     check_expiry()?;
-    let mut state: AdmissionState = serde_json::from_slice(&snapshot.bytes)?;
+    state.consumed_through_order = state.order;
     if !save(kv, &snapshot.key, Some(&snapshot.bytes), &mut state).await? {
         return Err(anyhow!(
             "latest user reply changed while confirming deletion; start a new delete request"
@@ -873,6 +966,7 @@ mod tests {
         fail_reconciliation_read: std::sync::atomic::AtomicBool,
         read_error: std::sync::atomic::AtomicBool,
         receipt_cleanup_error: std::sync::atomic::AtomicBool,
+        confirmation_delete_error: std::sync::atomic::AtomicBool,
         pause_queue: std::sync::atomic::AtomicBool,
         queue_entered: tokio::sync::Notify,
         queue_release: tokio::sync::Notify,
@@ -926,6 +1020,9 @@ mod tests {
                 }
                 let result = self.inner.compare_and_swap(key, expected, value).await?;
                 if mode == 2 {
+                    if self.fail_reconciliation_read.swap(false, SeqCst) {
+                        self.read_error.store(true, SeqCst);
+                    }
                     return Err(anyhow!("injected payload failure after commit"));
                 }
                 return Ok(result);
@@ -963,6 +1060,14 @@ mod tests {
             {
                 return Err(anyhow!("injected failed-queue receipt cleanup error"));
             }
+            if key.kind == "DeleteConfirmation"
+                && self
+                    .confirmation_delete_error
+                    .swap(false, std::sync::atomic::Ordering::SeqCst)
+            {
+                self.inner.compare_and_delete(key, expected).await?;
+                return Err(anyhow!("injected confirmation delete response failure"));
+            }
             self.inner.compare_and_delete(key, expected).await
         }
         async fn delete(&self, key: &keys::ResourceKey) -> Result<()> {
@@ -974,6 +1079,282 @@ mod tests {
             options: Option<crate::control::ListOptions<'_>>,
         ) -> Result<Vec<keys::ResourceKey>> {
             self.inner.list_keys(list, options).await
+        }
+    }
+
+    #[tokio::test]
+    async fn payload_hash_canonicalizes_all_maps_and_ignores_only_timestamps() {
+        let mut original = message("map-retry", "exact reply");
+        original.labels = [
+            ("z".into(), "last".into()),
+            ("a".into(), "first".into()),
+            ("m".into(), "middle".into()),
+        ]
+        .into_iter()
+        .collect();
+        original.parts[0].object = Some(data_proto::ObjectRef {
+            key: "object-key".into(),
+            metadata: [("z".into(), "last".into()), ("a".into(), "first".into())]
+                .into_iter()
+                .collect(),
+            ..Default::default()
+        });
+        let expected = payload_digest(&original);
+        for _ in 0..32 {
+            let mut decoded =
+                data_proto::SessionMessage::decode(original.encode_to_vec().as_slice()).unwrap();
+            decoded.created_at += 100;
+            decoded.parts[0].created_at += 100;
+            assert_eq!(payload_digest(&decoded), expected);
+            decoded.labels.insert("a".into(), "changed".into());
+            assert_ne!(payload_digest(&decoded), expected);
+            decoded = original.clone();
+            decoded.parts[0]
+                .object
+                .as_mut()
+                .unwrap()
+                .metadata
+                .insert("a".into(), "changed".into());
+            assert_ne!(payload_digest(&decoded), expected);
+        }
+    }
+
+    #[tokio::test]
+    async fn pending_new_turn_retry_recovers_lost_payload_response_and_readback() {
+        use std::sync::atomic::Ordering::SeqCst;
+        let kv = FaultKv::default();
+        let pubsub = crate::test_support::RecordingPubSub::default();
+        let session_key = keys::session("ns", "agent", "session");
+        kv.set_msg(
+            &session_key,
+            &data_proto::Session {
+                id: "session".into(),
+                status: "IDLE".into(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        kv.payload_error.store(2, SeqCst);
+        kv.fail_reconciliation_read.store(true, SeqCst);
+        let mut input = message("turn-retry", "cancel");
+        input.created_at = 0;
+        input.labels = [("z".into(), "last".into()), ("a".into(), "first".into())]
+            .into_iter()
+            .collect();
+        assert!(crate::control::scheduling::send_session_message(
+            &kv,
+            &pubsub,
+            "ns",
+            "agent",
+            "session",
+            input.clone(),
+            chrono::Utc::now()
+        )
+        .await
+        .is_err());
+        let before = current_message_admission_order(&kv, "ns", "agent", "session")
+            .await
+            .unwrap();
+        crate::control::scheduling::send_session_message(
+            &kv,
+            &pubsub,
+            "ns",
+            "agent",
+            "session",
+            input.clone(),
+            chrono::Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(
+            current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            before
+        );
+        assert!(load(&kv, &state_key("ns", "agent", "session"))
+            .await
+            .unwrap()
+            .1
+            .pending_write
+            .is_none());
+        assert_eq!(
+            kv.list_keys(
+                &keys::session_submission_prefix("ns", "agent", "session"),
+                None
+            )
+            .await
+            .unwrap()
+            .len(),
+            1
+        );
+        let mut session: data_proto::Session = kv.get_msg(&session_key).await.unwrap().unwrap();
+        session.status = "IDLE".into();
+        kv.set_msg(&session_key, &session).await.unwrap();
+        assert!(crate::control::scheduling::send_session_message(
+            &kv,
+            &pubsub,
+            "ns",
+            "agent",
+            "session",
+            input,
+            chrono::Utc::now()
+        )
+        .await
+        .unwrap_err()
+        .downcast_ref::<SessionMessageAlreadyExistsError>()
+        .is_some());
+        let messages = pubsub.published.lock().await;
+        assert_eq!(
+            messages
+                .iter()
+                .filter(|(topic, _)| topic == crate::control::topics::SESSION_DISPATCH_TOPIC)
+                .count(),
+            1
+        );
+    }
+
+    #[tokio::test]
+    async fn exact_edit_retries_recover_retained_reservations_before_or_after_commit() {
+        use std::sync::atomic::Ordering::SeqCst;
+        for mode in [1, 2] {
+            let kv = FaultKv::default();
+            let original = message("edit-retry", "exact reply");
+            append_admitted_session_message(&kv, "ns", "agent", "session", &original)
+                .await
+                .unwrap();
+            let desired = message("edit-retry", "cancel");
+            kv.payload_error.store(mode, SeqCst);
+            kv.fail_reconciliation_read.store(true, SeqCst);
+            assert!(edit_admitted_session_message(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                &original.encode_to_vec(),
+                &desired
+            )
+            .await
+            .is_err());
+            let before = current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap();
+            assert!(edit_admitted_session_message(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                &original.encode_to_vec(),
+                &desired
+            )
+            .await
+            .unwrap());
+            assert_eq!(
+                current_message_admission_order(&kv, "ns", "agent", "session")
+                    .await
+                    .unwrap(),
+                before
+            );
+            assert!(load(&kv, &state_key("ns", "agent", "session"))
+                .await
+                .unwrap()
+                .1
+                .pending_write
+                .is_none());
+            assert!(
+                validate_user_confirmation(&kv, "ns", "agent", "session", 0, "exact reply")
+                    .await
+                    .is_err()
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn confirmation_consumption_reconciles_lost_conditional_responses_once() {
+        use std::sync::atomic::Ordering::SeqCst;
+        for mode in [1, 2, 3] {
+            let kv = FaultKv::default();
+            append_admitted_session_message(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                &message("approval", "exact reply"),
+            )
+            .await
+            .unwrap();
+            let token = pending(&kv.inner, "lost-consumption").await;
+            let approved =
+                validate_user_confirmation(&kv, "ns", "agent", "session", 0, "exact reply")
+                    .await
+                    .unwrap();
+            kv.confirmation_delete_error.store(mode != 2, SeqCst);
+            kv.finish_after_commit.store(mode != 1, SeqCst);
+            consume_user_confirmation(&kv, approved, &token, b"pending", deadline())
+                .await
+                .unwrap();
+            assert!(kv.get(&token).await.unwrap().is_none());
+            assert!(
+                validate_user_confirmation(&kv, "ns", "agent", "session", 0, "exact reply")
+                    .await
+                    .is_err()
+            );
+            let key = state_key("ns", "agent", "session");
+            let bytes = kv.get(&key).await.unwrap().unwrap();
+            kv.confirmation_delete_error.store(true, SeqCst);
+            assert!(consume_user_confirmation(
+                &kv,
+                UserConfirmationSnapshot {
+                    key: key.clone(),
+                    bytes: bytes.clone(),
+                    requested_after: 0,
+                },
+                &token,
+                b"pending",
+                deadline()
+            )
+            .await
+            .is_err());
+            assert_eq!(kv.get(&key).await.unwrap().unwrap(), bytes);
+            append_admitted_session_message(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                &message("replayed-text", "exact reply"),
+            )
+            .await
+            .unwrap();
+            assert!(
+                validate_user_confirmation(&kv, "ns", "agent", "session", 0, "exact reply")
+                    .await
+                    .is_err()
+            );
+            let after = current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap();
+            let fresh = pending(&kv.inner, "fresh-consumption").await;
+            append_admitted_session_message(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                &message("fresh-reply", "exact reply"),
+            )
+            .await
+            .unwrap();
+            consume_user_confirmation(
+                &kv,
+                validate_user_confirmation(&kv, "ns", "agent", "session", after, "exact reply")
+                    .await
+                    .unwrap(),
+                &fresh,
+                b"pending",
+                deadline(),
+            )
+            .await
+            .unwrap();
         }
     }
 
@@ -1323,7 +1704,7 @@ mod tests {
             },
             canonical_id: None,
             write_nonce: "write".into(),
-            payload_digest: format!("{:x}", Sha256::digest(input.encode_to_vec())),
+            payload_digest: payload_digest(&input),
             reply_digest: text_digest(&input),
         };
         kv.set(

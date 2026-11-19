@@ -232,7 +232,7 @@ pub async fn list_prepared_steer_message_ids(
     let prefix = keys::session_queue_prefix(ns, agent, session_id, STEER_QUEUE);
     let mut ids = HashSet::new();
     for (key, bytes) in kv.list_entries(&prefix, None).await? {
-        let Some(entry) = keys::direct_child_name(&prefix, &key) else {
+        let Some(_entry) = keys::direct_child_name(&prefix, &key) else {
             continue;
         };
         if let Ok(message) = data_proto::SessionMessage::decode(bytes.as_slice()) {
