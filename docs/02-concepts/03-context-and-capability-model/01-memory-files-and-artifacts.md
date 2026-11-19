@@ -37,19 +37,29 @@ already-granted action; wildcard strings do not grant wildcard access.
 `delete_file` covers all File purposes, including MEMORY. A session is required.
 The first call returns `status: confirmation_required`, `confirmationId`, and
 `requiredReply` without deleting anything. Ask the user to send that exact reply
-in a later message, then repeat the tool with `confirmation_id`. A confirmation
+in a later message containing only Text parts, then repeat the tool with
+`confirmation_id`. Attachments and other non-Text parts do not count as confirmation. A confirmation
 expires after one hour, is single-use, and is bound to the requesting session,
 agent, namespace, path, and resource version. Any intervening File update requires
 a fresh confirmation. Each session keeps at most one active pending deletion;
 a new request supersedes the previous confirmation ID, and successful consumption
 atomically removes the pending record. Abandoned requests occupy at most that
 single slot until replaced or checked after expiry. Confirmation ordering uses a server-owned, versioned
-admission state, recorded when input is accepted (including queued replies),
-not client timestamps or IDs. Pending inputs and edits fence consumption;
+admission state. Overlapping inputs are ordered at the server's reservation CAS
+(including queued replies), not by client timestamps, IDs, or the order database
+acknowledgements finish. The latest reserved input must finish its durable write
+before it can confirm a deletion. An older overlapping write finishing late does
+not supersede a newer input. Staged queue entries cannot dispatch until their
+admission receipt commits. New turns require fresh message IDs and User-role
+messages; explicit transcript edits use the update-message API. Pending inputs and edits fence consumption;
 editing an old message does not make it a later confirmation. If input changes
 during confirmation, request a new delete token. Exact namespace grants also
 apply to File mounts in `run_python_code`. Deletion removes the resource metadata conditionally;
 it does not eagerly remove shared blobs or a potentially replaced latest alias.
+The storage commit determines deletion success. Lifecycle notifications are
+best-effort with bounded retries; a prolonged notification outage does not undo
+a committed deletion. Read/list the File resource for authoritative existence.
+Finalizer-dependent cleanup is excluded from this native operation.
 
 Files with finalizers are rejected before requesting confirmation. Complete their
 external cleanup first; native deletion does not remove finalizers or create a

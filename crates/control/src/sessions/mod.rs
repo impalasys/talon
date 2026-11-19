@@ -6,12 +6,14 @@ use crate::talon;
 
 mod journal;
 mod message_order;
-pub(crate) use message_order::remove_queue_receipt;
 pub use message_order::{
     append_admitted_session_message, consume_user_confirmation, current_message_admission_order,
     edit_admitted_session_message, persist_admitted_session_message,
     persist_promoted_session_message, persist_queued_session_message, validate_user_confirmation,
-    UserConfirmationSnapshot,
+    SessionMessageAlreadyExistsError, UserConfirmationSnapshot,
+};
+pub(crate) use message_order::{
+    load_promoted_session_message, queued_message_is_accepted, remove_queue_receipt,
 };
 mod lease;
 mod recovery;

@@ -12,6 +12,15 @@ use prost::Message;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+#[derive(Debug)]
+pub struct SessionMessageAlreadyExistsError;
+impl std::fmt::Display for SessionMessageAlreadyExistsError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("session message ID already exists; submit a new turn with a fresh ID")
+    }
+}
+impl std::error::Error for SessionMessageAlreadyExistsError {}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 struct Receipt {
     order: u64,
@@ -23,6 +32,12 @@ struct QueueReceipt {
     receipt: Receipt,
     #[serde(default)]
     canonical_id: Option<String>,
+    #[serde(default)]
+    accepted: bool,
+    #[serde(default)]
+    write_nonce: String,
+    #[serde(default)]
+    payload_digest: String,
 }
 #[derive(Clone, Default, Serialize, Deserialize)]
 struct AdmissionState {
@@ -30,6 +45,8 @@ struct AdmissionState {
     revision: String,
     latest: Option<Receipt>,
     pending_write: Option<String>,
+    #[serde(default)]
+    pending_digest: String,
     text_digest: String,
     canonical_id: Option<String>,
 }
@@ -67,6 +84,13 @@ fn is_user(message: &data_proto::SessionMessage) -> bool {
     message.role == data_proto::MessageRole::RoleUser as i32
 }
 fn text_digest(message: &data_proto::SessionMessage) -> String {
+    if message
+        .parts
+        .iter()
+        .any(|part| part.part_type != data_proto::SessionMessagePartType::Text as i32)
+    {
+        return String::new();
+    }
     let text = message
         .parts
         .iter()
@@ -154,6 +178,7 @@ async fn begin_input(
         let write_nonce = nonce();
         state.latest = Some(receipt.clone());
         state.pending_write = Some(write_nonce.clone());
+        state.pending_digest = text_digest(message);
         state.text_digest.clear();
         state.canonical_id = canonical.then(|| message.id.clone());
         if save(kv, &key, raw.as_deref(), &mut state).await? {
@@ -192,6 +217,7 @@ async fn begin_edit(
         }
         let write_nonce = nonce();
         state.pending_write = Some(write_nonce.clone());
+        state.pending_digest = text_digest(message);
         if save(kv, &key, raw.as_deref(), &mut state).await? {
             return Ok(Some(AdmissionWrite {
                 receipt,
@@ -209,23 +235,24 @@ async fn finish(
     session: &str,
     write: Option<&AdmissionWrite>,
     message: &data_proto::SessionMessage,
-) -> Result<()> {
+) -> Result<bool> {
     let Some(write) = write else {
-        return Ok(());
+        return Ok(true);
     };
     let key = state_key(ns, agent, session);
     for _ in 0..32 {
         let (raw, mut state) = load(kv, &key).await?;
         if state.latest.as_ref() != Some(&write.receipt) {
-            return Ok(());
+            return Ok(true);
         }
         if state.pending_write.as_deref() != Some(write.nonce.as_str()) {
-            return Err(anyhow!("user message admission changed before completion"));
+            return Ok(false);
         }
         state.pending_write = None;
+        state.pending_digest.clear();
         state.text_digest = text_digest(message);
         if save(kv, &key, raw.as_deref(), &mut state).await? {
-            return Ok(());
+            return Ok(true);
         }
     }
     Err(anyhow!("failed to complete user message admission"))
@@ -251,6 +278,7 @@ async fn abandon_insert(
             return Ok(());
         }
         state.pending_write = None;
+        state.pending_digest.clear();
         state.latest = None;
         state.canonical_id = None;
         state.text_digest.clear();
@@ -261,7 +289,31 @@ async fn abandon_insert(
     Err(anyhow!("failed to clear unsuccessful message append"))
 }
 
-/// Appends cannot give an existing/edited message a fresh admission order.
+// Complete only the reservation owned by this write. If a storage call failed
+// after committing, its durable payload is the authority; otherwise retain the
+// durable winner's text or abandon an absent/non-User insert, never a newer fence.
+async fn reconcile_write(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session: &str,
+    write: Option<&AdmissionWrite>,
+    desired: &data_proto::SessionMessage,
+) -> Result<bool> {
+    let key = keys::session_message(ns, agent, session, &desired.id);
+    if let Some(raw) = kv.get(&key).await? {
+        let current = data_proto::SessionMessage::decode(raw.as_slice())?;
+        if is_user(&current) {
+            let completed = finish(kv, ns, agent, session, write, &current).await?;
+            return Ok(completed && current == *desired);
+        }
+    }
+    abandon_insert(kv, ns, agent, session, write).await?;
+    Ok(false)
+}
+
+/// Transcript append retries can recover an input whose payload committed before
+/// admission completion failed. Explicit new turns always reject existing IDs.
 pub async fn append_admitted_session_message(
     kv: &dyn KeyValueStore,
     ns: &str,
@@ -269,20 +321,65 @@ pub async fn append_admitted_session_message(
     session: &str,
     message: &data_proto::SessionMessage,
 ) -> Result<bool> {
+    append_session_message(kv, ns, agent, session, message, true).await
+}
+
+async fn append_session_message(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session: &str,
+    message: &data_proto::SessionMessage,
+    recover_existing: bool,
+) -> Result<bool> {
     let key = keys::session_message(ns, agent, session, &message.id);
-    if kv.get(&key).await?.is_some() {
+    if let Some(raw) = kv.get(&key).await? {
+        if recover_existing && is_user(message) && raw == message.encode_to_vec() {
+            let (_, state) = load(kv, &state_key(ns, agent, session)).await?;
+            if state.canonical_id.as_deref() == Some(message.id.as_str())
+                && state.pending_digest == text_digest(message)
+            {
+                if let (Some(receipt), Some(nonce)) = (state.latest, state.pending_write) {
+                    return finish(
+                        kv,
+                        ns,
+                        agent,
+                        session,
+                        Some(&AdmissionWrite { receipt, nonce }),
+                        message,
+                    )
+                    .await;
+                }
+            }
+        }
         return Ok(false);
     }
     let write = begin_input(kv, ns, agent, session, message, true).await?;
-    if !kv
+    match kv
         .compare_and_swap(&key, None, &message.encode_to_vec())
-        .await?
+        .await
     {
-        abandon_insert(kv, ns, agent, session, write.as_ref()).await?;
-        return Ok(false);
+        Ok(true) => {}
+        Ok(false) => {
+            abandon_insert(kv, ns, agent, session, write.as_ref()).await?;
+            return Ok(false);
+        }
+        Err(error) => {
+            if reconcile_write(kv, ns, agent, session, write.as_ref(), message).await? {
+                return Ok(true);
+            }
+            return Err(error);
+        }
     }
-    finish(kv, ns, agent, session, write.as_ref(), message).await?;
-    Ok(true)
+    match finish(kv, ns, agent, session, write.as_ref(), message).await {
+        Ok(completed) => Ok(completed),
+        Err(error) => {
+            if reconcile_write(kv, ns, agent, session, write.as_ref(), message).await? {
+                return Ok(true);
+            }
+            Err(error)
+        }
+    }
 }
 
 pub async fn edit_admitted_session_message(
@@ -294,31 +391,32 @@ pub async fn edit_admitted_session_message(
     message: &data_proto::SessionMessage,
 ) -> Result<bool> {
     let write = begin_edit(kv, ns, agent, session, message).await?;
-    if !kv
-        .compare_and_swap(
-            &keys::session_message(ns, agent, session, &message.id),
-            Some(expected),
-            &message.encode_to_vec(),
-        )
-        .await?
+    let key = keys::session_message(ns, agent, session, &message.id);
+    match kv
+        .compare_and_swap(&key, Some(expected), &message.encode_to_vec())
+        .await
     {
-        if let Some(raw) = kv
-            .get(&keys::session_message(ns, agent, session, &message.id))
-            .await?
-        {
-            let current = data_proto::SessionMessage::decode(raw.as_slice())?;
-            if is_user(&current) {
-                finish(kv, ns, agent, session, write.as_ref(), &current).await?;
-            } else {
-                abandon_insert(kv, ns, agent, session, write.as_ref()).await?;
-            }
-        } else {
-            abandon_insert(kv, ns, agent, session, write.as_ref()).await?;
+        Ok(true) => {}
+        Ok(false) => {
+            reconcile_write(kv, ns, agent, session, write.as_ref(), message).await?;
+            return Ok(false);
         }
-        return Ok(false);
+        Err(error) => {
+            if reconcile_write(kv, ns, agent, session, write.as_ref(), message).await? {
+                return Ok(true);
+            }
+            return Err(error);
+        }
     }
-    finish(kv, ns, agent, session, write.as_ref(), message).await?;
-    Ok(true)
+    match finish(kv, ns, agent, session, write.as_ref(), message).await {
+        Ok(completed) => Ok(completed),
+        Err(error) => {
+            if reconcile_write(kv, ns, agent, session, write.as_ref(), message).await? {
+                return Ok(true);
+            }
+            Err(error)
+        }
+    }
 }
 
 pub async fn persist_admitted_session_message(
@@ -328,19 +426,41 @@ pub async fn persist_admitted_session_message(
     session: &str,
     message: &data_proto::SessionMessage,
 ) -> Result<()> {
-    let key = keys::session_message(ns, agent, session, &message.id);
-    let changed = if let Some(current) = kv.get(&key).await? {
-        edit_admitted_session_message(kv, ns, agent, session, &current, message).await?
-    } else {
-        append_admitted_session_message(kv, ns, agent, session, message).await?
-    };
-    if !changed {
-        return Err(anyhow!("session message changed during persistence"));
+    // New-turn persistence must never silently become a transcript edit.
+    // Explicit edits use edit_admitted_session_message with expected bytes.
+    if !append_session_message(kv, ns, agent, session, message, false).await? {
+        return Err(SessionMessageAlreadyExistsError.into());
     }
     Ok(())
 }
 
-/// The queue acknowledgement, rather than later promotion, is input acceptance.
+async fn finish_queued_admission(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session: &str,
+    queued: &QueueReceipt,
+    message: &data_proto::SessionMessage,
+) -> Result<()> {
+    if !queued.write_nonce.is_empty() {
+        finish(
+            kv,
+            ns,
+            agent,
+            session,
+            Some(&AdmissionWrite {
+                receipt: queued.receipt.clone(),
+                nonce: queued.write_nonce.clone(),
+            }),
+            message,
+        )
+        .await?;
+    }
+    Ok(())
+}
+
+/// Admission order is the server reservation order, not response completion
+/// order. A queued payload is ineligible for dispatch until its receipt commits.
 pub async fn persist_queued_session_message(
     kv: &dyn KeyValueStore,
     ns: &str,
@@ -350,23 +470,134 @@ pub async fn persist_queued_session_message(
     entry: &str,
     message: &data_proto::SessionMessage,
 ) -> Result<()> {
-    let write = begin_input(kv, ns, agent, session, message, false).await?;
-    if let Some(write) = write.as_ref() {
-        kv.set(
-            &queue_receipt_key(ns, agent, session, entry),
-            &serde_json::to_vec(&QueueReceipt {
-                receipt: write.receipt.clone(),
-                canonical_id: None,
-            })?,
-        )
-        .await?;
+    let receipt_key = queue_receipt_key(ns, agent, session, entry);
+    let payload_key = keys::session_queue_entry(ns, agent, session, queue, entry);
+    let payload = message.encode_to_vec();
+    let payload_digest = format!("{:x}", Sha256::digest(&payload));
+    if let Some(raw) = kv.get(&receipt_key).await? {
+        let queued: QueueReceipt = serde_json::from_slice(&raw)?;
+        if queued.accepted && queued.payload_digest == payload_digest {
+            if let Err(error) =
+                finish_queued_admission(kv, ns, agent, session, &queued, message).await
+            {
+                tracing::warn!(%error, entry_id = %entry, "accepted queue entry will retry admission finalization during dispatch");
+            }
+            return Ok(());
+        }
+        return Err(anyhow!("queued message entry already exists or is pending"));
     }
-    kv.set(
-        &keys::session_queue_entry(ns, agent, session, queue, entry),
-        &message.encode_to_vec(),
-    )
-    .await?;
-    finish(kv, ns, agent, session, write.as_ref(), message).await
+    let write = begin_input(kv, ns, agent, session, message, false).await?;
+    let Some(write) = write.as_ref() else {
+        return Err(anyhow!("queued inputs must be User messages"));
+    };
+    let mut queued = QueueReceipt {
+        receipt: write.receipt.clone(),
+        canonical_id: None,
+        accepted: false,
+        write_nonce: write.nonce.clone(),
+        payload_digest,
+    };
+    let staged_receipt = serde_json::to_vec(&queued)?;
+    match kv
+        .compare_and_swap(&receipt_key, None, &staged_receipt)
+        .await
+    {
+        Ok(true) => {}
+        Ok(false) => {
+            abandon_insert(kv, ns, agent, session, Some(write)).await?;
+            return Err(anyhow!("queued message entry already exists"));
+        }
+        Err(error) => {
+            if kv.get(&receipt_key).await?.as_deref() != Some(staged_receipt.as_slice()) {
+                let _ = abandon_insert(kv, ns, agent, session, Some(write)).await;
+                return Err(error);
+            }
+        }
+    }
+    let result: Result<()> = async {
+        if !kv.compare_and_swap(&payload_key, None, &payload).await? {
+            return Err(anyhow!("queued message entry already exists"));
+        }
+        queued.accepted = true;
+        let accepted = serde_json::to_vec(&queued)?;
+        match kv
+            .compare_and_swap(&receipt_key, Some(&staged_receipt), &accepted)
+            .await
+        {
+            Ok(true) => Ok(()),
+            // Recover a storage error returned after the acceptance commit.
+            Err(_error) if kv.get(&receipt_key).await?.as_deref() == Some(accepted.as_slice()) => {
+                Ok(())
+            }
+            Err(error) => Err(error),
+            Ok(false) => Err(anyhow!("queued message receipt changed before acceptance")),
+        }
+    }
+    .await;
+    if result.is_err() {
+        // Staged receipts are never dispatched, even if cleanup is unavailable.
+        // Keep the receipt whenever primary cleanup fails: absence means legacy.
+        if kv
+            .compare_and_delete(&payload_key, &payload)
+            .await
+            .unwrap_or(false)
+            || matches!(kv.get(&payload_key).await, Ok(None))
+        {
+            let _ = kv.compare_and_delete(&receipt_key, &staged_receipt).await;
+        }
+        let _ = abandon_insert(kv, ns, agent, session, Some(write)).await;
+    } else if let Err(error) =
+        finish_queued_admission(kv, ns, agent, session, &queued, message).await
+    {
+        // The receipt is the queue commit point. Do not report a rejected input
+        // after committing it; dispatch has the same receipt for recovery.
+        tracing::warn!(%error, entry_id = %entry, "accepted queue entry will retry admission finalization during dispatch");
+    }
+    result
+}
+
+pub(crate) async fn queued_message_is_accepted(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session: &str,
+    entry: &str,
+) -> Result<bool> {
+    let Some(raw) = kv
+        .get(&queue_receipt_key(ns, agent, session, entry))
+        .await?
+    else {
+        return Ok(true);
+    }; // legacy entry
+    Ok(serde_json::from_slice::<QueueReceipt>(&raw)?.accepted)
+}
+
+/// Resolve a retry's durable payload without creating or preparing a new input.
+pub(crate) async fn load_promoted_session_message(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session: &str,
+    entry: &str,
+    message: &mut data_proto::SessionMessage,
+) -> Result<()> {
+    if let Some(raw) = kv
+        .get(&queue_receipt_key(ns, agent, session, entry))
+        .await?
+    {
+        if let Some(id) = serde_json::from_slice::<QueueReceipt>(&raw)?.canonical_id {
+            message.id = id;
+        }
+    }
+    if !message.id.is_empty() {
+        if let Some(raw) = kv
+            .get(&keys::session_message(ns, agent, session, &message.id))
+            .await?
+        {
+            *message = data_proto::SessionMessage::decode(raw.as_slice())?;
+        }
+    }
+    Ok(())
 }
 
 pub async fn persist_promoted_session_message(
@@ -386,6 +617,10 @@ pub async fn persist_promoted_session_message(
             break;
         };
         let mut queued: QueueReceipt = serde_json::from_slice(&raw)?;
+        if !queued.accepted {
+            return Err(anyhow!("queued message admission is pending"));
+        }
+        finish_queued_admission(kv, ns, agent, session, &queued, message).await?;
         if let Some(id) = queued.canonical_id.as_ref() {
             message.id = id.clone();
             receipt = Some(queued.receipt);
@@ -544,6 +779,459 @@ mod tests {
     }
     fn deadline() -> i64 {
         chrono::Utc::now().timestamp_micros() + 60_000_000
+    }
+
+    #[derive(Default)]
+    struct FaultKv {
+        inner: MockKvStore,
+        payload_error: std::sync::atomic::AtomicUsize,
+        finish_error: std::sync::atomic::AtomicBool,
+        receipt_error: std::sync::atomic::AtomicBool,
+        pause_queue: std::sync::atomic::AtomicBool,
+        queue_entered: tokio::sync::Notify,
+        queue_release: tokio::sync::Notify,
+    }
+    #[async_trait::async_trait]
+    impl KeyValueStore for FaultKv {
+        async fn get(&self, key: &keys::ResourceKey) -> Result<Option<Vec<u8>>> {
+            self.inner.get(key).await
+        }
+        async fn set(&self, key: &keys::ResourceKey, value: &[u8]) -> Result<()> {
+            self.inner.set(key, value).await
+        }
+        async fn compare_and_swap(
+            &self,
+            key: &keys::ResourceKey,
+            expected: Option<&[u8]>,
+            value: &[u8],
+        ) -> Result<bool> {
+            use std::sync::atomic::Ordering::SeqCst;
+            if key.kind == "SessionMessage"
+                && key.parent_path.contains("/Queue/")
+                && self.pause_queue.swap(false, SeqCst)
+            {
+                self.queue_entered.notify_one();
+                self.queue_release.notified().await;
+            }
+            if key.kind == "SessionMessage" && !key.parent_path.contains("/Queue/") {
+                let mode = self.payload_error.swap(0, SeqCst);
+                if mode == 1 {
+                    return Err(anyhow!("injected payload failure before commit"));
+                }
+                let result = self.inner.compare_and_swap(key, expected, value).await?;
+                if mode == 2 {
+                    return Err(anyhow!("injected payload failure after commit"));
+                }
+                return Ok(result);
+            }
+            if key.kind == "QueuedMessageAdmission"
+                && expected.is_some()
+                && serde_json::from_slice::<QueueReceipt>(value)?.accepted
+                && self.receipt_error.swap(false, SeqCst)
+            {
+                return Err(anyhow!("injected queue activation failure"));
+            }
+            if key.kind == "MessageAdmissionState"
+                && expected.is_some()
+                && serde_json::from_slice::<AdmissionState>(value)?
+                    .pending_write
+                    .is_none()
+                && self.finish_error.swap(false, SeqCst)
+            {
+                return Err(anyhow!("injected finish failure"));
+            }
+            self.inner.compare_and_swap(key, expected, value).await
+        }
+        async fn compare_and_delete(
+            &self,
+            key: &keys::ResourceKey,
+            expected: &[u8],
+        ) -> Result<bool> {
+            self.inner.compare_and_delete(key, expected).await
+        }
+        async fn delete(&self, key: &keys::ResourceKey) -> Result<()> {
+            self.inner.delete(key).await
+        }
+        async fn list_keys(
+            &self,
+            list: &keys::ResourceList,
+            options: Option<crate::control::ListOptions<'_>>,
+        ) -> Result<Vec<keys::ResourceKey>> {
+            self.inner.list_keys(list, options).await
+        }
+    }
+
+    #[tokio::test]
+    async fn append_storage_errors_reconcile_before_and_after_payload_commit() {
+        use std::sync::atomic::Ordering::SeqCst;
+        for mode in [1, 2, 3] {
+            let kv = FaultKv::default();
+            kv.payload_error
+                .store(if mode < 3 { mode } else { 0 }, SeqCst);
+            kv.finish_error.store(mode == 3, SeqCst);
+            let reply = message("reply", "exact reply");
+            let result =
+                append_admitted_session_message(&kv, "ns", "agent", "session", &reply).await;
+            if mode == 1 {
+                assert!(result.is_err());
+                assert!(
+                    append_admitted_session_message(&kv, "ns", "agent", "session", &reply)
+                        .await
+                        .unwrap()
+                );
+            } else {
+                assert!(result.unwrap());
+            }
+            validate_user_confirmation(&kv, "ns", "agent", "session", 0, "exact reply")
+                .await
+                .unwrap();
+            assert!(
+                !append_admitted_session_message(&kv, "ns", "agent", "session", &reply)
+                    .await
+                    .unwrap()
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn edit_storage_errors_reconcile_without_retaining_a_pending_fence() {
+        use std::sync::atomic::Ordering::SeqCst;
+        for mode in [1, 2, 3] {
+            let kv = FaultKv::default();
+            let original = message("reply", "exact reply");
+            append_admitted_session_message(&kv, "ns", "agent", "session", &original)
+                .await
+                .unwrap();
+            kv.payload_error
+                .store(if mode < 3 { mode } else { 0 }, SeqCst);
+            kv.finish_error.store(mode == 3, SeqCst);
+            let cancel = message("reply", "cancel");
+            let result = edit_admitted_session_message(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                &original.encode_to_vec(),
+                &cancel,
+            )
+            .await;
+            if mode == 1 {
+                assert!(result.is_err());
+                assert!(edit_admitted_session_message(
+                    &kv,
+                    "ns",
+                    "agent",
+                    "session",
+                    &original.encode_to_vec(),
+                    &cancel
+                )
+                .await
+                .unwrap());
+            } else {
+                assert!(result.unwrap());
+            }
+            assert!(load(&kv, &state_key("ns", "agent", "session"))
+                .await
+                .unwrap()
+                .1
+                .pending_write
+                .is_none());
+            assert!(
+                validate_user_confirmation(&kv, "ns", "agent", "session", 0, "exact reply")
+                    .await
+                    .is_err()
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn retry_recovers_committed_append_without_readmitting_a_completed_message() {
+        let kv = MockKvStore::default();
+        let reply = message("reply", "exact reply");
+        let write = begin_input(&kv, "ns", "agent", "session", &reply, true)
+            .await
+            .unwrap()
+            .unwrap();
+        kv.set(
+            &keys::session_message("ns", "agent", "session", "reply"),
+            &reply.encode_to_vec(),
+        )
+        .await
+        .unwrap();
+        assert!(
+            append_admitted_session_message(&kv, "ns", "agent", "session", &reply)
+                .await
+                .unwrap()
+        );
+        assert!(!finish(&kv, "ns", "agent", "session", Some(&write), &reply)
+            .await
+            .unwrap());
+        assert!(
+            !append_admitted_session_message(&kv, "ns", "agent", "session", &reply)
+                .await
+                .unwrap()
+        );
+        assert_eq!(
+            current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            1
+        );
+        validate_user_confirmation(&kv, "ns", "agent", "session", 0, "exact reply")
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn failed_queue_activation_is_not_dispatched_or_duplicated_on_retry() {
+        use std::sync::atomic::Ordering::SeqCst;
+        let kv = FaultKv::default();
+        kv.receipt_error.store(true, SeqCst);
+        let input = message("", "cancel");
+        assert!(persist_queued_session_message(
+            &kv, "ns", "agent", "session", "steer", "entry", &input
+        )
+        .await
+        .is_err());
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "ns", "agent", "session", "steer", "entry"
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(crate::control::session_queue::prepare_steer_batch(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            8,
+            100,
+            chrono::Utc::now()
+        )
+        .await
+        .unwrap()
+        .is_empty());
+        assert!(
+            validate_user_confirmation(&kv, "ns", "agent", "session", 0, "cancel")
+                .await
+                .is_err()
+        );
+        persist_queued_session_message(&kv, "ns", "agent", "session", "steer", "entry", &input)
+            .await
+            .unwrap();
+        let batch = crate::control::session_queue::prepare_steer_batch(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            8,
+            100,
+            chrono::Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(batch.len(), 1);
+        assert_eq!(
+            kv.list_keys(
+                &keys::session_message_prefix("ns", "agent", "session"),
+                None
+            )
+            .await
+            .unwrap()
+            .len(),
+            1
+        );
+    }
+
+    #[tokio::test]
+    async fn committed_queue_ack_and_promotion_recover_failed_state_finalization() {
+        use std::sync::atomic::Ordering::SeqCst;
+        let kv = FaultKv::default();
+        kv.finish_error.store(true, SeqCst);
+        let input = message("", "exact reply");
+        // Acceptance committed: the call reports success even when its separate
+        // confirmation-state finalization needs recovery by dispatch.
+        persist_queued_session_message(&kv, "ns", "agent", "session", "steer", "entry", &input)
+            .await
+            .unwrap();
+        assert!(
+            queued_message_is_accepted(&kv, "ns", "agent", "session", "entry")
+                .await
+                .unwrap()
+        );
+        assert!(
+            validate_user_confirmation(&kv, "ns", "agent", "session", 0, "exact reply")
+                .await
+                .is_err()
+        );
+        let batch = crate::control::session_queue::prepare_steer_batch(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            8,
+            100,
+            chrono::Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(batch.len(), 1);
+        validate_user_confirmation(&kv, "ns", "agent", "session", 0, "exact reply")
+            .await
+            .unwrap();
+        // Retrying the same active enqueue also returns success without a new
+        // admission order or second queue entry.
+        let before = current_message_admission_order(&kv, "ns", "agent", "session")
+            .await
+            .unwrap();
+        persist_queued_session_message(&kv, "ns", "agent", "session", "steer", "entry", &input)
+            .await
+            .unwrap();
+        assert_eq!(
+            current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            before
+        );
+        assert_eq!(
+            kv.list_keys(
+                &keys::session_message_prefix("ns", "agent", "session"),
+                None
+            )
+            .await
+            .unwrap()
+            .len(),
+            1
+        );
+    }
+
+    #[tokio::test]
+    async fn staged_queue_entry_is_ineligible_for_both_dispatch_paths() {
+        let kv = MockKvStore::default();
+        let receipt = QueueReceipt {
+            receipt: Receipt {
+                order: 1,
+                nonce: "pending".into(),
+            },
+            canonical_id: None,
+            accepted: false,
+            write_nonce: "write".into(),
+            payload_digest: String::new(),
+        };
+        kv.set(
+            &queue_receipt_key("ns", "agent", "session", "entry"),
+            &serde_json::to_vec(&receipt).unwrap(),
+        )
+        .await
+        .unwrap();
+        kv.set(
+            &keys::session_queue_entry("ns", "agent", "session", "steer", "entry"),
+            &message("", "cancel").encode_to_vec(),
+        )
+        .await
+        .unwrap();
+        assert!(crate::control::session_queue::prepare_steer_batch(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            8,
+            100,
+            chrono::Utc::now()
+        )
+        .await
+        .unwrap()
+        .is_empty());
+        crate::control::session_queue::reclassify_steer_queue_to_next(
+            &kv, "ns", "agent", "session",
+        )
+        .await
+        .unwrap();
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "ns", "agent", "session", "steer", "entry"
+            ))
+            .await
+            .unwrap()
+            .is_some());
+        assert!(kv
+            .get(&keys::session_queue_entry(
+                "ns", "agent", "session", "next", "entry"
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(crate::control::session_queue::dispatch_next_queued_message(
+            &kv,
+            &crate::test_support::RecordingPubSub::default(),
+            "ns",
+            "agent",
+            "session",
+            "steer",
+            chrono::Utc::now()
+        )
+        .await
+        .unwrap()
+        .is_none());
+        assert!(kv
+            .list_keys(
+                &keys::session_message_prefix("ns", "agent", "session"),
+                None
+            )
+            .await
+            .unwrap()
+            .is_empty());
+    }
+
+    #[tokio::test]
+    async fn overlapping_inputs_keep_server_order_when_older_queue_write_finishes_last() {
+        use std::sync::atomic::Ordering::SeqCst;
+        let kv = FaultKv::default();
+        kv.pause_queue.store(true, SeqCst);
+        let cancel = message("", "cancel");
+        let (queued, ()) = tokio::join!(
+            persist_queued_session_message(
+                &kv, "ns", "agent", "session", "steer", "older", &cancel
+            ),
+            async {
+                kv.queue_entered.notified().await;
+                append_admitted_session_message(
+                    &kv,
+                    "ns",
+                    "agent",
+                    "session",
+                    &message("later", "exact reply"),
+                )
+                .await
+                .unwrap();
+                kv.queue_release.notify_one();
+            }
+        );
+        queued.unwrap();
+        assert!(
+            queued_message_is_accepted(&kv, "ns", "agent", "session", "older")
+                .await
+                .unwrap()
+        );
+        validate_user_confirmation(&kv, "ns", "agent", "session", 0, "exact reply")
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn confirmation_requires_only_text_parts() {
+        let kv = MockKvStore::default();
+        let mut mixed = message("mixed", "exact reply");
+        mixed.parts.push(data_proto::SessionMessagePart {
+            part_type: data_proto::SessionMessagePartType::File as i32,
+            content: "attachment".into(),
+            ..Default::default()
+        });
+        append_admitted_session_message(&kv, "ns", "agent", "session", &mixed)
+            .await
+            .unwrap();
+        assert!(snapshot(&kv, 0).await.is_err());
     }
 
     struct RacingAppendKv {

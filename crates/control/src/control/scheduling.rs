@@ -66,6 +66,27 @@ impl std::fmt::Display for EmptyMessageError {
 impl std::error::Error for EmptyMessageError {}
 
 #[derive(Debug)]
+pub struct InvalidSessionInputRoleError;
+impl std::fmt::Display for InvalidSessionInputRoleError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("new session turns require a User message")
+    }
+}
+impl std::error::Error for InvalidSessionInputRoleError {}
+
+pub(crate) fn validate_session_input(message: &data_proto::SessionMessage) -> Result<()> {
+    if message.parts.is_empty() {
+        return Err(EmptyMessageError.into());
+    }
+    if message.role != data_proto::MessageRole::RoleUnspecified as i32
+        && message.role != data_proto::MessageRole::RoleUser as i32
+    {
+        return Err(InvalidSessionInputRoleError.into());
+    }
+    Ok(())
+}
+
+#[derive(Debug)]
 pub struct ScheduleWakeupInProgressError;
 
 impl std::fmt::Display for ScheduleWakeupInProgressError {
@@ -728,9 +749,7 @@ pub async fn enqueue_session_message_without_dispatch(
     mut user_msg: data_proto::SessionMessage,
     now: DateTime<Utc>,
 ) -> Result<events::SessionDispatchEvent> {
-    if user_msg.parts.is_empty() {
-        return Err(EmptyMessageError.into());
-    }
+    validate_session_input(&user_msg)?;
 
     let now_micros = now.timestamp_micros();
     if user_msg.id.is_empty() {
@@ -805,9 +824,7 @@ pub async fn send_session_message(
     mut user_msg: data_proto::SessionMessage,
     now: DateTime<Utc>,
 ) -> Result<String> {
-    if user_msg.parts.is_empty() {
-        return Err(EmptyMessageError.into());
-    }
+    validate_session_input(&user_msg)?;
 
     let key = keys::session(ns, agent, session_id);
     let now_micros = now.timestamp_micros();
@@ -1545,6 +1562,213 @@ mod tests {
             .unwrap_err()
             .downcast_ref::<ScheduleWakeupInProgressError>()
             .is_some());
+    }
+
+    fn input_message(id: &str, text: &str) -> data_proto::SessionMessage {
+        data_proto::SessionMessage {
+            id: id.into(),
+            role: data_proto::MessageRole::RoleUser as i32,
+            parts: vec![data_proto::SessionMessagePart {
+                part_type: data_proto::SessionMessagePartType::Text as i32,
+                content: text.into(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        }
+    }
+
+    #[tokio::test]
+    async fn new_turns_reject_reused_ids_without_editing_or_dispatching() {
+        let kv = MockKvStore::default();
+        let pubsub = MockPubSub::default();
+        kv.set_msg(
+            &keys::session("ns", "agent", "session"),
+            &data_proto::Session {
+                id: "session".into(),
+                status: "IDLE".into(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        for message in [
+            input_message("older", "old input"),
+            input_message("approval", "exact reply"),
+        ] {
+            crate::sessions::persist_admitted_session_message(
+                &kv, "ns", "agent", "session", &message,
+            )
+            .await
+            .unwrap();
+        }
+        for id in ["older", "approval"] {
+            let key = keys::session_message("ns", "agent", "session", id);
+            let before = kv.get(&key).await.unwrap();
+            let err = send_session_message(
+                &kv,
+                &pubsub,
+                "ns",
+                "agent",
+                "session",
+                input_message(id, "cancel"),
+                Utc::now(),
+            )
+            .await
+            .unwrap_err();
+            assert!(err
+                .downcast_ref::<crate::sessions::SessionMessageAlreadyExistsError>()
+                .is_some());
+            assert_eq!(kv.get(&key).await.unwrap(), before);
+            assert_eq!(
+                kv.get_msg::<data_proto::Session>(&keys::session("ns", "agent", "session"))
+                    .await
+                    .unwrap()
+                    .unwrap()
+                    .status,
+                "IDLE"
+            );
+            assert!(enqueue_session_message_without_dispatch(
+                &kv,
+                &pubsub,
+                "ns",
+                "agent",
+                "session",
+                input_message(id, "cancel"),
+                Utc::now()
+            )
+            .await
+            .unwrap_err()
+            .downcast_ref::<crate::sessions::SessionMessageAlreadyExistsError>()
+            .is_some());
+        }
+        assert!(pubsub.messages.lock().await.is_empty());
+        assert!(kv
+            .list_keys(
+                &keys::session_submission_prefix("ns", "agent", "session"),
+                None
+            )
+            .await
+            .unwrap()
+            .is_empty());
+        // Rejected duplicates execute no cancellation. An accepted fresh turn
+        // must invalidate that same approval before it is dispatched.
+        crate::sessions::validate_user_confirmation(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            0,
+            "exact reply",
+        )
+        .await
+        .unwrap();
+        send_session_message(
+            &kv,
+            &pubsub,
+            "ns",
+            "agent",
+            "session",
+            input_message("fresh", "cancel"),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert!(crate::sessions::validate_user_confirmation(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            0,
+            "exact reply"
+        )
+        .await
+        .is_err());
+        assert!(!pubsub.messages.lock().await.is_empty());
+    }
+
+    #[tokio::test]
+    async fn inbound_turn_paths_reject_non_user_roles_before_admission_or_locking() {
+        let kv = MockKvStore::default();
+        let pubsub = MockPubSub::default();
+        let key = keys::session("ns", "agent", "session");
+        kv.set_msg(
+            &key,
+            &data_proto::Session {
+                id: "session".into(),
+                status: "IDLE".into(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        let before = kv.get(&key).await.unwrap();
+        for role in [
+            data_proto::MessageRole::RoleAssistant,
+            data_proto::MessageRole::RoleSystem,
+        ] {
+            let mut message = input_message("non-user", "cancel");
+            message.role = role as i32;
+            assert!(send_session_message(
+                &kv,
+                &pubsub,
+                "ns",
+                "agent",
+                "session",
+                message.clone(),
+                Utc::now()
+            )
+            .await
+            .unwrap_err()
+            .downcast_ref::<InvalidSessionInputRoleError>()
+            .is_some());
+            assert!(enqueue_session_message_without_dispatch(
+                &kv,
+                &pubsub,
+                "ns",
+                "agent",
+                "session",
+                message.clone(),
+                Utc::now()
+            )
+            .await
+            .unwrap_err()
+            .downcast_ref::<InvalidSessionInputRoleError>()
+            .is_some());
+            assert!(crate::control::session_queue::queue_session_message(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                crate::control::session_queue::NEXT_QUEUE,
+                message,
+                Utc::now()
+            )
+            .await
+            .unwrap_err()
+            .downcast_ref::<InvalidSessionInputRoleError>()
+            .is_some());
+        }
+        assert_eq!(kv.get(&key).await.unwrap(), before);
+        assert!(pubsub.messages.lock().await.is_empty());
+        assert_eq!(
+            crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            0
+        );
+        assert!(kv
+            .list_keys(
+                &keys::session_queue_prefix(
+                    "ns",
+                    "agent",
+                    "session",
+                    crate::control::session_queue::NEXT_QUEUE
+                ),
+                None
+            )
+            .await
+            .unwrap()
+            .is_empty());
     }
 
     #[tokio::test]

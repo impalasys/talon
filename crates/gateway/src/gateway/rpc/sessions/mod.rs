@@ -2108,6 +2108,18 @@ fn map_session_submit_error(err: anyhow::Error) -> tonic::Status {
         .is_some()
     {
         tonic::Status::not_found("Session not found")
+    } else if err
+        .downcast_ref::<talon::control::sessions::SessionMessageAlreadyExistsError>()
+        .is_some()
+    {
+        tonic::Status::already_exists(
+            "Session message ID already exists; use a fresh ID for a new turn",
+        )
+    } else if err
+        .downcast_ref::<scheduling::InvalidSessionInputRoleError>()
+        .is_some()
+    {
+        tonic::Status::invalid_argument("New session turns require a User message")
     } else {
         tonic::Status::internal(format!("Failed to submit session turn: {}", err))
     }

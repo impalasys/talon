@@ -453,6 +453,8 @@ impl ResourceStore {
     }
 
     /// Delete exactly the approved resource version, without a read/delete race.
+    /// The conditional storage commit is authoritative. Notifications use bounded
+    /// best-effort retries; a notification failure cannot undo a committed delete.
     pub async fn delete_if_version(
         &self,
         namespace: &str,
@@ -484,8 +486,18 @@ impl ResourceStore {
         }
         let change = events::ResourceChangeType::Deleted;
         self.publish_index_event(&resource, change, &key).await;
-        self.publish_changed(&resource, change, &["metadata"])
-            .await?;
+        for attempt in 0..3 {
+            match self.publish_changed(&resource, change, &["metadata"]).await {
+                Ok(()) => break,
+                Err(error) => {
+                    tracing::warn!(%error, namespace = %namespace, kind = %kind, name = %name,
+                        attempt, "resource deletion committed but lifecycle notification failed");
+                    if attempt < 2 {
+                        tokio::time::sleep(std::time::Duration::from_millis(20 << attempt)).await;
+                    }
+                }
+            }
+        }
         Ok(true)
     }
 
@@ -1595,6 +1607,107 @@ mod tests {
             event.change_type,
             events::ResourceChangeType::Created as i32
         );
+    }
+
+    struct FailingDeleteNotifications {
+        inner: RecordingPubSub,
+        failures: std::sync::atomic::AtomicUsize,
+        attempts: std::sync::atomic::AtomicUsize,
+    }
+    #[async_trait::async_trait]
+    impl crate::control::MessagePublisher for FailingDeleteNotifications {
+        async fn publish(&self, topic: &str, bytes: &[u8]) -> anyhow::Result<()> {
+            use std::sync::atomic::Ordering::SeqCst;
+            if topic == topics::RESOURCE_LIFECYCLE_TOPIC
+                && events::ResourceChangedEvent::decode(bytes)?.change_type
+                    == events::ResourceChangeType::Deleted as i32
+            {
+                self.attempts.fetch_add(1, SeqCst);
+                if self
+                    .failures
+                    .fetch_update(SeqCst, SeqCst, |n| n.checked_sub(1))
+                    .is_ok()
+                {
+                    anyhow::bail!("injected Deleted notification failure");
+                }
+            }
+            crate::control::MessagePublisher::publish(&self.inner, topic, bytes).await
+        }
+        async fn subscribe(
+            &self,
+            topic: &str,
+        ) -> anyhow::Result<std::pin::Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>>
+        {
+            crate::control::MessagePublisher::subscribe(&self.inner, topic).await
+        }
+    }
+
+    #[tokio::test]
+    async fn committed_conditional_delete_reports_success_and_retries_notifications() {
+        use std::sync::atomic::Ordering::SeqCst;
+        for failures in [1, usize::MAX] {
+            let kv = Arc::new(MockKvStore::default());
+            let pubsub = Arc::new(FailingDeleteNotifications {
+                inner: RecordingPubSub::default(),
+                failures: failures.into(),
+                attempts: 0.into(),
+            });
+            let store = ResourceStore::new(kv, pubsub.clone());
+            let path = "/memory/delete.md";
+            let name = keys::file_name_for_path(path);
+            let resource = store
+                .upsert(
+                    "ns",
+                    resources_proto::Resource {
+                        kind: "File".into(),
+                        metadata: Some(resources_proto::ResourceMeta {
+                            name: name.clone(),
+                            namespace: "ns".into(),
+                            ..Default::default()
+                        }),
+                        spec: Some(resources_proto::ResourceSpec {
+                            kind: Some(resources_proto::resource_spec::Kind::File(
+                                resources_proto::FileSpec {
+                                    path: path.into(),
+                                    media_type: "text/plain".into(),
+                                    purpose: resources_proto::FilePurpose::Memory as i32,
+                                    index_policy: resources_proto::FileIndexPolicy::None as i32,
+                                    retention: resources_proto::FileRetention::Retained as i32,
+                                },
+                            )),
+                        }),
+                        ..Default::default()
+                    },
+                )
+                .await
+                .unwrap();
+            assert!(store
+                .delete_if_version(
+                    "ns",
+                    "File",
+                    &name,
+                    &resource.metadata.unwrap().resource_version
+                )
+                .await
+                .unwrap());
+            assert!(store.get("ns", "File", &name).await.unwrap().is_none());
+            assert_eq!(
+                pubsub.attempts.load(SeqCst),
+                if failures == 1 { 2 } else { 3 }
+            );
+            let published = pubsub.inner.published.lock().await;
+            let delivered = published
+                .iter()
+                .filter(|(topic, bytes)| {
+                    topic == topics::RESOURCE_LIFECYCLE_TOPIC
+                        && events::ResourceChangedEvent::decode(bytes.as_slice())
+                            .unwrap()
+                            .change_type
+                            == events::ResourceChangeType::Deleted as i32
+                })
+                .count();
+            assert_eq!(delivered, usize::from(failures == 1));
+        }
     }
 
     #[tokio::test]

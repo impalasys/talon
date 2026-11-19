@@ -109,6 +109,28 @@ pub async fn prepare_steer_batch(
                 continue;
             }
         };
+        if !crate::sessions::queued_message_is_accepted(kv, ns, agent, session_id, &entry_id)
+            .await?
+        {
+            break;
+        }
+        crate::sessions::load_promoted_session_message(
+            kv,
+            ns,
+            agent,
+            session_id,
+            &entry_id,
+            &mut message,
+        )
+        .await?;
+        let text_chars = message
+            .parts
+            .iter()
+            .map(|part| part.content.chars().count())
+            .sum::<usize>();
+        if !prepared.is_empty() && total_chars.saturating_add(text_chars) > max_chars {
+            break;
+        }
         if message.id.is_empty() {
             message.id = crate::control::uuid::session_message_id();
             if message.created_at == 0 {
@@ -144,14 +166,6 @@ pub async fn prepare_steer_batch(
             break;
         }
         let message_id = message.id.clone();
-        let text_chars = message
-            .parts
-            .iter()
-            .map(|part| part.content.chars().count())
-            .sum::<usize>();
-        if !prepared.is_empty() && total_chars.saturating_add(text_chars) > max_chars {
-            break;
-        }
         total_chars = total_chars.saturating_add(text_chars);
         prepared.push(SteeredQueuedSessionMessage {
             entry_id,
@@ -174,6 +188,21 @@ async fn remove_queue_entry(
     // still retry using the original canonical message.
     kv.delete(&keys::session_queue_entry(ns, agent, session, queue, entry))
         .await?;
+    // A crash during reclassification may leave a copy in another channel.
+    // Retain its canonical mapping until every copy has left the queues.
+    for other in [STEER_QUEUE, NEXT_QUEUE, A2A_QUEUE] {
+        match kv
+            .get(&keys::session_queue_entry(ns, agent, session, other, entry))
+            .await
+        {
+            Ok(Some(_)) => return Ok(()),
+            Ok(None) => {}
+            Err(error) => {
+                tracing::warn!(%error, entry_id = %entry, "could not check remaining queue copies; retaining receipt");
+                return Ok(());
+            }
+        }
+    }
     // Once the primary entry is gone, auxiliary cleanup must not prevent its
     // dispatch (or turn a durable steering commit into an apparent failure).
     if let Err(error) = crate::sessions::remove_queue_receipt(kv, ns, agent, session, entry).await {
@@ -206,13 +235,21 @@ pub async fn list_prepared_steer_message_ids(
     session_id: &str,
 ) -> Result<HashSet<String>> {
     let prefix = keys::session_queue_prefix(ns, agent, session_id, STEER_QUEUE);
-    Ok(kv
-        .list_entries(&prefix, None)
-        .await?
-        .into_iter()
-        .filter_map(|(_, bytes)| data_proto::SessionMessage::decode(bytes.as_slice()).ok())
-        .filter_map(|message| (!message.id.is_empty()).then_some(message.id))
-        .collect())
+    let mut ids = HashSet::new();
+    for (key, bytes) in kv.list_entries(&prefix, None).await? {
+        let Some(entry) = keys::direct_child_name(&prefix, &key) else {
+            continue;
+        };
+        if !crate::sessions::queued_message_is_accepted(kv, ns, agent, session_id, &entry).await? {
+            continue;
+        }
+        if let Ok(message) = data_proto::SessionMessage::decode(bytes.as_slice()) {
+            if !message.id.is_empty() {
+                ids.insert(message.id);
+            }
+        }
+    }
+    Ok(ids)
 }
 
 /// Remove queue copies whose message IDs are already protected by a durable
@@ -284,9 +321,7 @@ pub async fn queue_session_message(
     now: DateTime<Utc>,
 ) -> Result<QueuedSessionMessage> {
     validate_queue_name(queue)?;
-    if message.parts.is_empty() {
-        return Err(scheduling::EmptyMessageError.into());
-    }
+    scheduling::validate_session_input(&message)?;
     let now_micros = now.timestamp_micros();
     let queue_entry_suffix = if message.id.is_empty() {
         crate::control::uuid::session_message_id()
@@ -338,6 +373,11 @@ pub async fn reclassify_steer_queue_to_next(
         let Some(entry_id) = keys::direct_child_name(&steer_prefix, &entry_key) else {
             continue;
         };
+        if !crate::sessions::queued_message_is_accepted(kv, ns, agent, session_id, &entry_id)
+            .await?
+        {
+            continue;
+        }
         let next_key = keys::session_queue_entry(ns, agent, session_id, NEXT_QUEUE, &entry_id);
         kv.compare_and_swap(&next_key, None, &bytes).await?;
         kv.delete(&entry_key).await?;
@@ -367,6 +407,9 @@ pub async fn dispatch_next_queued_message(
     let Some(entry_id) = keys::direct_child_name(&prefix, &entry_key) else {
         return Ok(None);
     };
+    if !crate::sessions::queued_message_is_accepted(kv, ns, agent, session_id, &entry_id).await? {
+        return Ok(None);
+    }
     let Some(message_bytes) = kv.get(&entry_key).await? else {
         return Ok(None);
     };
@@ -684,6 +727,69 @@ mod tests {
         .await
         .unwrap()
         .is_some()
+    }
+
+    #[tokio::test]
+    async fn steer_budget_defers_new_canonical_messages_and_prepared_ids() {
+        let kv = MockKvStore::new();
+        for text in ["one", "two"] {
+            queue_text_message(
+                &kv,
+                "Tenant:acme:Ops",
+                "agent",
+                "session-1",
+                STEER_QUEUE,
+                text,
+                Default::default(),
+                Utc::now(),
+            )
+            .await
+            .unwrap();
+        }
+        let batch = prepare_steer_batch(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            8,
+            5,
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(batch.len(), 1);
+        assert_eq!(
+            kv.list_keys(
+                &keys::session_message_prefix("Tenant:acme:Ops", "agent", "session-1"),
+                None
+            )
+            .await
+            .unwrap()
+            .len(),
+            1
+        );
+        assert_eq!(
+            list_prepared_steer_message_ids(&kv, "Tenant:acme:Ops", "agent", "session-1")
+                .await
+                .unwrap(),
+            HashSet::from([batch[0].message_id.clone()])
+        );
+        commit_steer_batch(&kv, "Tenant:acme:Ops", "agent", "session-1", &batch)
+            .await
+            .unwrap();
+        let next = prepare_steer_batch(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            8,
+            1,
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(next.len(), 1); // oversized first entry remains allowed
+        assert_eq!(next[0].message.parts[0].content, "two");
     }
 
     #[tokio::test]
@@ -1110,6 +1216,63 @@ mod tests {
             .await
             .unwrap()
             .is_some());
+    }
+
+    #[tokio::test]
+    async fn terminal_cleanup_retains_receipt_until_all_reclassified_copies_are_gone() {
+        let kv = MockKvStore::new();
+        let queued = queue_text_message(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            "queued",
+            Default::default(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        let steer = keys::session_queue_entry(
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            &queued.entry_id,
+        );
+        let next = keys::session_queue_entry(
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            &queued.entry_id,
+        );
+        // This is the documented crash window of destination-before-source moves.
+        kv.set(&next, &kv.get(&steer).await.unwrap().unwrap())
+            .await
+            .unwrap();
+        remove_queue_entry(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            STEER_QUEUE,
+            &queued.entry_id,
+        )
+        .await
+        .unwrap();
+        assert!(receipt_exists(&kv, &queued.entry_id).await);
+        remove_queue_entry(
+            &kv,
+            "Tenant:acme:Ops",
+            "agent",
+            "session-1",
+            NEXT_QUEUE,
+            &queued.entry_id,
+        )
+        .await
+        .unwrap();
+        assert!(!receipt_exists(&kv, &queued.entry_id).await);
     }
 
     #[tokio::test]
