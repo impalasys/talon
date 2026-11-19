@@ -41,7 +41,8 @@ in a later message containing only Text parts, then repeat the tool with
 `confirmation_id`. Attachments and other non-Text parts do not count as confirmation. A confirmation
 expires after one hour, is single-use, and is bound to the requesting session,
 agent, namespace, path, and resource version. Any intervening File update requires
-a fresh confirmation. Each session keeps at most one active pending deletion;
+a fresh confirmation. Expiry gates starting approval consumption; a committed
+approval stays valid through operation completion. Each session keeps at most one active pending deletion;
 a new request supersedes the previous confirmation ID, and successful consumption
 atomically removes the pending record. Abandoned requests occupy at most that
 single slot until replaced or checked after expiry. Confirmation ordering uses a

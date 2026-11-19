@@ -899,6 +899,7 @@ pub async fn consume_user_confirmation(
             Op::new(confirmation_key.clone(), Some(pending), None),
             Op::new(proof_key.clone(), None, Some(&proof)),
         ];
+        expiry()?; // Check again immediately before the mutation, after storage reads.
         if commit(kv, &ops, &proof_key, &proof).await? {
             consumed = true;
             break;
@@ -919,7 +920,9 @@ pub async fn consume_user_confirmation(
             tracing::warn!(?result, key = %proof_key, "confirmation consumed; temporary proof cleanup deferred to session clear")
         }
     }
-    expiry()
+    // The deadline gates starting a consumption attempt. A committed approval
+    // stays authoritative even if the response or cleanup crosses that deadline.
+    Ok(())
 }
 
 #[cfg(test)]
@@ -1256,6 +1259,48 @@ mod tests {
         consume_user_confirmation(&kv, snapshot, &token, b"pending", i64::MAX)
             .await
             .unwrap();
+        assert!(kv.get(&token).await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn expiry_during_cleanup_cannot_revoke_committed_approval() {
+        let kv = FaultKv::default();
+        append_admitted_session_message(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            &message("reply", "approve"),
+        )
+        .await
+        .unwrap();
+        let snapshot = validate_user_confirmation(&kv, "ns", "agent", "session", 0, "approve")
+            .await
+            .unwrap();
+        let token = keys::ResourceKey::new("ns", &[], "Confirmation", "pending");
+        kv.set(&token, b"pending").await.unwrap();
+        assert!(consume_user_confirmation(
+            &kv,
+            snapshot,
+            &token,
+            b"pending",
+            chrono::Utc::now().timestamp_micros() - 1
+        )
+        .await
+        .is_err());
+        assert!(
+            kv.get(&token).await.unwrap().is_some(),
+            "expired approval cannot be consumed"
+        );
+        let snapshot = validate_user_confirmation(&kv, "ns", "agent", "session", 0, "approve")
+            .await
+            .unwrap();
+        let deadline = chrono::Utc::now().timestamp_micros() + 500_000;
+        kv.fault.store(4, Ordering::SeqCst); // Cleanup stalls for its one-second deadline.
+        consume_user_confirmation(&kv, snapshot, &token, b"pending", deadline)
+            .await
+            .unwrap();
+        assert!(chrono::Utc::now().timestamp_micros() > deadline);
         assert!(kv.get(&token).await.unwrap().is_none());
     }
 

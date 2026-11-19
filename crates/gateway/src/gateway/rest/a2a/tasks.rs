@@ -398,7 +398,12 @@ pub async fn find_a2a_task_session(
                     .get("a2a.task_id")
                     .is_some_and(|value| value == task_id)
             });
-        if !has_anchor {
+        // The encoded ID remains the stable client anchor. Admission may assign
+        // a different canonical transcript ID; retain the task label as its link.
+        if !has_anchor
+            && !session_contains_a2a_task_message(gateway, route, &decoded.session_id, task_id)
+                .await?
+        {
             return Err(a2a_error(StatusCode::NOT_FOUND, "task not found"));
         }
         return Ok(A2aTaskSession {
@@ -929,4 +934,107 @@ fn timestamp_rfc3339(timestamp_micros: i64) -> Option<String> {
         .timestamp_micros(timestamp_micros)
         .single()
         .map(|value| value.to_rfc3339())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_support::{MockKvStore, RecordingPubSub};
+    use talon::control::{ControlPlane, KeyValueStore};
+    use talon::protocol::data_proto;
+
+    #[tokio::test]
+    async fn a2a_task_get_and_cancel_resolve_remapped_client_anchor() {
+        let kv = Arc::new(MockKvStore::default());
+        let bus = Arc::new(RecordingPubSub::default());
+        let gateway = Arc::new(Gateway::from_control_plane(
+            None,
+            ControlPlane::builder(kv.clone(), bus.clone()).build(),
+        ));
+        let route = AgentCardRoute {
+            ns: "ns".into(),
+            agent: "agent".into(),
+            agent_card: Default::default(),
+        };
+        let session_id = talon::control::uuid::session_id();
+        kv.set_msg(
+            &keys::session("ns", "agent", &session_id),
+            &data_proto::Session {
+                id: session_id.clone(),
+                status: "IDLE".into(),
+                labels: HashMap::from([("a2a.task".into(), "true".into())]),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        let (_, task_id, message) = prepare_a2a_session_message(
+            &A2aMessageJson {
+                message_id: "remote-id".into(),
+                role: "user".into(),
+                context_id: Some(session_id.clone()),
+                task_id: None,
+                parts: vec![A2aPartJson {
+                    text: Some("hello".into()),
+                    data: None,
+                    file: None,
+                }],
+            },
+            chrono::Utc::now().timestamp_micros(),
+        )
+        .unwrap();
+        let client_anchor = message.id.clone();
+        talon::control::scheduling::send_session_message(
+            kv.as_ref(),
+            bus.as_ref(),
+            "ns",
+            "agent",
+            &session_id,
+            message,
+            chrono::Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert!(kv
+            .get(&keys::session_message(
+                "ns",
+                "agent",
+                &session_id,
+                &client_anchor
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        let found = find_a2a_task_session(&gateway, &route, &task_id)
+            .await
+            .unwrap();
+        assert_eq!(found.session_id, session_id);
+        let task = load_a2a_task_for_session(&gateway, &route, &found.session_id, &task_id)
+            .await
+            .unwrap();
+        assert_eq!(task.id, task_id);
+        assert!(task.history.iter().any(|message| message
+            .parts
+            .iter()
+            .any(|part| part.text.as_deref() == Some("hello"))));
+        crate::gateway::rpc::sessions::cancellation::cancel_session_generation(
+            &gateway,
+            "ns",
+            "agent",
+            &found.session_id,
+        )
+        .await
+        .unwrap();
+        // A different encoded task cannot borrow this session's canonical anchor.
+        let absent =
+            encode_a2a_task_id(&session_id, &talon::control::uuid::session_message_id()).unwrap();
+        assert_eq!(
+            find_a2a_task_session(&gateway, &route, &absent)
+                .await
+                .err()
+                .unwrap()
+                .status(),
+            StatusCode::NOT_FOUND
+        );
+    }
 }
