@@ -163,6 +163,30 @@ impl KeyValueStore for MockKvStore {
         Ok(matches)
     }
 
+    async fn compare_and_swap_batch(
+        &self,
+        operations: &[talon::contracts::KeyValueBatchOperation],
+    ) -> anyhow::Result<bool> {
+        talon::contracts::validate_key_value_batch(operations)?;
+        let mut data = self.data.lock().await;
+        if operations.iter().any(|operation| {
+            data.get(&operation.key).map(Vec::as_slice) != operation.expected.as_deref()
+        }) {
+            return Ok(false);
+        }
+        for operation in operations {
+            match &operation.value {
+                Some(value) => {
+                    data.insert(operation.key.clone(), value.clone());
+                }
+                None => {
+                    data.remove(&operation.key);
+                }
+            }
+        }
+        Ok(true)
+    }
+
     async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> anyhow::Result<bool> {
         let mut data = self.data.lock().await;
         if data.get(key).map(Vec::as_slice) != Some(expected) {
@@ -341,3 +365,97 @@ impl Drop for PostgresContainer {
 }
 
 pub mod workflows;
+
+/// Shared storage conformance: conditions and mutations are one transaction.
+pub async fn assert_atomic_batch_conformance(store: &dyn KeyValueStore) {
+    use talon::contracts::KeyValueBatchOperation as Op;
+    let a = ResourceKey::new("batch-conformance", &[], "Test", "a");
+    let b = ResourceKey::new("batch-conformance", &[], "Test", "b");
+    let c = ResourceKey::new("batch-conformance", &[], "Test", "c");
+    store.set(&a, b"a0").await.unwrap();
+    store.set(&b, b"b0").await.unwrap();
+    assert!(!store
+        .compare_and_swap_batch(&[
+            Op::new(a.clone(), Some(b"a0"), Some(b"a1")),
+            Op::new(b.clone(), Some(b"wrong"), None),
+            Op::new(c.clone(), None, Some(b"new")),
+        ])
+        .await
+        .unwrap());
+    assert_eq!(store.get(&a).await.unwrap().as_deref(), Some(&b"a0"[..]));
+    assert_eq!(store.get(&b).await.unwrap().as_deref(), Some(&b"b0"[..]));
+    assert!(store.get(&c).await.unwrap().is_none());
+    assert!(store
+        .compare_and_swap_batch(&[
+            Op::new(a.clone(), Some(b"a0"), Some(b"a1")),
+            Op::new(b.clone(), Some(b"b0"), None),
+            Op::new(c.clone(), None, None),
+        ])
+        .await
+        .unwrap());
+    assert!(store.get(&b).await.unwrap().is_none());
+    assert!(store.get(&c).await.unwrap().is_none());
+    assert!(store
+        .compare_and_swap_batch(&[
+            Op::new(a.clone(), Some(b"a1"), Some(b"a1")),
+            Op::new(c.clone(), None, Some(b"c1")),
+        ])
+        .await
+        .unwrap());
+    assert!(!store
+        .compare_and_swap_batch(&[
+            Op::new(a.clone(), Some(b"a1"), Some(b"corrupt")),
+            Op::new(c.clone(), None, None),
+        ])
+        .await
+        .unwrap());
+    assert!(store
+        .compare_and_swap_batch(&[
+            Op::new(a.clone(), Some(b"a1"), None),
+            Op::new(a.clone(), Some(b"a1"), Some(b"duplicate")),
+        ])
+        .await
+        .is_err());
+    let left = [
+        Op::new(a.clone(), Some(b"a1"), Some(b"left")),
+        Op::new(c.clone(), Some(b"c1"), Some(b"left")),
+    ];
+    let right = [
+        Op::new(a.clone(), Some(b"a1"), Some(b"right")),
+        Op::new(c.clone(), Some(b"c1"), Some(b"right")),
+    ];
+    let (left, right) = tokio::join!(
+        store.compare_and_swap_batch(&left),
+        store.compare_and_swap_batch(&right)
+    );
+    assert_ne!(left.unwrap(), right.unwrap());
+    assert_eq!(store.get(&a).await.unwrap(), store.get(&c).await.unwrap());
+    // A single-key writer must participate in the same serialization order.
+    let current = store.get(&a).await.unwrap().unwrap();
+    let batch = [
+        Op::new(a.clone(), Some(&current), Some(b"batch")),
+        Op::new(c.clone(), Some(&current), Some(b"batch")),
+    ];
+    let (batch, single) = tokio::join!(
+        store.compare_and_swap_batch(&batch),
+        store.compare_and_swap(&a, Some(&current), b"single")
+    );
+    assert_ne!(batch.unwrap(), single.unwrap());
+    let a_value = store.get(&a).await.unwrap().unwrap();
+    let c_value = store.get(&c).await.unwrap().unwrap();
+    if a_value == b"batch" {
+        assert_eq!(c_value, b"batch");
+    } else {
+        assert_eq!(a_value, b"single");
+        assert_eq!(c_value, current);
+    }
+}
+
+/// Run asynchronous storage conformance fixtures without adding a runtime to each backend's production dependencies.
+pub fn run_async_test<F: std::future::Future>(future: F) -> F::Output {
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(future)
+}

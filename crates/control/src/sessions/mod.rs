@@ -7,12 +7,15 @@ use crate::talon;
 mod journal;
 mod message_order;
 pub use message_order::{
-    append_admitted_session_message, consume_user_confirmation, current_message_admission_order,
-    edit_admitted_session_message, persist_admitted_session_message,
-    persist_promoted_session_message, persist_queued_session_message, validate_user_confirmation,
+    admit_session_turn, append_admitted_session_message, consume_user_confirmation,
+    current_message_admission_order, edit_admitted_session_message, lookup_admitted_turn,
+    persist_admitted_session_message, persist_promoted_session_message,
+    persist_queued_session_message, validate_user_confirmation, AdmittedTurn,
     SessionMessageAlreadyExistsError, UserConfirmationSnapshot,
 };
-pub(crate) use message_order::{load_promoted_session_message, remove_queue_receipt};
+pub(crate) use message_order::{
+    load_promoted_session_message, move_steer_entry_to_next, queue_receipt, terminal_queue_entry,
+};
 mod lease;
 mod recovery;
 mod session;

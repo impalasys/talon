@@ -770,8 +770,12 @@ pub async fn enqueue_session_message_without_dispatch(
         }
     }
 
+    let admitted =
+        crate::sessions::admit_session_turn(kv, ns, agent, session_id, &user_msg, now_micros)
+            .await?;
+    let user_msg = admitted.message;
+    let submission_id = admitted.submission_id;
     let message_key = keys::session_message(ns, agent, session_id, &user_msg.id);
-    crate::sessions::persist_admitted_session_message(kv, ns, agent, session_id, &user_msg).await?;
     let message_id = user_msg.id.clone();
     if let Err(error) = crate::control::search::publish_index_event(
         pubsub,
@@ -792,15 +796,6 @@ pub async fn enqueue_session_message_without_dispatch(
             "failed to publish search index event for queued session message"
         );
     }
-
-    let submission_id = crate::control::uuid::session_submission_id();
-    let submission = crate::sessions::pending_submission(
-        submission_id.clone(),
-        session_id.to_string(),
-        message_id.clone(),
-        now_micros,
-    );
-    crate::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission).await?;
 
     Ok(events::SessionDispatchEvent {
         session_id: session_id.to_string(),
@@ -828,6 +823,41 @@ pub async fn send_session_message(
 
     let key = keys::session(ns, agent, session_id);
     let now_micros = now.timestamp_micros();
+    if user_msg.id.is_empty() {
+        user_msg.id = crate::control::uuid::session_message_id();
+    }
+    if user_msg.role == data_proto::MessageRole::RoleUnspecified as i32 {
+        user_msg.role = data_proto::MessageRole::RoleUser as i32;
+    }
+    if user_msg.created_at == 0 {
+        user_msg.created_at = now_micros;
+    }
+    for (index, part) in user_msg.parts.iter_mut().enumerate() {
+        if part.id.is_empty() {
+            part.id = format!("{index:06}");
+        }
+        if part.created_at == 0 {
+            part.created_at = user_msg.created_at;
+        }
+    }
+
+    if let Some(existing) =
+        crate::sessions::lookup_admitted_turn(kv, ns, agent, session_id, &user_msg).await?
+    {
+        let bytes = kv
+            .get(&keys::session_submission(
+                ns,
+                agent,
+                session_id,
+                &existing.submission_id,
+            ))
+            .await?
+            .ok_or_else(|| anyhow!("admitted submission missing"))?;
+        let submission = data_proto::SessionSubmission::decode(bytes.as_slice())?;
+        if submission.status != data_proto::SessionSubmissionStatus::Pending as i32 {
+            return Ok(existing.submission_id);
+        }
+    }
     let timeout_micros = session_processing_timeout_micros();
 
     let mut acquired = false;
@@ -860,37 +890,23 @@ pub async fn send_session_message(
         return Err(anyhow!("failed to atomically acquire session lock"));
     }
 
-    if user_msg.id.is_empty() {
-        user_msg.id = crate::control::uuid::session_message_id();
-    }
-    if user_msg.role == data_proto::MessageRole::RoleUnspecified as i32 {
-        user_msg.role = data_proto::MessageRole::RoleUser as i32;
-    }
-    if user_msg.created_at == 0 {
-        user_msg.created_at = now_micros;
-    }
-    for (index, part) in user_msg.parts.iter_mut().enumerate() {
-        if part.id.is_empty() {
-            part.id = format!("{index:06}");
-        }
-        if part.created_at == 0 {
-            part.created_at = user_msg.created_at;
-        }
-    }
-
     let message_key = keys::session_message(ns, agent, session_id, &user_msg.id);
-    if let Err(err) =
-        crate::sessions::persist_admitted_session_message(kv, ns, agent, session_id, &user_msg)
+    let admitted =
+        match crate::sessions::admit_session_turn(kv, ns, agent, session_id, &user_msg, now_micros)
             .await
-    {
-        log_session_release_failure(
-            try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
-            ns,
-            &key,
-        );
-        return Err(err);
-    }
-
+        {
+            Ok(admitted) => admitted,
+            Err(err) => {
+                log_session_release_failure(
+                    try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
+                    ns,
+                    &key,
+                );
+                return Err(err);
+            }
+        };
+    let user_msg = admitted.message;
+    let submission_id = admitted.submission_id;
     let message_id = user_msg.id.clone();
     if let Err(error) = crate::control::search::publish_index_event(
         pubsub,
@@ -910,24 +926,6 @@ pub async fn send_session_message(
             message_id = %message_id,
             "failed to publish search index event for sent session message"
         );
-    }
-
-    let submission_id = crate::control::uuid::session_submission_id();
-    let submission = crate::sessions::pending_submission(
-        submission_id.clone(),
-        session_id.to_string(),
-        message_id.clone(),
-        now_micros,
-    );
-    if let Err(err) =
-        crate::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission).await
-    {
-        log_session_release_failure(
-            try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
-            ns,
-            &key,
-        );
-        return Err(err);
     }
 
     let message_text = session_message_text_projection(&user_msg);
@@ -950,7 +948,13 @@ pub async fn send_session_message(
         .await
     {
         log_session_release_failure(
-            try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
+            release_session_lock_if_submission_pending(
+                kv,
+                &key,
+                &keys::session_submission(ns, agent, session_id, &submission_id),
+                now_micros,
+            )
+            .await,
             ns,
             &key,
         );
@@ -1134,6 +1138,52 @@ fn log_session_release_failure(result: Result<()>, namespace: &str, key: &Resour
     if let Err(err) = result {
         tracing::warn!(namespace = %namespace, key = %key, error = %err, "failed to release session lock after send_message error");
     }
+}
+
+pub(crate) async fn release_session_lock_if_submission_pending(
+    kv: &dyn KeyValueStore,
+    key: &ResourceKey,
+    submission_key: &ResourceKey,
+    expected_last_active: i64,
+) -> Result<()> {
+    for _ in 0..MAX_CAS_RETRIES {
+        let submission_bytes = kv.get(submission_key).await?;
+        if let Some(bytes) = &submission_bytes {
+            let submission = data_proto::SessionSubmission::decode(bytes.as_slice())?;
+            if submission.status != data_proto::SessionSubmissionStatus::Pending as i32 {
+                return Ok(());
+            }
+        }
+        let Some(current) = kv.get(key).await? else {
+            return Ok(());
+        };
+        let mut session = data_proto::Session::decode(current.as_slice())?;
+        if session.status != "PROCESSING" || session.last_active != expected_last_active {
+            return Ok(());
+        }
+        session.status = "IDLE".into();
+        let updated = session.encode_to_vec();
+        if kv
+            .compare_and_swap_batch(&[
+                crate::control::KeyValueBatchOperation::new(
+                    key.clone(),
+                    Some(&current),
+                    Some(&updated),
+                ),
+                crate::control::KeyValueBatchOperation::new(
+                    submission_key.clone(),
+                    submission_bytes.as_deref(),
+                    submission_bytes.as_deref(),
+                ),
+            ])
+            .await?
+        {
+            return Ok(());
+        }
+    }
+    Err(anyhow!(
+        "failed to release pending submission's session lock"
+    ))
 }
 
 async fn try_release_session_lock_after_send_failure(
@@ -1575,6 +1625,108 @@ mod tests {
             }],
             ..Default::default()
         }
+    }
+
+    #[derive(Default)]
+    struct FailDispatchOnce(std::sync::atomic::AtomicBool);
+    #[async_trait::async_trait]
+    impl MessagePublisher for FailDispatchOnce {
+        async fn publish(&self, topic: &str, _bytes: &[u8]) -> Result<()> {
+            if topic == crate::control::topics::SESSION_DISPATCH_TOPIC
+                && !self.0.swap(true, std::sync::atomic::Ordering::SeqCst)
+            {
+                anyhow::bail!("dispatch unavailable");
+            }
+            Ok(())
+        }
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> Result<std::pin::Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            Ok(Box::pin(futures::stream::empty()))
+        }
+    }
+    #[tokio::test]
+    async fn exact_turn_retry_recovers_failed_dispatch_without_duplicate_admission() {
+        let kv = MockKvStore::default();
+        let bus = FailDispatchOnce::default();
+        let session_key = keys::session("ns", "agent", "session");
+        kv.set_msg(
+            &session_key,
+            &data_proto::Session {
+                id: "session".into(),
+                status: "IDLE".into(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        let input = input_message("client-id", "hello");
+        assert!(send_session_message(
+            &kv,
+            &bus,
+            "ns",
+            "agent",
+            "session",
+            input.clone(),
+            Utc::now()
+        )
+        .await
+        .is_err());
+        assert_eq!(
+            kv.get_msg::<data_proto::Session>(&session_key)
+                .await
+                .unwrap()
+                .unwrap()
+                .status,
+            "IDLE"
+        );
+        let admitted = crate::sessions::lookup_admitted_turn(&kv, "ns", "agent", "session", &{
+            let mut normalized = input.clone();
+            normalized.parts[0].id = "000000".into();
+            normalized
+        })
+        .await
+        .unwrap()
+        .unwrap();
+        let retried = send_session_message(
+            &kv,
+            &bus,
+            "ns",
+            "agent",
+            "session",
+            input.clone(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(admitted.submission_id, retried);
+        assert_eq!(
+            crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            1
+        );
+        let submission_key = keys::session_submission("ns", "agent", "session", &retried);
+        let mut submission = kv
+            .get_msg::<data_proto::SessionSubmission>(&submission_key)
+            .await
+            .unwrap()
+            .unwrap();
+        submission.status = data_proto::SessionSubmissionStatus::Committed as i32;
+        kv.set_msg(&submission_key, &submission).await.unwrap();
+        assert_eq!(
+            send_session_message(&kv, &bus, "ns", "agent", "session", input, Utc::now())
+                .await
+                .unwrap(),
+            retried
+        );
+        assert_eq!(
+            crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            1
+        );
     }
 
     #[tokio::test]

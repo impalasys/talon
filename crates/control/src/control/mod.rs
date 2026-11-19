@@ -31,8 +31,8 @@ use std::path::PathBuf;
 use keys::{ResourceKey, ResourceList};
 
 pub use talon::contracts::{
-    apply_list_options_to_entries, apply_list_options_to_keys, KeyValueStore, ListOptions,
-    MessagePublisher, Order, ProtoKeyValueStoreExt,
+    apply_list_options_to_entries, apply_list_options_to_keys, KeyValueBatchOperation,
+    KeyValueStore, ListOptions, MessagePublisher, Order, ProtoKeyValueStoreExt,
 };
 
 #[derive(Clone)]

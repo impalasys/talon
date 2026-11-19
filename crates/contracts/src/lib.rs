@@ -129,6 +129,39 @@ pub fn apply_list_options_to_entries(
     entries
 }
 
+/// One conditional mutation in an atomic batch. None means absence/deletion;
+/// expected == value is an atomic check without changing the logical value.
+#[derive(Clone, Debug)]
+pub struct KeyValueBatchOperation {
+    pub key: ResourceKey,
+    pub expected: Option<Vec<u8>>,
+    pub value: Option<Vec<u8>>,
+}
+impl KeyValueBatchOperation {
+    pub fn new(key: ResourceKey, expected: Option<&[u8]>, value: Option<&[u8]>) -> Self {
+        Self {
+            key,
+            expected: expected.map(Vec::from),
+            value: value.map(Vec::from),
+        }
+    }
+}
+
+pub fn validate_key_value_batch(operations: &[KeyValueBatchOperation]) -> anyhow::Result<()> {
+    anyhow::ensure!(
+        operations.len() <= 100,
+        "atomic KV batches support at most 100 distinct keys"
+    );
+    let mut keys = std::collections::HashSet::new();
+    for operation in operations {
+        anyhow::ensure!(
+            keys.insert(&operation.key),
+            "duplicate key in atomic KV batch"
+        );
+    }
+    Ok(())
+}
+
 #[async_trait::async_trait]
 pub trait KeyValueStore: Send + Sync {
     /// Retrieve a raw byte sequence from the store
@@ -153,6 +186,30 @@ pub trait KeyValueStore: Send + Sync {
         _expected: &[u8],
     ) -> anyhow::Result<bool> {
         anyhow::bail!("conditional deletion is unsupported by this storage backend")
+    }
+
+    /// Atomically check every expected value and apply every mutation, or apply
+    /// nothing and return false. Implementations must not use sequential CAS as
+    /// a fallback. A transport error may have an unknown commit outcome.
+    async fn compare_and_swap_batch(
+        &self,
+        operations: &[KeyValueBatchOperation],
+    ) -> anyhow::Result<bool> {
+        validate_key_value_batch(operations)?;
+        match operations {
+            [] => Ok(true),
+            [operation] => match operation.value.as_deref() {
+                Some(value) => {
+                    self.compare_and_swap(&operation.key, operation.expected.as_deref(), value)
+                        .await
+                }
+                None => match operation.expected.as_deref() {
+                    Some(expected) => self.compare_and_delete(&operation.key, expected).await,
+                    None => Ok(self.get(&operation.key).await?.is_none()),
+                },
+            },
+            _ => anyhow::bail!("atomic multi-key mutation is unsupported by this storage backend"),
+        }
     }
 
     /// Delete a key.

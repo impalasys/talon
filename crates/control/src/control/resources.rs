@@ -496,9 +496,29 @@ impl ResourceStore {
             }
         }
         let change = events::ResourceChangeType::Deleted;
-        self.publish_index_event(&resource, change, &key).await;
+        let notification_timeout = std::time::Duration::from_secs(2);
+        if tokio::time::timeout(
+            notification_timeout,
+            self.publish_index_event(&resource, change, &key),
+        )
+        .await
+        .is_err()
+        {
+            tracing::warn!(
+                namespace,
+                kind,
+                name,
+                "resource deletion committed but index notification timed out"
+            );
+        }
         for attempt in 0..3 {
-            match self.publish_changed(&resource, change, &["metadata"]).await {
+            let result = tokio::time::timeout(
+                notification_timeout,
+                self.publish_changed(&resource, change, &["metadata"]),
+            )
+            .await
+            .unwrap_or_else(|_| Err(anyhow!("lifecycle notification timed out")));
+            match result {
                 Ok(()) => break,
                 Err(error) => {
                     tracing::warn!(%error, namespace = %namespace, kind = %kind, name = %name,
@@ -1762,6 +1782,60 @@ mod tests {
         {
             crate::control::MessagePublisher::subscribe(&self.inner, topic).await
         }
+    }
+
+    struct StalledDeleteNotifications;
+    #[async_trait::async_trait]
+    impl crate::control::MessagePublisher for StalledDeleteNotifications {
+        async fn publish(&self, _topic: &str, _bytes: &[u8]) -> anyhow::Result<()> {
+            futures::future::pending().await
+        }
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> anyhow::Result<std::pin::Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>>
+        {
+            Ok(Box::pin(futures::stream::empty()))
+        }
+    }
+    #[tokio::test]
+    async fn committed_delete_returns_even_when_index_and_lifecycle_publish_never_finish() {
+        let kv = Arc::new(MockKvStore::default());
+        let key = keys::ResourceKey::new("ns", &[], "File", "stalled");
+        let resource = resources_proto::Resource {
+            kind: "File".into(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "stalled".into(),
+                namespace: "ns".into(),
+                resource_version: "v1".into(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::File(
+                    resources_proto::FileSpec {
+                        path: "/stalled".into(),
+                        ..Default::default()
+                    },
+                )),
+            }),
+            ..Default::default()
+        };
+        kv.set(
+            &key,
+            &crate::resources::encode_stored_resource(&resource).unwrap(),
+        )
+        .await
+        .unwrap();
+        let store = ResourceStore::new(kv.clone(), Arc::new(StalledDeleteNotifications));
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(10),
+            store.delete_if_version("ns", "File", "stalled", "v1"),
+        )
+        .await;
+        assert!(result
+            .expect("notification attempts must have deadlines")
+            .unwrap());
+        assert!(kv.get(&key).await.unwrap().is_none());
     }
 
     #[tokio::test]
