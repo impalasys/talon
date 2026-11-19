@@ -67,23 +67,15 @@ function sameSession(left: SessionTarget | null, right: SessionTarget | null) {
 }
 
 export function createLocalMessageId() {
-  // UUIDv7 keeps the client-stable canonical ID in the server's time-sorted
-  // message key space. The local prefix still marks the optimistic UI copy.
-  const bytes = new Uint8Array(16);
+  const timestamp = String(Date.now()).padStart(13, "0");
+  const sequence = String(Math.floor(Math.random() * 1_000_000)).padStart(6, "0");
+  let suffix = "000000";
   if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = new Uint8Array(3);
     crypto.getRandomValues(bytes);
-  } else {
-    for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+    suffix = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
   }
-  let timestamp = BigInt(Date.now());
-  for (let i = 5; i >= 0; i--) {
-    bytes[i] = Number(timestamp & 255n);
-    timestamp >>= 8n;
-  }
-  bytes[6] = (bytes[6] & 15) | 112;
-  bytes[8] = (bytes[8] & 63) | 128;
-  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
-  return `local-${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  return `local-${timestamp}-${sequence}-${suffix}`;
 }
 
 function normalizeEpochToMilliseconds(value: unknown) {
@@ -322,7 +314,7 @@ export function useSessionActions({
           ns: session.ns,
           agent: session.agent,
           sessionId: session.sessionId,
-          message: { id: userMessage.id.slice("local-".length), role: data.MessageRole.ROLE_USER, parts: protoSessionPartsFromChatParts(userMessage.parts) },
+          message: { id: userMessage.id, role: data.MessageRole.ROLE_USER, parts: protoSessionPartsFromChatParts(userMessage.parts) },
           labels: {},
         }, { signal: controller.signal }),
         setMessages,

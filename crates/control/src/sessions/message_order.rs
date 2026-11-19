@@ -61,6 +61,7 @@ pub(crate) struct QueueReceipt {
 #[derive(Clone, Serialize, Deserialize)]
 struct TurnReceipt {
     submission_id: String,
+    canonical_id: String,
     payload_digest: String,
 }
 
@@ -166,6 +167,11 @@ fn payload_digest(message: &data_proto::SessionMessage) -> String {
         }
     }
     format!("{:x}", hasher.finalize())
+}
+fn turn_payload_digest(message: &data_proto::SessionMessage) -> String {
+    let mut payload = message.clone();
+    payload.id.clear(); // The client identity and server transcript key have different roles.
+    payload_digest(&payload)
 }
 fn text_digest(message: &data_proto::SessionMessage) -> String {
     if message
@@ -347,17 +353,26 @@ pub async fn lookup_admitted_turn(
     };
     let receipt: TurnReceipt = serde_json::from_slice(&raw)?;
     let Some(message) = kv
-        .get(&keys::session_message(ns, agent, session, &desired.id))
+        .get(&keys::session_message(
+            ns,
+            agent,
+            session,
+            &receipt.canonical_id,
+        ))
         .await?
     else {
         return Err(anyhow!("admitted turn payload is missing"));
     };
     let message = data_proto::SessionMessage::decode(message.as_slice())?;
-    if receipt.payload_digest != payload_digest(desired)
-        && payload_digest(&message) != payload_digest(desired)
+    if receipt.payload_digest != turn_payload_digest(desired)
+        && turn_payload_digest(&message) != turn_payload_digest(desired)
     {
         return Err(SessionMessageAlreadyExistsError.into());
     }
+    anyhow::ensure!(
+        is_user(&message),
+        "admitted turn no longer has a User payload"
+    );
     anyhow::ensure!(
         kv.get(&keys::session_submission(
             ns,
@@ -374,6 +389,7 @@ pub async fn lookup_admitted_turn(
         message,
     }))
 }
+
 pub async fn admit_session_turn(
     kv: &dyn KeyValueStore,
     ns: &str,
@@ -383,29 +399,17 @@ pub async fn admit_session_turn(
     now_micros: i64,
 ) -> Result<AdmittedTurn> {
     anyhow::ensure!(is_user(message), "new turns require User messages");
-    let message_key = keys::session_message(ns, agent, session, &message.id);
+    let client_message_key = keys::session_message(ns, agent, session, &message.id);
     let receipt_key = turn_key(ns, agent, session, &message.id);
     let key = state_key(ns, agent, session);
     let submission_id = crate::control::uuid::session_submission_id();
-    let receipt = serde_json::to_vec(&TurnReceipt {
-        submission_id: submission_id.clone(),
-        payload_digest: payload_digest(message),
-    })?;
     let submission_key = keys::session_submission(ns, agent, session, &submission_id);
-    let submission = super::pending_submission(
-        submission_id.clone(),
-        session.to_string(),
-        message.id.clone(),
-        now_micros,
-    )
-    .encode_to_vec();
-    let payload = message.encode_to_vec();
     let input_nonce = nonce();
     for _ in 0..32 {
         if let Some(existing) = lookup_admitted_turn(kv, ns, agent, session, message).await? {
             return Ok(existing);
         }
-        if kv.get(&message_key).await?.is_some()
+        if kv.get(&client_message_key).await?.is_some()
             || queued_input_entry(kv, ns, agent, session, &message.id)
                 .await?
                 .is_some()
@@ -413,9 +417,28 @@ pub async fn admit_session_turn(
             return Err(SessionMessageAlreadyExistsError.into());
         }
         let (raw, mut state) = load(kv, &key).await?;
-        admit(&mut state, message, &message.id, &input_nonce)?;
+        // Allocate after reading the shared state; a lost CAS discards this ID.
+        // The committed transcript key therefore follows server acceptance order,
+        // independently of client IDs and clocks.
+        let mut canonical = message.clone();
+        canonical.id = nonce();
+        let message_key = keys::session_message(ns, agent, session, &canonical.id);
+        admit(&mut state, &canonical, &canonical.id, &input_nonce)?;
         let next = encode_state(&mut state)?;
-        let ops = [
+        let receipt = serde_json::to_vec(&TurnReceipt {
+            submission_id: submission_id.clone(),
+            canonical_id: canonical.id.clone(),
+            payload_digest: turn_payload_digest(message),
+        })?;
+        let submission = super::pending_submission(
+            submission_id.clone(),
+            session.to_string(),
+            canonical.id.clone(),
+            now_micros,
+        )
+        .encode_to_vec();
+        let payload = canonical.encode_to_vec();
+        let mut ops = vec![
             Op::new(key.clone(), raw.as_deref(), Some(&next)),
             Op::new(message_key.clone(), None, Some(&payload)),
             Op::new(receipt_key.clone(), None, Some(&receipt)),
@@ -426,23 +449,21 @@ pub async fn admit_session_turn(
                 None,
             ),
         ];
+        if client_message_key != message_key {
+            ops.push(Op::new(client_message_key.clone(), None, None));
+        }
         match commit(kv, &ops, &receipt_key, &receipt).await {
             Ok(true) => {
                 return Ok(AdmittedTurn {
                     submission_id,
-                    message: message.clone(),
+                    message: canonical,
                 })
             }
             Ok(false) => continue,
-            Err(error) => {
-                if let Some(existing) =
-                    lookup_admitted_turn(kv, ns, agent, session, message).await?
-                {
-                    return Ok(existing);
-                } else {
-                    return Err(error);
-                }
-            }
+            Err(error) => match lookup_admitted_turn(kv, ns, agent, session, message).await? {
+                Some(existing) => return Ok(existing),
+                None => return Err(error),
+            },
         }
     }
     Err(anyhow!("failed to atomically admit session turn"))
@@ -498,7 +519,7 @@ pub(crate) async fn persist_queued_session_message_with_identity(
         order: 0,
         nonce: nonce(),
         revision: nonce(),
-        canonical_id: nonce(),
+        canonical_id: String::new(),
         submission_id: crate::control::uuid::session_submission_id(),
         payload_digest: payload_hash.clone(),
         prepared: false,
@@ -534,7 +555,12 @@ pub(crate) async fn persist_queued_session_message_with_identity(
             }
         }
         let (raw, mut state) = load(kv, &key).await?;
-        admit(&mut state, message, &receipt.canonical_id, &receipt.nonce)?;
+        admit(
+            &mut state,
+            message,
+            &format!("queued:{}", receipt.nonce),
+            &receipt.nonce,
+        )?;
         receipt.order = state.order;
         // Keep existing timestamp-based backlog ahead of new v2 entries, then
         // sort new inputs by the transaction's authoritative admission order.
@@ -629,6 +655,17 @@ pub async fn persist_promoted_session_message(
         if receipt.terminal {
             return Ok(false);
         }
+        let mut binding = None;
+        if receipt.canonical_id.is_empty() {
+            let admission_key = state_key(ns, agent, session);
+            let (state_raw, mut state) = load(kv, &admission_key).await?;
+            receipt.canonical_id = nonce();
+            if state.latest_nonce.as_deref() == Some(receipt.nonce.as_str()) {
+                state.latest_id = Some(receipt.canonical_id.clone());
+            }
+            let next = encode_state(&mut state)?;
+            binding = Some(Op::new(admission_key, state_raw.as_deref(), Some(&next)));
+        }
         let canonical_key = keys::session_message(ns, agent, session, &receipt.canonical_id);
         let current = kv.get(&canonical_key).await?;
         if let Some(value) = &current {
@@ -656,7 +693,7 @@ pub async fn persist_promoted_session_message(
         let encoded = serde_json::to_vec(&receipt)?;
         let payload = message.encode_to_vec();
         let canonical_value = current.as_deref().unwrap_or(&payload);
-        let ops = [
+        let mut ops = vec![
             Op::new(receipt_key.clone(), raw.as_deref(), Some(&encoded)),
             Op::new(
                 canonical_key.clone(),
@@ -665,6 +702,9 @@ pub async fn persist_promoted_session_message(
             ),
             Op::new(source_key.clone(), Some(&source), Some(&payload)),
         ];
+        if let Some(binding) = binding {
+            ops.push(binding);
+        }
         match commit(kv, &ops, &receipt_key, &encoded).await {
             Ok(true) => {
                 *output = message;
@@ -829,22 +869,56 @@ pub async fn consume_user_confirmation(
         Ok(())
     };
     expiry()?;
-    let mut state: AdmissionState = serde_json::from_slice(&snapshot.bytes)?;
+    let approved: AdmissionState = serde_json::from_slice(&snapshot.bytes)?;
     anyhow::ensure!(
-        state.order > state.consumed_through_order
-            && state.consumed_through_order <= snapshot.requested_after,
+        approved.order > approved.consumed_through_order
+            && approved.consumed_through_order <= snapshot.requested_after,
         "user approval has already been consumed"
     );
-    state.consumed_through_order = state.order;
-    let next = encode_state(&mut state)?;
-    let ops = [
-        Op::new(snapshot.key.clone(), Some(&snapshot.bytes), Some(&next)),
-        Op::new(confirmation_key.clone(), Some(pending), None),
-    ];
+    let mut proof_key = confirmation_key.clone();
+    proof_key.kind = "FileConfirmationConsumption".into();
+    proof_key.name = format!("{:x}", Sha256::digest(pending));
+    let proof = nonce().into_bytes();
+    let mut consumed = false;
+    for _ in 0..32 {
+        expiry()?;
+        let (raw, mut state) = load(kv, &snapshot.key).await?;
+        // Promotion may bind a canonical ID, and unrelated transcript edits may
+        // change the revision. Only the same unspent User input can authorize.
+        anyhow::ensure!(
+            state.order == approved.order
+                && state.latest_nonce == approved.latest_nonce
+                && state.text_digest == approved.text_digest
+                && state.consumed_through_order == approved.consumed_through_order,
+            "confirmation missing, used, or latest reply changed; start a new delete request"
+        );
+        state.consumed_through_order = state.order;
+        let next = encode_state(&mut state)?;
+        let ops = [
+            Op::new(snapshot.key.clone(), raw.as_deref(), Some(&next)),
+            Op::new(confirmation_key.clone(), Some(pending), None),
+            Op::new(proof_key.clone(), None, Some(&proof)),
+        ];
+        if commit(kv, &ops, &proof_key, &proof).await? {
+            consumed = true;
+            break;
+        }
+    }
     anyhow::ensure!(
-        commit(kv, &ops, &snapshot.key, &next).await?,
-        "confirmation missing, used, or latest reply changed; start a new delete request"
+        consumed,
+        "confirmation changed while consuming; start a new delete request"
     );
+    match tokio::time::timeout(
+        std::time::Duration::from_secs(1),
+        kv.compare_and_delete(&proof_key, &proof),
+    )
+    .await
+    {
+        Ok(Ok(_)) => {}
+        result => {
+            tracing::warn!(?result, key = %proof_key, "confirmation consumed; temporary proof cleanup deferred to session clear")
+        }
+    }
     expiry()
 }
 
@@ -882,6 +956,9 @@ mod tests {
             key: &keys::ResourceKey,
             expected: &[u8],
         ) -> Result<bool> {
+            if key.kind == "FileConfirmationConsumption" && self.fault.load(Ordering::SeqCst) == 4 {
+                return futures::future::pending().await;
+            }
             self.inner.compare_and_delete(key, expected).await
         }
         async fn compare_and_swap_batch(&self, operations: &[Op]) -> Result<bool> {
@@ -890,8 +967,21 @@ mod tests {
                 return Err(anyhow!("batch unavailable before commit"));
             }
             let committed = self.inner.compare_and_swap_batch(operations).await?;
-            if fault == 2 {
+            if fault == 3 && committed {
+                append_admitted_session_message(
+                    &self.inner,
+                    "ns",
+                    "agent",
+                    "session",
+                    &message("later", "later input"),
+                )
+                .await?;
+            }
+            if fault == 2 || fault == 3 {
                 return Err(anyhow!("response lost after commit"));
+            }
+            if fault == 4 {
+                self.fault.store(4, Ordering::SeqCst);
             }
             Ok(committed)
         }
@@ -977,6 +1067,226 @@ mod tests {
         .await
         .is_err());
     }
+    #[tokio::test]
+    async fn client_ids_and_timestamps_do_not_order_the_canonical_transcript() {
+        let kv = FaultKv::default();
+        let mut previous = String::new();
+        for (id, text, timestamp) in [
+            ("ffffffff-ffff-4fff-8fff-ffffffffffff", "first", i64::MAX),
+            ("turn-10", "second", 1),
+            ("00000000-0000-7000-8000-000000000000", "third", 2),
+        ] {
+            let mut input = message(id, text);
+            input.created_at = timestamp;
+            let admitted = admit_session_turn(&kv, "ns", "agent", "session", &input, 1)
+                .await
+                .unwrap();
+            assert_ne!(admitted.message.id, id);
+            assert!(admitted.message.id > previous);
+            previous = admitted.message.id;
+            let retried = admit_session_turn(&kv, "ns", "agent", "session", &input, 2)
+                .await
+                .unwrap();
+            assert_eq!(retried.submission_id, admitted.submission_id);
+            assert_eq!(retried.message.id, previous);
+        }
+        let entries = kv
+            .list_entries(
+                &keys::session_message_prefix("ns", "agent", "session"),
+                None,
+            )
+            .await
+            .unwrap();
+        let texts = entries
+            .iter()
+            .map(|(_, raw)| {
+                data_proto::SessionMessage::decode(raw.as_slice())
+                    .unwrap()
+                    .parts[0]
+                    .content
+                    .clone()
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(texts, ["first", "second", "third"]);
+    }
+    #[tokio::test]
+    async fn concurrent_queue_admissions_bind_transcript_ids_during_ordered_promotion() {
+        let kv = FaultKv::default();
+        let input = message("", "queued");
+        let (left, right) = tokio::join!(
+            persist_queued_session_message_with_identity(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                "steer",
+                "z-start",
+                &input,
+                Some("z-client")
+            ),
+            persist_queued_session_message_with_identity(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                "steer",
+                "a-start",
+                &input,
+                Some("a-client")
+            )
+        );
+        let left = left.unwrap();
+        let right = right.unwrap();
+        for entry in [&left, &right] {
+            assert!(queue_receipt(&kv, "ns", "agent", "session", entry)
+                .await
+                .unwrap()
+                .unwrap()
+                .canonical_id
+                .is_empty());
+        }
+        let batch = crate::control::session_queue::prepare_steer_batch(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            8,
+            100,
+            chrono::Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(batch.len(), 2);
+        assert!(batch[0].message_id < batch[1].message_id);
+        let first = queue_receipt(&kv, "ns", "agent", "session", &batch[0].entry_id)
+            .await
+            .unwrap()
+            .unwrap();
+        let second = queue_receipt(&kv, "ns", "agent", "session", &batch[1].entry_id)
+            .await
+            .unwrap()
+            .unwrap();
+        assert!(first.order < second.order);
+        assert_eq!(
+            current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            2
+        );
+    }
+    #[tokio::test]
+    async fn consumed_confirmation_reconciles_lost_response_after_later_admission() {
+        let kv = FaultKv::default();
+        append_admitted_session_message(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            &message("reply", "approve"),
+        )
+        .await
+        .unwrap();
+        let snapshot = validate_user_confirmation(&kv, "ns", "agent", "session", 0, "approve")
+            .await
+            .unwrap();
+        let token = keys::ResourceKey::new(
+            "ns",
+            &[("Agent", "agent"), ("Session", "session")],
+            "Confirmation",
+            "pending",
+        );
+        kv.set(&token, b"pending").await.unwrap();
+        kv.fault.store(3, Ordering::SeqCst);
+        consume_user_confirmation(&kv, snapshot, &token, b"pending", i64::MAX)
+            .await
+            .unwrap();
+        assert!(kv.get(&token).await.unwrap().is_none());
+        assert_eq!(
+            current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            2
+        );
+        assert!(
+            validate_user_confirmation(&kv, "ns", "agent", "session", 0, "approve")
+                .await
+                .is_err()
+        );
+        let mut proof = token.clone();
+        proof.kind = "FileConfirmationConsumption".into();
+        proof.name = format!("{:x}", Sha256::digest(b"pending"));
+        assert!(
+            kv.get(&proof).await.unwrap().is_none(),
+            "confirmed operation cleans its temporary proof"
+        );
+    }
+    #[tokio::test]
+    async fn canonical_binding_preserves_the_same_unspent_queued_approval() {
+        let kv = FaultKv::default();
+        let input = message("", "approve");
+        let entry = persist_queued_session_message_with_identity(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            "steer",
+            "entry",
+            &input,
+            Some("client"),
+        )
+        .await
+        .unwrap();
+        let snapshot = validate_user_confirmation(&kv, "ns", "agent", "session", 0, "approve")
+            .await
+            .unwrap();
+        let mut promoted = input;
+        assert!(persist_promoted_session_message(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            "steer",
+            &entry,
+            &mut promoted
+        )
+        .await
+        .unwrap());
+        let token = keys::ResourceKey::new("ns", &[], "Confirmation", "pending");
+        kv.set(&token, b"pending").await.unwrap();
+        consume_user_confirmation(&kv, snapshot, &token, b"pending", i64::MAX)
+            .await
+            .unwrap();
+        assert!(kv.get(&token).await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn proof_cleanup_cannot_stall_authoritative_consumption() {
+        let kv = FaultKv::default();
+        append_admitted_session_message(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            &message("reply", "approve"),
+        )
+        .await
+        .unwrap();
+        let snapshot = validate_user_confirmation(&kv, "ns", "agent", "session", 0, "approve")
+            .await
+            .unwrap();
+        let token = keys::ResourceKey::new("ns", &[], "Confirmation", "pending");
+        kv.set(&token, b"pending").await.unwrap();
+        kv.fault.store(4, Ordering::SeqCst);
+        tokio::time::timeout(
+            std::time::Duration::from_secs(2),
+            consume_user_confirmation(&kv, snapshot, &token, b"pending", i64::MAX),
+        )
+        .await
+        .expect("cleanup is bounded")
+        .unwrap();
+        assert!(kv.get(&token).await.unwrap().is_none());
+    }
+
     #[tokio::test]
     async fn concurrent_identical_edits_cannot_restore_old_approval_on_failure() {
         let kv = FaultKv::default();

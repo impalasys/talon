@@ -3119,7 +3119,7 @@ describe('TalonCopilot', () => {
     expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
     expect(submitTurn).toHaveBeenCalledTimes(1);
     expect(submitTurn).toHaveBeenCalledWith(expect.objectContaining({
-      message: expect.objectContaining({ id: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/) }),
+      message: expect.objectContaining({ id: expect.stringMatching(/^local-\S+$/) }),
     }), expect.anything());
 
     resumeFinished.resolve();

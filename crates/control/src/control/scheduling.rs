@@ -878,7 +878,6 @@ pub async fn send_session_message(
         return Err(anyhow!("failed to atomically acquire session lock"));
     }
 
-    let message_key = keys::session_message(ns, agent, session_id, &user_msg.id);
     let admitted =
         match crate::sessions::admit_session_turn(kv, ns, agent, session_id, &user_msg, now_micros)
             .await
@@ -896,6 +895,7 @@ pub async fn send_session_message(
     let user_msg = admitted.message;
     let submission_id = admitted.submission_id;
     let message_id = user_msg.id.clone();
+    let message_key = keys::session_message(ns, agent, session_id, &message_id);
     if let Err(error) = crate::control::search::publish_index_event(
         pubsub,
         events::IndexEvent {
@@ -1832,7 +1832,14 @@ mod tests {
             )
             .await
             .is_err());
-            let key = keys::session_message("ns", "agent", "session", "client-id");
+            let mut request = input.clone();
+            normalize_session_input(&mut request, Utc::now().timestamp_micros());
+            let original =
+                crate::sessions::lookup_admitted_turn(&kv, "ns", "agent", "session", &request)
+                    .await
+                    .unwrap()
+                    .unwrap();
+            let key = keys::session_message("ns", "agent", "session", &original.message.id);
             let raw = kv.get(&key).await.unwrap().unwrap();
             let mut edited = data_proto::SessionMessage::decode(raw.as_slice()).unwrap();
             edited.parts[0].content = "edited".into();
@@ -1841,7 +1848,8 @@ mod tests {
             )
             .await
             .unwrap();
-            let retry = if retry_edited { edited.clone() } else { input };
+            let mut retry = if retry_edited { edited.clone() } else { input };
+            retry.id = "client-id".into(); // Recovery retains the client key, not the canonical transcript ID.
             let admitted = crate::sessions::lookup_admitted_turn(&kv, "ns", "agent", "session", &{
                 let mut msg = retry.clone();
                 normalize_session_input(&mut msg, Utc::now().timestamp_micros());

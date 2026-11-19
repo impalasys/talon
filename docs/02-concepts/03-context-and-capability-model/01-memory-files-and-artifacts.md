@@ -51,17 +51,21 @@ timestamps, IDs, and database acknowledgement timing do not set that order.
 Explicit transcript edits update the payload and its confirmation digest in the
 same transaction; an edit retains the original order and cannot become a later
 confirmation. Consuming a confirmation atomically updates the consumed-order
-watermark and removes the pending token. If input changes during confirmation,
+watermark and removes the pending token. A temporary immutable consumption proof
+survives later admission-state changes during transport-error reconciliation.
+Successful reconciliation removes it with bounded best-effort cleanup; session
+clear/delete removes any unverified or cleanup-failed proofs. If input changes during confirmation,
 request a new delete token.
 
 New turns require User-role messages. `SubmitTurn` requires a nonempty, client-generated
 message ID so a failed response can be retried with the same ID. Fresh turns require fresh message IDs;
 exact retries resume the original submission, including after dispatch failures,
 and cannot start a second turn. The payload, admission state, idempotency receipt,
-and pending submission commit together. Recovery reloads the current canonical
+and pending submission commit together. Client IDs are idempotency keys; Talon
+allocates separate server-ordered canonical transcript IDs. Recovery reloads the current canonical
 payload after explicit transcript edits. Queue acceptance similarly commits the
-payload, receipt, and admission state together. Queue receipts preallocate stable
-canonical message and submission IDs. Stable client IDs map to the original queue
+payload, receipt, and admission state together. Queue receipts preallocate stable submission IDs. Canonical message IDs bind
+during ordered promotion and remain stable across retries. Stable client IDs map to the original queue
 entry across timestamp changes; new queue keys sort by committed admission
 order, after any legacy backlog. These IDs cannot be admitted again through the direct
 turn path. Promotion preserves canonical edits;
