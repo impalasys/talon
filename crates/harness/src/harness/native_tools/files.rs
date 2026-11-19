@@ -39,26 +39,24 @@ pub async fn list_files_tool(
     )?)
 }
 
-pub async fn read_file_tool(
+pub(super) async fn read_authorized_file_tool(
     cp: &ControlPlane,
     current_namespace: &str,
     args: &Value,
 ) -> Result<ToolOutput> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
-    ensure_file_read_namespace(current_namespace, &namespace)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
     read_file_output(cp, &file).await
 }
 
-pub async fn get_file_metadata_tool(
+pub(super) async fn get_authorized_file_metadata_tool(
     cp: &ControlPlane,
     current_namespace: &str,
     args: &Value,
 ) -> Result<String> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
-    ensure_file_read_namespace(current_namespace, &namespace)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
@@ -155,45 +153,195 @@ pub async fn update_file_tool(
 pub async fn delete_file_tool(
     cp: &ControlPlane,
     current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
     args: &Value,
 ) -> Result<String> {
     let (namespace, path) = file_location_from_args(current_namespace, args)?;
     let file = find_file_by_path(cp, &namespace, &path)
         .await?
         .ok_or_else(|| anyhow!("File '{}' not found", path))?;
-    let name = file_name_from_file(&file);
-    let latest_key = talon::control::cas::latest_file_object_key(&namespace, &path);
-    let object_key = file
-        .status
+    if file
+        .metadata
         .as_ref()
-        .and_then(|status| status.object_ref.as_ref())
-        .map(|object| object.key.clone());
-    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
-    let deleted = store.delete(&namespace, "File", &name).await?;
-    if deleted {
-        let cas = talon::control::cas::CasStore::new(cp.objects.clone());
-        if let Err(error) = cas.delete_object(&latest_key).await {
-            tracing::warn!(
-                error = %error,
-                object_key = %latest_key,
-                "failed to delete latest File object from native tool"
-            );
-        }
-        if let Some(object_key) = object_key {
-            if let Err(error) = cas.delete_object(&object_key).await {
-                tracing::warn!(
-                    error = %error,
-                    object_key = %object_key,
-                    "failed to delete File CAS object from native tool"
-                );
-            }
-        }
+        .is_some_and(|m| !m.finalizers.is_empty())
+    {
+        return Err(anyhow!(
+            "File has finalizers; finish their cleanup before requesting deletion"
+        ));
     }
+    if let Some(response) = require_delete_confirmation(
+        cp,
+        current_namespace,
+        current_agent,
+        current_session,
+        args,
+        &namespace,
+        &path,
+        &file,
+    )
+    .await?
+    {
+        return Ok(response);
+    }
+    let name = file_name_from_file(&file);
+    let version = &file
+        .metadata
+        .as_ref()
+        .ok_or_else(|| anyhow!("File metadata missing"))?
+        .resource_version;
+    let store = ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+    let deleted = store
+        .delete_if_version(&namespace, "File", &name, version)
+        .await?;
+    // Content-addressed blobs can be shared by readers, and the mutable latest
+    // alias can already belong to a concurrent replacement. Leave reclamation
+    // to storage retention rather than deleting either after this metadata CAS.
     Ok(serde_json::to_string_pretty(&json!({
-        "deleted": deleted,
-        "namespace": namespace,
-        "path": path,
+        "deleted": deleted, "namespace": namespace, "path": path,
     }))?)
+}
+
+const DELETE_CONFIRMATION_TTL_MICROS: i64 = 60 * 60 * 1_000_000;
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+struct PendingFileDelete {
+    confirmation_id: String,
+    target_namespace: String,
+    path: String,
+    resource_name: String,
+    resource_version: String,
+    requested_after: u64,
+    expires_at: i64,
+    required_reply: String,
+}
+
+async fn require_delete_confirmation(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    args: &Value,
+    target_namespace: &str,
+    path: &str,
+    file: &resources_proto::File,
+) -> Result<Option<String>> {
+    if current_session.trim().is_empty() {
+        return Err(anyhow!(
+            "file deletion requires a session so Talon can verify a later user confirmation"
+        ));
+    }
+    let resource_name = file_name_from_file(file);
+    let resource_version = file
+        .metadata
+        .as_ref()
+        .map(|meta| meta.resource_version.clone())
+        .unwrap_or_default();
+
+    let Some(confirmation_id) = opt_str(args, "confirmation_id") else {
+        let now = chrono::Utc::now().timestamp_micros();
+        let confirmation_id = talon::control::uuid::session_message_id();
+        let required_reply = format!(
+            "CONFIRM DELETE FILE {} [{}]",
+            file_uri(target_namespace, path),
+            confirmation_id
+        );
+        let pending = PendingFileDelete {
+            confirmation_id: confirmation_id.clone(),
+            target_namespace: target_namespace.to_string(),
+            path: path.to_string(),
+            resource_name,
+            resource_version,
+            requested_after: talon::control::sessions::current_message_admission_order(
+                cp.kv.as_ref(),
+                current_namespace,
+                current_agent,
+                current_session,
+            )
+            .await?,
+            expires_at: now + DELETE_CONFIRMATION_TTL_MICROS,
+            required_reply: required_reply.clone(),
+        };
+        cp.kv
+            .set(
+                &delete_confirmation_key(current_namespace, current_agent, current_session),
+                &serde_json::to_vec(&pending)?,
+            )
+            .await?;
+        return Ok(Some(serde_json::to_string_pretty(&json!({
+            "status": "confirmation_required",
+            "confirmationId": confirmation_id,
+            "namespace": target_namespace,
+            "path": path,
+            "requiredReply": required_reply,
+            "instruction": "This request supersedes any earlier pending File deletion in this session. Ask the user to send requiredReply exactly in a separate message. Do not call this delete tool again until that reply arrives."
+        }))?));
+    };
+
+    let key = delete_confirmation_key(current_namespace, current_agent, current_session);
+    let pending_bytes = cp.kv.get(&key).await?.ok_or_else(|| {
+        anyhow!(
+            "delete confirmation '{}' is missing or already used",
+            confirmation_id
+        )
+    })?;
+    let pending: PendingFileDelete = serde_json::from_slice(&pending_bytes)?;
+    if pending.confirmation_id != confirmation_id {
+        return Err(anyhow!(
+            "delete confirmation was superseded; start a new delete request"
+        ));
+    }
+    let now = chrono::Utc::now().timestamp_micros();
+    if now > pending.expires_at {
+        cp.kv.compare_and_delete(&key, &pending_bytes).await?;
+        return Err(anyhow!(
+            "delete confirmation '{}' expired; start a new delete request",
+            confirmation_id
+        ));
+    }
+    if pending.target_namespace != target_namespace
+        || pending.path != path
+        || pending.resource_name != resource_name
+        || pending.resource_version != resource_version
+    {
+        return Err(anyhow!(
+            "delete confirmation '{}' does not match the exact current namespace, path, or File version",
+            confirmation_id
+        ));
+    }
+
+    let snapshot = talon::control::sessions::validate_user_confirmation(
+        cp.kv.as_ref(),
+        current_namespace,
+        current_agent,
+        current_session,
+        pending.requested_after,
+        &pending.required_reply,
+    )
+    .await?;
+    talon::control::sessions::consume_user_confirmation(
+        cp.kv.as_ref(),
+        snapshot,
+        &key,
+        &pending_bytes,
+        pending.expires_at,
+    )
+    .await?;
+    Ok(None)
+}
+
+fn delete_confirmation_key(
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+) -> keys::ResourceKey {
+    keys::ResourceKey::new(
+        current_namespace,
+        &[("Agent", current_agent), ("Session", current_session)],
+        "DeleteConfirmation",
+        // One active request per session bounds abandoned tokens without a
+        // background collector. A new request supersedes the previous nonce.
+        "active",
+    )
 }
 
 pub async fn list_files_by_filter(
@@ -509,11 +657,8 @@ pub fn ensure_file_read_namespace(
     current_namespace: &str,
     requested_namespace: &str,
 ) -> Result<()> {
-    let requested_namespace = if requested_namespace == "current" {
-        current_namespace
-    } else {
-        requested_namespace
-    };
+    // This helper authorizes concrete namespaces. Argument aliases must be
+    // resolved by namespace_arg before lookup; URI authorities are literal.
     if talon::control::ns::ancestry(current_namespace)
         .iter()
         .any(|namespace| namespace == requested_namespace)
@@ -618,4 +763,66 @@ pub fn parse_file_retention(value: &str) -> Result<i32> {
 
 pub fn normalize_enum_input(value: &str) -> String {
     value.trim().to_ascii_lowercase().replace(['_', ' '], "-")
+}
+
+/// Ancestry-scoped helper for internal callers without an AgentSpec.
+pub async fn read_file_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<ToolOutput> {
+    let (namespace, _) = file_location_from_args(current_namespace, args)?;
+    ensure_file_read_namespace(current_namespace, &namespace)?;
+    read_authorized_file_tool(cp, current_namespace, args).await
+}
+
+/// Ancestry-scoped helper for internal callers without an AgentSpec.
+pub async fn get_file_metadata_tool(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    args: &Value,
+) -> Result<String> {
+    let (namespace, _) = file_location_from_args(current_namespace, args)?;
+    ensure_file_read_namespace(current_namespace, &namespace)?;
+    get_authorized_file_metadata_tool(cp, current_namespace, args).await
+}
+
+/// Reads retain namespace ancestry inheritance. Mutations require the current
+/// namespace or an exact explicit grant; grants never imply an action permission.
+pub(super) fn require_file_namespace_access(
+    spec: &manifests::AgentSpec,
+    current: &str,
+    args: &Value,
+    read: bool,
+) -> Result<()> {
+    let target = if opt_str(args, "uri").is_some() {
+        file_location_from_args(current, args)?.0
+    } else {
+        namespace_arg(current, args)
+    };
+    require_file_namespace(spec, current, &target, read)
+}
+
+pub(super) fn require_file_list_namespace_access(
+    spec: &manifests::AgentSpec,
+    current: &str,
+    args: &Value,
+) -> Result<()> {
+    require_file_namespace(spec, current, &namespace_arg(current, args), true)
+}
+
+pub(super) fn require_file_namespace(
+    spec: &manifests::AgentSpec,
+    current: &str,
+    target: &str,
+    read: bool,
+) -> Result<()> {
+    if target == current
+        || has_capability_action(spec, "fileNamespaces", target)
+        || (read && ensure_file_read_namespace(current, target).is_ok())
+    {
+        Ok(())
+    } else {
+        Err(anyhow!("file namespace access denied for '{}'", target))
+    }
 }

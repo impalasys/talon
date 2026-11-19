@@ -235,13 +235,14 @@ pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec, 
     if has_capability_action(spec, "files", "delete") {
         registry.register_builtin(
             DELETE_FILE_TOOL,
-            "Delete a namespace File resource by file:// URI or logical path.",
+            "Request deletion of a File (including memory). First call returns requiredReply and confirmationId. Ask the user for that exact reply in a later message; only then retry with confirmation_id.",
             json!({
                 "type": "object",
                 "properties": {
                     "uri": { "type": "string", "description": "Optional file://<namespace>/<path> URI returned by Talon or Conic." },
                     "namespace": { "type": "string", "description": "File namespace. Defaults to current namespace." },
-                    "path": { "type": "string", "description": "Logical File path." }
+                    "path": { "type": "string", "description": "Logical File path." },
+                    "confirmation_id": { "type": "string", "description": "Returned confirmationId, after the later exact user reply." }
                 }
             }),
         );

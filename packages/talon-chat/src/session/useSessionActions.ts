@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { data, type TalonClient } from "@impalasys/talon-client";
 import {
@@ -60,6 +60,16 @@ type UseSessionActionsOptions = {
   markAutoScrollPinned: () => void;
   refreshRuntime: RefreshSession;
   refreshNewestSessionPage: RefreshSession;
+};
+
+type PreparedTurnRetry = {
+  session: SessionTarget;
+  text: string;
+  transformed: { message: string; displayText?: string };
+  uploadedImages: TalonSessionPendingImageAttachment[];
+  userMessage: CopilotMessage;
+  request: Parameters<TalonClient["sessions"]["submitTurn"]>[0];
+  failure?: Error;
 };
 
 function sameSession(left: SessionTarget | null, right: SessionTarget | null) {
@@ -140,6 +150,7 @@ export function useSessionActions({
   refreshRuntime,
   refreshNewestSessionPage,
 }: UseSessionActionsOptions) {
+  const [failedTurn, setFailedTurn] = useState<PreparedTurnRetry | null>(null);
   const createSession = useCallback(async (): Promise<SessionTarget> => {
     if (!client?.create) throw new Error("TalonSession requires a Talon clientset with sessions.create().");
     const response = await client.create({
@@ -178,13 +189,13 @@ export function useSessionActions({
     return false;
   }, [currentSessionRef, refreshNewestSessionPage, refreshRuntime]);
 
-  const submitMessage = useCallback(async (submittedText: string, invokedByRuntime = false, runtimeSignal?: AbortSignal) => {
+  const submitMessage = useCallback(async (submittedText: string, invokedByRuntime = false, runtimeSignal?: AbortSignal, retry?: PreparedTurnRetry) => {
     let text = submittedText.trim();
     const pendingAttachments = imageAttachmentsRef.current;
     const hasImages = pendingAttachments.length > 0;
-    if ((!text && !hasImages) || (!invokedByRuntime && isSessionLive) || disabled) return;
+    if ((!retry && !text && !hasImages) || (!retry && !invokedByRuntime && isSessionLive) || disabled) return;
 
-    if (onSubmitMessage) {
+    if (onSubmitMessage && !retry) {
       setError(null);
       try {
         const handled = await onSubmitMessage({
@@ -207,7 +218,7 @@ export function useSessionActions({
       }
     }
 
-    let parsedCommand = parseTalonChatCommandInput(text);
+    let parsedCommand = retry ? null : parseTalonChatCommandInput(text);
     if (parsedCommand?.name === "goal" && enabledGoalCommand) {
       const goalText = parsedCommand.args?.trim() ?? "";
       if (!goalText) {
@@ -243,6 +254,9 @@ export function useSessionActions({
     cancelResume();
     setIsResuming(false);
     let turnStarted = false;
+    let turnCompleted = false;
+    let preparedTurn: PreparedTurnRetry | null = null;
+    setFailedTurn(null);
     let resumedAfterBusyFailure = false;
     let optimisticMessageId: string | null = null;
     let submittedSession: SessionTarget | null = null;
@@ -251,7 +265,8 @@ export function useSessionActions({
     try {
       const session = await ensureSession();
       submittedSession = session;
-      const transformed = submissionTransformer
+      if (retry && !sameSession(retry.session, session)) throw new Error("The failed turn belongs to another session.");
+      const transformed = retry?.transformed ?? (submissionTransformer
         ? await submissionTransformer({
           text,
           namespace,
@@ -263,7 +278,7 @@ export function useSessionActions({
           clearInput: () => setInput(""),
           refreshSession: async () => { await refreshNewestSessionPage(session); },
         })
-        : { message: text };
+        : { message: text });
       const messageText = transformed.message.trim();
       if (!messageText) throw new Error("TalonSession submissionTransformer must return a non-empty message.");
       const displayText = transformed.displayText ?? text;
@@ -276,7 +291,7 @@ export function useSessionActions({
       }
       removeRuntimeAbort = () => runtimeSignal?.removeEventListener("abort", abortFromRuntime);
       submissionAbortControllerRef.current = controller;
-      const uploadedImages = await uploadQueuedImages(session, controller.signal);
+      const uploadedImages = retry?.uploadedImages ?? await uploadQueuedImages(session, controller.signal);
       const imageParts = uploadedImages.map((attachment) => {
         if (!attachment.object) throw new Error(`Image ${attachment.file.name} was not uploaded.`);
         return {
@@ -291,7 +306,7 @@ export function useSessionActions({
           payloadJson: JSON.stringify({ filename: attachment.file.name }),
         };
       });
-      const userMessage: CopilotMessage = {
+      const userMessage: CopilotMessage = retry?.userMessage ?? {
         id: createLocalMessageId(),
         role: "user",
         content: displayText,
@@ -299,28 +314,33 @@ export function useSessionActions({
         createdAt: String(Date.now() * 1000),
       };
       optimisticMessageId = userMessage.id;
-      setInput("");
-      submittedPreviewUrlsRef.current.push(...uploadedImages.map((attachment) => attachment.previewUrl));
-      setImageAttachments([]);
-      setMessages((previous) => [...previous, userMessage]);
+      if (!retry) {
+        setInput("");
+        submittedPreviewUrlsRef.current.push(...uploadedImages.map((attachment) => attachment.previewUrl));
+        setImageAttachments([]);
+        setMessages((previous) => [...previous, userMessage]);
+      }
       setLoadingStartedAt(normalizeEpochToMilliseconds(userMessage.createdAt) ?? Date.now());
       setLoadingNow(Date.now());
       markAutoScrollPinned();
       setIsLoading(true);
       if (!client?.submitTurn) throw new Error("TalonSession requires a Talon clientset with sessions.submitTurn().");
       turnStarted = true;
-      const { hasAssistantEvent } = await streamSessionPartEvents({
-        events: client.submitTurn({
+      const request = retry?.request ?? {
           ns: session.ns,
           agent: session.agent,
           sessionId: session.sessionId,
-          message: { role: data.MessageRole.ROLE_USER, parts: protoSessionPartsFromChatParts(userMessage.parts) },
+          message: { id: userMessage.id, role: data.MessageRole.ROLE_USER, parts: protoSessionPartsFromChatParts(userMessage.parts) },
           labels: {},
-        }, { signal: controller.signal }),
+        };
+      preparedTurn = retry ?? { session, text: submittedText, transformed, uploadedImages, userMessage, request };
+      const { hasAssistantEvent } = await streamSessionPartEvents({
+        events: client.submitTurn(request, { signal: controller.signal }),
         setMessages,
         setStreamEvents,
         signal: controller.signal,
       });
+      turnCompleted = true;
       if (!hasAssistantEvent) await waitForCanonicalAssistantUpdate(session, baselineSignature, controller.signal);
       else await refreshNewestSessionPage(session, controller.signal);
       await onTurnComplete?.({ namespace: session.ns, agent: session.agent, sessionId: session.sessionId });
@@ -328,6 +348,13 @@ export function useSessionActions({
       const nextError = err instanceof Error ? err : new Error(String(err));
       const session = submittedSession && sameSession(currentSessionRef.current, submittedSession) ? submittedSession : null;
       if (controller?.signal.aborted || (submittedSession && !session)) return;
+      if (session && retry && isBusyError(nextError)) {
+        // Keep the captured request retryable while its original dispatch is
+        // still pending. Do not restore it over a newer composer draft.
+        setFailedTurn({ ...retry, failure: nextError });
+        setError(nextError);
+        return;
+      }
       if (session && isBusyError(nextError)) {
         if (optimisticMessageId) {
           messagesRef.current = messagesRef.current.filter((message) => message.id !== optimisticMessageId);
@@ -354,6 +381,7 @@ export function useSessionActions({
           return;
         }
       }
+      if (session && turnStarted && !turnCompleted && preparedTurn) setFailedTurn({ ...preparedTurn, failure: nextError });
       setError(nextError);
     } finally {
       const stale = controller?.signal.aborted || (submittedSession && !sameSession(currentSessionRef.current, submittedSession));
@@ -366,5 +394,10 @@ export function useSessionActions({
     }
   }, [agent, cancelResume, clearSession, client, commands, currentSessionRef, disabled, enabledGoalCommand, ensureSession, imageAttachmentsRef, isSessionLive, isStoppingRef, markAutoScrollPinned, messagesRef, namespace, onSubmitMessage, onTurnComplete, refreshNewestSessionPage, resolvedHistoryPageSize, sessionId, setError, setImageAttachments, setInput, setIsLoading, setIsResuming, setLoadingNow, setLoadingStartedAt, setMessages, setStreamEvents, startResume, submissionAbortControllerRef, submissionTransformer, submittedPreviewUrlsRef, uploadQueuedImages, waitForCanonicalAssistantUpdate]);
 
-  return { submitMessage };
+  const retryFailedTurn = failedTurn && sameSession(failedTurn.session, currentSessionRef.current)
+    ? () => submitMessage(failedTurn.text, false, undefined, failedTurn)
+    : undefined;
+  const retryError = retryFailedTurn ? failedTurn?.failure ?? null : null;
+  const clearFailedTurn = useCallback(() => setFailedTurn(null), []);
+  return { submitMessage, retryFailedTurn, retryError, clearFailedTurn };
 }

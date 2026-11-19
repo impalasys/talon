@@ -398,6 +398,11 @@ export function TalonSession({
     refreshNewestSessionPage,
   });
 
+  const clearFailedTurnRef = useRef<() => void>(() => {});
+  const resetSessionGeneration = useCallback(() => {
+    resetGeneration();
+    clearFailedTurnRef.current();
+  }, [resetGeneration]);
   const { clearSession } = useSessionLifecycle({
     client: gatewayClient.sessions,
     currentSession,
@@ -408,7 +413,7 @@ export function TalonSession({
     messagesRef,
     emptyMessages,
     clearRuntime,
-    resetGeneration,
+    resetGeneration: resetSessionGeneration,
     resetTranscriptUi,
     invalidateToolResultHydration,
     resetResourcePane: clearResourcePaneState,
@@ -464,7 +469,7 @@ export function TalonSession({
 
   const { commandMenuItems, resolvedCommands } = useSessionCommands({ clearSession, compactSession, doctorSession, commands, enabledBuiltInCommands });
   const attachmentAccept = resolvedAcceptedAttachmentTypes.join(",");
-  const { submitMessage } = useSessionActions({
+  const { submitMessage, retryFailedTurn, retryError, clearFailedTurn } = useSessionActions({
     client: gatewayClient.sessions,
     namespace,
     agent,
@@ -504,6 +509,7 @@ export function TalonSession({
     refreshNewestSessionPage,
   });
 
+  clearFailedTurnRef.current = clearFailedTurn;
   runtimeSubmitRef.current = (input, context) => submitMessage(input.text, true, context.signal);
   runtimeStopRef.current = (context) => stopGeneration(context.signal);
 
@@ -550,7 +556,9 @@ export function TalonSession({
             hasTrailingUserMessage={messages[messages.length - 1]?.role === "user"}
             workingLabel={showWorkDetails ? formatWorkingDuration(loadingStartedAt, loadingNow) : undefined}
             loadingIndicator={loadingIndicator}
-            error={error}
+            error={error || retryError}
+            onRetry={retryFailedTurn ? () => void retryFailedTurn() : undefined}
+            retryDisabled={disabled || isLoading}
             incident={sessionState === "ERROR" && !error
               ? "This session previously encountered an error. You can continue, but any unavailable historical output will be marked in the transcript."
               : null}

@@ -1596,12 +1596,15 @@ impl GrpcGatewayHandler {
             message.role == data_proto::MessageRole::RoleAssistant as i32;
         let message_key = keys::session_message(&req.ns, &req.agent, &req.session_id, &message.id);
         let message_id = message.id.clone();
-        let inserted = self
-            .gateway
-            .kv
-            .compare_and_swap(&message_key, None, &message.encode_to_vec())
-            .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to append message: {}", e)))?;
+        let inserted = talon::control::sessions::append_admitted_session_message(
+            self.gateway.kv.as_ref(),
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+            &message,
+        )
+        .await
+        .map_err(|e| tonic::Status::internal(format!("Failed to append message: {e}")))?;
         if !inserted {
             return Err(tonic::Status::already_exists(
                 "Session message already exists",
@@ -1692,15 +1695,16 @@ impl GrpcGatewayHandler {
 
         let message_key =
             keys::session_message(&req.ns, &req.agent, &req.session_id, &req.message_id);
-        let mut message = self
+        let current = self
             .gateway
             .kv
-            .get_msg::<data_proto::SessionMessage>(&message_key)
+            .get(&message_key)
             .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to fetch session message: {}", e))
-            })?
+            .map_err(|e| tonic::Status::internal(format!("Failed to fetch session message: {e}")))?
             .ok_or_else(|| tonic::Status::not_found("Session message not found"))?;
+        let mut message = data_proto::SessionMessage::decode(current.as_slice()).map_err(|e| {
+            tonic::Status::internal(format!("Failed to decode session message: {e}"))
+        })?;
 
         if message.role != data_proto::MessageRole::RoleUser as i32
             && message.role != data_proto::MessageRole::RoleAssistant as i32
@@ -1719,13 +1723,21 @@ impl GrpcGatewayHandler {
         message.labels = merge_update_session_message_labels(&message.labels, req.labels);
         normalize_session_message_parts(&mut message.parts, message.created_at);
 
-        self.gateway
-            .kv
-            .set_msg(&message_key, &message)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to update session message: {}", e))
-            })?;
+        if !talon::control::sessions::edit_admitted_session_message(
+            self.gateway.kv.as_ref(),
+            &req.ns,
+            &req.agent,
+            &req.session_id,
+            &current,
+            &message,
+        )
+        .await
+        .map_err(|e| tonic::Status::internal(format!("Failed to update session message: {e}")))?
+        {
+            return Err(tonic::Status::aborted(
+                "Session message changed; retry the update",
+            ));
+        }
 
         session.last_active = chrono::Utc::now().timestamp_micros();
         self.gateway
@@ -2052,6 +2064,11 @@ impl GrpcGatewayHandler {
         let mut message = req
             .message
             .ok_or_else(|| tonic::Status::invalid_argument("message is required"))?;
+        if message.id.trim().is_empty() {
+            return Err(tonic::Status::invalid_argument(
+                "message.id is required; reuse the same client-generated ID when retrying a turn",
+            ));
+        }
         message.labels.extend(req.labels);
         let message = normalize_appended_session_message(message);
         let now = chrono::Utc::now();
@@ -2096,6 +2113,18 @@ fn map_session_submit_error(err: anyhow::Error) -> tonic::Status {
         .is_some()
     {
         tonic::Status::not_found("Session not found")
+    } else if err
+        .downcast_ref::<talon::control::sessions::SessionMessageAlreadyExistsError>()
+        .is_some()
+    {
+        tonic::Status::already_exists(
+            "Session message ID already exists; use a fresh ID for a new turn",
+        )
+    } else if err
+        .downcast_ref::<scheduling::InvalidSessionInputRoleError>()
+        .is_some()
+    {
+        tonic::Status::invalid_argument("New session turns require a User message")
     } else {
         tonic::Status::internal(format!("Failed to submit session turn: {}", err))
     }
@@ -2130,6 +2159,48 @@ mod tests {
         GrpcGatewayHandler {
             gateway: Arc::new(Gateway::from_control_plane(None, control_plane)),
         }
+    }
+
+    #[tokio::test]
+    async fn submit_turn_requires_client_id_before_any_admission() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+        for id in ["", "   "] {
+            let result = handler
+                .handle_submit_session_turn(tonic::Request::new(proto::SubmitSessionTurnRequest {
+                    ns: "ns".into(),
+                    agent: "agent".into(),
+                    session_id: "session".into(),
+                    message: Some(data_proto::SessionMessage {
+                        id: id.into(),
+                        parts: vec![data_proto::SessionMessagePart {
+                            content: "hello".into(),
+                            ..Default::default()
+                        }],
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }))
+                .await;
+            assert_eq!(
+                result
+                    .err()
+                    .expect("missing client ID must be rejected")
+                    .code(),
+                tonic::Code::InvalidArgument
+            );
+        }
+        assert_eq!(
+            talon::control::sessions::current_message_admission_order(
+                kv.as_ref(),
+                "ns",
+                "agent",
+                "session"
+            )
+            .await
+            .unwrap(),
+            0
+        );
     }
 
     #[tokio::test]

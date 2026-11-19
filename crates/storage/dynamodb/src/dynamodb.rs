@@ -14,7 +14,13 @@ use talon::contracts::ListOptions;
 
 use anyhow::{anyhow, Result};
 use aws_config::meta::region::RegionProviderChain;
-use aws_sdk_dynamodb::{config::Credentials, primitives::Blob, types::AttributeValue, Client};
+use aws_sdk_dynamodb::operation::transact_write_items::TransactWriteItemsError;
+use aws_sdk_dynamodb::{
+    config::{AsyncSleep, Credentials},
+    primitives::Blob,
+    types::AttributeValue,
+    Client,
+};
 use std::collections::HashMap;
 use talon::contracts::Order;
 
@@ -26,6 +32,26 @@ const SK_ATTR: &str = "SK";
 
 // Serialized protobuf payload for the resource.
 const VALUE_ATTR: &str = "Value";
+
+fn conditional_cancellation(reasons: &[aws_sdk_dynamodb::types::CancellationReason]) -> bool {
+    reasons
+        .iter()
+        .any(|reason| reason.code() == Some("ConditionalCheckFailed"))
+        && reasons.iter().all(|reason| {
+            matches!(
+                reason.code(),
+                None | Some("None" | "ConditionalCheckFailed")
+            )
+        })
+}
+fn transaction_conflict(reasons: &[aws_sdk_dynamodb::types::CancellationReason]) -> bool {
+    reasons
+        .iter()
+        .any(|reason| reason.code() == Some("TransactionConflict"))
+        && reasons
+            .iter()
+            .all(|reason| matches!(reason.code(), None | Some("None" | "TransactionConflict")))
+}
 
 #[derive(Clone)]
 pub struct DynamoDbKvStore {
@@ -227,6 +253,131 @@ impl KeyValueStore for DynamoDbKvStore {
         }
     }
 
+    async fn compare_and_swap_batch(
+        &self,
+        operations: &[talon::contracts::KeyValueBatchOperation],
+    ) -> Result<bool> {
+        use aws_sdk_dynamodb::types::{ConditionCheck, Delete, Put, TransactWriteItem};
+        talon::contracts::validate_key_value_batch(operations)?;
+        if operations.is_empty() {
+            return Ok(true);
+        }
+        let mut items = Vec::with_capacity(operations.len());
+        for operation in operations {
+            let (condition, names, values) = if let Some(expected) = operation.expected.as_deref() {
+                (
+                    "#v = :e",
+                    HashMap::from([("#v".into(), VALUE_ATTR.into())]),
+                    Some(HashMap::from([(
+                        ":e".into(),
+                        AttributeValue::B(Blob::new(expected.to_vec())),
+                    )])),
+                )
+            } else {
+                (
+                    "attribute_not_exists(#pk)",
+                    HashMap::from([("#pk".into(), PK_ATTR.into())]),
+                    None,
+                )
+            };
+            let item = if let Some(value) = operation.value.as_deref() {
+                TransactWriteItem::builder()
+                    .put(
+                        Put::builder()
+                            .table_name(&self.table)
+                            .set_item(Some(self.put_item(&operation.key, value)))
+                            .condition_expression(condition)
+                            .set_expression_attribute_names(Some(names))
+                            .set_expression_attribute_values(values)
+                            .build()?,
+                    )
+                    .build()
+            } else if operation.expected.is_some() {
+                TransactWriteItem::builder()
+                    .delete(
+                        Delete::builder()
+                            .table_name(&self.table)
+                            .set_key(Some(self.key_item(&operation.key)))
+                            .condition_expression(condition)
+                            .set_expression_attribute_names(Some(names))
+                            .set_expression_attribute_values(values)
+                            .build()?,
+                    )
+                    .build()
+            } else {
+                TransactWriteItem::builder()
+                    .condition_check(
+                        ConditionCheck::builder()
+                            .table_name(&self.table)
+                            .set_key(Some(self.key_item(&operation.key)))
+                            .condition_expression(condition)
+                            .set_expression_attribute_names(Some(names))
+                            .build()?,
+                    )
+                    .build()
+            };
+            items.push(item);
+        }
+        for attempt in 0..5 {
+            match self
+                .client
+                .transact_write_items()
+                .set_transact_items(Some(items.clone()))
+                .client_request_token(talon::contracts::uuid::resource_version())
+                .send()
+                .await
+            {
+                Ok(_) => return Ok(true),
+                Err(error) => {
+                    if let Some(TransactWriteItemsError::TransactionCanceledException(canceled)) =
+                        error.as_service_error()
+                    {
+                        if conditional_cancellation(canceled.cancellation_reasons()) {
+                            return Ok(false);
+                        }
+                        if attempt < 4 && transaction_conflict(canceled.cancellation_reasons()) {
+                            if let Some(sleep) = self.client.config().sleep_impl() {
+                                sleep
+                                    .sleep(std::time::Duration::from_millis(5 << attempt))
+                                    .await;
+                                continue;
+                            }
+                        }
+                    }
+                    return Err(error.into());
+                }
+            }
+        }
+        unreachable!("each transaction attempt returns or retries")
+    }
+
+    async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> Result<bool> {
+        let result = self
+            .client
+            .delete_item()
+            .table_name(&self.table)
+            .set_key(Some(self.key_item(key)))
+            .condition_expression("#value = :expected")
+            .expression_attribute_names("#value", VALUE_ATTR)
+            .expression_attribute_values(
+                ":expected",
+                AttributeValue::B(Blob::new(expected.to_vec())),
+            )
+            .send()
+            .await;
+        match result {
+            Ok(_) => Ok(true),
+            Err(err)
+                if err
+                    .as_service_error()
+                    .is_some_and(|err| err.is_conditional_check_failed_exception()) =>
+            {
+                Ok(false)
+            }
+            Err(err) => Err(err.into()),
+        }
+    }
+
     async fn delete(&self, key: &ResourceKey) -> Result<()> {
         self.client
             .delete_item()
@@ -348,6 +499,139 @@ mod tests {
     use crate::talon;
 
     use super::*;
+
+    #[test]
+    fn cancellation_errors_are_not_misreported_as_condition_conflicts() {
+        use aws_sdk_dynamodb::types::CancellationReason;
+        let reason = |code: &str| CancellationReason::builder().code(code).build();
+        assert!(conditional_cancellation(&[
+            reason("None"),
+            reason("ConditionalCheckFailed")
+        ]));
+        for code in [
+            "TransactionConflict",
+            "ThrottlingError",
+            "ProvisionedThroughputExceeded",
+            "ValidationError",
+            "ItemCollectionSizeLimitExceeded",
+        ] {
+            assert!(!conditional_cancellation(&[reason(code)]));
+            assert!(!conditional_cancellation(&[
+                reason("ConditionalCheckFailed"),
+                reason(code)
+            ]));
+        }
+        assert!(!conditional_cancellation(&[]));
+        assert!(transaction_conflict(&[
+            reason("None"),
+            reason("TransactionConflict")
+        ]));
+    }
+
+    #[test]
+    fn dynamodb_local_atomic_batch_conformance() {
+        talon::test_support::run_async_test(async {
+            use aws_sdk_dynamodb::types::{
+                AttributeDefinition, BillingMode, KeySchemaElement, KeyType, ScalarAttributeType,
+            };
+            use std::process::Command;
+            let _guard = talon::test_support::docker_test_guard();
+            struct Container(String);
+            impl Drop for Container {
+                fn drop(&mut self) {
+                    let _ = Command::new("docker").args(["rm", "-f", &self.0]).output();
+                }
+            }
+            let name = talon::contracts::uuid::unique_name("talon-ddb");
+            let run = Command::new("docker")
+                .args([
+                    "run",
+                    "-d",
+                    "--rm",
+                    "--name",
+                    &name,
+                    "-p",
+                    "127.0.0.1::8000",
+                    "amazon/dynamodb-local:2.6.1",
+                    "-jar",
+                    "DynamoDBLocal.jar",
+                    "-inMemory",
+                    "-sharedDb",
+                ])
+                .output()
+                .unwrap();
+            assert!(
+                run.status.success(),
+                "{}",
+                String::from_utf8_lossy(&run.stderr)
+            );
+            let _container = Container(name.clone());
+            let inspect = Command::new("docker")
+                .args([
+                    "inspect",
+                    "-f",
+                    "{{(index (index .NetworkSettings.Ports \"8000/tcp\") 0).HostPort}}",
+                    &name,
+                ])
+                .output()
+                .unwrap();
+            assert!(inspect.status.success());
+            let port = String::from_utf8(inspect.stdout).unwrap();
+            let config = aws_sdk_dynamodb::config::Builder::new()
+                .behavior_version(aws_config::BehaviorVersion::latest())
+                .region(aws_sdk_dynamodb::config::Region::new("us-east-1"))
+                .credentials_provider(Credentials::new("local", "local", None, None, "test"))
+                .endpoint_url(format!("http://127.0.0.1:{}", port.trim()))
+                .build();
+            let client = Client::from_conf(config);
+            let mut ready = false;
+            for _ in 0..60 {
+                if client.list_tables().send().await.is_ok() {
+                    ready = true;
+                    break;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(500));
+            }
+            assert!(ready, "DynamoDB Local did not become ready");
+            client
+                .create_table()
+                .table_name("atomic_test")
+                .attribute_definitions(
+                    AttributeDefinition::builder()
+                        .attribute_name(PK_ATTR)
+                        .attribute_type(ScalarAttributeType::S)
+                        .build()
+                        .unwrap(),
+                )
+                .attribute_definitions(
+                    AttributeDefinition::builder()
+                        .attribute_name(SK_ATTR)
+                        .attribute_type(ScalarAttributeType::S)
+                        .build()
+                        .unwrap(),
+                )
+                .key_schema(
+                    KeySchemaElement::builder()
+                        .attribute_name(PK_ATTR)
+                        .key_type(KeyType::Hash)
+                        .build()
+                        .unwrap(),
+                )
+                .key_schema(
+                    KeySchemaElement::builder()
+                        .attribute_name(SK_ATTR)
+                        .key_type(KeyType::Range)
+                        .build()
+                        .unwrap(),
+                )
+                .billing_mode(BillingMode::PayPerRequest)
+                .send()
+                .await
+                .unwrap();
+            let store = DynamoDbKvStore::new(client, "atomic_test");
+            talon::test_support::assert_atomic_batch_conformance(&store).await;
+        });
+    }
 
     #[test]
     fn session_keys_project_resource_parent_into_partition_key() {

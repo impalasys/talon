@@ -285,6 +285,50 @@ impl KeyValueStore for RocksDbKvStore {
         .await
     }
 
+    async fn compare_and_swap_batch(
+        &self,
+        operations: &[talon::contracts::KeyValueBatchOperation],
+    ) -> Result<bool> {
+        talon::contracts::validate_key_value_batch(operations)?;
+        let operations = operations.to_vec();
+        let options = Arc::clone(&self.write_options);
+        let guard = Arc::clone(&self.write_lock).lock_owned().await;
+        self.spawn_blocking("compare_and_swap_batch", move |db| {
+            let _guard = guard;
+            for operation in &operations {
+                if db.get(key_bytes(&operation.key))?.as_deref() != operation.expected.as_deref() {
+                    return Ok(false);
+                }
+            }
+            let mut batch = rocksdb::WriteBatch::default();
+            for operation in operations {
+                match operation.value {
+                    Some(value) => batch.put(key_bytes(&operation.key), value),
+                    None => batch.delete(key_bytes(&operation.key)),
+                }
+            }
+            db.write_opt(batch, &options)?;
+            Ok(true)
+        })
+        .await
+    }
+
+    async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> Result<bool> {
+        let encoded = key_bytes(key);
+        let expected = expected.to_vec();
+        let write_options = Arc::clone(&self.write_options);
+        let guard = Arc::clone(&self.write_lock).lock_owned().await;
+        self.spawn_blocking("compare_and_delete", move |db| {
+            let _guard = guard;
+            if db.get(&encoded)?.as_deref() != Some(expected.as_slice()) {
+                return Ok(false);
+            }
+            db.delete_opt(encoded, &write_options)?;
+            Ok(true)
+        })
+        .await
+    }
+
     async fn delete(&self, key: &ResourceKey) -> Result<()> {
         let encoded = key_bytes(key);
         let span = tracing::debug_span!(
@@ -510,6 +554,7 @@ mod tests {
     #[tokio::test]
     async fn get_set_delete_round_trip() {
         let (_dir, store) = test_store().await;
+        talon::test_support::assert_atomic_batch_conformance(&store).await;
         let key = keys::agent("default", "agent-a");
         assert!(store.get(&key).await.unwrap().is_none());
         store.set(&key, b"value-a").await.unwrap();
@@ -537,6 +582,10 @@ mod tests {
             .await
             .unwrap());
         assert_eq!(store.get(&key).await.unwrap().as_deref(), Some(&b"v2"[..]));
+        assert!(!store.compare_and_delete(&key, b"v1").await.unwrap());
+        assert!(store.compare_and_delete(&key, b"v2").await.unwrap());
+        assert!(!store.compare_and_delete(&key, b"v2").await.unwrap());
+        assert!(store.get(&key).await.unwrap().is_none());
     }
 
     #[tokio::test]

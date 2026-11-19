@@ -66,6 +66,27 @@ impl std::fmt::Display for EmptyMessageError {
 impl std::error::Error for EmptyMessageError {}
 
 #[derive(Debug)]
+pub struct InvalidSessionInputRoleError;
+impl std::fmt::Display for InvalidSessionInputRoleError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("new session turns require a User message")
+    }
+}
+impl std::error::Error for InvalidSessionInputRoleError {}
+
+pub(crate) fn validate_session_input(message: &data_proto::SessionMessage) -> Result<()> {
+    if message.parts.is_empty() {
+        return Err(EmptyMessageError.into());
+    }
+    if message.role != data_proto::MessageRole::RoleUnspecified as i32
+        && message.role != data_proto::MessageRole::RoleUser as i32
+    {
+        return Err(InvalidSessionInputRoleError.into());
+    }
+    Ok(())
+}
+
+#[derive(Debug)]
 pub struct ScheduleWakeupInProgressError;
 
 impl std::fmt::Display for ScheduleWakeupInProgressError {
@@ -719,6 +740,26 @@ pub async fn enqueue_message_without_dispatch(
     enqueue_session_message_without_dispatch(kv, pubsub, ns, agent, session_id, user_msg, now).await
 }
 
+fn normalize_session_input(message: &mut data_proto::SessionMessage, now_micros: i64) {
+    if message.id.is_empty() {
+        message.id = crate::control::uuid::session_message_id();
+    }
+    if message.role == data_proto::MessageRole::RoleUnspecified as i32 {
+        message.role = data_proto::MessageRole::RoleUser as i32;
+    }
+    if message.created_at == 0 {
+        message.created_at = now_micros;
+    }
+    for (index, part) in message.parts.iter_mut().enumerate() {
+        if part.id.is_empty() {
+            part.id = format!("{index:06}");
+        }
+        if part.created_at == 0 {
+            part.created_at = message.created_at;
+        }
+    }
+}
+
 pub async fn enqueue_session_message_without_dispatch(
     kv: &dyn KeyValueStore,
     pubsub: &dyn MessagePublisher,
@@ -728,31 +769,17 @@ pub async fn enqueue_session_message_without_dispatch(
     mut user_msg: data_proto::SessionMessage,
     now: DateTime<Utc>,
 ) -> Result<events::SessionDispatchEvent> {
-    if user_msg.parts.is_empty() {
-        return Err(EmptyMessageError.into());
-    }
+    validate_session_input(&user_msg)?;
 
     let now_micros = now.timestamp_micros();
-    if user_msg.id.is_empty() {
-        user_msg.id = crate::control::uuid::session_message_id();
-    }
-    if user_msg.role == data_proto::MessageRole::RoleUnspecified as i32 {
-        user_msg.role = data_proto::MessageRole::RoleUser as i32;
-    }
-    if user_msg.created_at == 0 {
-        user_msg.created_at = now_micros;
-    }
-    for (index, part) in user_msg.parts.iter_mut().enumerate() {
-        if part.id.is_empty() {
-            part.id = format!("{index:06}");
-        }
-        if part.created_at == 0 {
-            part.created_at = user_msg.created_at;
-        }
-    }
+    normalize_session_input(&mut user_msg, now_micros);
 
+    let admitted =
+        crate::sessions::admit_session_turn(kv, ns, agent, session_id, &user_msg, now_micros)
+            .await?;
+    let user_msg = admitted.message;
+    let submission_id = admitted.submission_id;
     let message_key = keys::session_message(ns, agent, session_id, &user_msg.id);
-    kv.set_msg(&message_key, &user_msg).await?;
     let message_id = user_msg.id.clone();
     if let Err(error) = crate::control::search::publish_index_event(
         pubsub,
@@ -773,15 +800,6 @@ pub async fn enqueue_session_message_without_dispatch(
             "failed to publish search index event for queued session message"
         );
     }
-
-    let submission_id = crate::control::uuid::session_submission_id();
-    let submission = crate::sessions::pending_submission(
-        submission_id.clone(),
-        session_id.to_string(),
-        message_id.clone(),
-        now_micros,
-    );
-    crate::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission).await?;
 
     Ok(events::SessionDispatchEvent {
         session_id: session_id.to_string(),
@@ -805,15 +823,33 @@ pub async fn send_session_message(
     mut user_msg: data_proto::SessionMessage,
     now: DateTime<Utc>,
 ) -> Result<String> {
-    if user_msg.parts.is_empty() {
-        return Err(EmptyMessageError.into());
-    }
+    validate_session_input(&user_msg)?;
 
     let key = keys::session(ns, agent, session_id);
     let now_micros = now.timestamp_micros();
+    normalize_session_input(&mut user_msg, now_micros);
+
+    if let Some(existing) =
+        crate::sessions::lookup_admitted_turn(kv, ns, agent, session_id, &user_msg).await?
+    {
+        let bytes = kv
+            .get(&keys::session_submission(
+                ns,
+                agent,
+                session_id,
+                &existing.submission_id,
+            ))
+            .await?
+            .ok_or_else(|| anyhow!("admitted submission missing"))?;
+        let submission = data_proto::SessionSubmission::decode(bytes.as_slice())?;
+        if submission.status != data_proto::SessionSubmissionStatus::Pending as i32 {
+            return Ok(existing.submission_id);
+        }
+    }
     let timeout_micros = session_processing_timeout_micros();
 
     let mut acquired = false;
+    let mut acquired_bytes = None;
     for _ in 0..MAX_CAS_RETRIES {
         let current = kv.get(&key).await?;
         let Some(current_bytes) = current.as_ref() else {
@@ -835,6 +871,7 @@ pub async fn send_session_message(
             .await?
         {
             acquired = true;
+            acquired_bytes = Some(updated);
             break;
         }
     }
@@ -843,35 +880,41 @@ pub async fn send_session_message(
         return Err(anyhow!("failed to atomically acquire session lock"));
     }
 
-    if user_msg.id.is_empty() {
-        user_msg.id = crate::control::uuid::session_message_id();
-    }
-    if user_msg.role == data_proto::MessageRole::RoleUnspecified as i32 {
-        user_msg.role = data_proto::MessageRole::RoleUser as i32;
-    }
-    if user_msg.created_at == 0 {
-        user_msg.created_at = now_micros;
-    }
-    for (index, part) in user_msg.parts.iter_mut().enumerate() {
-        if part.id.is_empty() {
-            part.id = format!("{index:06}");
+    let admitted =
+        match crate::sessions::admit_session_turn(kv, ns, agent, session_id, &user_msg, now_micros)
+            .await
+        {
+            Ok(admitted) => admitted,
+            Err(err) => {
+                log_session_release_failure(
+                    try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
+                    ns,
+                    &key,
+                );
+                return Err(err);
+            }
+        };
+    let user_msg = admitted.message;
+    let submission_id = admitted.submission_id;
+    let submission_key = keys::session_submission(ns, agent, session_id, &submission_id);
+    let current = kv
+        .get(&submission_key)
+        .await?
+        .ok_or_else(|| anyhow!("admitted submission missing"))?;
+    let submission = data_proto::SessionSubmission::decode(current.as_slice())?;
+    if submission.status != data_proto::SessionSubmissionStatus::Pending as i32 {
+        if crate::sessions::submission_is_terminal(&submission) {
+            release_acquired_session_lock(
+                kv,
+                &key,
+                acquired_bytes.as_deref().expect("acquired lock bytes"),
+            )
+            .await?;
         }
-        if part.created_at == 0 {
-            part.created_at = user_msg.created_at;
-        }
+        return Ok(submission_id);
     }
-
-    let message_key = keys::session_message(ns, agent, session_id, &user_msg.id);
-    if let Err(err) = kv.set_msg(&message_key, &user_msg).await {
-        log_session_release_failure(
-            try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
-            ns,
-            &key,
-        );
-        return Err(err);
-    }
-
     let message_id = user_msg.id.clone();
+    let message_key = keys::session_message(ns, agent, session_id, &message_id);
     if let Err(error) = crate::control::search::publish_index_event(
         pubsub,
         events::IndexEvent {
@@ -890,24 +933,6 @@ pub async fn send_session_message(
             message_id = %message_id,
             "failed to publish search index event for sent session message"
         );
-    }
-
-    let submission_id = crate::control::uuid::session_submission_id();
-    let submission = crate::sessions::pending_submission(
-        submission_id.clone(),
-        session_id.to_string(),
-        message_id.clone(),
-        now_micros,
-    );
-    if let Err(err) =
-        crate::sessions::create_submission_if_absent(kv, ns, agent, session_id, &submission).await
-    {
-        log_session_release_failure(
-            try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
-            ns,
-            &key,
-        );
-        return Err(err);
     }
 
     let message_text = session_message_text_projection(&user_msg);
@@ -930,7 +955,13 @@ pub async fn send_session_message(
         .await
     {
         log_session_release_failure(
-            try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
+            release_session_lock_if_submission_pending(
+                kv,
+                &key,
+                &keys::session_submission(ns, agent, session_id, &submission_id),
+                now_micros,
+            )
+            .await,
             ns,
             &key,
         );
@@ -963,6 +994,26 @@ pub async fn send_or_queue_a2a_session_message(
     user_msg: data_proto::SessionMessage,
     now: DateTime<Utc>,
 ) -> Result<(String, A2aSessionMessageDisposition)> {
+    validate_session_input(&user_msg)?;
+    if !user_msg.id.is_empty()
+        && crate::sessions::queued_input_entry(kv, ns, agent, session_id, &user_msg.id)
+            .await?
+            .is_some()
+    {
+        // Keep the same durable queue outcome even when a retry reaches an idle
+        // session after promotion/dispatch. Never switch it into a new direct turn.
+        crate::control::session_queue::queue_session_message(
+            kv,
+            ns,
+            agent,
+            session_id,
+            crate::control::session_queue::NEXT_QUEUE,
+            user_msg.clone(),
+            now,
+        )
+        .await?;
+        return Ok((user_msg.id, A2aSessionMessageDisposition::Queued));
+    }
     match send_session_message(kv, pubsub, ns, agent, session_id, user_msg.clone(), now).await {
         Ok(submission_id) => Ok((submission_id, A2aSessionMessageDisposition::Submitted)),
         Err(err)
@@ -970,6 +1021,16 @@ pub async fn send_or_queue_a2a_session_message(
                 .downcast_ref::<SessionCurrentlyProcessingError>()
                 .is_some() =>
         {
+            // Busy is not permission to readmit an already accepted turn in NEXT.
+            // Recover its original dispatch when the lock releases or expires.
+            let mut normalized = user_msg.clone();
+            normalize_session_input(&mut normalized, now.timestamp_micros());
+            if crate::sessions::lookup_admitted_turn(kv, ns, agent, session_id, &normalized)
+                .await?
+                .is_some()
+            {
+                return Err(err);
+            }
             let mut queued = user_msg;
             if queued.id.is_empty() {
                 queued.id = crate::control::uuid::session_message_id();
@@ -1114,6 +1175,65 @@ fn log_session_release_failure(result: Result<()>, namespace: &str, key: &Resour
     if let Err(err) = result {
         tracing::warn!(namespace = %namespace, key = %key, error = %err, "failed to release session lock after send_message error");
     }
+}
+
+pub(crate) async fn release_acquired_session_lock(
+    kv: &dyn KeyValueStore,
+    key: &ResourceKey,
+    acquired: &[u8],
+) -> Result<()> {
+    let mut session = data_proto::Session::decode(acquired)?;
+    session.status = "IDLE".into();
+    // A worker heartbeat or successor changes these bytes; preserve that lock.
+    kv.compare_and_swap(key, Some(acquired), &session.encode_to_vec())
+        .await?;
+    Ok(())
+}
+
+pub(crate) async fn release_session_lock_if_submission_pending(
+    kv: &dyn KeyValueStore,
+    key: &ResourceKey,
+    submission_key: &ResourceKey,
+    expected_last_active: i64,
+) -> Result<()> {
+    for _ in 0..MAX_CAS_RETRIES {
+        let submission_bytes = kv.get(submission_key).await?;
+        if let Some(bytes) = &submission_bytes {
+            let submission = data_proto::SessionSubmission::decode(bytes.as_slice())?;
+            if submission.status != data_proto::SessionSubmissionStatus::Pending as i32 {
+                return Ok(());
+            }
+        }
+        let Some(current) = kv.get(key).await? else {
+            return Ok(());
+        };
+        let mut session = data_proto::Session::decode(current.as_slice())?;
+        if session.status != "PROCESSING" || session.last_active != expected_last_active {
+            return Ok(());
+        }
+        session.status = "IDLE".into();
+        let updated = session.encode_to_vec();
+        if kv
+            .compare_and_swap_batch(&[
+                crate::control::KeyValueBatchOperation::new(
+                    key.clone(),
+                    Some(&current),
+                    Some(&updated),
+                ),
+                crate::control::KeyValueBatchOperation::new(
+                    submission_key.clone(),
+                    submission_bytes.as_deref(),
+                    submission_bytes.as_deref(),
+                ),
+            ])
+            .await?
+        {
+            return Ok(());
+        }
+    }
+    Err(anyhow!(
+        "failed to release pending submission's session lock"
+    ))
 }
 
 async fn try_release_session_lock_after_send_failure(
@@ -1542,6 +1662,501 @@ mod tests {
             .unwrap_err()
             .downcast_ref::<ScheduleWakeupInProgressError>()
             .is_some());
+    }
+
+    fn input_message(id: &str, text: &str) -> data_proto::SessionMessage {
+        data_proto::SessionMessage {
+            id: id.into(),
+            role: data_proto::MessageRole::RoleUser as i32,
+            parts: vec![data_proto::SessionMessagePart {
+                part_type: data_proto::SessionMessagePartType::Text as i32,
+                content: text.into(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        }
+    }
+
+    #[derive(Default)]
+    struct FailDispatchOnce(std::sync::atomic::AtomicBool);
+    #[async_trait::async_trait]
+    impl MessagePublisher for FailDispatchOnce {
+        async fn publish(&self, topic: &str, _bytes: &[u8]) -> Result<()> {
+            if topic == crate::control::topics::SESSION_DISPATCH_TOPIC
+                && !self.0.swap(true, std::sync::atomic::Ordering::SeqCst)
+            {
+                anyhow::bail!("dispatch unavailable");
+            }
+            Ok(())
+        }
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> Result<std::pin::Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            Ok(Box::pin(futures::stream::empty()))
+        }
+    }
+    #[tokio::test]
+    async fn retry_rechecks_completion_after_acquiring_idle_session() {
+        use crate::control::admission_race_test_support::CompleteBeforeSessionRead;
+        let inner = std::sync::Arc::new(MockKvStore::default());
+        let session_key = keys::session("ns", "agent", "session");
+        inner
+            .set_msg(
+                &session_key,
+                &data_proto::Session {
+                    id: "session".into(),
+                    status: "PROCESSING".into(),
+                    last_active: Utc::now().timestamp_micros(),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap();
+        let mut input = input_message("client-id", "hello");
+        normalize_session_input(&mut input, Utc::now().timestamp_micros());
+        let admitted = crate::sessions::admit_session_turn(
+            inner.as_ref(),
+            "ns",
+            "agent",
+            "session",
+            &input,
+            Utc::now().timestamp_micros(),
+        )
+        .await
+        .unwrap();
+        let kv = CompleteBeforeSessionRead {
+            inner: inner.clone(),
+            session: session_key.clone(),
+            submission: keys::session_submission("ns", "agent", "session", &admitted.submission_id),
+            armed: true.into(),
+        };
+        let bus = crate::test_support::RecordingPubSub::default();
+        assert_eq!(
+            send_session_message(&kv, &bus, "ns", "agent", "session", input, Utc::now())
+                .await
+                .unwrap(),
+            admitted.submission_id
+        );
+        assert_eq!(
+            inner
+                .get_msg::<data_proto::Session>(&session_key)
+                .await
+                .unwrap()
+                .unwrap()
+                .status,
+            "IDLE"
+        );
+        assert!(!bus
+            .published
+            .lock()
+            .await
+            .iter()
+            .any(|(topic, _)| topic == crate::control::topics::SESSION_DISPATCH_TOPIC));
+    }
+
+    #[tokio::test]
+    async fn busy_a2a_retry_does_not_queue_a_second_copy_of_a_pending_turn() {
+        let kv = MockKvStore::default();
+        let pubsub = MockPubSub::default();
+        let now = Utc::now();
+        kv.set_msg(
+            &keys::session("ns", "agent", "session"),
+            &data_proto::Session {
+                id: "session".into(),
+                status: "PROCESSING".into(),
+                last_active: now.timestamp_micros(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        let original = input_message("stable-client-id", "hello");
+        let mut normalized = original.clone();
+        normalize_session_input(&mut normalized, now.timestamp_micros());
+        crate::sessions::admit_session_turn(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            &normalized,
+            now.timestamp_micros(),
+        )
+        .await
+        .unwrap();
+        let error = send_or_queue_a2a_session_message(
+            &kv, &pubsub, "ns", "agent", "session", original, now,
+        )
+        .await
+        .unwrap_err();
+        assert!(error
+            .downcast_ref::<SessionCurrentlyProcessingError>()
+            .is_some());
+        assert!(kv
+            .list_keys(
+                &keys::session_queue_prefix(
+                    "ns",
+                    "agent",
+                    "session",
+                    crate::control::session_queue::NEXT_QUEUE
+                ),
+                None
+            )
+            .await
+            .unwrap()
+            .is_empty());
+        assert_eq!(
+            crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            1
+        );
+    }
+
+    #[tokio::test]
+    async fn exact_turn_retry_recovers_failed_dispatch_without_duplicate_admission() {
+        let kv = MockKvStore::default();
+        let bus = FailDispatchOnce::default();
+        let session_key = keys::session("ns", "agent", "session");
+        kv.set_msg(
+            &session_key,
+            &data_proto::Session {
+                id: "session".into(),
+                status: "IDLE".into(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        let input = input_message("client-id", "hello");
+        assert!(send_session_message(
+            &kv,
+            &bus,
+            "ns",
+            "agent",
+            "session",
+            input.clone(),
+            Utc::now()
+        )
+        .await
+        .is_err());
+        assert_eq!(
+            kv.get_msg::<data_proto::Session>(&session_key)
+                .await
+                .unwrap()
+                .unwrap()
+                .status,
+            "IDLE"
+        );
+        let admitted = crate::sessions::lookup_admitted_turn(&kv, "ns", "agent", "session", &{
+            let mut normalized = input.clone();
+            normalized.parts[0].id = "000000".into();
+            normalized
+        })
+        .await
+        .unwrap()
+        .unwrap();
+        let retried = send_session_message(
+            &kv,
+            &bus,
+            "ns",
+            "agent",
+            "session",
+            input.clone(),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(admitted.submission_id, retried);
+        assert_eq!(
+            crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            1
+        );
+        let submission_key = keys::session_submission("ns", "agent", "session", &retried);
+        let mut submission = kv
+            .get_msg::<data_proto::SessionSubmission>(&submission_key)
+            .await
+            .unwrap()
+            .unwrap();
+        submission.status = data_proto::SessionSubmissionStatus::Committed as i32;
+        kv.set_msg(&submission_key, &submission).await.unwrap();
+        assert_eq!(
+            send_session_message(&kv, &bus, "ns", "agent", "session", input, Utc::now())
+                .await
+                .unwrap(),
+            retried
+        );
+        assert_eq!(
+            crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            1
+        );
+    }
+
+    #[tokio::test]
+    async fn pending_turn_recovery_reloads_edits_without_readmitting() {
+        for retry_edited in [false, true] {
+            let kv = MockKvStore::default();
+            let bus = FailDispatchOnce::default();
+            kv.set_msg(
+                &keys::session("ns", "agent", "session"),
+                &data_proto::Session {
+                    id: "session".into(),
+                    status: "IDLE".into(),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap();
+            let input = input_message("client-id", "original");
+            assert!(send_session_message(
+                &kv,
+                &bus,
+                "ns",
+                "agent",
+                "session",
+                input.clone(),
+                Utc::now()
+            )
+            .await
+            .is_err());
+            let mut request = input.clone();
+            normalize_session_input(&mut request, Utc::now().timestamp_micros());
+            let original =
+                crate::sessions::lookup_admitted_turn(&kv, "ns", "agent", "session", &request)
+                    .await
+                    .unwrap()
+                    .unwrap();
+            let key = keys::session_message("ns", "agent", "session", &original.message.id);
+            let raw = kv.get(&key).await.unwrap().unwrap();
+            let mut edited = data_proto::SessionMessage::decode(raw.as_slice()).unwrap();
+            edited.parts[0].content = "edited".into();
+            crate::sessions::edit_admitted_session_message(
+                &kv, "ns", "agent", "session", &raw, &edited,
+            )
+            .await
+            .unwrap();
+            let mut retry = if retry_edited { edited.clone() } else { input };
+            retry.id = "client-id".into(); // Recovery retains the client key, not the canonical transcript ID.
+            let admitted = crate::sessions::lookup_admitted_turn(&kv, "ns", "agent", "session", &{
+                let mut msg = retry.clone();
+                normalize_session_input(&mut msg, Utc::now().timestamp_micros());
+                msg
+            })
+            .await
+            .unwrap()
+            .unwrap();
+            assert_eq!(admitted.message.parts[0].content, "edited");
+            assert_eq!(
+                send_session_message(&kv, &bus, "ns", "agent", "session", retry, Utc::now())
+                    .await
+                    .unwrap(),
+                admitted.submission_id
+            );
+            assert_eq!(
+                crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                    .await
+                    .unwrap(),
+                1
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn new_turns_reject_reused_ids_without_editing_or_dispatching() {
+        let kv = MockKvStore::default();
+        let pubsub = MockPubSub::default();
+        kv.set_msg(
+            &keys::session("ns", "agent", "session"),
+            &data_proto::Session {
+                id: "session".into(),
+                status: "IDLE".into(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        for message in [
+            input_message("older", "old input"),
+            input_message("approval", "exact reply"),
+        ] {
+            crate::sessions::persist_admitted_session_message(
+                &kv, "ns", "agent", "session", &message,
+            )
+            .await
+            .unwrap();
+        }
+        for id in ["older", "approval"] {
+            let key = keys::session_message("ns", "agent", "session", id);
+            let before = kv.get(&key).await.unwrap();
+            let err = send_session_message(
+                &kv,
+                &pubsub,
+                "ns",
+                "agent",
+                "session",
+                input_message(id, "cancel"),
+                Utc::now(),
+            )
+            .await
+            .unwrap_err();
+            assert!(err
+                .downcast_ref::<crate::sessions::SessionMessageAlreadyExistsError>()
+                .is_some());
+            assert_eq!(kv.get(&key).await.unwrap(), before);
+            assert_eq!(
+                kv.get_msg::<data_proto::Session>(&keys::session("ns", "agent", "session"))
+                    .await
+                    .unwrap()
+                    .unwrap()
+                    .status,
+                "IDLE"
+            );
+            assert!(enqueue_session_message_without_dispatch(
+                &kv,
+                &pubsub,
+                "ns",
+                "agent",
+                "session",
+                input_message(id, "cancel"),
+                Utc::now()
+            )
+            .await
+            .unwrap_err()
+            .downcast_ref::<crate::sessions::SessionMessageAlreadyExistsError>()
+            .is_some());
+        }
+        assert!(pubsub.messages.lock().await.is_empty());
+        assert!(kv
+            .list_keys(
+                &keys::session_submission_prefix("ns", "agent", "session"),
+                None
+            )
+            .await
+            .unwrap()
+            .is_empty());
+        // Rejected duplicates execute no cancellation. An accepted fresh turn
+        // must invalidate that same approval before it is dispatched.
+        crate::sessions::validate_user_confirmation(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            0,
+            "exact reply",
+        )
+        .await
+        .unwrap();
+        send_session_message(
+            &kv,
+            &pubsub,
+            "ns",
+            "agent",
+            "session",
+            input_message("fresh", "cancel"),
+            Utc::now(),
+        )
+        .await
+        .unwrap();
+        assert!(crate::sessions::validate_user_confirmation(
+            &kv,
+            "ns",
+            "agent",
+            "session",
+            0,
+            "exact reply"
+        )
+        .await
+        .is_err());
+        assert!(!pubsub.messages.lock().await.is_empty());
+    }
+
+    #[tokio::test]
+    async fn inbound_turn_paths_reject_non_user_roles_before_admission_or_locking() {
+        let kv = MockKvStore::default();
+        let pubsub = MockPubSub::default();
+        let key = keys::session("ns", "agent", "session");
+        kv.set_msg(
+            &key,
+            &data_proto::Session {
+                id: "session".into(),
+                status: "IDLE".into(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        let before = kv.get(&key).await.unwrap();
+        for role in [
+            data_proto::MessageRole::RoleAssistant,
+            data_proto::MessageRole::RoleSystem,
+        ] {
+            let mut message = input_message("non-user", "cancel");
+            message.role = role as i32;
+            assert!(send_session_message(
+                &kv,
+                &pubsub,
+                "ns",
+                "agent",
+                "session",
+                message.clone(),
+                Utc::now()
+            )
+            .await
+            .unwrap_err()
+            .downcast_ref::<InvalidSessionInputRoleError>()
+            .is_some());
+            assert!(enqueue_session_message_without_dispatch(
+                &kv,
+                &pubsub,
+                "ns",
+                "agent",
+                "session",
+                message.clone(),
+                Utc::now()
+            )
+            .await
+            .unwrap_err()
+            .downcast_ref::<InvalidSessionInputRoleError>()
+            .is_some());
+            assert!(crate::control::session_queue::queue_session_message(
+                &kv,
+                "ns",
+                "agent",
+                "session",
+                crate::control::session_queue::NEXT_QUEUE,
+                message,
+                Utc::now()
+            )
+            .await
+            .unwrap_err()
+            .downcast_ref::<InvalidSessionInputRoleError>()
+            .is_some());
+        }
+        assert_eq!(kv.get(&key).await.unwrap(), before);
+        assert!(pubsub.messages.lock().await.is_empty());
+        assert_eq!(
+            crate::sessions::current_message_admission_order(&kv, "ns", "agent", "session")
+                .await
+                .unwrap(),
+            0
+        );
+        assert!(kv
+            .list_keys(
+                &keys::session_queue_prefix(
+                    "ns",
+                    "agent",
+                    "session",
+                    crate::control::session_queue::NEXT_QUEUE
+                ),
+                None
+            )
+            .await
+            .unwrap()
+            .is_empty());
     }
 
     #[tokio::test]

@@ -586,6 +586,7 @@ async fn run_python_code_tool(
             deadline,
             "Monty mount preparation",
             prepare_code_mounts(
+                config,
                 cp,
                 current_namespace,
                 current_agent,
@@ -877,6 +878,7 @@ async fn run_monty_python(
 }
 
 async fn prepare_code_mounts(
+    config: &Config,
     cp: &ControlPlane,
     current_namespace: &str,
     current_agent: &str,
@@ -932,6 +934,7 @@ async fn prepare_code_mounts(
         }
         let remaining_input_bytes = MAX_CODE_INPUT_BYTES.saturating_sub(total_input_bytes);
         let (bytes, media_type, source_kind) = read_code_mount_source(
+            config,
             cp,
             current_namespace,
             current_agent,
@@ -987,6 +990,7 @@ async fn prepare_code_mounts(
 }
 
 async fn read_code_mount_source(
+    config: &Config,
     cp: &ControlPlane,
     current_namespace: &str,
     current_agent: &str,
@@ -996,14 +1000,15 @@ async fn read_code_mount_source(
     max_bytes: u64,
 ) -> Result<(Vec<u8>, String, &'static str)> {
     if uri.starts_with("file://") {
+        super::dispatch::require_global_capability(config, "files", "read")?;
         require_file_read(spec)?;
         let (namespace, path) = parse_file_uri(uri)?;
-        ensure_file_read_namespace(current_namespace, &namespace)?;
         let namespace = if namespace == "current" {
             current_namespace.to_string()
         } else {
             namespace
         };
+        files::require_file_namespace(spec, current_namespace, &namespace, true)?;
         let file = find_file_by_path(cp, &namespace, &path)
             .await?
             .ok_or_else(|| anyhow!("File '{}' not found", path))?;
@@ -2416,11 +2421,11 @@ mod tests {
     #[test]
     fn file_read_namespace_scope_allows_ancestors_only() {
         let current = "Tenant:team:Workspace:main";
-        ensure_file_read_namespace(current, "current").unwrap();
         for allowed in [current, "Tenant:team:Workspace", "Tenant:team", "Tenant"] {
             ensure_file_read_namespace(current, allowed).unwrap();
         }
         for denied in [
+            "current",
             "Tenant:team:Workspace:other",
             "Tenant:other",
             "Tenant:team:Workspace:main:child",
@@ -2436,12 +2441,89 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn code_file_mount_enforces_deployment_read_gate_before_lookup() {
+        let cp = control_plane(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockScheduler::default()),
+        );
+        let mut spec = code_and_file_spec(&["run"], &["read"]);
+        let grant = code_and_file_spec(&[], &["Tenant:other"])
+            .capabilities
+            .remove("files")
+            .unwrap();
+        spec.capabilities.insert("fileNamespaces".into(), grant);
+        let mut config = Config::default();
+        config.capabilities.insert(
+            "files".into(),
+            CapabilityGate {
+                actions: HashMap::from([("read".into(), false)]),
+            },
+        );
+        for uri in ["file://Tenant:own/data.txt", "file://Tenant:other/data.txt"] {
+            let error = read_code_mount_source(
+                &config,
+                &cp,
+                "Tenant:own",
+                "agent",
+                "session",
+                &spec,
+                uri,
+                MAX_CODE_INPUT_BYTES,
+            )
+            .await
+            .unwrap_err();
+            assert_eq!(
+                error.to_string(),
+                "capability 'files:read' is disabled by deployment configuration"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn code_file_mount_honors_exact_grant_and_current_alias() {
+        let cp = control_plane(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockScheduler::default()),
+        );
+        for ns in ["Tenant:own", "Tenant:other"] {
+            files::create_file_tool(&cp, ns, &json!({"path":"/data.txt", "content":ns}))
+                .await
+                .unwrap();
+        }
+        let mut spec = code_and_file_spec(&["run"], &["read"]);
+        let grant = code_and_file_spec(&[], &["Tenant:other"])
+            .capabilities
+            .remove("files")
+            .unwrap();
+        spec.capabilities.insert("fileNamespaces".into(), grant);
+        for (uri, expected) in [
+            ("file://Tenant:other/data.txt", "Tenant:other"),
+            ("file://current/data.txt", "Tenant:own"),
+        ] {
+            let (bytes, _, _) = read_code_mount_source(
+                &Config::default(),
+                &cp,
+                "Tenant:own",
+                "agent",
+                "session",
+                &spec,
+                uri,
+                MAX_CODE_INPUT_BYTES,
+            )
+            .await
+            .unwrap();
+            assert_eq!(bytes, expected.as_bytes());
+        }
+    }
+
+    #[tokio::test]
     async fn code_file_mount_rejects_non_ancestral_namespace_before_lookup() {
         let cp = control_plane(
             Arc::new(MockKvStore::default()),
             Arc::new(MockScheduler::default()),
         );
         let error = read_code_mount_source(
+            &Config::default(),
             &cp,
             "Tenant:team:Workspace:main",
             "analyst",
@@ -2453,10 +2535,7 @@ mod tests {
         .await
         .unwrap_err()
         .to_string();
-        assert!(
-            error.contains("outside the current namespace ancestry"),
-            "{error}"
-        );
+        assert!(error.contains("file namespace access denied"), "{error}");
 
         let error = execute_tool_for_session(
             &cp,
@@ -2471,10 +2550,7 @@ mod tests {
         .await
         .unwrap_err()
         .to_string();
-        assert!(
-            error.contains("outside the current namespace ancestry"),
-            "{error}"
-        );
+        assert!(error.contains("file namespace access denied"), "{error}");
     }
 
     #[tokio::test]
@@ -2507,6 +2583,7 @@ mod tests {
         let artifact_output: Value = serde_json::from_str(&artifact_output).unwrap();
         let artifact_uri = artifact_output["artifactUri"].as_str().unwrap();
         let denied = read_code_mount_source(
+            &Config::default(),
             &cp,
             namespace,
             reader,
@@ -2539,6 +2616,7 @@ mod tests {
         .unwrap()
         .unwrap();
         let (bytes, media_type, source_kind) = read_code_mount_source(
+            &Config::default(),
             &cp,
             namespace,
             reader,

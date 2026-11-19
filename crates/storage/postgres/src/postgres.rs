@@ -729,6 +729,83 @@ impl KeyValueStore for PostgresKvStore {
         Ok(rows_affected == 1)
     }
 
+    async fn compare_and_swap_batch(
+        &self,
+        operations: &[talon::contracts::KeyValueBatchOperation],
+    ) -> Result<bool> {
+        talon::contracts::validate_key_value_batch(operations)?;
+        if operations.is_empty() {
+            return Ok(true);
+        }
+        let mut operations = operations.iter().collect::<Vec<_>>();
+        operations.sort_by(|a, b| a.key.cmp(&b.key));
+        let mut tx = self.pool.begin().await?;
+        for operation in operations {
+            let key = &operation.key;
+            let absent_check = operation.expected.is_none() && operation.value.is_none();
+            let changed = if let Some(value) = operation
+                .value
+                .as_deref()
+                .or_else(|| absent_check.then_some(&[][..]))
+            {
+                let query = compare_and_swap_query(&self.table, operation.expected.is_some());
+                let request = sqlx::query(&query)
+                    .bind(&key.namespace)
+                    .bind(&key.parent_path)
+                    .bind(&key.kind)
+                    .bind(&key.name)
+                    .bind(value);
+                let request = if let Some(expected) = operation.expected.as_deref() {
+                    request.bind(expected)
+                } else {
+                    request
+                };
+                request.execute(&mut *tx).await?.rows_affected() == 1
+            } else {
+                let query = format!("{} AND value = $5", delete_query(&self.table));
+                sqlx::query(&query)
+                    .bind(&key.namespace)
+                    .bind(&key.parent_path)
+                    .bind(&key.kind)
+                    .bind(&key.name)
+                    .bind(operation.expected.as_deref().unwrap())
+                    .execute(&mut *tx)
+                    .await?
+                    .rows_affected()
+                    == 1
+            };
+            if !changed {
+                tx.rollback().await?;
+                return Ok(false);
+            }
+            if absent_check {
+                sqlx::query(&delete_query(&self.table))
+                    .bind(&key.namespace)
+                    .bind(&key.parent_path)
+                    .bind(&key.kind)
+                    .bind(&key.name)
+                    .execute(&mut *tx)
+                    .await?;
+            }
+        }
+        tx.commit().await?;
+        Ok(true)
+    }
+
+    async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> Result<bool> {
+        let query = format!("{} AND value = $5", delete_query(&self.table));
+        Ok(sqlx::query(&query)
+            .bind(&key.namespace)
+            .bind(&key.parent_path)
+            .bind(&key.kind)
+            .bind(&key.name)
+            .bind(expected)
+            .execute(&self.pool)
+            .await?
+            .rows_affected()
+            == 1)
+    }
+
     async fn delete(&self, key: &ResourceKey) -> Result<()> {
         let query = delete_query(&self.table);
         let span = tracing::debug_span!(
@@ -1044,6 +1121,7 @@ mod tests {
         let pg = PostgresContainer::start("talon-kv-pg");
         let store = init_test_store(&pg.database_url()).await;
 
+        talon::test_support::assert_atomic_batch_conformance(&store).await;
         let missing = keys::session("quickstart", "hello-agent", "missing");
         let a = keys::session("quickstart", "hello-agent", "a");
         let b = keys::session("quickstart", "hello-agent", "b");
@@ -1121,7 +1199,19 @@ mod tests {
             .await
             .unwrap());
 
-        store.delete(&new_key).await.unwrap();
+        assert!(!store.compare_and_delete(&new_key, b"wrong").await.unwrap());
+        assert_eq!(
+            store.get(&new_key).await.unwrap().as_deref(),
+            Some(&b"created"[..])
+        );
+        assert!(store
+            .compare_and_delete(&new_key, b"created")
+            .await
+            .unwrap());
+        assert!(!store
+            .compare_and_delete(&new_key, b"created")
+            .await
+            .unwrap());
         assert!(store.get(&new_key).await.unwrap().is_none());
 
         store.delete(&a).await.unwrap();
