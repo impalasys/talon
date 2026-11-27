@@ -86,6 +86,11 @@ async fn read_response_body_limited(
     mut response: reqwest::Response,
     max_bytes: usize,
 ) -> Result<(String, bool)> {
+    let content_type = response
+        .headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .map(str::to_owned);
     let mut bytes = Vec::new();
     let mut truncated = false;
     while let Some(chunk) = response.chunk().await? {
@@ -104,10 +109,46 @@ async fn read_response_body_limited(
         }
         bytes.extend_from_slice(&chunk);
     }
+    let decoded = decode_response_body(bytes, content_type.as_deref(), truncated);
+    Ok((decoded, truncated))
+}
+
+fn decode_response_body(mut bytes: Vec<u8>, content_type: Option<&str>, truncated: bool) -> String {
+    let bom_encoding = encoding_rs::Encoding::for_bom(&bytes).map(|(enc, _)| enc);
+    let header_encoding = extract_charset(content_type)
+        .and_then(|label| encoding_rs::Encoding::for_label(label.as_bytes()))
+        .unwrap_or(encoding_rs::UTF_8);
+    let effective_encoding = bom_encoding.unwrap_or(header_encoding);
+
     if truncated {
-        trim_incomplete_utf8_tail(&mut bytes);
+        if effective_encoding == encoding_rs::UTF_8 {
+            trim_incomplete_utf8_tail(&mut bytes);
+        } else if (effective_encoding == encoding_rs::UTF_16LE
+            || effective_encoding == encoding_rs::UTF_16BE)
+            && bytes.len() % 2 == 1
+        {
+            bytes.pop();
+        }
     }
-    Ok((String::from_utf8_lossy(&bytes).into_owned(), truncated))
+
+    let (text, _, _) = header_encoding.decode(&bytes);
+    text.into_owned()
+}
+
+fn extract_charset(content_type: Option<&str>) -> Option<&str> {
+    let content_type = content_type?;
+    for param in content_type.split(';').skip(1) {
+        let Some((name, value)) = param.split_once('=') else {
+            continue;
+        };
+        if name.trim().eq_ignore_ascii_case("charset") {
+            let value = value.trim().trim_matches('"').trim_matches('\'').trim();
+            if !value.is_empty() {
+                return Some(value);
+            }
+        }
+    }
+    None
 }
 
 fn trim_incomplete_utf8_tail(bytes: &mut Vec<u8>) {
@@ -551,6 +592,130 @@ mod tests {
             read_response_body_limited(exact_resp, 1024).await.unwrap();
         assert!(!exact_truncated);
         assert_eq!(exact_body, "ééééé");
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn read_response_body_limited_honors_content_type_charset_and_bom() {
+        use axum::http::header;
+
+        // "Café — €10" in Windows-1252 (also tests ISO-8859-1 label mapping per WHATWG).
+        let (win1252_bytes, _, _) = encoding_rs::WINDOWS_1252.encode("<title>Café — €10</title>");
+        let win1252_bytes = win1252_bytes.into_owned();
+
+        // UTF-16LE with BOM (no charset header -> must sniff BOM).
+        let mut utf16le_bom = vec![0xFF, 0xFE];
+        for unit in "<title>Résumé</title>".encode_utf16() {
+            utf16le_bom.extend_from_slice(&unit.to_le_bytes());
+        }
+
+        // UTF-16BE with explicit charset header and no BOM.
+        let mut utf16be_nobom = Vec::new();
+        for unit in "Hello 日本語".encode_utf16() {
+            utf16be_nobom.extend_from_slice(&unit.to_be_bytes());
+        }
+
+        // UTF-8 with BOM (must strip BOM).
+        let mut utf8_bom = vec![0xEF, 0xBB, 0xBF];
+        utf8_bom.extend_from_slice("Plain UTF-8".as_bytes());
+
+        let app = Router::new()
+            .route(
+                "/latin1",
+                get({
+                    let body = win1252_bytes.clone();
+                    move || async move {
+                        (
+                            [(header::CONTENT_TYPE, "text/html; charset=\"ISO-8859-1\"")],
+                            body,
+                        )
+                    }
+                }),
+            )
+            .route(
+                "/utf16le-bom",
+                get({
+                    let body = utf16le_bom.clone();
+                    move || async move { ([(header::CONTENT_TYPE, "text/html")], body) }
+                }),
+            )
+            .route(
+                "/utf16be",
+                get({
+                    let body = utf16be_nobom.clone();
+                    move || async move {
+                        (
+                            [(header::CONTENT_TYPE, "text/plain; charset=UTF-16BE")],
+                            body,
+                        )
+                    }
+                }),
+            )
+            .route(
+                "/utf8-bom",
+                get({
+                    let body = utf8_bom.clone();
+                    move || async move { ([(header::CONTENT_TYPE, "text/plain")], body) }
+                }),
+            );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            let _ = axum::serve(listener, app).await;
+        });
+
+        let client = reqwest::Client::new();
+
+        let resp = client
+            .get(format!("http://{addr}/latin1"))
+            .send()
+            .await
+            .unwrap();
+        let (body, truncated) = read_response_body_limited(resp, 1024).await.unwrap();
+        assert!(!truncated);
+        assert_eq!(body, "<title>Café — €10</title>");
+        assert_eq!(extract_title(&body), "Café — €10");
+
+        let resp = client
+            .get(format!("http://{addr}/utf16le-bom"))
+            .send()
+            .await
+            .unwrap();
+        let (body, truncated) = read_response_body_limited(resp, 1024).await.unwrap();
+        assert!(!truncated);
+        assert_eq!(body, "<title>Résumé</title>");
+        assert_eq!(extract_title(&body), "Résumé");
+
+        // Truncating UTF-16LE on an odd byte boundary should trim the orphan byte cleanly.
+        let resp = client
+            .get(format!("http://{addr}/utf16le-bom"))
+            .send()
+            .await
+            .unwrap();
+        // 2-byte BOM + 2 bytes per char * 7 chars ("<title>") = 16 bytes; cap at 17 -> trim to 16.
+        let (body, truncated) = read_response_body_limited(resp, 17).await.unwrap();
+        assert!(truncated);
+        assert_eq!(body, "<title>");
+
+        let resp = client
+            .get(format!("http://{addr}/utf16be"))
+            .send()
+            .await
+            .unwrap();
+        let (body, truncated) = read_response_body_limited(resp, 1024).await.unwrap();
+        assert!(!truncated);
+        assert_eq!(body, "Hello 日本語");
+
+        let resp = client
+            .get(format!("http://{addr}/utf8-bom"))
+            .send()
+            .await
+            .unwrap();
+        let (body, truncated) = read_response_body_limited(resp, 1024).await.unwrap();
+        assert!(!truncated);
+        assert_eq!(body, "Plain UTF-8");
 
         server.abort();
     }
