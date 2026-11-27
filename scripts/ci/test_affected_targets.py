@@ -87,7 +87,7 @@ class SelectionTest(unittest.TestCase):
 
     def test_configuration_changes_include_android_and_new_targets(self):
         for path in ["MODULE.bazel", "MODULE.bazel.lock", ".bazelversion", ".bazelrc.local", "rules.bzl", "scripts/ci/runner.sh",
-                     "Cargo.lock", "Cargo.toml", "tools/bazel/requirements.lock", "tools/bazel/maven_install.json",
+                     "Cargo.lock", "Cargo.toml", "tools/bazel/requirements.lock", "tools/bazel/requirements.txt", "tests/requirements.txt", "tools/bazel/maven_install.json",
                      "go.work", "go.work.sum", "sdk/go/talon-client/go.mod", "sdk/go/talon-client/go.sum", ".bazelignore"]:
             file = self.root / path
             file.parent.mkdir(parents=True, exist_ok=True)
