@@ -18,18 +18,82 @@ use talon::protocol::resources_proto;
 use talon::protocol::worker_proto;
 use tokio::net::UnixStream;
 use tokio::sync::Mutex;
+use tonic::service::interceptor::InterceptedService;
 use tonic::transport::{Channel, Endpoint, Uri};
 use tower::service_fn;
 use url::Url;
 
-#[derive(Default)]
+#[derive(Clone, Debug)]
+pub struct WorkerGrpcAuthInterceptor {
+    require_platform_jwt: bool,
+}
+
+impl tonic::service::Interceptor for WorkerGrpcAuthInterceptor {
+    fn call(
+        &mut self,
+        mut request: tonic::Request<()>,
+    ) -> std::result::Result<tonic::Request<()>, tonic::Status> {
+        let token = match (
+            talon::security::platform_jwt::load_key(),
+            talon::security::platform_jwt::issuer(),
+        ) {
+            (Ok(key), Ok(issuer)) => talon::security::platform_jwt::mint_worker_grpc_token(
+                &key,
+                &issuer,
+                "talon-gateway",
+                talon::security::platform_jwt::DEFAULT_WORKER_GRPC_TOKEN_TTL_SECONDS,
+            )
+            .map_err(|err| {
+                tonic::Status::internal(format!("failed to mint worker gRPC auth token: {err}"))
+            })?,
+            (Err(err), _) | (_, Err(err)) => {
+                if self.require_platform_jwt {
+                    return Err(tonic::Status::internal(format!(
+                        "worker gRPC auth is not configured: {err}"
+                    )));
+                }
+                return Ok(request);
+            }
+        };
+        let header_value = tonic::metadata::MetadataValue::try_from(format!("Bearer {token}"))
+            .map_err(|err| {
+                tonic::Status::internal(format!("failed to encode worker gRPC auth header: {err}"))
+            })?;
+        request.metadata_mut().insert("authorization", header_value);
+        Ok(request)
+    }
+}
+
 pub struct WorkerConnectionPool {
     channels: Mutex<HashMap<String, Channel>>,
+    require_platform_jwt: bool,
+}
+
+impl Default for WorkerConnectionPool {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl WorkerConnectionPool {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            channels: Mutex::new(HashMap::new()),
+            require_platform_jwt: true,
+        }
+    }
+
+    pub(crate) fn new_unauthenticated() -> Self {
+        Self {
+            channels: Mutex::new(HashMap::new()),
+            require_platform_jwt: false,
+        }
+    }
+
+    fn auth_interceptor(&self) -> WorkerGrpcAuthInterceptor {
+        WorkerGrpcAuthInterceptor {
+            require_platform_jwt: self.require_platform_jwt,
+        }
     }
 
     pub async fn worker_endpoints(
@@ -67,12 +131,15 @@ impl WorkerConnectionPool {
         &self,
         endpoint: &resources_proto::WorkerEndpoint,
     ) -> std::result::Result<
-        worker_proto::fanout_service_client::FanoutServiceClient<Channel>,
+        worker_proto::fanout_service_client::FanoutServiceClient<
+            InterceptedService<Channel, WorkerGrpcAuthInterceptor>,
+        >,
         tonic::Status,
     > {
         Ok(
-            worker_proto::fanout_service_client::FanoutServiceClient::new(
+            worker_proto::fanout_service_client::FanoutServiceClient::with_interceptor(
                 self.channel(endpoint).await?,
+                self.auth_interceptor(),
             ),
         )
     }
@@ -81,12 +148,15 @@ impl WorkerConnectionPool {
         &self,
         endpoint: &resources_proto::WorkerEndpoint,
     ) -> std::result::Result<
-        worker_proto::session_control_service_client::SessionControlServiceClient<Channel>,
+        worker_proto::session_control_service_client::SessionControlServiceClient<
+            InterceptedService<Channel, WorkerGrpcAuthInterceptor>,
+        >,
         tonic::Status,
     > {
         Ok(
-            worker_proto::session_control_service_client::SessionControlServiceClient::new(
+            worker_proto::session_control_service_client::SessionControlServiceClient::with_interceptor(
                 self.channel(endpoint).await?,
+                self.auth_interceptor(),
             ),
         )
     }
@@ -148,5 +218,128 @@ impl WorkerConnectionPool {
     #[cfg(test)]
     pub async fn cached_channel_count(&self) -> usize {
         self.channels.lock().await.len()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use talon::security::platform_jwt;
+    use talon::session_control::{SessionCancellationRegistry, SessionControlServiceImpl};
+    use tempfile::tempdir;
+    use tokio::net::UnixListener;
+    use tokio_stream::wrappers::UnixListenerStream;
+    use tokio_util::sync::CancellationToken;
+    use tonic::transport::Server;
+
+    const TEST_RSA_PRIVATE_KEY: &str = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../src/control/security/test_rsa_private_key.pem"
+    ));
+
+    struct EnvGuard {
+        key: &'static str,
+        previous: Option<std::ffi::OsString>,
+    }
+
+    impl EnvGuard {
+        fn set(key: &'static str, value: &str) -> Self {
+            let previous = std::env::var_os(key);
+            unsafe {
+                std::env::set_var(key, value);
+            }
+            Self { key, previous }
+        }
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            unsafe {
+                if let Some(previous) = &self.previous {
+                    std::env::set_var(self.key, previous);
+                } else {
+                    std::env::remove_var(self.key);
+                }
+            }
+        }
+    }
+
+    fn require_worker_grpc_auth(
+        request: tonic::Request<()>,
+    ) -> std::result::Result<tonic::Request<()>, tonic::Status> {
+        let auth_header = request
+            .metadata()
+            .get("authorization")
+            .and_then(|v| v.to_str().ok());
+        platform_jwt::authorize_worker_grpc_authorization_header(auth_header)
+            .map_err(|_| tonic::Status::unauthenticated("unauthorized worker gRPC request"))?;
+        Ok(request)
+    }
+
+    #[tokio::test]
+    async fn authenticated_pool_attaches_valid_worker_grpc_jwt() {
+        let _env_lock = crate::test_support::async_env_mutex().lock().await;
+        let _key = EnvGuard::set(
+            platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+            TEST_RSA_PRIVATE_KEY,
+        );
+        let _issuer = EnvGuard::set(
+            platform_jwt::TALON_JWT_ISSUER_ENV,
+            "https://talon.localhost",
+        );
+
+        let dir = tempdir().unwrap();
+        let socket_path = dir.path().join("worker-auth.sock");
+        let listener = UnixListener::bind(&socket_path).unwrap();
+        let shutdown = CancellationToken::new();
+        let registry = Arc::new(SessionCancellationRegistry::default());
+        let service =
+            worker_proto::session_control_service_server::SessionControlServiceServer::with_interceptor(
+                SessionControlServiceImpl::new(registry),
+                require_worker_grpc_auth,
+            );
+        let server = tokio::spawn(
+            Server::builder()
+                .add_service(service)
+                .serve_with_incoming_shutdown(
+                    UnixListenerStream::new(listener),
+                    shutdown.clone().cancelled_owned(),
+                ),
+        );
+
+        let endpoint = resources_proto::WorkerEndpoint {
+            url: format!("unix://{}", socket_path.display()),
+            protocol: "grpc".to_string(),
+            audience: String::new(),
+        };
+
+        let pool = WorkerConnectionPool::new();
+        let mut client = pool.session_control_client(&endpoint).await.unwrap();
+        let response = client
+            .cancel_session_generation(worker_proto::CancelSessionGenerationRequest {
+                ns: "default".into(),
+                agent: "assistant".into(),
+                session_id: "s1".into(),
+                submission_id: "sub1".into(),
+                attempt_id: "att1".into(),
+            })
+            .await
+            .expect("authenticated worker gRPC call should succeed");
+        assert!(!response.into_inner().cancelled);
+
+        // Raw unauthenticated client must be rejected by the interceptor.
+        let raw_channel = pool.channel(&endpoint).await.unwrap();
+        let mut raw_client =
+            worker_proto::session_control_service_client::SessionControlServiceClient::new(
+                raw_channel,
+            );
+        let err = raw_client
+            .cancel_session_generation(worker_proto::CancelSessionGenerationRequest::default())
+            .await
+            .expect_err("unauthenticated worker gRPC call must fail");
+        assert_eq!(err.code(), tonic::Code::Unauthenticated);
+
+        shutdown.cancel();
+        let _ = server.await;
     }
 }

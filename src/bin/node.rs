@@ -152,6 +152,21 @@ async fn prepare_worker_socket(path: &Path) -> Result<()> {
     Ok(())
 }
 
+fn authorize_worker_grpc_request(
+    request: tonic::Request<()>,
+) -> std::result::Result<tonic::Request<()>, tonic::Status> {
+    let auth_header = request
+        .metadata()
+        .get("authorization")
+        .and_then(|value| value.to_str().ok());
+    talon::security::platform_jwt::authorize_worker_grpc_authorization_header(auth_header)
+        .map_err(|err| {
+            tracing::warn!(error = %err, "Rejected unauthorized node worker gRPC request");
+            tonic::Status::unauthenticated("unauthorized worker gRPC request")
+        })?;
+    Ok(request)
+}
+
 async fn serve_worker_fanout_socket(
     socket_path: PathBuf,
     fanout_hub: Arc<FanoutHub>,
@@ -166,12 +181,15 @@ async fn serve_worker_fanout_socket(
         )
     })?;
     let incoming = UnixListenerStream::new(listener);
-    let service = talon::protocol::worker_proto::fanout_service_server::FanoutServiceServer::new(
-        talon::worker::fanout::FanoutServiceImpl::new(fanout_hub),
-    );
+    let service =
+        talon::protocol::worker_proto::fanout_service_server::FanoutServiceServer::with_interceptor(
+            talon::worker::fanout::FanoutServiceImpl::new(fanout_hub),
+            authorize_worker_grpc_request,
+        );
     let control_service =
-        talon::protocol::worker_proto::session_control_service_server::SessionControlServiceServer::new(
+        talon::protocol::worker_proto::session_control_service_server::SessionControlServiceServer::with_interceptor(
             talon::worker::session_control::SessionControlServiceImpl::new(cancellations),
+            authorize_worker_grpc_request,
         );
     tracing::info!(
         endpoint = %format!("unix://{}", socket_path.display()),

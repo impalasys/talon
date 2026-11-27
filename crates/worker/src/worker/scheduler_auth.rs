@@ -16,6 +16,80 @@ use std::{
 
 const GOOGLE_OIDC_CERTS_TTL: Duration = Duration::from_secs(60 * 60);
 const GOOGLE_OIDC_HTTP_TIMEOUT: Duration = Duration::from_secs(10);
+pub const PUBSUB_PUSH_AUTH_HEADER: &str = "x-talon-pubsub-token";
+
+#[derive(Clone)]
+pub enum PubSubPushAuthenticator {
+    SharedSecret {
+        token: String,
+    },
+    GoogleOidc {
+        audience: String,
+        service_account_email: Option<String>,
+    },
+    DenyAll,
+}
+
+impl PubSubPushAuthenticator {
+    pub fn from_env(pull_mode: bool) -> Self {
+        Self::from_env_for_mode(pull_mode, |name| std::env::var(name).ok())
+    }
+
+    pub fn from_env_for_mode<F>(pull_mode: bool, get: F) -> Self
+    where
+        F: Fn(&str) -> Option<String>,
+    {
+        if pull_mode {
+            return Self::deny_all();
+        }
+
+        if let Some(token) = get("TALON_PUBSUB_PUSH_AUTH_TOKEN").and_then(non_empty) {
+            return Self::shared_secret(token);
+        }
+
+        if let Some(audience) = get("TALON_PUBSUB_PUSH_AUDIENCE").and_then(non_empty) {
+            return Self::google_oidc(
+                audience,
+                get("TALON_PUBSUB_PUSH_SERVICE_ACCOUNT_EMAIL").and_then(non_empty),
+            );
+        }
+
+        Self::deny_all()
+    }
+
+    pub fn deny_all() -> Self {
+        Self::DenyAll
+    }
+
+    pub fn shared_secret(token: String) -> Self {
+        Self::SharedSecret { token }
+    }
+
+    pub fn google_oidc(audience: String, service_account_email: Option<String>) -> Self {
+        Self::GoogleOidc {
+            audience,
+            service_account_email,
+        }
+    }
+
+    pub async fn authorize(&self, headers: &HeaderMap) -> Result<()> {
+        match self {
+            Self::SharedSecret { token } => authorize_shared_secret_with_header(
+                headers,
+                token,
+                PUBSUB_PUSH_AUTH_HEADER,
+                "invalid pubsub push shared secret",
+            ),
+            Self::GoogleOidc {
+                audience,
+                service_account_email,
+            } => authorize_google_oidc(headers, audience, service_account_email.as_deref()).await,
+            Self::DenyAll => Err(anyhow!(
+                "pubsub push authentication is not configured or disabled in pull mode"
+            )),
+        }
+    }
+}
 
 #[derive(Clone)]
 pub enum SchedulerRequestAuthenticator {
@@ -123,20 +197,47 @@ fn non_empty(value: String) -> Option<String> {
     }
 }
 
+fn constant_time_eq(a: &str, b: &str) -> bool {
+    let a = a.as_bytes();
+    let b = b.as_bytes();
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut diff = 0u8;
+    for (&lhs, &rhs) in a.iter().zip(b.iter()) {
+        diff |= lhs ^ rhs;
+    }
+    diff == 0
+}
+
 fn authorize_shared_secret(headers: &HeaderMap, expected_token: &str) -> Result<()> {
+    authorize_shared_secret_with_header(
+        headers,
+        expected_token,
+        talon::control::scheduler::SCHEDULER_AUTH_HEADER,
+        "invalid scheduler shared secret",
+    )
+}
+
+fn authorize_shared_secret_with_header(
+    headers: &HeaderMap,
+    expected_token: &str,
+    custom_header: &str,
+    error_message: &str,
+) -> Result<()> {
     let auth_header = headers
         .get(header::AUTHORIZATION)
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "));
-    let scheduler_header = headers
-        .get(talon::control::scheduler::SCHEDULER_AUTH_HEADER)
-        .and_then(|v| v.to_str().ok());
+    let custom_value = headers.get(custom_header).and_then(|v| v.to_str().ok());
 
-    if auth_header == Some(expected_token) || scheduler_header == Some(expected_token) {
+    if auth_header.is_some_and(|candidate| constant_time_eq(candidate, expected_token))
+        || custom_value.is_some_and(|candidate| constant_time_eq(candidate, expected_token))
+    {
         return Ok(());
     }
 
-    Err(anyhow!("invalid scheduler shared secret"))
+    Err(anyhow!("{error_message}"))
 }
 
 async fn authorize_google_oidc(
@@ -272,7 +373,8 @@ mod tests {
 
     use super::{
         authorize_shared_secret, google_oidc_certs_cache, load_google_oidc_decoding_key, non_empty,
-        CachedGoogleOidcCerts, SchedulerRequestAuthenticator,
+        CachedGoogleOidcCerts, PubSubPushAuthenticator, SchedulerRequestAuthenticator,
+        PUBSUB_PUSH_AUTH_HEADER,
     };
     use axum::http::{header, HeaderMap, HeaderValue};
     use jsonwebtoken::{encode, Algorithm, DecodingKey, EncodingKey, Header};
@@ -590,6 +692,77 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
             .await
             .expect("expected cached key lookup to succeed");
 
+        clear_google_oidc_cache().await;
+    }
+
+    #[tokio::test]
+    async fn pubsub_push_authenticator_denies_by_default_and_in_pull_mode() {
+        let pull_auth = PubSubPushAuthenticator::from_env_for_mode(true, |name| match name {
+            "TALON_PUBSUB_PUSH_AUTH_TOKEN" => Some("push-secret".to_string()),
+            _ => None,
+        });
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("Bearer push-secret"),
+        );
+        assert!(pull_auth.authorize(&headers).await.is_err());
+
+        let unconfigured = PubSubPushAuthenticator::from_env_for_mode(false, |_| None);
+        assert!(unconfigured.authorize(&headers).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn pubsub_push_authenticator_accepts_shared_secret_and_google_oidc() {
+        let shared = PubSubPushAuthenticator::from_env_for_mode(false, |name| match name {
+            "TALON_PUBSUB_PUSH_AUTH_TOKEN" => Some("push-secret".to_string()),
+            _ => None,
+        });
+        let mut bearer_headers = HeaderMap::new();
+        bearer_headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("Bearer push-secret"),
+        );
+        shared.authorize(&bearer_headers).await.unwrap();
+
+        let mut custom_headers = HeaderMap::new();
+        custom_headers.insert(
+            PUBSUB_PUSH_AUTH_HEADER,
+            HeaderValue::from_static("push-secret"),
+        );
+        shared.authorize(&custom_headers).await.unwrap();
+
+        let mut wrong_headers = HeaderMap::new();
+        wrong_headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("Bearer wrong"),
+        );
+        assert!(shared.authorize(&wrong_headers).await.is_err());
+
+        let _guard = oidc_cache_mutex().lock().unwrap();
+        clear_google_oidc_cache().await;
+        let kid = "kid-push";
+        seed_google_oidc_cache(kid).await;
+
+        let oidc = PubSubPushAuthenticator::from_env_for_mode(false, |name| match name {
+            "TALON_PUBSUB_PUSH_AUDIENCE" => Some("https://worker.example.com/pubsub/push".into()),
+            "TALON_PUBSUB_PUSH_SERVICE_ACCOUNT_EMAIL" => {
+                Some("pubsub@example.iam.gserviceaccount.com".into())
+            }
+            _ => None,
+        });
+        let token = signed_google_oidc_token(
+            kid,
+            "https://worker.example.com/pubsub/push",
+            Some("pubsub@example.iam.gserviceaccount.com"),
+            Some(true),
+        );
+        let mut oidc_headers = HeaderMap::new();
+        oidc_headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
+        );
+        oidc.authorize(&oidc_headers).await.unwrap();
         clear_google_oidc_cache().await;
     }
 }
