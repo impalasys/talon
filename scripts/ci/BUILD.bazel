@@ -10,6 +10,7 @@ py_test(
     ],
     data = [
         "linux-pilot-packages.txt",
+        "linux-pilot-setup.sh",
         "//:.bazelversion",
     ],
     imports = ["."],
