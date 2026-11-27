@@ -335,6 +335,24 @@ struct PushWebhookState {
     authenticator: Arc<PubSubPushAuthenticator>,
 }
 
+struct AuthorizedPubSubPush;
+
+#[async_trait::async_trait]
+impl axum::extract::FromRequestParts<PushWebhookState> for AuthorizedPubSubPush {
+    type Rejection = StatusCode;
+
+    async fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        state: &PushWebhookState,
+    ) -> std::result::Result<Self, Self::Rejection> {
+        if let Err(err) = state.authenticator.authorize(&parts.headers).await {
+            tracing::warn!(error = %err, "Rejected Pub/Sub push webhook request");
+            return Err(StatusCode::UNAUTHORIZED);
+        }
+        Ok(Self)
+    }
+}
+
 fn authorize_worker_grpc_request(
     request: tonic::Request<()>,
 ) -> std::result::Result<tonic::Request<()>, tonic::Status> {
@@ -1395,15 +1413,10 @@ where
 }
 
 async fn push_webhook(
+    _authorized: AuthorizedPubSubPush,
     State(state): State<PushWebhookState>,
-    headers: HeaderMap,
     body: Bytes,
 ) -> impl IntoResponse {
-    if let Err(err) = state.authenticator.authorize(&headers).await {
-        tracing::warn!(error = %err, "Rejected Pub/Sub push webhook request");
-        return axum::http::StatusCode::UNAUTHORIZED;
-    }
-
     if let Ok(parsed) = serde_json::from_slice::<GcpPushPayload>(&body) {
         use base64::engine::general_purpose;
         use base64::Engine as _;
@@ -1540,6 +1553,7 @@ mod tests {
     use super::worker_port;
     use super::worker_router;
     use super::worker_router_with_push_auth;
+    use super::AuthorizedPubSubPush;
     use super::PullSubscriptionBackend;
     use super::PushWebhookState;
     use super::ResolvedPullSubscriptionSpec;
@@ -2185,22 +2199,18 @@ mod tests {
             .expect_err("unauthenticated FanoutService call must fail");
         assert_eq!(err.code(), tonic::Code::Unauthenticated);
 
-        // Wrong-audience platform JWT (gateway audience) must be rejected.
+        // Wrong-audience platform JWT with an otherwise complete WorkerGrpcClaims
+        // payload (differing only in `aud`) must be rejected.
         let key = platform_jwt::load_key().unwrap();
         let issuer = platform_jwt::issuer().unwrap();
-        #[derive(serde::Serialize)]
-        struct WrongAudienceClaims {
-            iss: String,
-            sub: String,
-            aud: String,
-            exp: usize,
-        }
+        let now = chrono::Utc::now().timestamp() as usize;
         let gateway_token = key
-            .sign(&WrongAudienceClaims {
+            .sign(&platform_jwt::WorkerGrpcClaims {
                 iss: issuer.clone(),
-                sub: "user".into(),
+                sub: "talon-gateway".into(),
                 aud: platform_jwt::TALON_GATEWAY_AUDIENCE.into(),
-                exp: (chrono::Utc::now() + chrono::Duration::minutes(5)).timestamp() as usize,
+                iat: now,
+                exp: now + 300,
             })
             .unwrap();
         let mut wrong_aud_req = tonic::Request::new(
@@ -2242,6 +2252,62 @@ mod tests {
         let _ = server.await;
     }
 
+    #[tokio::test]
+    async fn push_webhook_rejects_unauthenticated_requests_before_body_buffering() {
+        let oversized_body = vec![b'x'; 3 * 1024 * 1024];
+
+        let denied_app =
+            worker_router(handler_with_auth(SchedulerRequestAuthenticator::deny_all()));
+        let denied = denied_app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/pubsub/push")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(axum::body::Body::from(oversized_body.clone()))
+                    .unwrap(),
+            )
+            .await
+            .expect("request should succeed");
+        assert_eq!(denied.status(), StatusCode::UNAUTHORIZED);
+
+        let shared_app = worker_router_with_push_auth(
+            handler_with_auth(SchedulerRequestAuthenticator::deny_all()),
+            Arc::new(PubSubPushAuthenticator::shared_secret(
+                "push-secret".to_string(),
+            )),
+        );
+        let wrong_secret = shared_app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/pubsub/push")
+                    .header(header::AUTHORIZATION, "Bearer wrong-secret")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(axum::body::Body::from(oversized_body.clone()))
+                    .unwrap(),
+            )
+            .await
+            .expect("request should succeed");
+        assert_eq!(wrong_secret.status(), StatusCode::UNAUTHORIZED);
+
+        // Authenticated oversized bodies still hit Axum's bounded body limit (413).
+        let oversized_authed = shared_app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/pubsub/push")
+                    .header(header::AUTHORIZATION, "Bearer push-secret")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(axum::body::Body::from(oversized_body))
+                    .unwrap(),
+            )
+            .await
+            .expect("request should succeed");
+        assert_eq!(oversized_authed.status(), StatusCode::PAYLOAD_TOO_LARGE);
+    }
+
     fn push_state(authenticator: PubSubPushAuthenticator) -> PushWebhookState {
         PushWebhookState {
             handler: handler_with_auth(SchedulerRequestAuthenticator::deny_all()),
@@ -2249,48 +2315,13 @@ mod tests {
         }
     }
 
-    fn push_auth_headers(token: &str) -> HeaderMap {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            header::AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
-        );
-        headers
-    }
-
-    #[tokio::test]
-    async fn push_webhook_rejects_unauthenticated_requests() {
-        let denied = push_webhook(
-            State(push_state(PubSubPushAuthenticator::deny_all())),
-            HeaderMap::new(),
-            Bytes::from_static(br#"{"unexpected":true}"#),
-        )
-        .await
-        .into_response();
-        assert_eq!(denied.status(), StatusCode::UNAUTHORIZED);
-
-        let wrong_secret = push_webhook(
-            State(push_state(PubSubPushAuthenticator::shared_secret(
-                "push-secret".to_string(),
-            ))),
-            push_auth_headers("wrong-secret"),
-            Bytes::from_static(br#"{"unexpected":true}"#),
-        )
-        .await
-        .into_response();
-        assert_eq!(wrong_secret.status(), StatusCode::UNAUTHORIZED);
-    }
-
     #[tokio::test]
     async fn push_webhook_rejects_invalid_payload_shapes_and_base64() {
-        let state = push_state(PubSubPushAuthenticator::shared_secret(
-            "push-secret".to_string(),
-        ));
-        let headers = push_auth_headers("push-secret");
+        let state = push_state(PubSubPushAuthenticator::deny_all());
 
         let invalid_shape = push_webhook(
+            AuthorizedPubSubPush,
             State(state.clone()),
-            headers.clone(),
             Bytes::from_static(br#"{"unexpected":true}"#),
         )
         .await
@@ -2302,8 +2333,8 @@ mod tests {
             "subscription": "projects/test/subscriptions/unknown"
         });
         let invalid_base64 = push_webhook(
+            AuthorizedPubSubPush,
             State(state),
-            headers,
             Bytes::from(serde_json::to_vec(&invalid_base64_payload).unwrap()),
         )
         .await
@@ -2313,9 +2344,7 @@ mod tests {
 
     #[tokio::test]
     async fn push_webhook_dispatches_known_lifecycle_events() {
-        let state = push_state(PubSubPushAuthenticator::shared_secret(
-            "push-secret".to_string(),
-        ));
+        let state = push_state(PubSubPushAuthenticator::deny_all());
         let event = LifecycleEvent {
             resource_type: "McpServer".to_string(),
             name: "server-1".to_string(),
@@ -2332,8 +2361,8 @@ mod tests {
         });
 
         let response = push_webhook(
+            AuthorizedPubSubPush,
             State(state),
-            push_auth_headers("push-secret"),
             Bytes::from(serde_json::to_vec(&payload).unwrap()),
         )
         .await
@@ -2343,9 +2372,7 @@ mod tests {
 
     #[tokio::test]
     async fn push_webhook_surfaces_dispatch_failures_as_internal_errors() {
-        let state = push_state(PubSubPushAuthenticator::shared_secret(
-            "push-secret".to_string(),
-        ));
+        let state = push_state(PubSubPushAuthenticator::deny_all());
         let payload = json!({
             "message": {
                 "data": general_purpose::STANDARD.encode(b"not-a-protobuf"),
@@ -2358,8 +2385,8 @@ mod tests {
         });
 
         let response = push_webhook(
+            AuthorizedPubSubPush,
             State(state),
-            push_auth_headers("push-secret"),
             Bytes::from(serde_json::to_vec(&payload).unwrap()),
         )
         .await

@@ -393,17 +393,22 @@ GstIYNA4dYolNw==
         assert_eq!(claims.sub, "talon-gateway");
         assert_eq!(claims.aud, TALON_WORKER_GRPC_AUDIENCE);
 
-        // Gateway-audience token must not be accepted as a worker gRPC token.
+        // Gateway-audience token with an otherwise complete WorkerGrpcClaims set
+        // must fail specifically on audience validation.
         let gateway_token = key
-            .sign(&TestClaims {
+            .sign(&WorkerGrpcClaims {
                 iss: "https://talon.example.com".to_string(),
-                sub: "user".to_string(),
+                sub: "talon-gateway".to_string(),
                 aud: TALON_GATEWAY_AUDIENCE.to_string(),
-                exp: 4_102_444_800,
+                iat: claims.iat,
+                exp: claims.exp,
             })
             .unwrap();
+        let err = verify_worker_grpc_token(&key, "https://talon.example.com", &gateway_token)
+            .unwrap_err();
         assert!(
-            verify_worker_grpc_token(&key, "https://talon.example.com", &gateway_token).is_err()
+            err.to_string().contains("InvalidAudience"),
+            "expected InvalidAudience error, got: {err}"
         );
     }
 
