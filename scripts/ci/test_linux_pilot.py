@@ -4,6 +4,7 @@ import io
 import json
 import os
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -189,6 +190,83 @@ class PilotTest(unittest.TestCase):
             bb = self.write_result(root, "buildbuddy", 5, success=False)
             with self.assertRaisesRegex(SystemExit, "unsuccessful run"):
                 pilot.compare(argparse.Namespace(results=[gh, bb]))
+
+    def test_linux_pilot_setup_uses_isolated_ubuntu_snapshot_sources(self):
+        script = Path("scripts/ci/linux-pilot-setup.sh").resolve()
+        packages = Path("scripts/ci/linux-pilot-packages.txt").resolve()
+        syntax = subprocess.run(["bash", "-n", str(script)], text=True, capture_output=True)
+        self.assertEqual(syntax.returncode, 0, syntax.stderr)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "scripts/ci").mkdir(parents=True)
+            (root / "scripts/ci/linux-pilot-packages.txt").write_text(packages.read_text())
+            os_release = root / "os-release"
+            os_release.write_text(
+                'ID=ubuntu\nVERSION_ID="24.04"\nPRETTY_NAME="Ubuntu 24.04.5 LTS"\n'
+            )
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            calls_log = root / "calls.jsonl"
+            captured_sources = root / "captured-sources.list"
+            captured_prefs = root / "captured-prefs.pref"
+
+            (fake_bin / "uname").write_text("#!/bin/sh\necho x86_64\n")
+            (fake_bin / "uname").chmod(0o755)
+            (fake_bin / "dpkg-query").write_text(
+                "#!/bin/sh\n"
+                'if [ "${3:-}" = "ca-certificates" ]; then echo "install ok installed"; exit 0; fi\n'
+                "exit 1\n"
+            )
+            (fake_bin / "dpkg-query").chmod(0o755)
+            (fake_bin / "sudo").write_text(
+                "#!/usr/bin/env python3\n"
+                "import json, os, shutil, sys\n"
+                "args = sys.argv[1:]\n"
+                "with open(os.environ['CALLS_LOG'], 'a') as fh:\n"
+                "    fh.write(json.dumps(args) + '\\n')\n"
+                "for arg in args:\n"
+                "    if arg.startswith('Dir::Etc::sourcelist='):\n"
+                "        shutil.copyfile(arg.split('=', 1)[1], os.environ['CAPTURED_SOURCES'])\n"
+                "    if arg.startswith('Dir::Etc::preferences='):\n"
+                "        shutil.copyfile(arg.split('=', 1)[1], os.environ['CAPTURED_PREFS'])\n"
+            )
+            (fake_bin / "sudo").chmod(0o755)
+
+            env = dict(
+                os.environ,
+                PATH=f"{fake_bin}:{os.environ['PATH']}",
+                TALON_OS_RELEASE_PATH=str(os_release),
+                CALLS_LOG=str(calls_log),
+                CAPTURED_SOURCES=str(captured_sources),
+                CAPTURED_PREFS=str(captured_prefs),
+            )
+            result = subprocess.run(
+                ["bash", str(script)],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+            calls = [json.loads(line) for line in calls_log.read_text().splitlines()]
+            self.assertEqual(len(calls), 2)
+            self.assertIn("update", calls[0])
+            self.assertIn("install", calls[1])
+            self.assertTrue(any(a.startswith("Dir::Etc::sourceparts=") and a.endswith("/empty.d") for a in calls[0]))
+            self.assertTrue(any(a.startswith("Dir::Etc::preferencesparts=") and a.endswith("/empty.d") for a in calls[0]))
+            self.assertIn("Acquire::Check-Valid-Until=false", calls[0])
+            self.assertIn("--allow-downgrades", calls[1])
+            self.assertIn("linux-libc-dev=6.8.0-149.149", calls[1])
+
+            sources_text = captured_sources.read_text()
+            self.assertIn("https://snapshot.ubuntu.com/ubuntu/20261116T000000Z noble ", sources_text)
+            self.assertIn("https://snapshot.ubuntu.com/ubuntu/20261116T000000Z noble-updates ", sources_text)
+            self.assertIn("https://snapshot.ubuntu.com/ubuntu/20261116T000000Z noble-security ", sources_text)
+            self.assertIn("signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg", sources_text)
+            self.assertIn("Pin-Priority: 1001", captured_prefs.read_text())
+            self.assertIn("startup --host_jvm_args=-Xmx4g", (root / ".bazelrc.local").read_text())
 
 
 if __name__ == "__main__":
