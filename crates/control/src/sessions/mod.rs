@@ -40,7 +40,8 @@ pub use skills::{
     activate_skill, active_skill_names, deactivate_skill, persist_active_skill_context_digest,
 };
 pub use submission::{
-    claim_submission, create_submission_if_absent, pending_compaction_submission,
-    pending_submission, renew_submission_claim, submission_is_terminal, ClaimOutcome, RenewOutcome,
+    claim_submission, create_submission_if_absent, fail_submission_if_current,
+    pending_compaction_submission, pending_submission, renew_submission_claim,
+    submission_is_terminal, ClaimOutcome, RenewOutcome,
 };
 pub use talon::protocol::data_proto::SessionSubmission;

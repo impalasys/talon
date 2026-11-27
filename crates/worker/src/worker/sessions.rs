@@ -575,12 +575,28 @@ impl WorkerEventHandler {
         .await;
 
         self.session_cancellations.remove(&cancellation_key).await;
-        let completion_status = outcome
+        let mut completion_status = outcome
             .as_ref()
             .map(|(status, _)| *status)
             .unwrap_or(SessionCompletionStatus::Errored);
         if let Err(err) = &outcome {
             sink.on_error(&format!("Error: {:#}", err)).await;
+        }
+
+        if sink.is_cutover_terminal() {
+            completion_status = SessionCompletionStatus::Errored;
+        }
+
+        if sink.is_cutover_terminal() && !sink.has_cutover_release_authority() {
+            // Reclaim need not advance Session.last_active immediately. The
+            // timestamp-only session release is unsafe after losing the claim.
+            // Drop this attempt's cleanup/delivery; its successor owns the work.
+            if let Some(typing_keepalive) = typing_keepalive {
+                typing_keepalive.stop_after_release().await;
+            }
+            tracing::info!(submission = %submission.submission_id, attempt = %submission.attempt_id,
+                "Skipping session release after an unowned persistence cutover");
+            return Ok(());
         }
 
         // Release the user-visible session lock after the worker has either
@@ -665,11 +681,12 @@ impl WorkerEventHandler {
 
         // If execution failed after writing a reply projection, terminalize the
         // submission as failed so redelivery does not treat it as still claimed.
-        if outcome.is_err()
-            || matches!(
-                completion_status,
-                SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked
-            )
+        if !sink.is_cutover_terminal()
+            && (outcome.is_err()
+                || matches!(
+                    completion_status,
+                    SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked
+                ))
         {
             match talon::control::ProtoKeyValueStoreExt::get_msg::<data_proto::SessionMessage>(
                 self.cp.kv.as_ref(),
@@ -3672,6 +3689,247 @@ mod tests {
         assert!(error_part
             .content
             .contains("LLM_RESPONSE entry is missing payload"));
+    }
+
+    #[tokio::test]
+    async fn reclaimed_oversized_attempt_does_not_release_session_or_reclassify_queue() {
+        let _guard = crate::test_support::async_env_mutex().lock().await;
+        let kv = Arc::new(MockKvStore::default());
+        let provider_kv = kv.clone();
+        let app = Router::new().route(
+            "/chat/completions",
+            post(move || {
+                let kv = provider_kv.clone();
+                async move {
+                    let key = talon::control::keys::session_submission(
+                        "acme:test",
+                        "assistant",
+                        "session-1",
+                        "submission-1",
+                    );
+                    let mut submission = kv
+                        .get_msg::<data_proto::SessionSubmission>(&key)
+                        .await
+                        .unwrap()
+                        .unwrap();
+                    submission.attempt_id = "successor-attempt".into();
+                    submission.claim_expires_at =
+                        Some(chrono::Utc::now().timestamp_micros() + 60_000_000);
+                    kv.set_msg(&key, &submission).await.unwrap();
+                    talon::control::session_queue::queue_text_message(
+                        kv.as_ref(),
+                        "acme:test",
+                        "assistant",
+                        "session-1",
+                        talon::control::session_queue::STEER_QUEUE,
+                        "queued human input",
+                        HashMap::new(),
+                        chrono::Utc::now(),
+                    )
+                    .await
+                    .unwrap();
+                    format!(
+                        "data: {}\n\ndata: [DONE]\n\n",
+                        json!({"choices":[{"delta":{"content":"x".repeat(400 * 1024)}}]})
+                    )
+                }
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        let handler = handler_with_kv_and_base_url(kv.clone(), format!("http://{addr}"));
+        put_agent_resource(
+            kv.clone(),
+            "acme:test",
+            "assistant",
+            manifests::AgentSpec {
+                system_prompt: "assist".into(),
+                ..Default::default()
+            },
+        )
+        .await;
+        kv.set_msg(
+            &talon::control::keys::session("acme:test", "assistant", "session-1"),
+            &data_proto::Session {
+                id: "session-1".into(),
+                agent: "assistant".into(),
+                ns: "acme:test".into(),
+                status: "PROCESSING".into(),
+                last_active: 123,
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        handler
+            .handle_session_message(SessionDispatchEvent {
+                ns: "acme:test".into(),
+                agent: "assistant".into(),
+                session_id: "session-1".into(),
+                message_id: "user-1".into(),
+                submission_id: "submission-1".into(),
+                direction: MessageDirection::Inbound as i32,
+                message: "hello".into(),
+                timestamp: 123,
+                kind: Default::default(),
+            })
+            .await
+            .unwrap();
+        server.abort();
+        let session = kv
+            .get_msg::<data_proto::Session>(&talon::control::keys::session(
+                "acme:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(session.status, "PROCESSING");
+        assert_eq!(session.last_active, 123);
+        let submission = kv
+            .get_msg::<data_proto::SessionSubmission>(&talon::control::keys::session_submission(
+                "acme:test",
+                "assistant",
+                "session-1",
+                "submission-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(submission.attempt_id, "successor-attempt");
+        assert_eq!(
+            submission.status,
+            data_proto::SessionSubmissionStatus::Claimed as i32
+        );
+        let queued = kv
+            .list_keys(
+                &talon::control::keys::session_queue_prefix(
+                    "acme:test",
+                    "assistant",
+                    "session-1",
+                    talon::control::session_queue::STEER_QUEUE,
+                ),
+                None,
+            )
+            .await
+            .unwrap();
+        assert_eq!(
+            queued.len(),
+            1,
+            "stale worker must not move the live queue to NEXT"
+        );
+    }
+
+    #[tokio::test]
+    async fn oversized_assistant_response_releases_session_as_error() {
+        let _guard = crate::test_support::async_env_mutex().lock().await;
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|| async {
+                format!(
+                    "data: {}\n\ndata: [DONE]\n\n",
+                    json!({"choices":[{"delta":{"content":"x".repeat(400 * 1024)}}]})
+                )
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv_and_base_url(kv.clone(), format!("http://{addr}"));
+        put_agent_resource(
+            kv.clone(),
+            "acme:test",
+            "assistant",
+            manifests::AgentSpec {
+                system_prompt: "assist".to_string(),
+                ..Default::default()
+            },
+        )
+        .await;
+        kv.set_msg(
+            &talon::control::keys::session("acme:test", "assistant", "session-1"),
+            &data_proto::Session {
+                id: "session-1".into(),
+                agent: "assistant".into(),
+                ns: "acme:test".into(),
+                status: "PROCESSING".into(),
+                last_active: 123,
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        handler
+            .handle_session_message(SessionDispatchEvent {
+                ns: "acme:test".into(),
+                agent: "assistant".into(),
+                session_id: "session-1".into(),
+                message_id: "user-1".into(),
+                submission_id: "submission-1".into(),
+                direction: MessageDirection::Inbound as i32,
+                message: "hello".into(),
+                timestamp: 123,
+                kind: Default::default(),
+            })
+            .await
+            .unwrap();
+        server.abort();
+        let session = kv
+            .get_msg::<data_proto::Session>(&talon::control::keys::session(
+                "acme:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(session.status, "ERROR");
+        assert!(handler.session_cancellations.is_empty().await);
+        let submission = kv
+            .get_msg::<talon::harness::sessions::SessionSubmission>(
+                &talon::control::keys::session_submission(
+                    "acme:test",
+                    "assistant",
+                    "session-1",
+                    "submission-1",
+                ),
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            submission.status,
+            data_proto::SessionSubmissionStatus::Failed as i32
+        );
+        let reply = kv
+            .get_msg::<data_proto::SessionMessage>(&talon::control::keys::session_message(
+                "acme:test",
+                "assistant",
+                "session-1",
+                submission.committed_message_id.as_deref().unwrap(),
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            reply
+                .labels
+                .get(talon::harness::sessions::SESSION_LABEL_PROJECTION_STATE)
+                .map(String::as_str),
+            Some(talon::harness::sessions::SESSION_PROJECTION_STATE_FAILED)
+        );
+        assert_eq!(reply.parts.len(), 1);
+        assert_eq!(
+            reply.parts[0].part_type,
+            data_proto::SessionMessagePartType::Error as i32
+        );
     }
 
     #[tokio::test]
