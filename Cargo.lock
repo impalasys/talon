@@ -3032,6 +3032,7 @@ dependencies = [
  "connectors",
  "contracts",
  "control",
+ "encoding_rs",
  "futures",
  "identifiers",
  "mime_guess",

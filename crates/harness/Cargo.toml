@@ -13,6 +13,7 @@ aws-sdk-sts =  "=1.101.0"
 axum =  { version = "0.7", features = ["ws"] }
 base64 =  "0.21"
 chrono =  { version = "0.4", features = ["serde"] }
+encoding_rs =  "0.8"
 futures =  "0.3"
 mime_guess =  "2"
 monty-pool =  "0.0.21"
