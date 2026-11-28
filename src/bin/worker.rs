@@ -33,7 +33,6 @@ use axum::http::Response;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::post;
-use axum::Json;
 use axum::Router;
 #[cfg(unix)]
 use hyper::body::Incoming;
@@ -64,6 +63,7 @@ use talon::storage::pubsub::fully_qualified_topic_name;
 use talon::storage::pubsub::LocalSocketMessagePublisher;
 #[cfg(feature = "aws")]
 use talon::storage::sqs::SqsMessagePublisher;
+use talon::worker::scheduler_auth::PubSubPushAuthenticator;
 use talon::worker::scheduler_auth::SchedulerRequestAuthenticator;
 use talon::worker::WorkerEventHandler;
 #[cfg(unix)]
@@ -329,18 +329,67 @@ fn build_worker_handler(
     }
 }
 
+#[derive(Clone)]
+struct PushWebhookState {
+    handler: WorkerEventHandler,
+    authenticator: Arc<PubSubPushAuthenticator>,
+}
+
+struct AuthorizedPubSubPush;
+
+#[async_trait::async_trait]
+impl axum::extract::FromRequestParts<PushWebhookState> for AuthorizedPubSubPush {
+    type Rejection = StatusCode;
+
+    async fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        state: &PushWebhookState,
+    ) -> std::result::Result<Self, Self::Rejection> {
+        if let Err(err) = state.authenticator.authorize(&parts.headers).await {
+            tracing::warn!(error = %err, "Rejected Pub/Sub push webhook request");
+            return Err(StatusCode::UNAUTHORIZED);
+        }
+        Ok(Self)
+    }
+}
+
+fn authorize_worker_grpc_request(
+    request: tonic::Request<()>,
+) -> std::result::Result<tonic::Request<()>, tonic::Status> {
+    let auth_header = request
+        .metadata()
+        .get("authorization")
+        .and_then(|value| value.to_str().ok());
+    talon::security::platform_jwt::authorize_worker_grpc_authorization_header(auth_header)
+        .map_err(|err| {
+            tracing::warn!(error = %err, "Rejected unauthorized worker gRPC request");
+            tonic::Status::unauthenticated("unauthorized worker gRPC request")
+        })?;
+    Ok(request)
+}
+
+#[cfg(test)]
 fn worker_router(handler: WorkerEventHandler) -> Router {
+    worker_router_with_push_auth(handler, Arc::new(PubSubPushAuthenticator::deny_all()))
+}
+
+fn worker_router_with_push_auth(
+    handler: WorkerEventHandler,
+    pubsub_push_authenticator: Arc<PubSubPushAuthenticator>,
+) -> Router {
     use tonic::transport::Server;
 
     let fanout_service =
-        talon::protocol::worker_proto::fanout_service_server::FanoutServiceServer::new(
+        talon::protocol::worker_proto::fanout_service_server::FanoutServiceServer::with_interceptor(
             talon::worker::fanout::FanoutServiceImpl::new(handler.fanout_hub.clone()),
+            authorize_worker_grpc_request,
         );
     let control_service =
-        talon::protocol::worker_proto::session_control_service_server::SessionControlServiceServer::new(
+        talon::protocol::worker_proto::session_control_service_server::SessionControlServiceServer::with_interceptor(
             talon::worker::session_control::SessionControlServiceImpl::new(
                 handler.session_cancellations.clone(),
             ),
+            authorize_worker_grpc_request,
         );
     let tonic_service = Server::builder()
         .accept_http1(true)
@@ -348,15 +397,22 @@ fn worker_router(handler: WorkerEventHandler) -> Router {
         .add_service(control_service)
         .into_service::<BoxBody>();
 
-    Router::new()
+    let push_router = Router::new()
         .route("/pubsub/push", post(push_webhook))
+        .with_state(PushWebhookState {
+            handler: handler.clone(),
+            authenticator: pubsub_push_authenticator,
+        });
+
+    Router::new()
         .route("/schedules/fire", post(schedule_fire))
         .nest(
             "/mcp/talon-ops",
             talon::worker::talon_ops::talon_ops_router(handler.clone()),
         )
-        .fallback_service(grpc_service(tonic_service))
         .with_state(handler)
+        .merge(push_router)
+        .fallback_service(grpc_service(tonic_service))
 }
 
 fn grpc_service<S>(service: S) -> axum::routing::RouterIntoService<Body, ()>
@@ -1105,12 +1161,21 @@ async fn serve_worker_http(
     port: String,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
+    let pubsub_push_authenticator = Arc::new(PubSubPushAuthenticator::from_env(pull_mode_enabled(
+        |name| std::env::var(name).ok(),
+    )));
     #[cfg(unix)]
     if let Some(socket_path) = configured_worker_unix_socket_path()? {
-        return serve_worker_unix(handler, socket_path, shutdown_token).await;
+        return serve_worker_unix(
+            handler,
+            pubsub_push_authenticator,
+            socket_path,
+            shutdown_token,
+        )
+        .await;
     }
 
-    let app = worker_router(handler);
+    let app = worker_router_with_push_auth(handler, pubsub_push_authenticator);
     tracing::info!(
         port = %port,
         "Worker listening for Push events / Health checks on 0.0.0.0:{}",
@@ -1167,12 +1232,13 @@ async fn prepare_worker_unix_socket(path: &std::path::Path) -> Result<()> {
 #[cfg(unix)]
 async fn serve_worker_unix(
     handler: WorkerEventHandler,
+    pubsub_push_authenticator: Arc<PubSubPushAuthenticator>,
     socket_path: PathBuf,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
     prepare_worker_unix_socket(&socket_path).await?;
     let listener = UnixListener::bind(&socket_path)?;
-    let app = worker_router(handler);
+    let app = worker_router_with_push_auth(handler, pubsub_push_authenticator);
     let builder = HyperServerBuilder::new(TokioExecutor::new());
     let graceful = GracefulShutdown::new();
     tracing::info!(
@@ -1347,20 +1413,21 @@ where
 }
 
 async fn push_webhook(
-    State(handler): State<WorkerEventHandler>,
-    Json(payload): Json<serde_json::Value>,
+    _authorized: AuthorizedPubSubPush,
+    State(state): State<PushWebhookState>,
+    body: Bytes,
 ) -> impl IntoResponse {
-    println!(
-        "Received Webhook Payload: {}",
-        serde_json::to_string_pretty(&payload).unwrap()
-    );
-
-    if let Ok(parsed) = serde_json::from_value::<GcpPushPayload>(payload) {
+    if let Ok(parsed) = serde_json::from_slice::<GcpPushPayload>(&body) {
         use base64::engine::general_purpose;
         use base64::Engine as _;
+        tracing::debug!(
+            message_id = %parsed.message.message_id,
+            subscription = %parsed.subscription,
+            "Received authenticated Pub/Sub push webhook"
+        );
         if let Ok(raw_bytes) = general_purpose::STANDARD.decode(&parsed.message.data) {
             let event_type = WorkerEventHandler::event_type_for_subscription(&parsed.subscription);
-            match handler.dispatch(event_type, &raw_bytes).await {
+            match state.handler.dispatch(event_type, &raw_bytes).await {
                 Ok(_) => axum::http::StatusCode::OK,
                 Err(e) => {
                     tracing::error!(
@@ -1485,7 +1552,10 @@ mod tests {
     use super::worker_bind_addr;
     use super::worker_port;
     use super::worker_router;
+    use super::worker_router_with_push_auth;
+    use super::AuthorizedPubSubPush;
     use super::PullSubscriptionBackend;
+    use super::PushWebhookState;
     use super::ResolvedPullSubscriptionSpec;
     use super::DEFAULT_WORKER_THREAD_STACK_SIZE_BYTES;
     use super::HEALTHY_PULL_RUNTIME_RESET;
@@ -1499,7 +1569,6 @@ mod tests {
     use axum::http::Request;
     use axum::http::StatusCode;
     use axum::response::IntoResponse;
-    use axum::Json;
     use base64::engine::general_purpose;
     use base64::Engine as _;
     use futures::StreamExt;
@@ -1520,6 +1589,7 @@ mod tests {
     use talon::test_support::EmptyPubSub;
     use talon::test_support::MockKvStore;
     use talon::worker::mcp_registry::McpRegistry;
+    use talon::worker::scheduler_auth::PubSubPushAuthenticator;
     use talon::worker::scheduler_auth::SchedulerRequestAuthenticator;
     use talon::worker::WorkerEventHandler;
     use tokio_util::sync::CancellationToken;
@@ -2059,7 +2129,7 @@ mod tests {
             )
             .await
             .expect("request should succeed");
-        assert_eq!(post_push.status(), StatusCode::UNPROCESSABLE_ENTITY);
+        assert_eq!(post_push.status(), StatusCode::UNAUTHORIZED);
 
         let schedule_fire = app
             .oneshot(
@@ -2075,20 +2145,197 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn push_webhook_rejects_invalid_payload_shapes_and_base64() {
-        let handler = handler_with_auth(SchedulerRequestAuthenticator::deny_all());
+    async fn worker_router_rejects_unauthenticated_and_wrong_audience_grpc_requests() {
+        let _env_lock = talon::test_support::async_env_mutex().lock().await;
+        let _private_key = EnvGuard::set(
+            platform_jwt::TALON_JWT_PRIVATE_KEY_PEM_ENV,
+            TEST_RSA_PRIVATE_KEY,
+        );
+        let _issuer = EnvGuard::set(
+            platform_jwt::TALON_JWT_ISSUER_ENV,
+            "https://talon.localhost",
+        );
 
-        let invalid_shape = push_webhook(State(handler.clone()), Json(json!({"unexpected": true})))
+        let app = worker_router(handler_with_auth(SchedulerRequestAuthenticator::deny_all()));
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let shutdown = CancellationToken::new();
+        let server = tokio::spawn({
+            let shutdown = shutdown.clone();
+            async move {
+                let _ = axum::serve(listener, app)
+                    .with_graceful_shutdown(shutdown.cancelled_owned())
+                    .await;
+            }
+        });
+
+        let endpoint_url = format!("http://{addr}");
+        let channel = tonic::transport::Channel::from_shared(endpoint_url)
+            .unwrap()
+            .connect()
             .await
-            .into_response();
+            .unwrap();
+
+        // Unauthenticated SessionControlService call must be rejected.
+        let mut raw_control = talon::protocol::worker_proto::session_control_service_client::SessionControlServiceClient::new(channel.clone());
+        let err = raw_control
+            .cancel_session_generation(
+                talon::protocol::worker_proto::CancelSessionGenerationRequest::default(),
+            )
+            .await
+            .expect_err("unauthenticated SessionControlService call must fail");
+        assert_eq!(err.code(), tonic::Code::Unauthenticated);
+
+        // Unauthenticated FanoutService call must be rejected.
+        let mut raw_fanout =
+            talon::protocol::worker_proto::fanout_service_client::FanoutServiceClient::new(
+                channel.clone(),
+            );
+        let err = raw_fanout
+            .stream_session_parts(
+                talon::protocol::worker_proto::StreamSessionPartsRequest::default(),
+            )
+            .await
+            .expect_err("unauthenticated FanoutService call must fail");
+        assert_eq!(err.code(), tonic::Code::Unauthenticated);
+
+        // Wrong-audience platform JWT with an otherwise complete WorkerGrpcClaims
+        // payload (differing only in `aud`) must be rejected.
+        let key = platform_jwt::load_key().unwrap();
+        let issuer = platform_jwt::issuer().unwrap();
+        let now = chrono::Utc::now().timestamp() as usize;
+        let gateway_token = key
+            .sign(&platform_jwt::WorkerGrpcClaims {
+                iss: issuer.clone(),
+                sub: "talon-gateway".into(),
+                aud: platform_jwt::TALON_GATEWAY_AUDIENCE.into(),
+                iat: now,
+                exp: now + 300,
+            })
+            .unwrap();
+        let mut wrong_aud_req = tonic::Request::new(
+            talon::protocol::worker_proto::CancelSessionGenerationRequest::default(),
+        );
+        wrong_aud_req.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {gateway_token}").parse().unwrap(),
+        );
+        let err = raw_control
+            .cancel_session_generation(wrong_aud_req)
+            .await
+            .expect_err("wrong-audience JWT must fail");
+        assert_eq!(err.code(), tonic::Code::Unauthenticated);
+
+        // Valid worker-audience platform JWT must be accepted.
+        let worker_token =
+            platform_jwt::mint_worker_grpc_token(&key, &issuer, "talon-gateway", 300).unwrap();
+        let mut valid_req = tonic::Request::new(
+            talon::protocol::worker_proto::CancelSessionGenerationRequest {
+                ns: "default".into(),
+                agent: "assistant".into(),
+                session_id: "s1".into(),
+                submission_id: "sub1".into(),
+                attempt_id: "att1".into(),
+            },
+        );
+        valid_req.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {worker_token}").parse().unwrap(),
+        );
+        let response = raw_control
+            .cancel_session_generation(valid_req)
+            .await
+            .expect("valid worker JWT should succeed");
+        assert!(!response.into_inner().cancelled);
+
+        shutdown.cancel();
+        let _ = server.await;
+    }
+
+    #[tokio::test]
+    async fn push_webhook_rejects_unauthenticated_requests_before_body_buffering() {
+        let oversized_body = vec![b'x'; 3 * 1024 * 1024];
+
+        let denied_app =
+            worker_router(handler_with_auth(SchedulerRequestAuthenticator::deny_all()));
+        let denied = denied_app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/pubsub/push")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(axum::body::Body::from(oversized_body.clone()))
+                    .unwrap(),
+            )
+            .await
+            .expect("request should succeed");
+        assert_eq!(denied.status(), StatusCode::UNAUTHORIZED);
+
+        let shared_app = worker_router_with_push_auth(
+            handler_with_auth(SchedulerRequestAuthenticator::deny_all()),
+            Arc::new(PubSubPushAuthenticator::shared_secret(
+                "push-secret".to_string(),
+            )),
+        );
+        let wrong_secret = shared_app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/pubsub/push")
+                    .header(header::AUTHORIZATION, "Bearer wrong-secret")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(axum::body::Body::from(oversized_body.clone()))
+                    .unwrap(),
+            )
+            .await
+            .expect("request should succeed");
+        assert_eq!(wrong_secret.status(), StatusCode::UNAUTHORIZED);
+
+        // Authenticated oversized bodies still hit Axum's bounded body limit (413).
+        let oversized_authed = shared_app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/pubsub/push")
+                    .header(header::AUTHORIZATION, "Bearer push-secret")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(axum::body::Body::from(oversized_body))
+                    .unwrap(),
+            )
+            .await
+            .expect("request should succeed");
+        assert_eq!(oversized_authed.status(), StatusCode::PAYLOAD_TOO_LARGE);
+    }
+
+    fn push_state(authenticator: PubSubPushAuthenticator) -> PushWebhookState {
+        PushWebhookState {
+            handler: handler_with_auth(SchedulerRequestAuthenticator::deny_all()),
+            authenticator: Arc::new(authenticator),
+        }
+    }
+
+    #[tokio::test]
+    async fn push_webhook_rejects_invalid_payload_shapes_and_base64() {
+        let state = push_state(PubSubPushAuthenticator::deny_all());
+
+        let invalid_shape = push_webhook(
+            AuthorizedPubSubPush,
+            State(state.clone()),
+            Bytes::from_static(br#"{"unexpected":true}"#),
+        )
+        .await
+        .into_response();
         assert_eq!(invalid_shape.status(), StatusCode::UNPROCESSABLE_ENTITY);
 
+        let invalid_base64_payload = json!({
+            "message": {"data": "!!!", "messageId": "m1"},
+            "subscription": "projects/test/subscriptions/unknown"
+        });
         let invalid_base64 = push_webhook(
-            State(handler),
-            Json(json!({
-                "message": {"data": "!!!", "messageId": "m1"},
-                "subscription": "projects/test/subscriptions/unknown"
-            })),
+            AuthorizedPubSubPush,
+            State(state),
+            Bytes::from(serde_json::to_vec(&invalid_base64_payload).unwrap()),
         )
         .await
         .into_response();
@@ -2097,7 +2344,7 @@ mod tests {
 
     #[tokio::test]
     async fn push_webhook_dispatches_known_lifecycle_events() {
-        let handler = handler_with_auth(SchedulerRequestAuthenticator::deny_all());
+        let state = push_state(PubSubPushAuthenticator::deny_all());
         let event = LifecycleEvent {
             resource_type: "McpServer".to_string(),
             name: "server-1".to_string(),
@@ -2113,15 +2360,19 @@ mod tests {
             "subscription": format!("projects/test/subscriptions/{}", talon::control::topics::RESOURCE_LIFECYCLE_TOPIC)
         });
 
-        let response = push_webhook(State(handler), Json(payload))
-            .await
-            .into_response();
+        let response = push_webhook(
+            AuthorizedPubSubPush,
+            State(state),
+            Bytes::from(serde_json::to_vec(&payload).unwrap()),
+        )
+        .await
+        .into_response();
         assert_eq!(response.status(), StatusCode::OK);
     }
 
     #[tokio::test]
     async fn push_webhook_surfaces_dispatch_failures_as_internal_errors() {
-        let handler = handler_with_auth(SchedulerRequestAuthenticator::deny_all());
+        let state = push_state(PubSubPushAuthenticator::deny_all());
         let payload = json!({
             "message": {
                 "data": general_purpose::STANDARD.encode(b"not-a-protobuf"),
@@ -2133,10 +2384,37 @@ mod tests {
             )
         });
 
-        let response = push_webhook(State(handler), Json(payload))
-            .await
-            .into_response();
+        let response = push_webhook(
+            AuthorizedPubSubPush,
+            State(state),
+            Bytes::from(serde_json::to_vec(&payload).unwrap()),
+        )
+        .await
+        .into_response();
         assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    #[tokio::test]
+    async fn worker_router_with_push_auth_accepts_authenticated_push_requests() {
+        let app = worker_router_with_push_auth(
+            handler_with_auth(SchedulerRequestAuthenticator::deny_all()),
+            Arc::new(PubSubPushAuthenticator::shared_secret(
+                "push-secret".to_string(),
+            )),
+        );
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/pubsub/push")
+                    .header(header::AUTHORIZATION, "Bearer push-secret")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(axum::body::Body::from(r#"{"unexpected":true}"#))
+                    .unwrap(),
+            )
+            .await
+            .expect("request should succeed");
+        assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
     }
 
     #[tokio::test]

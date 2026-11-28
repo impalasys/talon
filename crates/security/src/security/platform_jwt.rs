@@ -11,14 +11,67 @@ use jsonwebtoken::{
     jwk::{AlgorithmParameters, Jwk, JwkSet, PublicKeyUse, ThumbprintHash},
     Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::sync::OnceLock;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub const DEFAULT_JWT_ISSUER: &str = "https://talon.impala.systems";
 pub const TALON_GATEWAY_AUDIENCE: &str = "talon.impala.systems";
 pub const MCP_AUTH_BROKER_AUDIENCE: &str = "mcps.talon.impala.systems";
 pub const TALON_OPS_AUDIENCE: &str = "talon-ops";
+pub const TALON_WORKER_GRPC_AUDIENCE: &str = "worker.talon.impala.systems";
+pub const DEFAULT_WORKER_GRPC_TOKEN_TTL_SECONDS: u64 = 300;
 const MIN_RSA_MODULUS_BITS: usize = 2048;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct WorkerGrpcClaims {
+    pub iss: String,
+    pub sub: String,
+    pub aud: String,
+    pub iat: usize,
+    pub exp: usize,
+}
+
+pub fn mint_worker_grpc_token(
+    key: &PlatformJwtKey,
+    issuer: &str,
+    subject: &str,
+    ttl_seconds: u64,
+) -> Result<String> {
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|err| anyhow!("system clock error: {err}"))?
+        .as_secs();
+    let claims = WorkerGrpcClaims {
+        iss: issuer.to_string(),
+        sub: subject.to_string(),
+        aud: TALON_WORKER_GRPC_AUDIENCE.to_string(),
+        iat: now as usize,
+        exp: now.saturating_add(ttl_seconds.max(1)) as usize,
+    };
+    key.sign(&claims)
+}
+
+pub fn verify_worker_grpc_token(
+    key: &PlatformJwtKey,
+    issuer: &str,
+    token: &str,
+) -> Result<WorkerGrpcClaims> {
+    key.verify(token, issuer, TALON_WORKER_GRPC_AUDIENCE)
+}
+
+pub fn authorize_worker_grpc_authorization_header(
+    auth_header: Option<&str>,
+) -> Result<WorkerGrpcClaims> {
+    let token = auth_header
+        .and_then(|value| value.strip_prefix("Bearer "))
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| anyhow!("missing worker gRPC bearer token"))?;
+    let key = load_key()?;
+    let issuer = issuer()?;
+    verify_worker_grpc_token(&key, &issuer, token)
+}
 
 #[cfg(test)]
 pub(crate) const TEST_RSA_PRIVATE_KEY: &str = include_str!(concat!(
@@ -329,6 +382,53 @@ GstIYNA4dYolNw==
 
         let err = issuer().unwrap_err();
         assert!(err.to_string().contains("must use https"));
+    }
+
+    #[test]
+    fn worker_grpc_token_roundtrip_and_audience_enforcement() {
+        let key = PlatformJwtKey::from_pem(TEST_RSA_PRIVATE_KEY).unwrap();
+        let token = mint_worker_grpc_token(&key, "https://talon.example.com", "talon-gateway", 300)
+            .unwrap();
+        let claims = verify_worker_grpc_token(&key, "https://talon.example.com", &token).unwrap();
+        assert_eq!(claims.sub, "talon-gateway");
+        assert_eq!(claims.aud, TALON_WORKER_GRPC_AUDIENCE);
+
+        // Gateway-audience token with an otherwise complete WorkerGrpcClaims set
+        // must fail specifically on audience validation.
+        let gateway_token = key
+            .sign(&WorkerGrpcClaims {
+                iss: "https://talon.example.com".to_string(),
+                sub: "talon-gateway".to_string(),
+                aud: TALON_GATEWAY_AUDIENCE.to_string(),
+                iat: claims.iat,
+                exp: claims.exp,
+            })
+            .unwrap();
+        let err = verify_worker_grpc_token(&key, "https://talon.example.com", &gateway_token)
+            .unwrap_err();
+        assert!(
+            err.to_string().contains("InvalidAudience"),
+            "expected InvalidAudience error, got: {err}"
+        );
+    }
+
+    #[test]
+    fn authorize_worker_grpc_authorization_header_validates_bearer_and_env_key() {
+        let _guard = crate::test_support::env_lock();
+        let _private_key = EnvGuard::set(TALON_JWT_PRIVATE_KEY_PEM_ENV, TEST_RSA_PRIVATE_KEY);
+        let _issuer = EnvGuard::set(TALON_JWT_ISSUER_ENV, "https://talon.localhost");
+
+        assert!(authorize_worker_grpc_authorization_header(None).is_err());
+        assert!(authorize_worker_grpc_authorization_header(Some("Basic abc")).is_err());
+        assert!(authorize_worker_grpc_authorization_header(Some("Bearer ")).is_err());
+
+        let key = load_key().unwrap();
+        let iss = issuer().unwrap();
+        let token = mint_worker_grpc_token(&key, &iss, "talon-gateway", 300).unwrap();
+        let claims =
+            authorize_worker_grpc_authorization_header(Some(&format!("Bearer {token}"))).unwrap();
+        assert_eq!(claims.sub, "talon-gateway");
+        assert_eq!(claims.aud, TALON_WORKER_GRPC_AUDIENCE);
     }
 }
 

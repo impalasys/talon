@@ -864,7 +864,7 @@ mod tests {
             ..Default::default()
         };
 
-        let pool = WorkerConnectionPool::new();
+        let pool = WorkerConnectionPool::new_unauthenticated();
         let mut stream = tokio::time::timeout(
             Duration::from_secs(5),
             stream_from_endpoint(&pool, &endpoint, &target, &submission, 0),

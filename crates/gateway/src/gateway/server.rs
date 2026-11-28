@@ -60,6 +60,11 @@ impl Gateway {
         objects: Arc<dyn ObjectStore + Send + Sync>,
         documents: Arc<dyn DocumentStore + Send + Sync>,
     ) -> Self {
+        let worker_connections = Arc::new(if auth_config.is_some() {
+            WorkerConnectionPool::new()
+        } else {
+            WorkerConnectionPool::new_unauthenticated()
+        });
         Self {
             auth_config,
             trust_config,
@@ -68,7 +73,7 @@ impl Gateway {
             scheduler,
             objects,
             documents,
-            worker_connections: Arc::new(WorkerConnectionPool::new()),
+            worker_connections,
         }
     }
 

@@ -15,7 +15,92 @@ use std::{
 };
 
 const GOOGLE_OIDC_CERTS_TTL: Duration = Duration::from_secs(60 * 60);
+const GOOGLE_OIDC_MISS_REFRESH_COOLDOWN: Duration = Duration::from_secs(60);
 const GOOGLE_OIDC_HTTP_TIMEOUT: Duration = Duration::from_secs(10);
+pub const PUBSUB_PUSH_AUTH_HEADER: &str = "x-talon-pubsub-token";
+
+#[derive(Clone)]
+pub enum PubSubPushAuthenticator {
+    SharedSecret {
+        token: String,
+    },
+    GoogleOidc {
+        audience: String,
+        service_account_email: String,
+    },
+    DenyAll,
+}
+
+impl PubSubPushAuthenticator {
+    pub fn from_env(pull_mode: bool) -> Self {
+        Self::from_env_for_mode(pull_mode, |name| std::env::var(name).ok())
+    }
+
+    pub fn from_env_for_mode<F>(pull_mode: bool, get: F) -> Self
+    where
+        F: Fn(&str) -> Option<String>,
+    {
+        if pull_mode {
+            return Self::deny_all();
+        }
+
+        if let Some(token) = get("TALON_PUBSUB_PUSH_AUTH_TOKEN").and_then(non_empty) {
+            return Self::shared_secret(token);
+        }
+
+        if let Some(audience) = get("TALON_PUBSUB_PUSH_AUDIENCE").and_then(non_empty) {
+            if let Some(service_account_email) =
+                get("TALON_PUBSUB_PUSH_SERVICE_ACCOUNT_EMAIL").and_then(non_empty)
+            {
+                return Self::google_oidc(audience, service_account_email);
+            }
+            tracing::warn!(
+                "TALON_PUBSUB_PUSH_AUDIENCE is set without TALON_PUBSUB_PUSH_SERVICE_ACCOUNT_EMAIL; denying Pub/Sub push requests"
+            );
+            return Self::deny_all();
+        }
+
+        Self::deny_all()
+    }
+
+    pub fn deny_all() -> Self {
+        Self::DenyAll
+    }
+
+    pub fn shared_secret(token: String) -> Self {
+        Self::SharedSecret { token }
+    }
+
+    pub fn google_oidc(audience: String, service_account_email: String) -> Self {
+        match (non_empty(audience), non_empty(service_account_email)) {
+            (Some(audience), Some(service_account_email)) => Self::GoogleOidc {
+                audience,
+                service_account_email,
+            },
+            _ => Self::DenyAll,
+        }
+    }
+
+    pub async fn authorize(&self, headers: &HeaderMap) -> Result<()> {
+        match self {
+            Self::SharedSecret { token } => authorize_shared_secret_with_header(
+                headers,
+                token,
+                PUBSUB_PUSH_AUTH_HEADER,
+                "invalid pubsub push shared secret",
+            ),
+            Self::GoogleOidc {
+                audience,
+                service_account_email,
+            } => {
+                authorize_google_oidc(headers, audience, Some(service_account_email.as_str())).await
+            }
+            Self::DenyAll => Err(anyhow!(
+                "pubsub push authentication is not configured or disabled in pull mode"
+            )),
+        }
+    }
+}
 
 #[derive(Clone)]
 pub enum SchedulerRequestAuthenticator {
@@ -123,20 +208,47 @@ fn non_empty(value: String) -> Option<String> {
     }
 }
 
+fn constant_time_eq(a: &str, b: &str) -> bool {
+    let a = a.as_bytes();
+    let b = b.as_bytes();
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut diff = 0u8;
+    for (&lhs, &rhs) in a.iter().zip(b.iter()) {
+        diff |= lhs ^ rhs;
+    }
+    diff == 0
+}
+
 fn authorize_shared_secret(headers: &HeaderMap, expected_token: &str) -> Result<()> {
+    authorize_shared_secret_with_header(
+        headers,
+        expected_token,
+        talon::control::scheduler::SCHEDULER_AUTH_HEADER,
+        "invalid scheduler shared secret",
+    )
+}
+
+fn authorize_shared_secret_with_header(
+    headers: &HeaderMap,
+    expected_token: &str,
+    custom_header: &str,
+    error_message: &str,
+) -> Result<()> {
     let auth_header = headers
         .get(header::AUTHORIZATION)
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "));
-    let scheduler_header = headers
-        .get(talon::control::scheduler::SCHEDULER_AUTH_HEADER)
-        .and_then(|v| v.to_str().ok());
+    let custom_value = headers.get(custom_header).and_then(|v| v.to_str().ok());
 
-    if auth_header == Some(expected_token) || scheduler_header == Some(expected_token) {
+    if auth_header.is_some_and(|candidate| constant_time_eq(candidate, expected_token))
+        || custom_value.is_some_and(|candidate| constant_time_eq(candidate, expected_token))
+    {
         return Ok(());
     }
 
-    Err(anyhow!("invalid scheduler shared secret"))
+    Err(anyhow!("{error_message}"))
 }
 
 async fn authorize_google_oidc(
@@ -179,38 +291,67 @@ fn google_oidc_http_client() -> &'static reqwest::Client {
     })
 }
 
-async fn load_google_oidc_decoding_key(kid: &str) -> Result<Arc<DecodingKey>> {
-    if let Some(key) = cached_google_oidc_decoding_key(kid).await {
-        return Ok(key);
-    }
-
-    let fetched = fetch_google_oidc_certs().await?;
-    let mut cache = google_oidc_certs_cache().write().await;
-    if let Some(cached) = cache.as_ref() {
-        if cached.fetched_at.elapsed() < GOOGLE_OIDC_CERTS_TTL {
-            if let Some(key) = cached.keys.get(kid) {
-                return Ok(Arc::clone(key));
-            }
-        }
-    }
-    let key = fetched
-        .keys
-        .get(kid)
-        .cloned()
-        .ok_or_else(|| anyhow!("unknown Google cert kid '{}'", kid))?;
-    *cache = Some(fetched);
-    Ok(key)
+fn google_oidc_refresh_lock() -> &'static tokio::sync::Mutex<()> {
+    static LOCK: OnceLock<tokio::sync::Mutex<()>> = OnceLock::new();
+    LOCK.get_or_init(|| tokio::sync::Mutex::new(()))
 }
 
-async fn cached_google_oidc_decoding_key(kid: &str) -> Option<Arc<DecodingKey>> {
-    let cache = google_oidc_certs_cache().read().await;
-    cache.as_ref().and_then(|cached| {
-        if cached.fetched_at.elapsed() < GOOGLE_OIDC_CERTS_TTL {
-            cached.keys.get(kid).cloned()
-        } else {
-            None
+async fn load_google_oidc_decoding_key(kid: &str) -> Result<Arc<DecodingKey>> {
+    load_google_oidc_decoding_key_with(kid, fetch_google_oidc_certs).await
+}
+
+async fn load_google_oidc_decoding_key_with<F, Fut>(kid: &str, fetch: F) -> Result<Arc<DecodingKey>>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<CachedGoogleOidcCerts>>,
+{
+    match lookup_cached_google_oidc_key(kid).await {
+        CachedCertLookup::Found(key) => return Ok(key),
+        CachedCertLookup::RecentMiss => {
+            return Err(anyhow!("unknown Google cert kid '{}'", kid));
         }
-    })
+        CachedCertLookup::NeedsRefresh => {}
+    }
+
+    let _refresh_guard = google_oidc_refresh_lock().lock().await;
+    match lookup_cached_google_oidc_key(kid).await {
+        CachedCertLookup::Found(key) => return Ok(key),
+        CachedCertLookup::RecentMiss => {
+            return Err(anyhow!("unknown Google cert kid '{}'", kid));
+        }
+        CachedCertLookup::NeedsRefresh => {}
+    }
+
+    let fetched = fetch().await?;
+    let mut cache = google_oidc_certs_cache().write().await;
+    let key = fetched.keys.get(kid).cloned();
+    // Always persist successful fetches even if the requested kid is absent so
+    // repeated unknown-kid misses are bounded by GOOGLE_OIDC_MISS_REFRESH_COOLDOWN.
+    *cache = Some(fetched);
+    key.ok_or_else(|| anyhow!("unknown Google cert kid '{}'", kid))
+}
+
+enum CachedCertLookup {
+    Found(Arc<DecodingKey>),
+    RecentMiss,
+    NeedsRefresh,
+}
+
+async fn lookup_cached_google_oidc_key(kid: &str) -> CachedCertLookup {
+    let cache = google_oidc_certs_cache().read().await;
+    let Some(cached) = cache.as_ref() else {
+        return CachedCertLookup::NeedsRefresh;
+    };
+    let elapsed = cached.fetched_at.elapsed();
+    if elapsed < GOOGLE_OIDC_CERTS_TTL {
+        if let Some(key) = cached.keys.get(kid) {
+            return CachedCertLookup::Found(Arc::clone(key));
+        }
+        if elapsed < GOOGLE_OIDC_MISS_REFRESH_COOLDOWN {
+            return CachedCertLookup::RecentMiss;
+        }
+    }
+    CachedCertLookup::NeedsRefresh
 }
 
 async fn fetch_google_oidc_certs() -> Result<CachedGoogleOidcCerts> {
@@ -271,14 +412,20 @@ mod tests {
     use crate::talon;
 
     use super::{
-        authorize_shared_secret, google_oidc_certs_cache, load_google_oidc_decoding_key, non_empty,
-        CachedGoogleOidcCerts, SchedulerRequestAuthenticator,
+        authorize_shared_secret, google_oidc_certs_cache, load_google_oidc_decoding_key,
+        load_google_oidc_decoding_key_with, non_empty, CachedGoogleOidcCerts,
+        PubSubPushAuthenticator, SchedulerRequestAuthenticator, GOOGLE_OIDC_MISS_REFRESH_COOLDOWN,
+        PUBSUB_PUSH_AUTH_HEADER,
     };
     use axum::http::{header, HeaderMap, HeaderValue};
     use jsonwebtoken::{encode, Algorithm, DecodingKey, EncodingKey, Header};
     use serde::Serialize;
     use std::sync::{Mutex, OnceLock};
-    use std::{collections::HashMap, sync::Arc, time::Instant};
+    use std::{
+        collections::HashMap,
+        sync::Arc,
+        time::{Duration, Instant},
+    };
 
     const TEST_RSA_PRIVATE_KEY: &str = "-----BEGIN RSA PRIVATE KEY-----
 MIICXgIBAAKBgQC72wHrmFBtmTNV6Th0MAifD5jPdnfWqdl8Z4+01QscV/6rnKhq
@@ -589,6 +736,190 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
         load_google_oidc_decoding_key(kid)
             .await
             .expect("expected cached key lookup to succeed");
+
+        clear_google_oidc_cache().await;
+    }
+
+    #[tokio::test]
+    async fn pubsub_push_authenticator_denies_by_default_and_in_pull_mode() {
+        let pull_auth = PubSubPushAuthenticator::from_env_for_mode(true, |name| match name {
+            "TALON_PUBSUB_PUSH_AUTH_TOKEN" => Some("push-secret".to_string()),
+            _ => None,
+        });
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("Bearer push-secret"),
+        );
+        assert!(pull_auth.authorize(&headers).await.is_err());
+
+        let unconfigured = PubSubPushAuthenticator::from_env_for_mode(false, |_| None);
+        assert!(unconfigured.authorize(&headers).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn pubsub_push_authenticator_accepts_shared_secret_and_google_oidc() {
+        let shared = PubSubPushAuthenticator::from_env_for_mode(false, |name| match name {
+            "TALON_PUBSUB_PUSH_AUTH_TOKEN" => Some("push-secret".to_string()),
+            _ => None,
+        });
+        let mut bearer_headers = HeaderMap::new();
+        bearer_headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("Bearer push-secret"),
+        );
+        shared.authorize(&bearer_headers).await.unwrap();
+
+        let mut custom_headers = HeaderMap::new();
+        custom_headers.insert(
+            PUBSUB_PUSH_AUTH_HEADER,
+            HeaderValue::from_static("push-secret"),
+        );
+        shared.authorize(&custom_headers).await.unwrap();
+
+        let mut wrong_headers = HeaderMap::new();
+        wrong_headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("Bearer wrong"),
+        );
+        assert!(shared.authorize(&wrong_headers).await.is_err());
+
+        let _guard = oidc_cache_mutex().lock().unwrap();
+        clear_google_oidc_cache().await;
+        let kid = "kid-push";
+        seed_google_oidc_cache(kid).await;
+
+        let oidc = PubSubPushAuthenticator::from_env_for_mode(false, |name| match name {
+            "TALON_PUBSUB_PUSH_AUDIENCE" => Some("https://worker.example.com/pubsub/push".into()),
+            "TALON_PUBSUB_PUSH_SERVICE_ACCOUNT_EMAIL" => {
+                Some("pubsub@example.iam.gserviceaccount.com".into())
+            }
+            _ => None,
+        });
+        let token = signed_google_oidc_token(
+            kid,
+            "https://worker.example.com/pubsub/push",
+            Some("pubsub@example.iam.gserviceaccount.com"),
+            Some(true),
+        );
+        let mut oidc_headers = HeaderMap::new();
+        oidc_headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
+        );
+        oidc.authorize(&oidc_headers).await.unwrap();
+        clear_google_oidc_cache().await;
+    }
+
+    #[tokio::test]
+    async fn pubsub_push_oidc_requires_service_account_email() {
+        let _guard = oidc_cache_mutex().lock().unwrap();
+        clear_google_oidc_cache().await;
+        let kid = "kid-push-missing-email";
+        seed_google_oidc_cache(kid).await;
+
+        let token = signed_google_oidc_token(
+            kid,
+            "https://worker.example.com/pubsub/push",
+            Some("someone@example.iam.gserviceaccount.com"),
+            Some(true),
+        );
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
+        );
+
+        let missing_email = PubSubPushAuthenticator::from_env_for_mode(false, |name| match name {
+            "TALON_PUBSUB_PUSH_AUDIENCE" => Some("https://worker.example.com/pubsub/push".into()),
+            _ => None,
+        });
+        assert!(missing_email.authorize(&headers).await.is_err());
+
+        let blank_email = PubSubPushAuthenticator::from_env_for_mode(false, |name| match name {
+            "TALON_PUBSUB_PUSH_AUDIENCE" => Some("https://worker.example.com/pubsub/push".into()),
+            "TALON_PUBSUB_PUSH_SERVICE_ACCOUNT_EMAIL" => Some("   ".into()),
+            _ => None,
+        });
+        assert!(blank_email.authorize(&headers).await.is_err());
+
+        clear_google_oidc_cache().await;
+    }
+
+    #[tokio::test]
+    async fn google_oidc_cert_cache_stores_failed_lookups_and_rate_limits_miss_refreshes() {
+        let _guard = oidc_cache_mutex().lock().unwrap();
+        clear_google_oidc_cache().await;
+        talon::control::security::install_jwt_crypto_provider();
+
+        let fetches = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let make_certs = |kid: &str| {
+            let mut keys = HashMap::new();
+            keys.insert(
+                kid.to_string(),
+                Arc::new(DecodingKey::from_rsa_pem(TEST_RSA_PUBLIC_KEY.as_bytes()).unwrap()),
+            );
+            CachedGoogleOidcCerts {
+                fetched_at: Instant::now(),
+                keys,
+            }
+        };
+
+        // First miss fetches once, caches the returned keyset, and returns unknown kid.
+        let err = load_google_oidc_decoding_key_with("unknown-1", || {
+            let fetches = Arc::clone(&fetches);
+            async move {
+                fetches.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                Ok(make_certs("kid-initial"))
+            }
+        })
+        .await
+        .expect_err("unknown kid should fail");
+        assert!(err.to_string().contains("unknown Google cert kid"));
+        assert_eq!(fetches.load(std::sync::atomic::Ordering::SeqCst), 1);
+
+        // Existing key from the fetched set is immediately served from cache.
+        load_google_oidc_decoding_key_with("kid-initial", || {
+            let fetches = Arc::clone(&fetches);
+            async move {
+                fetches.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                Ok(make_certs("kid-initial"))
+            }
+        })
+        .await
+        .expect("cached key from prior miss-triggered fetch should hit");
+        assert_eq!(fetches.load(std::sync::atomic::Ordering::SeqCst), 1);
+
+        // Subsequent unknown-kid misses within cooldown must NOT trigger another fetch.
+        let err = load_google_oidc_decoding_key_with("unknown-2", || {
+            let fetches = Arc::clone(&fetches);
+            async move {
+                fetches.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                Ok(make_certs("kid-rotated"))
+            }
+        })
+        .await
+        .expect_err("unknown kid within cooldown should fail without fetching");
+        assert!(err.to_string().contains("unknown Google cert kid"));
+        assert_eq!(fetches.load(std::sync::atomic::Ordering::SeqCst), 1);
+
+        // Once the cache is older than the miss-refresh cooldown, a miss refreshes
+        // and discovers the rotated key.
+        {
+            let mut cache = google_oidc_certs_cache().write().await;
+            cache.as_mut().unwrap().fetched_at =
+                Instant::now() - GOOGLE_OIDC_MISS_REFRESH_COOLDOWN - Duration::from_secs(1);
+        }
+        load_google_oidc_decoding_key_with("kid-rotated", || {
+            let fetches = Arc::clone(&fetches);
+            async move {
+                fetches.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                Ok(make_certs("kid-rotated"))
+            }
+        })
+        .await
+        .expect("rotated key should be discovered after cooldown");
+        assert_eq!(fetches.load(std::sync::atomic::Ordering::SeqCst), 2);
 
         clear_google_oidc_cache().await;
     }
